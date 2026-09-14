@@ -5041,7 +5041,8 @@
         "news": "ニュース",
         "leagues": "リーグ",
         "events": "イベント",
-        "utility": "ユーティリティ"
+        "utility": "ユーティリティ",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "コミュニティ"
@@ -5115,7 +5116,8 @@
         "manage_events": "イベント管理",
         "system_media_server": "メディアサーバー",
         "utility_drift": "ユーティリティラインナップのずれ",
-        "utility": "ユーティリティラインナップ"
+        "utility": "ユーティリティラインナップ",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "ログアウト",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "イベント",
           "subtitle": "コミュニティナイトと単発の企画"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "ボイスチャットに参加"
         }
       }
     },

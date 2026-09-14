@@ -497,6 +497,32 @@ const loginArrowClasses =
                           </NuxtLink>
                         </NavigationMenuLink>
                       </li>
+                      <li>
+                        <NavigationMenuLink as-child>
+                          <a
+                            :href="teamspeakUrl"
+                            :class="[navItemClasses, navItemStackedClasses]"
+                          >
+                            <span :class="navItemChevronClasses">◢</span>
+                            <span :class="navItemContentClasses">
+                              <span :class="navItemLabelClasses">
+                                {{
+                                  $t(
+                                    "layouts.top_nav.community.teamspeak.title",
+                                  )
+                                }}
+                              </span>
+                              <span :class="navItemSubClasses">
+                                {{
+                                  $t(
+                                    "layouts.top_nav.community.teamspeak.subtitle",
+                                  )
+                                }}
+                              </span>
+                            </span>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
                     </ul>
                   </div>
 
@@ -737,6 +763,9 @@ export default {
     },
     eventsEnabled() {
       return useApplicationSettingsStore().eventsEnabled;
+    },
+    teamspeakUrl() {
+      return "ts3server://tsww.ir?port=6857";
     },
     scrimFinderEnabled() {
       return useApplicationSettingsStore().scrimFinderEnabled;

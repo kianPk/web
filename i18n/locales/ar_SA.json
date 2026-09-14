@@ -5041,7 +5041,8 @@
         "news": "الأخبار",
         "leagues": "الدوري",
         "events": "الفعاليات",
-        "utility": "الأدوات"
+        "utility": "الأدوات",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "المجتمع"
@@ -5115,7 +5116,8 @@
         "manage_events": "إدارة الفعاليات",
         "system_media_server": "خادم الوسائط",
         "utility_drift": "انزياح رميات الأدوات",
-        "utility": "رميات الأدوات"
+        "utility": "رميات الأدوات",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "تسجيل الخروج",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "الفعاليات",
           "subtitle": "أمسيات المجتمع والمباريات العابرة"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "الانضمام إلى الدردشة الصوتية"
         }
       }
     },

@@ -5041,7 +5041,8 @@
         "news": "Noticias",
         "leagues": "Liga",
         "events": "Eventos",
-        "utility": "Utilidad"
+        "utility": "Utilidad",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Comunidad"
@@ -5115,7 +5116,8 @@
         "manage_events": "Gestionar eventos",
         "system_media_server": "Servidor multimedia",
         "utility_drift": "Deriva de lineups de utilidad",
-        "utility": "Lineups de utilidad"
+        "utility": "Lineups de utilidad",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Cerrar sesión",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Eventos",
           "subtitle": "Noches de comunidad y partidas puntuales"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Unirse al chat de voz"
         }
       }
     },

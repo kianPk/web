@@ -5041,7 +5041,8 @@
         "news": "Nyheder",
         "leagues": "Liga",
         "events": "Events",
-        "utility": "Utility"
+        "utility": "Utility",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Community"
@@ -5115,7 +5116,8 @@
         "manage_events": "Administrer events",
         "system_media_server": "Medieserver",
         "utility_drift": "Afvigelse i utility-opstillinger",
-        "utility": "Utility-opstillinger"
+        "utility": "Utility-opstillinger",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Log ud",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Begivenheder",
           "subtitle": "Community-aftener og enkeltstående spil"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Deltag i stemmechat"
         }
       }
     },

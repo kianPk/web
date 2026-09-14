@@ -5041,7 +5041,8 @@
         "news": "Haberler",
         "leagues": "Lig",
         "events": "Etkinlikler",
-        "utility": "Utility"
+        "utility": "Utility",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Topluluk"
@@ -5115,7 +5116,8 @@
         "manage_events": "Etkinlikleri yönet",
         "system_media_server": "Medya sunucusu",
         "utility_drift": "Utility Dizilim Kayması",
-        "utility": "Utility Dizilimleri"
+        "utility": "Utility Dizilimleri",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Çıkış yap",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Etkinlikler",
           "subtitle": "Topluluk geceleri ve tek seferlik oyunlar"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Sesli sohbete katıl"
         }
       }
     },

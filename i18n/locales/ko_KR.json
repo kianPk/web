@@ -5041,7 +5041,8 @@
         "news": "뉴스",
         "leagues": "리그",
         "events": "이벤트",
-        "utility": "유틸리티"
+        "utility": "유틸리티",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "커뮤니티"
@@ -5115,7 +5116,8 @@
         "manage_events": "이벤트 관리",
         "system_media_server": "미디어 서버",
         "utility_drift": "유틸리티 라인업 변동",
-        "utility": "유틸리티 라인업"
+        "utility": "유틸리티 라인업",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "로그아웃",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "이벤트",
           "subtitle": "커뮤니티 나이트와 일회성 경기"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "음성 채팅 참가"
         }
       }
     },

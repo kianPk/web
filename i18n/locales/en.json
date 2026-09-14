@@ -5041,7 +5041,8 @@
         "news": "News",
         "leagues": "League",
         "events": "Events",
-        "utility": "Utility"
+        "utility": "Utility",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Community"
@@ -5115,7 +5116,8 @@
         "manage_events": "Manage Events",
         "system_media_server": "Media Server",
         "utility_drift": "Utility Lineup Drift",
-        "utility": "Utility Lineups"
+        "utility": "Utility Lineups",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Logout",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Events",
           "subtitle": "Community nights and one-off games"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Join voice chat"
         }
       }
     },

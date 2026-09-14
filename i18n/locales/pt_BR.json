@@ -5041,7 +5041,8 @@
         "news": "Notícias",
         "leagues": "Liga",
         "events": "Eventos",
-        "utility": "Utilitário"
+        "utility": "Utilitário",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Comunidade"
@@ -5115,7 +5116,8 @@
         "manage_events": "Gerenciar Eventos",
         "system_media_server": "Servidor de Mídia",
         "utility_drift": "Desvio de lineups de utilitário",
-        "utility": "Lineups de utilitário"
+        "utility": "Lineups de utilitário",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Sair",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Eventos",
           "subtitle": "Noites da comunidade e jogos avulsos"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Entrar no chat de voz"
         }
       }
     },

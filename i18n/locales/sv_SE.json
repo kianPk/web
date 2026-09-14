@@ -5041,7 +5041,8 @@
         "news": "Nyheter",
         "leagues": "Liga",
         "events": "Event",
-        "utility": "Utility"
+        "utility": "Utility",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Community"
@@ -5115,7 +5116,8 @@
         "manage_events": "Hantera event",
         "system_media_server": "Medieserver",
         "utility_drift": "Drift i utility-uppställningar",
-        "utility": "Utility-uppställningar"
+        "utility": "Utility-uppställningar",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Logga ut",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "Evenemang",
           "subtitle": "Communitykvällar och enstaka spel"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Gå med i röstchatt"
         }
       }
     },

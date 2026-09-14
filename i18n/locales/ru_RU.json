@@ -5041,7 +5041,8 @@
         "news": "Новости",
         "leagues": "Лига",
         "events": "События",
-        "utility": "Гранаты"
+        "utility": "Гранаты",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "Сообщество"
@@ -5115,7 +5116,8 @@
         "manage_events": "Управление событиями",
         "system_media_server": "Медиасервер",
         "utility_drift": "Смещение раскидок гранат",
-        "utility": "Раскидки гранат"
+        "utility": "Раскидки гранат",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "Выйти",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "События",
           "subtitle": "Вечера сообщества и разовые игры"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "Подключиться к голосу"
         }
       }
     },

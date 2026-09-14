@@ -5041,7 +5041,8 @@
         "news": "最新消息",
         "leagues": "聯賽",
         "events": "活動",
-        "utility": "道具"
+        "utility": "道具",
+        "teamspeak": "TeamSpeak"
       },
       "community": {
         "title": "社群"
@@ -5115,7 +5116,8 @@
         "manage_events": "管理活動",
         "system_media_server": "媒體伺服器",
         "utility_drift": "道具點位位移",
-        "utility": "道具點位"
+        "utility": "道具點位",
+        "teamspeak": "TeamSpeak"
       },
       "logout_dialog": {
         "title": "登出",
@@ -5199,6 +5201,10 @@
         "events": {
           "title": "活動",
           "subtitle": "社群之夜與一次性賽事"
+        },
+        "teamspeak": {
+          "title": "TeamSpeak",
+          "subtitle": "加入語音聊天"
         }
       }
     },
