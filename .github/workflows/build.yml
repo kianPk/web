@@ -18,9 +18,14 @@ env:
 jobs:
   build-amd64:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+      - name: Lowercase image owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GitHub Docker Registry
@@ -36,16 +41,21 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/web:buildcache-${{ env.TAG_PREFIX }}amd64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/web:buildcache-${{ env.TAG_PREFIX }}amd64,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.OWNER_LC }}/web:buildcache-${{ env.TAG_PREFIX }}amd64
+          cache-to: type=registry,ref=ghcr.io/${{ env.OWNER_LC }}/web:buildcache-${{ env.TAG_PREFIX }}amd64,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.CHANNEL }}-amd64
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-amd64
+            ghcr.io/${{ env.OWNER_LC }}/web:${{ env.CHANNEL }}-amd64
+            ghcr.io/${{ env.OWNER_LC }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-amd64
   build-arm64:
     runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+      - name: Lowercase image owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GitHub Docker Registry
@@ -61,17 +71,19 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/arm64
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/web:buildcache-${{ env.TAG_PREFIX }}arm64
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/web:buildcache-${{ env.TAG_PREFIX }}arm64,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.OWNER_LC }}/web:buildcache-${{ env.TAG_PREFIX }}arm64
+          cache-to: type=registry,ref=ghcr.io/${{ env.OWNER_LC }}/web:buildcache-${{ env.TAG_PREFIX }}arm64,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.CHANNEL }}-arm64
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-arm64
+            ghcr.io/${{ env.OWNER_LC }}/web:${{ env.CHANNEL }}-arm64
+            ghcr.io/${{ env.OWNER_LC }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-arm64
   merge:
     needs: [build-amd64, build-arm64]
     runs-on: ubuntu-latest
     permissions:
       packages: write
     steps:
+      - name: Lowercase image owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
       - name: Log in to GitHub Docker Registry
         uses: docker/login-action@v3
         with:
@@ -80,12 +92,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Create manifest list and push
         run: |
-          docker buildx imagetools create -t ghcr.io/${{ github.repository_owner }}/web:${{ env.CHANNEL }} \
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.CHANNEL }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.CHANNEL }}-arm64
-          docker buildx imagetools create -t ghcr.io/${{ github.repository_owner }}/web:${{ env.TAG_PREFIX }}${{ github.sha }} \
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/web:${{ env.TAG_PREFIX }}${{ github.sha }}-arm64
+          docker buildx imagetools create -t "ghcr.io/${OWNER_LC}/web:${CHANNEL}" \
+            "ghcr.io/${OWNER_LC}/web:${CHANNEL}-amd64" \
+            "ghcr.io/${OWNER_LC}/web:${CHANNEL}-arm64"
+          docker buildx imagetools create -t "ghcr.io/${OWNER_LC}/web:${TAG_PREFIX}${GITHUB_SHA}" \
+            "ghcr.io/${OWNER_LC}/web:${TAG_PREFIX}${GITHUB_SHA}-amd64" \
+            "ghcr.io/${OWNER_LC}/web:${TAG_PREFIX}${GITHUB_SHA}-arm64"
       - name: Prune old images for channel
         uses: actions/github-script@v7
         with:
