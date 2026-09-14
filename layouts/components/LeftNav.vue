@@ -34,7 +34,6 @@ import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
 import ProfileMenu from "~/layouts/components/ProfileMenu.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
-import { DiscordLogoIcon, GithubLogoIcon } from "@radix-icons/vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerPendingImports from "~/components/PlayerPendingImports.vue";
 import { Kbd, KbdGroup } from "~/components/ui/kbd";
@@ -1070,44 +1069,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem
-            v-if="
-              me?.role === e_player_roles_enum.administrator && showReportIssue
-            "
-          >
-            <SidebarMenuButton
-              as-child
-              :tooltip="$t('layouts.app_nav.tooltips.report_issue')"
-            >
-              <a
-                :href="githubUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <GithubLogoIcon class="w-5 h-5" />
-                {{ $t("layouts.app_nav.footer.report_issue") }}
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              as-child
-              :tooltip="$t('layouts.app_nav.tooltips.join_discord')"
-            >
-              <a
-                :href="inviteLink"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <DiscordLogoIcon class="w-5 h-5" />
-                {{ $t("layouts.app_nav.footer.join_discord") }}
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
           <InstallPWA />
 
           <SidebarMenuItem>
@@ -1310,12 +1271,6 @@ export default {
     newsLabel() {
       return useApplicationSettingsStore().newsLabel;
     },
-    showReportIssue() {
-      return useApplicationSettingsStore().showReportIssue;
-    },
-    githubUrl() {
-      return useApplicationSettingsStore().githubUrl;
-    },
     isPWA() {
       return window.matchMedia("(display-mode: standalone)").matches;
     },
@@ -1339,10 +1294,6 @@ export default {
     },
     isAdmin() {
       return useAuthStore().isAdmin;
-    },
-    // TODO - move to global
-    inviteLink() {
-      return `https://${useRuntimeConfig().public.webDomain}/discord-invite`;
     },
     managingMatchesCount() {
       return useMatchLobbyStore().managingMatchesCount;

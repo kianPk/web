@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import InstallPWA from "~/components/InstallPWA.vue";
 import ProfileMenu from "~/layouts/components/ProfileMenu.vue";
-import { DiscordLogoIcon } from "@radix-icons/vue";
 import {
   ChevronsUpDown,
   CheckCircle2,
@@ -104,7 +103,6 @@ const navItemStackedClasses = "items-start py-[0.55rem]";
 const navItemChevronClasses =
   "nav-item-chevron shrink-0 translate-y-[-0.5px] text-[0.55rem] text-[hsl(var(--tac-amber)/0.65)] transition-[transform,color] duration-150";
 const navItemLabelClasses = "inline-flex items-center gap-[0.45rem]";
-const navItemLabelIconClasses = "gap-2";
 const navItemContentClasses = "flex min-w-0 flex-1 flex-col gap-1";
 const navItemSubClasses =
   "text-[0.64rem] font-medium normal-case tracking-[0.08em] text-[hsl(var(--topnav-foreground)/0.5)] [font-family:system-ui,sans-serif]";
@@ -499,58 +497,6 @@ const loginArrowClasses =
                           </NuxtLink>
                         </NavigationMenuLink>
                       </li>
-                      <li>
-                        <NavigationMenuLink as-child>
-                          <a
-                            :href="inviteLink"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            :class="[navItemClasses, navItemStackedClasses]"
-                          >
-                            <span :class="navItemChevronClasses">◢</span>
-                            <span :class="navItemContentClasses">
-                              <span
-                                :class="[
-                                  navItemLabelClasses,
-                                  navItemLabelIconClasses,
-                                ]"
-                              >
-                                {{
-                                  $t(
-                                    "layouts.top_nav.community.social.join_discord.title",
-                                  )
-                                }}
-                                <DiscordLogoIcon class="h-3.5 w-3.5" />
-                              </span>
-                              <span :class="navItemSubClasses">
-                                {{
-                                  $t(
-                                    "layouts.top_nav.community.social.join_discord.subtitle",
-                                  )
-                                }}
-                              </span>
-                            </span>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
-                      <li v-if="showReportIssue">
-                        <NavigationMenuLink as-child>
-                          <a
-                            :href="githubUrl"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            :class="[navItemClasses, navItemStackedClasses]"
-                          >
-                            <span :class="navItemChevronClasses">◢</span>
-                            <span :class="navItemContentClasses">
-                              <span :class="navItemLabelClasses">GitHub</span>
-                              <span :class="navItemSubClasses">
-                                {{ $t("layouts.app_nav.footer.report_issue") }}
-                              </span>
-                            </span>
-                          </a>
-                        </NavigationMenuLink>
-                      </li>
                     </ul>
                   </div>
 
@@ -610,15 +556,6 @@ const loginArrowClasses =
                   </div>
                 </div>
               </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem class="hidden md:block">
-              <NavigationMenuLink as-child>
-                <NuxtLink to="/faq" :class="navLinkClasses">
-                  <span :class="navTickClasses"></span>
-                  {{ $t("layouts.top_nav.support_menu") }}
-                </NuxtLink>
-              </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -788,15 +725,6 @@ export default {
     },
     showPublicServersLink() {
       return this.hasPublicServers || this.canManageServers;
-    },
-    inviteLink() {
-      return `https://${useRuntimeConfig().public.webDomain}/discord-invite`;
-    },
-    githubUrl() {
-      return useApplicationSettingsStore().githubUrl;
-    },
-    showReportIssue() {
-      return useApplicationSettingsStore().showReportIssue;
     },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
