@@ -129,7 +129,7 @@ import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
           </div>
 
           <button
-            v-if="!confirmation?.isReady"
+            v-if="!confirmation?.isReady && !confirming"
             type="button"
             class="tac-amber-cta relative isolate mt-2 inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-md border px-6 py-4 font-sans text-sm font-bold uppercase leading-none tracking-[0.22em]"
             @click="ready"
@@ -170,6 +170,7 @@ export default {
       remainingSeconds: 0,
       routedConfirmedId: undefined as string | undefined,
       countdownInterval: undefined as NodeJS.Timeout | undefined,
+      confirming: false,
       playCountdownSound: useSound().playCountdownSound,
       playMatchFoundSound: useSound().playMatchFoundSound,
       playTickSound: useSound().playTickSound,
@@ -227,9 +228,10 @@ export default {
   },
   methods: {
     ready() {
-      if (!this.confirmation) {
+      if (!this.confirmation || this.confirming || this.confirmation.isReady) {
         return;
       }
+      this.confirming = true;
       socket.event("matchmaking:confirm", {
         confirmationId: this.confirmation.confirmationId,
       });
