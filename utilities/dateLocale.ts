@@ -3,7 +3,7 @@ import { tryUseNuxtApp } from "#app";
 // `toLocale*(undefined, …)` formats using the *browser's* locale, not the app's.
 // A player reading the UI in Japanese from an en-US browser still got American
 // date formats — which stopped being defensible once all 16 locales were filled
-// in. The configured locale codes are already valid BCP-47 tags (en, de,
+// in. The configured locale codes are already valid BCP-47 tags (en, de, fa,
 // zh-Hans, …), so they can be handed straight to Intl.
 //
 // Returns undefined — i.e. the previous browser-locale behaviour — whenever

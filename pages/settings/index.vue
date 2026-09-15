@@ -27,25 +27,8 @@ const currentLocale = computed(() => {
   return locales.value.find((i) => i.code === locale.value);
 });
 
-const handleLocaleChange = (
-  newLocale:
-    | "en"
-    | "sv"
-    | "ua"
-    | "ko"
-    | "ja"
-    | "de"
-    | "fr"
-    | "it"
-    | "es"
-    | "da"
-    | "pl"
-    | "ru"
-    | "lv"
-    | "pt-BR"
-    | "zh",
-) => {
-  setLocale(newLocale);
+const handleLocaleChange = (newLocale: string) => {
+  setLocale(newLocale as typeof locale.value);
 };
 </script>
 

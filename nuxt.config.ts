@@ -167,10 +167,11 @@ export default defineNuxtConfig({
     },
     locales: [
       { code: "en", name: "English", file: "en.json", flag: "🇬🇧" },
-      { code: "ar", name: "العربية", file: "ar_SA.json", flag: "🇸🇦" }, // Arabic
+      { code: "ar", name: "العربية", file: "ar_SA.json", flag: "🇸🇦", dir: "rtl" }, // Arabic
       { code: "da", name: "Dansk", file: "da_DK.json", flag: "🇩🇰" }, // Danish
       { code: "de", name: "Deutsch", file: "de_DE.json", flag: "🇩🇪" }, // German
       { code: "es", name: "Español", file: "es_ES.json", flag: "🇪🇸" }, // Spanish
+      { code: "fa", name: "فارسی", file: "fa_IR.json", flag: "🇮🇷", dir: "rtl" }, // Persian
       { code: "fr", name: "Français", file: "fr_FR.json", flag: "🇫🇷" }, // French
       { code: "it", name: "Italiano", file: "it_IT.json", flag: "🇮🇹" }, // Italian
       { code: "ja", name: "日本語", file: "ja_JP.json", flag: "🇯🇵" }, // Japanese

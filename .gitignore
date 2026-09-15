@@ -36,3 +36,6 @@ logs
 .auth
 # Local 3D replay assets (large glb + per-match data; load via CDN later)
 public/replay-assets/
+
+# Machine-translation cache for locale generation
+scripts/.fa-translate-cache.json
