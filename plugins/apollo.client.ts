@@ -109,14 +109,15 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const retryLink = new RetryLink({
     delay: {
-      initial: 300,
-      max: 60000,
+      initial: 200,
+      max: 2000,
       jitter: true,
     },
-    // eslint-disable-next-line no-unused-vars
-    attempts: (count, operation, e) => {
+    // Fail fast on flaky/high-latency API. 30 attempts with a 60s max delay
+    // left Iran users staring at the preloader for minutes on a bad hop.
+    attempts: (count, _operation, e) => {
       if (e && e.response && e.response.status === 401) return false;
-      return count < 30;
+      return count < 3;
     },
   });
 

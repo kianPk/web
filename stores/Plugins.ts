@@ -2,7 +2,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref, computed } from "vue";
 import { order_by } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
-import { generateSubscription } from "~/graphql/graphqlGen";
+import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { useAuthStore } from "./AuthStore";
 import { useApplicationSettingsStore } from "./ApplicationSettings";
@@ -25,11 +25,56 @@ export interface Plugin {
   profile_tab_label: string | null;
 }
 
+const pluginSelection = {
+  id: true,
+  slug: true,
+  title: true,
+  icon: true,
+  remote_entry_url: true,
+  remote_scope: true,
+  exposed_module: true,
+  required_role: true,
+  enabled: true,
+  is_default: true,
+  nav_group: true,
+  nav_order: true,
+  profile_tab_label: true,
+} as const;
+
 export const usePluginsStore = defineStore("plugins", () => {
   const plugins = ref<Plugin[]>([]);
-  // True once the subscription has delivered its first payload — lets the
+  // True once we have a first registry answer (HTTP or WS) — lets the
   // loader page tell "registry still loading" apart from "slug not found".
   const initialized = ref(false);
+
+  const applyPlugins = (rows: Plugin[] | undefined) => {
+    if (rows) {
+      plugins.value = rows;
+    }
+    initialized.value = true;
+  };
+
+  // One-shot HTTP so landing / apps never wait forever on GraphQL WS.
+  const bootstrapPlugins = async () => {
+    try {
+      const { data } = await getGraphqlClient().query({
+        query: generateQuery({
+          custom_pages: [
+            {
+              order_by: [{ nav_order: order_by.asc }],
+            },
+            pluginSelection,
+          ],
+        }),
+        fetchPolicy: "network-only",
+      });
+      applyPlugins(data?.custom_pages);
+    } catch (error) {
+      console.error("Error bootstrapping plugins:", error);
+      // Fail open: don't block `/` redirects on a dead WS/HTTP hop.
+      initialized.value = true;
+    }
+  };
 
   const subscribeToPlugins = async () => {
     const { subscribe } = useSubscriptionManager();
@@ -39,21 +84,7 @@ export const usePluginsStore = defineStore("plugins", () => {
           {
             order_by: [{ nav_order: order_by.asc }],
           },
-          {
-            id: true,
-            slug: true,
-            title: true,
-            icon: true,
-            remote_entry_url: true,
-            remote_scope: true,
-            exposed_module: true,
-            required_role: true,
-            enabled: true,
-            is_default: true,
-            nav_group: true,
-            nav_order: true,
-            profile_tab_label: true,
-          },
+          pluginSelection,
         ],
       }),
     });
@@ -62,14 +93,26 @@ export const usePluginsStore = defineStore("plugins", () => {
       "plugins:custom_pages",
       subscription.subscribe({
         next: ({ data }) => {
-          plugins.value = data.custom_pages;
-          initialized.value = true;
+          applyPlugins(data.custom_pages);
+        },
+        error: (error) => {
+          console.error("Error in plugins subscription:", error);
+          if (!initialized.value) {
+            initialized.value = true;
+          }
         },
       }),
     );
   };
 
-  subscribeToPlugins();
+  void bootstrapPlugins();
+  void subscribeToPlugins();
+  // Absolute ceiling if both HTTP and WS stall (e.g. API unreachable).
+  setTimeout(() => {
+    if (!initialized.value) {
+      initialized.value = true;
+    }
+  }, 2500);
 
   const canSee = (plugin: Plugin): boolean => {
     if (!useApplicationSettingsStore().pluginsEnabled) {

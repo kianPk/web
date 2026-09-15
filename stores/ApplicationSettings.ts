@@ -2,7 +2,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref, computed, watch } from "vue";
 import { e_player_roles_enum, e_match_types_enum } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
-import { generateSubscription } from "~/graphql/graphqlGen";
+import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { useMatchmakingStore } from "./MatchmakingStore";
 import { useAuthStore } from "./AuthStore";
 import { order_by } from "@/generated/zeus";
@@ -67,10 +67,48 @@ export const useApplicationSettingsStore = defineStore(
               );
             } catch {}
           },
+          error: (error) => {
+            console.error("Error in settings subscription:", error);
+            settingsLoaded.value = true;
+          },
         }),
       );
     };
 
+    const bootstrapSettings = async () => {
+      if (settings.value.length > 0) {
+        settingsLoaded.value = true;
+      }
+      try {
+        const { data } = await getGraphqlClient().query({
+          query: generateQuery({
+            settings: [
+              {},
+              {
+                name: true,
+                value: true,
+              },
+            ],
+          }),
+          fetchPolicy: "network-only",
+        });
+        if (data?.settings) {
+          settings.value = data.settings;
+          settingsLoaded.value = true;
+          try {
+            localStorage.setItem(
+              SETTINGS_CACHE_KEY,
+              JSON.stringify(data.settings),
+            );
+          } catch {}
+        }
+      } catch (error) {
+        console.error("Error bootstrapping settings:", error);
+        settingsLoaded.value = true;
+      }
+    };
+
+    void bootstrapSettings();
     subscribeToSettings();
 
     const gameServerPluginRuntime = computed<string>(() => {

@@ -231,10 +231,24 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
 
   function startRealtimeAuth(steamId: string) {
     try {
-      socket.connect();
-
       subscribeToMe(steamId);
-      startPostAuthSubscriptions();
+
+      // Socket + hub subscriptions are heavy on high-latency links. Kick them
+      // off after first paint so login/home isn't blocked on WS fan-out.
+      const kickRealtime = () => {
+        try {
+          socket.connect();
+          startPostAuthSubscriptions();
+        } catch (error) {
+          console.error("auth realtime startup failure", error);
+        }
+      };
+
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(kickRealtime, { timeout: 1500 });
+      } else {
+        setTimeout(kickRealtime, 300);
+      }
     } catch (error) {
       console.error("auth realtime startup failure", error);
     }

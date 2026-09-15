@@ -33,5 +33,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.hook("app:error", reveal);
 
   // Last resort: never leave someone stuck staring at the spinner.
-  setTimeout(reveal, 20000);
+  // 8s is enough for a cold SPA paint; 20s felt like a hang on slow links.
+  setTimeout(reveal, 8000);
 });
