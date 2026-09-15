@@ -27,7 +27,6 @@ import {
   Leaf,
   Medal,
   CalendarRange,
-  Headphones,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -317,18 +316,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <CalendarRange />
                   {{ $t("layouts.app_nav.navigation.events") }}
                 </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.teamspeak')"
-              >
-                <a :href="teamspeakUrl">
-                  <Headphones />
-                  {{ $t("layouts.app_nav.navigation.teamspeak") }}
-                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
@@ -1250,9 +1237,6 @@ export default {
     },
     eventsEnabled() {
       return useApplicationSettingsStore().eventsEnabled;
-    },
-    teamspeakUrl() {
-      return "ts3server://tsww.ir?port=6857";
     },
     pluginGroups() {
       // visiblePlugins arrive sorted by nav_order, so insertion order keeps both
