@@ -33,7 +33,7 @@ import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
 import ProfileMenu from "~/layouts/components/ProfileMenu.vue";
-import { e_player_roles_enum } from "~/generated/zeus";
+import { $, e_player_roles_enum, e_server_types_enum } from "~/generated/zeus";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerPendingImports from "~/components/PlayerPendingImports.vue";
 import { Kbd, KbdGroup } from "~/components/ui/kbd";
@@ -319,7 +319,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showPublicServersLink">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.public_servers')"
@@ -414,7 +414,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="scrimFinderEnabled">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.navigation.scrims')"
@@ -1113,7 +1113,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 </template>
 
 <script lang="ts">
-import { generateQuery } from "~/graphql/graphqlGen";
+import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import type { Plugin } from "~/stores/Plugins";
 export default {
   props: {
@@ -1131,9 +1131,41 @@ export default {
       serversOpened: false,
       profileOpened: false,
       showLogoutModal: false,
+      publicServers: undefined as any[] | undefined,
     };
   },
   apollo: {
+    $subscribe: {
+      publicServers: {
+        query: generateSubscription({
+          servers: [
+            {
+              where: {
+                _and: [
+                  {
+                    _or: [
+                      {
+                        type: { _neq: $("rankedType", "e_server_types_enum!") },
+                      },
+                      { connection_string: { _is_null: false } },
+                    ],
+                  },
+                  { enabled: { _eq: true } },
+                  { connected: { _eq: true } },
+                ],
+              },
+            },
+            { id: true },
+          ],
+        }),
+        variables: function () {
+          return { rankedType: e_server_types_enum.Ranked };
+        },
+        result: function (this: any, { data }: { data: any }) {
+          this.publicServers = data.servers;
+        },
+      },
+    },
     telemetryStats: {
       query: generateQuery({
         telemetryStats: {
@@ -1237,6 +1269,18 @@ export default {
     },
     eventsEnabled() {
       return useApplicationSettingsStore().eventsEnabled;
+    },
+    scrimFinderEnabled() {
+      return useApplicationSettingsStore().scrimFinderEnabled;
+    },
+    canManageServers() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
+    },
+    hasPublicServers() {
+      return (this.publicServers?.length ?? 0) > 0;
+    },
+    showPublicServersLink() {
+      return this.hasPublicServers || this.canManageServers;
     },
     pluginGroups() {
       // visiblePlugins arrive sorted by nav_order, so insertion order keeps both

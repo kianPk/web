@@ -4,7 +4,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { computed, defineAsyncComponent, provide } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
 import { useGtm } from "@/layouts/composables/useGtm";
 import { useChatTabSetup } from "~/composables/useChatTabSetup";
 import { useChatPresence } from "~/composables/useChatPresence";
@@ -57,9 +56,9 @@ useChatPresence();
 const route = useRoute();
 const authStore = useAuthStore();
 
-const showLeftNav = computed(() => {
-  return authStore.isRoleAbove(e_player_roles_enum.match_organizer);
-});
+// Logged-in users get the sidebar shell (same as organizers/admins).
+// Role-gated Manage/Platform/System blocks stay inside LeftNav.
+const showLeftNav = computed(() => !!authStore.me);
 
 const containContent = computed(() => {
   if (route.name?.toString().startsWith("settings-application")) {
