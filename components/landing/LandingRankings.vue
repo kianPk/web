@@ -230,7 +230,7 @@ onMounted(() => {
             class="rounded-full px-4 py-2 font-sans text-[0.72rem] font-black uppercase tracking-[0.12em] transition-colors"
             :class="
               tab === 'players'
-                ? 'bg-[#ff4b00] text-white'
+                ? 'bg-[#aa0e19] text-white'
                 : 'text-white/70 hover:text-white'
             "
             :aria-selected="tab === 'players'"
@@ -244,7 +244,7 @@ onMounted(() => {
             class="rounded-full px-4 py-2 font-sans text-[0.72rem] font-black uppercase tracking-[0.12em] transition-colors"
             :class="
               tab === 'teams'
-                ? 'bg-[#ff4b00] text-white'
+                ? 'bg-[#aa0e19] text-white'
                 : 'text-white/70 hover:text-white'
             "
             :aria-selected="tab === 'teams'"
@@ -332,7 +332,7 @@ onMounted(() => {
         <div class="border-t border-white/10 px-5 py-4">
           <button
             type="button"
-            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] hover:text-white"
+            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#aa0e19] hover:text-white"
             @click="loginTo('/leaderboard')"
           >
             {{ copy.viewAll }}
@@ -391,7 +391,7 @@ onMounted(() => {
                 />
                 <div
                   v-else
-                  class="flex h-9 w-9 items-center justify-center rounded bg-white/10 font-sans text-xs font-bold text-[#ff4b00]"
+                  class="flex h-9 w-9 items-center justify-center rounded bg-white/10 font-sans text-xs font-bold text-[#aa0e19]"
                 >
                   {{ (team.short_name || team.name).slice(0, 2).toUpperCase() }}
                 </div>
@@ -411,7 +411,7 @@ onMounted(() => {
         <div class="border-t border-white/10 px-5 py-4">
           <button
             type="button"
-            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] hover:text-white"
+            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#aa0e19] hover:text-white"
             @click="loginTo('/teams')"
           >
             {{ copy.viewTeams }}
