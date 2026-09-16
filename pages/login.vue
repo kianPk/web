@@ -138,16 +138,31 @@ import { loginLinks } from "~/utilities/loginLinks";
 export default {
   methods: {
     signIn() {
-      window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.toString())}`;
+      const redirect = this.$route.query.redirect;
+      const path =
+        typeof redirect === "string" &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("//")
+          ? redirect
+          : "/";
+      window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.origin + path)}`;
     },
   },
   watch: {
     me: {
       immediate: true,
       handler(me: Record<string, unknown>) {
-        if (me) {
-          this.$router.push("/");
+        if (!me) return;
+        const redirect = this.$route.query.redirect;
+        if (
+          typeof redirect === "string" &&
+          redirect.startsWith("/") &&
+          !redirect.startsWith("//")
+        ) {
+          this.$router.push(redirect);
+          return;
         }
+        this.$router.push("/");
       },
     },
   },

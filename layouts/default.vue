@@ -14,9 +14,6 @@ const AppSidebar = defineAsyncComponent(
 const MainContent = defineAsyncComponent(
   () => import("@/layouts/components/MainContent.vue"),
 );
-const TopNav = defineAsyncComponent(
-  () => import("@/layouts/components/TopNav.vue"),
-);
 const AppHeader = defineAsyncComponent(
   () => import("@/layouts/components/AppHeader.vue"),
 );
@@ -107,7 +104,6 @@ provide("containContent", containContent);
       class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
       style="height: 100svh"
     >
-      <TopNav v-if="!showLeftNav" />
       <AppHeader class="px-6" v-if="showLeftNav" />
 
       <MainContent class="flex-1">

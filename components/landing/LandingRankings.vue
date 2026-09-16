@@ -8,6 +8,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { eloTierColor } from "~/utils/eloTier";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { order_by } from "~/generated/zeus";
+import { loginLinks } from "~/utilities/loginLinks";
 
 const { locale } = useI18n();
 const { client: apolloClient } = useApolloClient();
@@ -196,6 +197,11 @@ function setTab(next: Tab) {
   }
 }
 
+function loginTo(path: string) {
+  const dest = path.startsWith("/") ? path : `/${path}`;
+  window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.origin + dest)}`;
+}
+
 onMounted(() => {
   void fetchPlayers();
 });
@@ -283,9 +289,10 @@ onMounted(() => {
 
         <ul v-else class="divide-y divide-white/10">
           <li v-for="entry in players" :key="entry.player_steam_id">
-            <NuxtLink
-              :to="{ name: 'players-id', params: { id: entry.player_steam_id } }"
-              class="grid grid-cols-[3.5rem_1fr_5.5rem] items-center gap-3 px-4 py-3 no-underline transition-colors hover:bg-white/[0.04] sm:grid-cols-[4rem_1fr_6rem] sm:px-5"
+            <button
+              type="button"
+              class="grid w-full cursor-pointer grid-cols-[3.5rem_1fr_5.5rem] items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.04] sm:grid-cols-[4rem_1fr_6rem] sm:px-5"
+              @click="loginTo(`/players/${entry.player_steam_id}`)"
             >
               <span
                 class="font-mono text-sm font-bold tabular-nums"
@@ -318,18 +325,19 @@ onMounted(() => {
               >
                 {{ Math.round(entry.value).toLocaleString() }}
               </span>
-            </NuxtLink>
+            </button>
           </li>
         </ul>
 
         <div class="border-t border-white/10 px-5 py-4">
-          <NuxtLink
-            to="/leaderboard"
-            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] no-underline hover:text-white"
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] hover:text-white"
+            @click="loginTo('/leaderboard')"
           >
             {{ copy.viewAll }}
             <span aria-hidden="true">→</span>
-          </NuxtLink>
+          </button>
         </div>
       </div>
 
@@ -364,9 +372,10 @@ onMounted(() => {
 
         <ul v-else class="divide-y divide-white/10">
           <li v-for="(team, index) in teams" :key="team.id">
-            <NuxtLink
-              :to="{ name: 'teams-id', params: { id: team.id } }"
-              class="grid grid-cols-[3.5rem_1fr_5.5rem] items-center gap-3 px-4 py-3 no-underline transition-colors hover:bg-white/[0.04] sm:grid-cols-[4rem_1fr_6rem] sm:px-5"
+            <button
+              type="button"
+              class="grid w-full cursor-pointer grid-cols-[3.5rem_1fr_5.5rem] items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.04] sm:grid-cols-[4rem_1fr_6rem] sm:px-5"
+              @click="loginTo(`/teams/${team.id}`)"
             >
               <span
                 class="font-mono text-sm font-bold tabular-nums text-white/45"
@@ -395,18 +404,19 @@ onMounted(() => {
               >
                 {{ team.members }}
               </span>
-            </NuxtLink>
+            </button>
           </li>
         </ul>
 
         <div class="border-t border-white/10 px-5 py-4">
-          <NuxtLink
-            to="/teams"
-            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] no-underline hover:text-white"
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 font-sans text-[0.75rem] font-black uppercase tracking-[0.14em] text-[#ff4b00] hover:text-white"
+            @click="loginTo('/teams')"
           >
             {{ copy.viewTeams }}
             <span aria-hidden="true">→</span>
-          </NuxtLink>
+          </button>
         </div>
       </div>
     </div>

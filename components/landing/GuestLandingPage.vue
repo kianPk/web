@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import gql from "graphql-tag";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useApolloClient } from "@vue/apollo-composable";
 import { useBranding } from "~/composables/useBranding";
 import { loginLinks } from "~/utilities/loginLinks";
 import LandingRankings from "~/components/landing/LandingRankings.vue";
+import { eloTierColor } from "~/utils/eloTier";
 
 const { locale } = useI18n();
 const { brandName, logoUrl } = useBranding();
+const { client: apolloClient } = useApolloClient();
 
 const isFa = computed(() =>
   String(locale.value || "").toLowerCase().startsWith("fa"),
@@ -21,9 +25,7 @@ const copy = computed(() => {
       cta: "Play now",
       onlineSuffix: "بازیکن آنلاین الان",
       words: ["بازی", "ایم", "مهارت", "رنک", "محدودیت", "ذهن", "تیم"],
-      ranked: "Ranked",
-      you: "You",
-      peak: "Peak",
+      elo: "Elo",
       featuresHeading: "More than matchmaking.",
       featuresSub: `${displayBrand.value} is a home for every ambition — competitive queues, live matches, inventory, and community tools.`,
       features: [
@@ -31,25 +33,25 @@ const copy = computed(() => {
           title: "Matchmaking",
           body: "Solo or stack. Grind Elo in Competitive, Wingman, or Duel.",
           cta: "Play now",
-          action: "login" as const,
+          redirect: "/play",
         },
         {
           title: "Watch",
           body: "Follow live matches, streams, and highlights as they happen.",
           cta: "Watch live",
-          to: "/watch",
+          redirect: "/watch",
         },
         {
           title: "Inventory",
           body: "Build your loadout, try skins, and take your setup into servers.",
           cta: "Open inventory",
-          to: "/apps/inventory",
+          redirect: "/apps/inventory",
         },
         {
           title: "Leaderboard",
           body: "Climb the rankings and see where you stand against everyone else.",
           cta: "View rankings",
-          to: "/leaderboard",
+          redirect: "/leaderboard",
         },
       ],
       closingTitle: "Ready to challenge your game on",
@@ -63,9 +65,7 @@ const copy = computed(() => {
     cta: "Play now",
     onlineSuffix: "players online right now",
     words: ["game", "aim", "skill", "rank", "limits", "mind", "team"],
-    ranked: "Ranked",
-    you: "You",
-    peak: "Peak",
+    elo: "Elo",
     featuresHeading: "More than matchmaking.",
     featuresSub: `${displayBrand.value} is a home for every ambition — competitive queues, live matches, inventory, and community tools.`,
     features: [
@@ -73,25 +73,25 @@ const copy = computed(() => {
         title: "Matchmaking",
         body: "Solo or stack. Grind Elo in Competitive, Wingman, or Duel.",
         cta: "Play now",
-        action: "login" as const,
+        redirect: "/play",
       },
       {
         title: "Watch",
         body: "Follow live matches, streams, and highlights as they happen.",
         cta: "Watch live",
-        to: "/watch",
+        redirect: "/watch",
       },
       {
         title: "Inventory",
         body: "Build your loadout, try skins, and take your setup into servers.",
         cta: "Open inventory",
-        to: "/apps/inventory",
+        redirect: "/apps/inventory",
       },
       {
         title: "Leaderboard",
         body: "Climb the rankings and see where you stand against everyone else.",
         cta: "View rankings",
-        to: "/leaderboard",
+        redirect: "/leaderboard",
       },
     ],
     closingTitle: "Ready to challenge your game on",
@@ -99,20 +99,99 @@ const copy = computed(() => {
   };
 });
 
+type HeroPlayer = {
+  rank: number;
+  name: string;
+  avatar: string | null;
+  elo: number;
+};
+
 const wordIndex = ref(0);
-const onlineCount = ref<number | null>(null);
+const onlineCount = ref(0);
+const heroPlayers = ref<HeroPlayer[]>([]);
 let wordTimer: ReturnType<typeof setInterval> | undefined;
 let onlineTimer: ReturnType<typeof setInterval> | undefined;
 
+const TOP_PLAYERS_QUERY = gql`
+  query LandingHeroPlayers(
+    $category: String!
+    $window_days: Int!
+    $match_type: String
+    $exclude_tournaments: Boolean!
+    $role: String
+    $season_id: uuid
+    $source: String
+    $limit: Int
+    $offset: Int
+    $order_by: [leaderboard_entries_order_by!]
+  ) {
+    get_leaderboard(
+      args: {
+        _category: $category
+        _window_days: $window_days
+        _match_type: $match_type
+        _exclude_tournaments: $exclude_tournaments
+        _role: $role
+        _season_id: $season_id
+        _source: $source
+      }
+      limit: $limit
+      offset: $offset
+      order_by: $order_by
+    ) {
+      player_name
+      player_avatar_url
+      player_custom_avatar_url
+      value
+    }
+  }
+`;
+
 async function refreshOnlineCount() {
   try {
-    const apiDomain = useRuntimeConfig().public.apiDomain;
-    const data = await $fetch<{ count: number }>(
-      `https://${apiDomain}/sockets/players-online`,
-    );
+    const data = await $fetch<{ count: number }>("/players-online");
     onlineCount.value = Number(data?.count) || 0;
   } catch {
-    // Keep last known value; Faceit-style chrome still renders.
+    try {
+      const apiDomain = useRuntimeConfig().public.apiDomain;
+      const data = await $fetch<{ count: number }>(
+        `https://${apiDomain}/sockets/players-online`,
+      );
+      onlineCount.value = Number(data?.count) || 0;
+    } catch {
+      // Keep last known value; chrome still shows 0+.
+    }
+  }
+}
+
+async function fetchHeroPlayers() {
+  try {
+    const { data } = await apolloClient.query({
+      query: TOP_PLAYERS_QUERY,
+      variables: {
+        category: "elo",
+        window_days: 0,
+        match_type: "Competitive",
+        exclude_tournaments: false,
+        role: null,
+        season_id: null,
+        source: "overall",
+        limit: 3,
+        offset: 0,
+        order_by: [{ value: "desc" }],
+      },
+      fetchPolicy: "network-only",
+    });
+    const rows = data?.get_leaderboard ?? [];
+    heroPlayers.value = rows.map((row: any, index: number): HeroPlayer => ({
+      rank: index + 1,
+      name: row.player_name || "Player",
+      avatar: row.player_custom_avatar_url || row.player_avatar_url || null,
+      elo: Number(row.value) || 0,
+    }));
+  } catch (error) {
+    console.error("landing hero players fetch failed", error);
+    heroPlayers.value = [];
   }
 }
 
@@ -121,6 +200,7 @@ onMounted(() => {
     wordIndex.value = (wordIndex.value + 1) % copy.value.words.length;
   }, 2200);
   void refreshOnlineCount();
+  void fetchHeroPlayers();
   onlineTimer = setInterval(() => {
     void refreshOnlineCount();
   }, 15000);
@@ -135,14 +215,30 @@ const activeWord = computed(
   () => copy.value.words[wordIndex.value] ?? copy.value.words[0],
 );
 
-const onlineLabel = computed(() => {
-  const n = onlineCount.value;
-  if (n == null) return null;
-  return `${n.toLocaleString()} ${copy.value.onlineSuffix}`;
+const onlineLabel = computed(
+  () =>
+    `${onlineCount.value.toLocaleString()} ${copy.value.onlineSuffix}`,
+);
+
+/** Card order: #2 left, #1 center (featured), #3 right — Faceit-style podium. */
+const heroCards = computed(() => {
+  const [first, second, third] = heroPlayers.value;
+  return [
+    { slot: "left" as const, player: second ?? null },
+    { slot: "you" as const, player: first ?? null },
+    { slot: "right" as const, player: third ?? null },
+  ];
 });
 
-function loginWithSteam() {
-  window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.origin + "/play")}`;
+function loginWithSteam(redirectPath = "/play") {
+  const dest = redirectPath.startsWith("/")
+    ? redirectPath
+    : `/${redirectPath}`;
+  window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.origin + dest)}`;
+}
+
+function avatarFallback(name: string) {
+  return (name || "?").slice(0, 1).toUpperCase();
 }
 </script>
 
@@ -203,7 +299,7 @@ function loginWithSteam() {
             <button
               type="button"
               class="inline-flex items-center gap-2 rounded-[4px] bg-[#ff4b00] px-6 py-4 font-sans text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px"
-              @click="loginWithSteam"
+              @click="loginWithSteam('/play')"
             >
               <span
                 aria-hidden="true"
@@ -212,9 +308,8 @@ function loginWithSteam() {
               {{ copy.cta }}
             </button>
 
-            <!-- Faceit-style: | ● N players online right now -->
+            <!-- Faceit-style: | ● N players online right now — always visible -->
             <div
-              v-if="onlineLabel"
               class="inline-flex items-center gap-3 text-[0.95rem] leading-none text-[#2a2a2a]"
             >
               <span
@@ -234,59 +329,101 @@ function loginWithSteam() {
 
         <div
           class="relative mx-auto flex w-full max-w-md items-end justify-center gap-3 sm:max-w-lg lg:max-w-none lg:justify-end"
-          aria-hidden="true"
         >
           <div
-            class="landing-card landing-card--left flex h-[280px] w-[32%] max-w-[160px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#1a2332] sm:h-[340px]"
+            v-for="card in heroCards"
+            :key="card.slot"
+            class="landing-card flex flex-col items-center justify-center gap-3 rounded-2xl"
+            :class="{
+              'landing-card--left h-[280px] w-[32%] max-w-[160px] bg-[#1a2332] sm:h-[340px]':
+                card.slot === 'left',
+              'landing-card--you relative z-10 h-[320px] w-[38%] max-w-[190px] gap-4 border border-[#ff4b00]/35 bg-[#1a1a1a] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-[400px]':
+                card.slot === 'you',
+              'landing-card--right h-[280px] w-[32%] max-w-[160px] bg-[#1f1a12] sm:h-[340px]':
+                card.slot === 'right',
+            }"
           >
-            <div
-              class="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 sm:h-20 sm:w-20"
-            >
-              <span class="text-2xl font-black text-[#ff4b00]">1</span>
-            </div>
-            <span
-              class="px-2 text-center font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/80"
-              >{{ copy.ranked }}</span
-            >
-          </div>
-
-          <div
-            class="landing-card landing-card--you relative z-10 flex h-[320px] w-[38%] max-w-[190px] flex-col items-center justify-center gap-4 rounded-2xl border border-[#ff4b00]/35 bg-[#1a1a1a] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-[400px]"
-          >
-            <div
-              class="flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#ff4b00]/55 bg-[#121212] sm:h-24 sm:w-24"
-            >
-              <img
-                v-if="logoUrl"
-                :src="logoUrl"
-                alt=""
-                class="h-12 w-12 object-contain sm:h-14 sm:w-14"
-              />
-              <NuxtImg
-                v-else
-                src="/favicon/64.png"
-                alt=""
-                class="h-12 w-12 object-contain sm:h-14 sm:w-14"
-              />
-            </div>
-            <span
-              class="font-sans text-[0.85rem] font-black uppercase tracking-[0.16em] text-white"
-              >{{ copy.you }}</span
-            >
-          </div>
-
-          <div
-            class="landing-card landing-card--right flex h-[280px] w-[32%] max-w-[160px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#1f1a12] sm:h-[340px]"
-          >
-            <div
-              class="flex h-16 w-16 items-center justify-center rounded-full bg-[#ff4b00]/15 sm:h-20 sm:w-20"
-            >
-              <span class="text-2xl font-black text-[#ff4b00]">★</span>
-            </div>
-            <span
-              class="px-2 text-center font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/80"
-              >{{ copy.peak }}</span
-            >
+            <template v-if="card.player">
+              <div
+                class="relative"
+                :class="
+                  card.slot === 'you'
+                    ? 'h-20 w-20 sm:h-24 sm:w-24'
+                    : 'h-16 w-16 sm:h-20 sm:w-20'
+                "
+              >
+                <img
+                  v-if="card.player.avatar"
+                  :src="card.player.avatar"
+                  :alt="card.player.name"
+                  class="h-full w-full rounded-full object-cover"
+                  :class="
+                    card.slot === 'you'
+                      ? 'border-2 border-[#ff4b00]/55'
+                      : 'border border-white/15'
+                  "
+                />
+                <div
+                  v-else
+                  class="flex h-full w-full items-center justify-center rounded-full bg-white/10 font-sans text-xl font-black text-[#ff4b00]"
+                  :class="
+                    card.slot === 'you' ? 'border-2 border-[#ff4b00]/55' : ''
+                  "
+                >
+                  {{ avatarFallback(card.player.name) }}
+                </div>
+                <span
+                  class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#ff4b00] font-sans text-[0.65rem] font-black text-[#060606]"
+                >
+                  {{ card.player.rank }}
+                </span>
+              </div>
+              <span
+                class="max-w-[90%] truncate px-2 text-center font-sans text-[0.75rem] font-bold tracking-[0.04em] text-white"
+                :class="card.slot === 'you' ? 'text-[0.85rem]' : ''"
+              >
+                {{ card.player.name }}
+              </span>
+              <span
+                class="font-mono text-[0.8rem] font-semibold tabular-nums"
+                :style="{
+                  color: eloTierColor(card.player.elo) || '#ff4b00',
+                }"
+              >
+                {{ Math.round(card.player.elo).toLocaleString() }}
+                <span class="ms-1 text-[0.65rem] uppercase text-white/45">{{
+                  copy.elo
+                }}</span>
+              </span>
+            </template>
+            <template v-else>
+              <div
+                class="flex items-center justify-center rounded-full bg-white/10"
+                :class="
+                  card.slot === 'you'
+                    ? 'h-20 w-20 sm:h-24 sm:w-24'
+                    : 'h-16 w-16 sm:h-20 sm:w-20'
+                "
+              >
+                <img
+                  v-if="logoUrl"
+                  :src="logoUrl"
+                  alt=""
+                  class="h-10 w-10 object-contain opacity-70"
+                />
+                <NuxtImg
+                  v-else
+                  src="/favicon/64.png"
+                  alt=""
+                  class="h-10 w-10 object-contain opacity-70"
+                />
+              </div>
+              <span
+                class="px-2 text-center font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/50"
+              >
+                {{ displayBrand }}
+              </span>
+            </template>
           </div>
         </div>
       </div>
@@ -321,20 +458,12 @@ function loginWithSteam() {
               {{ feature.body }}
             </p>
             <button
-              v-if="feature.action === 'login'"
               type="button"
               class="inline-flex w-fit items-center gap-2 rounded-[4px] border border-[#ff4b00] px-4 py-2.5 font-sans text-[0.72rem] font-black uppercase tracking-[0.12em] text-[#ff4b00] transition-colors hover:bg-[#ff4b00] hover:text-[#060606]"
-              @click="loginWithSteam"
+              @click="loginWithSteam(feature.redirect)"
             >
               {{ feature.cta }}
             </button>
-            <NuxtLink
-              v-else
-              :to="feature.to"
-              class="inline-flex w-fit items-center gap-2 rounded-[4px] border border-[#ff4b00] px-4 py-2.5 font-sans text-[0.72rem] font-black uppercase tracking-[0.12em] text-[#ff4b00] no-underline transition-colors hover:bg-[#ff4b00] hover:text-[#060606]"
-            >
-              {{ feature.cta }}
-            </NuxtLink>
           </div>
         </div>
       </div>
@@ -356,7 +485,7 @@ function loginWithSteam() {
         <button
           type="button"
           class="inline-flex items-center gap-2 rounded-[4px] bg-[#ff4b00] px-7 py-4 font-sans text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px"
-          @click="loginWithSteam"
+          @click="loginWithSteam('/play')"
         >
           <span
             aria-hidden="true"
