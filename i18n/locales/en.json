@@ -5025,7 +5025,6 @@
     },
     "app_nav": {
       "brand": "YGuard",
-      "developer_name": "Kian",
       "systems_online": "{count} System Online | {count} Systems Online",
       "navigation": {
         "dashboard": "My Stats",
