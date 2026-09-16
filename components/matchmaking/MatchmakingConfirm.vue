@@ -129,9 +129,10 @@ import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
           </div>
 
           <button
-            v-if="!confirmation?.isReady && !confirming"
+            v-if="!confirmation?.isReady"
             type="button"
-            class="tac-amber-cta relative isolate mt-2 inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-md border px-6 py-4 font-sans text-sm font-bold uppercase leading-none tracking-[0.22em]"
+            class="tac-amber-cta relative isolate mt-2 inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-md border px-6 py-4 font-sans text-sm font-bold uppercase leading-none tracking-[0.22em] disabled:pointer-events-none disabled:opacity-60"
+            :disabled="confirming"
             @click="ready"
           >
             <span
@@ -171,6 +172,7 @@ export default {
       routedConfirmedId: undefined as string | undefined,
       countdownInterval: undefined as NodeJS.Timeout | undefined,
       confirming: false,
+      confirmingTimeout: undefined as NodeJS.Timeout | undefined,
       playCountdownSound: useSound().playCountdownSound,
       playMatchFoundSound: useSound().playMatchFoundSound,
       playTickSound: useSound().playTickSound,
@@ -200,11 +202,17 @@ export default {
       immediate: true,
       handler(confirmation, oldConfirmation) {
         if (!confirmation) {
+          this.clearConfirming();
           useMatchReadyModal().closeMatchReadyModal();
           return;
         }
 
-        if (!oldConfirmation) {
+        // New ready-check (or rematch after a failed one): never keep the
+        // previous click's optimistic lock, or Locked In sticks until refresh.
+        const isNewReadyCheck =
+          confirmation.confirmationId !== oldConfirmation?.confirmationId;
+        if (isNewReadyCheck) {
+          this.clearConfirming();
           if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
           }
@@ -213,7 +221,16 @@ export default {
           this.countdownInterval = setInterval(this.updateCountdown, 1000);
         }
 
-        if (this.confirmation?.isReady) {
+        // Server acknowledged this player — drop the local pending flag.
+        if (confirmation.isReady) {
+          this.clearConfirming();
+        }
+
+        if (
+          confirmation.isReady &&
+          !oldConfirmation?.isReady &&
+          !isNewReadyCheck
+        ) {
           this.playTickSound();
         }
 
@@ -227,11 +244,25 @@ export default {
     },
   },
   methods: {
+    clearConfirming() {
+      this.confirming = false;
+      if (this.confirmingTimeout) {
+        clearTimeout(this.confirmingTimeout);
+        this.confirmingTimeout = undefined;
+      }
+    },
     ready() {
       if (!this.confirmation || this.confirming || this.confirmation.isReady) {
         return;
       }
       this.confirming = true;
+      // If the socket ack never lands, don't leave the button dead forever.
+      this.confirmingTimeout = setTimeout(() => {
+        if (!this.confirmation?.isReady) {
+          this.confirming = false;
+        }
+        this.confirmingTimeout = undefined;
+      }, 4000);
       socket.event("matchmaking:confirm", {
         confirmationId: this.confirmation.confirmationId,
       });
@@ -254,6 +285,7 @@ export default {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
+    this.clearConfirming();
   },
 };
 </script>
