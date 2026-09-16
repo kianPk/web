@@ -15,6 +15,7 @@ import {
   Pin,
   X,
 } from "lucide-vue-next";
+import TelegramIcon from "~/components/icons/TelegramIcon.vue";
 import { useRightSidebar } from "@/composables/useRightSidebar";
 import { useHubState, setActiveHub } from "@/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
@@ -277,6 +278,11 @@ function hubBtnClass(hub: string, disabled = false) {
   ];
 }
 
+const communityLinkClass =
+  "relative z-[1] flex items-center justify-center w-10 h-10 rounded-md transition-colors duration-200 text-sidebar-foreground/50 hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-sidebar-foreground";
+
+const telegramUrl = "https://t.me/yguard_ir";
+
 // Mobile: swipe right to close
 const swipeStartX = ref(0);
 const swipeStartY = ref(0);
@@ -530,6 +536,18 @@ function onHubTouchEnd(e: TouchEvent) {
         >
           <Clock class="w-5 h-5" />
         </button>
+
+        <!-- Community: Telegram only -->
+        <a
+          :href="telegramUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          :class="communityLinkClass"
+          title="Telegram"
+          aria-label="Telegram"
+        >
+          <TelegramIcon class="w-5 h-5" />
+        </a>
 
         <div class="flex-1" />
 
