@@ -213,22 +213,7 @@ onMounted(() => {
         {{ copy.body }}
       </p>
 
-      <div
-        class="mt-10 flex flex-wrap items-center justify-between gap-4"
-      >
-        <div class="flex items-center gap-2">
-          <NuxtImg
-            src="/favicon/64.png"
-            alt=""
-            class="h-10 w-7 rounded-sm object-cover ring-1 ring-white/15"
-          />
-          <span
-            class="font-sans text-[0.72rem] font-bold uppercase tracking-[0.16em] text-white/70"
-          >
-            CS2
-          </span>
-        </div>
-
+      <div class="mt-10 flex items-center justify-end">
         <div
           class="inline-flex rounded-full border border-white/15 bg-black/40 p-1"
           role="tablist"
