@@ -1,7 +1,11 @@
 // Same-origin proxy for the guest landing online counter.
 // Avoids CORS/credential quirks when the browser calls the API directly.
 export default defineEventHandler(async () => {
-  const apiDomain = process.env.NUXT_PUBLIC_API_DOMAIN;
+  const config = useRuntimeConfig();
+  const apiDomain =
+    process.env.NUXT_PUBLIC_API_DOMAIN ||
+    (config.public?.apiDomain as string | undefined);
+
   if (!apiDomain) {
     return { count: 0 };
   }

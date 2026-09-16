@@ -8,6 +8,15 @@ import { loginLinks } from "~/utilities/loginLinks";
 import LandingRankings from "~/components/landing/LandingRankings.vue";
 import { eloTierColor } from "~/utils/eloTier";
 
+useHead({
+  link: [
+    {
+      rel: "stylesheet",
+      href: "https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css",
+    },
+  ],
+});
+
 const { locale } = useI18n();
 const { brandName, logoUrl } = useBranding();
 const { client: apolloClient } = useApolloClient();
@@ -148,19 +157,25 @@ const TOP_PLAYERS_QUERY = gql`
 `;
 
 async function refreshOnlineCount() {
-  try {
-    const data = await $fetch<{ count: number }>("/players-online");
-    onlineCount.value = Number(data?.count) || 0;
-  } catch {
+  // Prefer the public API directly — same Redis presence keys as the hub
+  // (`players:{steamId}` = logged-in users with a live site tab).
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  if (apiDomain) {
     try {
-      const apiDomain = useRuntimeConfig().public.apiDomain;
       const data = await $fetch<{ count: number }>(
         `https://${apiDomain}/sockets/players-online`,
       );
       onlineCount.value = Number(data?.count) || 0;
+      return;
     } catch {
-      // Keep last known value; chrome still shows 0+.
+      // Fall through to same-origin proxy.
     }
+  }
+  try {
+    const data = await $fetch<{ count: number }>("/players-online");
+    onlineCount.value = Number(data?.count) || 0;
+  } catch {
+    // Keep last known value.
   }
 }
 
@@ -213,11 +228,6 @@ onBeforeUnmount(() => {
 
 const activeWord = computed(
   () => copy.value.words[wordIndex.value] ?? copy.value.words[0],
-);
-
-const onlineLabel = computed(
-  () =>
-    `${onlineCount.value.toLocaleString()} ${copy.value.onlineSuffix}`,
 );
 
 /** Card order: #2 left, #1 center (featured), #3 right — Faceit-style podium. */
@@ -278,14 +288,14 @@ function avatarFallback(name: string) {
           </div>
 
           <h1
-            class="m-0 max-w-[13ch] font-sans text-[clamp(2.75rem,7.2vw,4.85rem)] font-black uppercase leading-[0.92] tracking-[-0.03em] text-[#060606]"
+            class="landing-hero-title m-0 font-black uppercase leading-[0.92] tracking-[-0.03em] text-[#060606]"
           >
-            <span class="block">{{ copy.challengeYour }}</span>
+            <span class="block whitespace-nowrap">{{ copy.challengeYour }}</span>
             <span
-              class="relative mt-1 inline-block min-h-[1.05em] text-[#ff4b00]"
+              class="relative block min-h-[1.05em] whitespace-nowrap text-[#ff4b00]"
               :key="activeWord"
             >
-              {{ activeWord }}.
+              {{ activeWord }}
             </span>
           </h1>
 
@@ -308,21 +318,18 @@ function avatarFallback(name: string) {
               {{ copy.cta }}
             </button>
 
-            <!-- Faceit-style: | ● N players online right now — always visible -->
+            <!-- Faceit OnlineTextContainer: 9px #05ff00 dot + bold count + regular label -->
             <div
-              class="inline-flex items-center gap-3 text-[0.95rem] leading-none text-[#2a2a2a]"
+              class="landing-online inline-flex items-center"
+              aria-live="polite"
             >
-              <span
-                aria-hidden="true"
-                class="hidden h-8 w-px bg-[#bdbdbd] sm:block"
-              ></span>
-              <span
-                aria-hidden="true"
-                class="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3ddc84]"
-              ></span>
-              <span class="font-sans font-medium tracking-[0.01em]">
-                {{ onlineLabel }}
-              </span>
+              <span aria-hidden="true" class="landing-online__dot"></span>
+              <span class="landing-online__count">{{
+                onlineCount.toLocaleString("en-US")
+              }}</span>
+              <span class="landing-online__label">{{
+                copy.onlineSuffix
+              }}</span>
             </div>
           </div>
         </div>
@@ -499,6 +506,48 @@ function avatarFallback(name: string) {
 </template>
 
 <style scoped>
+.landing-root {
+  font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
+}
+
+.landing-hero-title {
+  font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.75rem, 7.2vw, 4.85rem);
+}
+
+.landing-online {
+  font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
+}
+
+.landing-online__dot {
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin-inline-end: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #05ff00;
+}
+
+.landing-online__count {
+  display: block;
+  margin-inline-end: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: 0.28px;
+  color: #060606;
+}
+
+.landing-online__label {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.28px;
+  color: #060606;
+}
+
 .landing-card {
   animation: landing-float 5.5s ease-in-out infinite;
 }
