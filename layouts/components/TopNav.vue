@@ -468,7 +468,7 @@ const loginArrowClasses =
                                   $t(
                                     "layouts.top_nav.community.news.subtitle",
                                     {
-                                      brand: brandName || "5Stack",
+                                      brand: brandName || "YGuard",
                                     },
                                   )
                                 }}

@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
     bestOf,
     tournamentName,
   ].filter(Boolean);
-  const description = truncate(facts.join(" · ") || "Counter-Strike match on 5Stack.");
+  const description = truncate(facts.join(" · ") || "Counter-Strike match on YGuard.");
 
   // Image: prefer a map screenshot (large card). Pick the current map, else the
   // last decided map, else the first. Workshop posters are absolute Steam CDN

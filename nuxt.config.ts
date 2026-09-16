@@ -4,12 +4,12 @@ import federation from "@originjs/vite-plugin-federation";
 
 const sw = process.env.SW === "true";
 
-const title = "5Stack — The System Behind the Game—Yours";
+const title = "YGuard — Counter-Strike Management System";
 const description =
   "Counter-Strike Management System — a comprehensive panel for managing servers, matches, and tournaments.";
 
 // TODO - i tired to get SSO to work but it wont
-const url = `https://5stack.gg`;
+const url = `https://yguard.ir`;
 
 export default defineNuxtConfig({
   ssr: false,
@@ -32,21 +32,21 @@ export default defineNuxtConfig({
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
       title,
       titleTemplate: (pageTitle?: string) =>
-        pageTitle && pageTitle !== title ? `${pageTitle} | 5Stack` : title,
+        pageTitle && pageTitle !== title ? `${pageTitle} | YGuard` : title,
       meta: [
         { name: "color-scheme", content: "dark" },
         { name: "theme-color", content: "#0a0a0b" },
         { name: "robots", content: "index, follow" },
         { name: "title", content: title },
         { name: "description", content: description },
-        { name: "site_name", content: "5Stack" },
+        { name: "site_name", content: "YGuard" },
 
         { property: "og:locale", content: "en" },
         { property: "og:type", content: "website" },
 
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:site_name", content: "5Stack" },
+        { property: "og:site_name", content: "YGuard" },
 
         { property: "og:url", content: url },
         { property: "og:image", content: `${url}/_ipx/_/favicon/512.png` },
@@ -309,8 +309,8 @@ export default defineNuxtConfig({
       suppressWarnings: true,
     },
     manifest: {
-      name: "5stack",
-      short_name: "5stack",
+      name: "YGuard",
+      short_name: "YGuard",
       icons: [
         {
           src: "/favicon/64.png",

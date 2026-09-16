@@ -56,7 +56,7 @@ export function renderUnfurl(opts: UnfurlOptions): string {
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:type" content="${type}" />
-    <meta property="og:site_name" content="5Stack" />
+    <meta property="og:site_name" content="YGuard" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safePage}" />
@@ -79,7 +79,7 @@ export function renderUnfurl(opts: UnfurlOptions): string {
     </style>
   </head>
   <body>
-    <p>${safeTitle} — <a href="${safeHuman}">open on 5Stack</a>.</p>
+    <p>${safeTitle} — <a href="${safeHuman}">open on YGuard</a>.</p>
   </body>
 </html>`;
 }

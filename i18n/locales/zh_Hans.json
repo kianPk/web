@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack 匹配系统技术评分——随胜负而升降。"
+      "description": "YGuard 匹配系统技术评分——随胜负而升降。"
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "现役图池",
     "no_maps_match": "没有符合您筛选条件的地图。",
     "accepted_elo_range": "接受的 ELO 范围",
-    "fivestack_elo": "5Stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "每周空闲时间",
     "allow_outside_hours": "允许在这些时间之外的约战请求",
     "outside_hours_help": "对手可以提议任何时间，不仅限于您涂选的空闲时间。保留空闲时间为空表示接受任何时间的约战。",
@@ -1588,10 +1588,10 @@
         "voice": "语音与音频",
         "api_keys_management": {
           "add_api_key": "添加 API 密钥",
-          "description": "密钥用于验证对 5Stack API 的请求——请像对待密码一样妥善保管。",
+          "description": "密钥用于验证对 YGuard API 的请求——请像对待密码一样妥善保管。",
           "view_docs": "查看 API 文档",
           "no_api_keys": "暂无 API 密钥",
-          "no_api_keys_hint": "创建您的第一个密钥，开始向 5Stack API 发起认证请求。",
+          "no_api_keys_hint": "创建您的第一个密钥，开始向 YGuard API 发起认证请求。",
           "add_first_api_key": "创建您的第一个密钥",
           "create_new_api_key": "创建新 API 密钥",
           "create_new_description": "使用描述性标签创建新的 API 密钥，以标识其用途。",
@@ -1636,7 +1636,7 @@
           "link": "关联 Discord",
           "unlink_dialog": {
             "title": "取消关联 Discord 账户",
-            "description": "您确定要取消关联您的 Discord 账户吗？这将断开您的 5Stack 账户与 Discord 账户之间的连接。",
+            "description": "您确定要取消关联您的 Discord 账户吗？这将断开您的 YGuard 账户与 Discord 账户之间的连接。",
             "confirm": "取消关联"
           },
           "unlinked": "Discord 账户已成功取消关联"
@@ -1646,7 +1646,7 @@
         "description": "你的麦克风、音量，以及其他人的音量大小。所有语音频道都会使用这里的设置，包括你的组队大厅、比赛、选人房间，你摄像头画面的麦克风也一样。",
         "this_device": {
           "title": "保存在这台设备上",
-          "description": "语音设置不属于你的 5stack 账号，也不会离开这个浏览器。你用来游戏的每台电脑都各自保留自己的麦克风、输出、灵敏度和玩家音量，这正是设计意图，因为变化的是硬件而不是你。清除本站的浏览器数据会让设置回到默认值。"
+          "description": "语音设置不属于你的 YGuard 账号，也不会离开这个浏览器。你用来游戏的每台电脑都各自保留自己的麦克风、输出、灵敏度和玩家音量，这正是设计意图，因为变化的是硬件而不是你。清除本站的浏览器数据会让设置回到默认值。"
         },
         "players": {
           "title": "玩家音量",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "通知偏好",
-        "description": "选择 5stack 通知你哪些内容，以及这些通知出现在哪里。",
+        "description": "选择 YGuard 通知你哪些内容，以及这些通知出现在哪里。",
         "save_failed": "无法保存该设置，请重试。",
         "push": {
           "title": "推送通知",
-          "description": "即使没有打开 5stack，也能在这台设备上收到通知。",
+          "description": "即使没有打开 YGuard，也能在这台设备上收到通知。",
           "categories": "要推送的内容",
           "unsupported": "这个浏览器不支持推送通知。",
-          "install_required": "请先安装 5stack 应用才能开启。",
+          "install_required": "请先安装 YGuard 应用才能开启。",
           "install": {
             "description": "推送通知由已安装的应用发送，因此开启前设备上必须先安装该应用。",
-            "open_app": "已经安装了？请从主屏幕或应用列表打开 5stack，并在那里开启推送通知。"
+            "open_app": "已经安装了？请从主屏幕或应用列表打开 YGuard，并在那里开启推送通知。"
           },
-          "denied": "5stack 的通知已被拦截。请在浏览器或设备设置中允许，才能开启此功能。",
+          "denied": "YGuard 的通知已被拦截。请在浏览器或设备设置中允许，才能开启此功能。",
           "failed": "无法开启推送通知，请重试。",
           "errors": {
             "permission": "通知权限请求一直没有响应。设备上缺少或损坏 Google Play 服务时可能出现这种情况。",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "新闻",
-            "description": "5stack 上发布的新文章。"
+            "description": "YGuard 上发布的新文章。"
           },
           "staff_moderation": {
             "title": "管理",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "声音设置",
-        "description": "预览并调整 5Stack 为聊天、比赛等播放的提示音。",
+        "description": "预览并调整 YGuard 为聊天、比赛等播放的提示音。",
         "enabled": {
           "title": "通知声音",
           "description": "为聊天消息、比赛事件和其他提醒播放声音。"
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "遥测",
           "telemetry": "遥测",
-          "telemetry_description": "通过分享匿名使用数据来帮助改进 5stack。",
+          "telemetry_description": "通过分享匿名使用数据来帮助改进 YGuard。",
           "update": "更新遥测设置",
           "update_success": "遥测设置已成功更新",
           "google_tag_manager_code": "Google Tag Manager 代码",
@@ -1882,8 +1882,8 @@
           "updated": "设置已成功更新"
         },
         "fivestack_ranks": {
-          "title": "5stack 段位",
-          "description": "将每位玩家的 5stack ELO 发送到服务器，以便插件在游戏内显示段位。",
+          "title": "YGuard 段位",
+          "description": "将每位玩家的 YGuard ELO 发送到服务器，以便插件在游戏内显示段位。",
           "matches": "在常规比赛中显示段位",
           "tournaments": "在赛事比赛中显示段位",
           "warning_title": "警告：这可能导致您的 Steam GSLT 被封禁",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "自定义主题颜色。更改会实时预览。",
           "reset_to_defaults": "重置为默认值",
           "reset_confirm_title": "重置品牌设置为默认值？",
-          "reset_confirm_description": "这将清除您的品牌名称、颜色、登录页脚以及上传的 Logo/网站图标/应用图标，恢复为默认的 5Stack 主题。此操作无法撤销。",
+          "reset_confirm_description": "这将清除您的品牌名称、颜色、登录页脚以及上传的 Logo/网站图标/应用图标，恢复为默认的 YGuard 主题。此操作无法撤销。",
           "export_theme": "导出主题",
           "import_theme": "导入主题",
           "branding_saved": "品牌设置已保存",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "自动生成比赛高光时刻",
           "auto_generate_match_clips_description": "在每位玩家的比赛结束后，为其排队生成比赛回顾高光时刻。",
           "auto_generate_match_clips_imported": "包含导入的比赛",
-          "auto_generate_match_clips_imported_description": "也为从 5stack 外部导入的比赛（例如 Valve 比赛历史）自动生成高光时刻。默认关闭，以免导入的比赛淹没渲染队列。",
+          "auto_generate_match_clips_imported_description": "也为从 YGuard 外部导入的比赛（例如 Valve 比赛历史）自动生成高光时刻。默认关闭，以免导入的比赛淹没渲染队列。",
           "pause_renders_during_active_match": "比赛进行时暂停高光渲染",
           "pause_renders_during_active_match_description": "当比赛在由 GPU 节点支持的服务上进入直播状态时，自动暂停进行中的高光渲染，以免游戏服务器与渲染 Pod 争抢 GPU。比赛结束后渲染自动恢复。",
           "auto_clip_default_visibility": "自动生成高光时刻的默认可见性",
@@ -2431,7 +2431,7 @@
           "docs_link": "阅读面板插件文档",
           "add": "添加面板插件",
           "empty_title": "还没有面板插件",
-          "empty_description": "把 5Stack 指向某个网页应用的 URL，它就会在面板内以原生页面呈现。",
+          "empty_description": "把 YGuard 指向某个网页应用的 URL，它就会在面板内以原生页面呈现。",
           "public": "公开",
           "add_title": "添加面板插件",
           "edit_title": "编辑面板插件",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "以此标签在玩家资料页显示该插件。留空则不显示标签。插件会收到该资料页的 Steam ID。",
             "deployments": "部署",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "要监听镜像更新的 Kubernetes 部署名称，用逗号分隔。更新会与 5stack 自身的服务一起显示在页头。"
+            "deployments_hint": "要监听镜像更新的 Kubernetes 部署名称，用逗号分隔。更新会与 YGuard 自身的服务一起显示在页头。"
           },
           "detect_label": "从 URL 自动检测",
           "detect": "检测",
-          "detect_hint": "粘贴插件的基础 URL（或其 5stack-plugin.json），我们会根据其清单填充下面的字段。",
-          "detect_failed": "无法在该 URL 读取 5stack-plugin.json 清单。",
+          "detect_hint": "粘贴插件的基础 URL（或其 YGuard-plugin.json），我们会根据其清单填充下面的字段。",
+          "detect_failed": "无法在该 URL 读取 YGuard-plugin.json 清单。",
           "optional": "（可选）",
           "advanced": "高级设置",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "网页推送",
           "section": "网页推送通知",
-          "description": "把提醒直接发送到玩家的手机或桌面，即使 5stack 没有在任何标签页中打开，浏览器也会送达。玩家在自己的通知设置中逐台设备自行订阅；在 iOS 上必须先把 5stack 添加到主屏幕才会生效。无需额外配置：发送通过浏览器自带的推送服务完成，因此没有第三方账号也没有费用。",
+          "description": "把提醒直接发送到玩家的手机或桌面，即使 YGuard 没有在任何标签页中打开，浏览器也会送达。玩家在自己的通知设置中逐台设备自行订阅；在 iOS 上必须先把 YGuard 添加到主屏幕才会生效。无需额外配置：发送通过浏览器自带的推送服务完成，因此没有第三方账号也没有费用。",
           "state_live": "发送中",
           "state_standby": "待命",
           "state_ready": "就绪",
@@ -2522,7 +2522,7 @@
           "description": "可安装插件的目录，以及它的来源。仅限管理员。",
           "disabled_hint": "开启后即可浏览目录，并将插件安装到游戏服务器节点上。",
           "registry": "插件源",
-          "registry_description": "可安装插件目录的来源。留空则使用官方 5Stack 插件源。",
+          "registry_description": "可安装插件目录的来源。留空则使用官方 YGuard 插件源。",
           "registry_url": "插件源 URL",
           "catalog_count": "目录中有 {count} 个插件",
           "sync": "立即同步",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "处罚",
           "section": "自动处罚",
-          "description": "5stack 如何处理它能自行检测到的行为。每个来源统计一个时间窗口内的违规次数，并套用处罚阶梯中对应的一档。",
-          "defaults_note": "下面的值就是 5stack 一直在用的值。只看这个页面不会改变任何设置，只有编辑才会。",
+          "description": "YGuard 如何处理它能自行检测到的行为。每个来源统计一个时间窗口内的违规次数，并套用处罚阶梯中对应的一档。",
+          "defaults_note": "下面的值就是 YGuard 一直在用的值。只看这个页面不会改变任何设置，只有编辑才会。",
           "unavailable": "没有可用的处罚来源。API 可能还没有执行处罚相关的迁移。",
           "load_failed": "无法加载处罚策略",
           "reset": "恢复默认",
           "permanent": "永久",
-          "platform_ban_narrowed": "在“两者都禁止”以外的任何范围下，此来源不再写入全平台封禁，只会下发范围受限的冷却——被 VAC 封禁的账号仍可使用 5stack 的另一半功能。",
+          "platform_ban_narrowed": "在“两者都禁止”以外的任何范围下，此来源不再写入全平台封禁，只会下发范围受限的冷却——被 VAC 封禁的账号仍可使用 YGuard 的另一半功能。",
           "threshold": {
             "label": "达到多少次后处罚",
             "first_offence": "第一次违规就会被处罚。",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steam 机器人",
+        "presence_title": "YGuard Steam 机器人",
         "presence_description": "把机器人加为 Steam 好友，比赛一结束就会自动导入你的竞技和 Premier 比赛。",
         "presence_connect": "把机器人加为好友",
         "presence_add_bot": "在 Steam 上打开机器人",
@@ -2717,7 +2717,7 @@
         "presence_connected": "已连接 — 导入是即时的。",
         "presence_not_connected": "尚未连接。",
         "presence_self_label": "好友看到的你",
-        "presence_unavailable": "5stack 机器人当前不可用 — 请稍后再试或联系管理员。",
+        "presence_unavailable": "YGuard 机器人当前不可用 — 请稍后再试或联系管理员。",
         "need_two_codes": "你需要从 Valve 获取两个代码：",
         "step_auth_prefix": "你的",
         "steam_auth_code": "Steam 游戏验证码",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "全部",
         "settings_changed": "自定义设置已激活",
-        "source_all_unavailable_elo": "“全部”在 ELO 标签页不可用——仅显示 5Stack ELO。",
+        "source_all_unavailable_elo": "“全部”在 ELO 标签页不可用——仅显示 YGuard ELO。",
         "external_warning": {
           "title": "未关联比赛历史",
           "description": "关联您的 Steam 比赛历史认证码以导入您的优先、竞技和搭档比赛。",
@@ -3376,7 +3376,7 @@
       "only_enabled": "仅启用节点",
       "setup_dialog": {
         "title": "游戏服务器节点设置",
-        "description": "在您的服务器上运行此安装脚本以连接到 5Stack",
+        "description": "在您的服务器上运行此安装脚本以连接到 YGuard",
         "installation_script": "安装脚本",
         "waiting_title": "等待节点连接...",
         "waiting_description": "在您的服务器上运行安装脚本。节点连接后状态将自动更新。",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "专用服务器",
-      "description": "专用服务器保持与 5Stack 的连接，并自动用于托管比赛、赛事和公共游戏。",
+      "description": "专用服务器保持与 YGuard 的连接，并自动用于托管比赛、赛事和公共游戏。",
       "docs_link": "查看设置指南",
       "no_servers_title": "无专用服务器",
       "no_servers": "未找到专用服务器。",
@@ -3438,7 +3438,7 @@
         "player_management": "玩家管理",
         "no_players": "此服务器上当前无玩家",
         "sanctions_wip_title": "功能开发中",
-        "sanctions_wip": "踢出功能现已可用。公共服务器上的实时静音/禁言执行正在开发中——新的 5Stack 公共服务器插件即将推出，上线后静音/禁言将自动应用。",
+        "sanctions_wip": "踢出功能现已可用。公共服务器上的实时静音/禁言执行正在开发中——新的 YGuard 公共服务器插件即将推出，上线后静音/禁言将自动应用。",
         "status": {
           "disconnected": "服务器已断开",
           "no_rcon": "服务器已连接但 RCON 不可用",
@@ -3838,7 +3838,7 @@
       "installed": "已安装",
       "already_installed": "它已安装在你的面板上。",
       "open_plugin": "打开",
-      "panel_step_deploy": "在托管面板的机器上，从你的 5stack-panel 代码目录运行此命令。",
+      "panel_step_deploy": "在托管面板的机器上，从你的 panel 代码目录运行此命令。",
       "panel_step_dns": "把它输出的域名指向与本面板相同的地址，然后等待证书签发。",
       "panel_step_register": "在 设置 → 应用 → 面板插件 → 添加 中注册，粘贴该 URL 并点击「检测」。",
       "installs_everywhere": "安装到全部 {count} 个在线节点。",
@@ -3880,8 +3880,8 @@
         "warning_title": "警告：这可能导致您的 Steam GSLT 被封禁",
         "warning_description": "据 Valve 所述，在其官方服务器准则之外运行，可能导致服务器所有者 Steam 账号下的所有 Game Server Login Token（GSLT）被封禁。请自行承担启用风险。",
         "warning_link_label": "Valve 的服务器准则",
-        "already_off": "本部署已经关闭：5stack Ranks 会关闭 Valve 的服务器准则以在游戏内显示段位，而它带来的风险针对的是您的 Steam 账号，而不是某一台服务器。",
-        "already_off_link": "5stack Ranks"
+        "already_off": "本部署已经关闭：YGuard Ranks 会关闭 Valve 的服务器准则以在游戏内显示段位，而它带来的风险针对的是您的 Steam 账号，而不是某一台服务器。",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "自动更新",
@@ -3892,7 +3892,7 @@
         "add": "添加插件",
         "badge": "自定义",
         "title": "添加目录中没有的插件",
-        "description": "把某个发行版指给 5Stack，它就会变成和其他条目一样的记录——可以安装到每个节点上，下载内容会与这里获取的摘要进行校验。",
+        "description": "把某个发行版指给 YGuard，它就会变成和其他条目一样的记录——可以安装到每个节点上，下载内容会与这里获取的摘要进行校验。",
         "url": "发行版 URL",
         "url_hint": "GitHub 仓库、某个 release，或直接指向 .zip 的链接。填仓库时会解析为其最新 release 中最新的 Linux 压缩包。",
         "runtime": "框架",
@@ -5024,7 +5024,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
       "systems_online": "{count} 个系统在线 | {count} 个系统在线",
       "navigation": {
         "dashboard": "我的数据",
@@ -5298,7 +5298,7 @@
   },
   "push_prompt": {
     "title": "开启通知",
-    "description": "即使没有打开 5stack，也能在这台设备上收到比赛邀请、大厅呼叫和消息。",
+    "description": "即使没有打开 YGuard，也能在这台设备上收到比赛邀请、大厅呼叫和消息。",
     "enable": "开启",
     "dismiss": "关闭",
     "enabled": "已开启推送通知",
@@ -6146,7 +6146,7 @@
       },
       "regions": {
         "label": "首选地区",
-        "description": "本赛事的比赛在哪里开服。这不是对选手的限制——5stack 没有按选手记录的地区数据。",
+        "description": "本赛事的比赛在哪里开服。这不是对选手的限制——YGuard 没有按选手记录的地区数据。",
         "empty": "目前没有可用地区。"
       },
       "invite_only": {
@@ -7505,7 +7505,7 @@
       "all": "全部"
     },
     "source_badge": {
-      "imported_external": "从外部来源导入——非 5stack 比赛"
+      "imported_external": "从外部来源导入——非 YGuard 比赛"
     },
     "scoreboard_overlay": {
       "final": "最终",
@@ -8179,18 +8179,18 @@
       "custom_mode_group": "自定义模式",
       "custom_mode_group_locked": "需要游戏服务器节点",
       "custom_modes_need_node_title": "自定义模式需要游戏服务器节点",
-      "custom_modes_need_node_description": "自定义模式是一组插件，5Stack 会把它们安装到运行该模式的服务器上。它无法在第三方独立服务器上安装任何东西，所以请在「连接」中把这台服务器挂到某个游戏服务器节点上，才能选择自定义模式。",
+      "custom_modes_need_node_description": "自定义模式是一组插件，YGuard 会把它们安装到运行该模式的服务器上。它无法在第三方独立服务器上安装任何东西，所以请在「连接」中把这台服务器挂到某个游戏服务器节点上，才能选择自定义模式。",
       "game": "游戏",
       "csgo_ranked_unavailable_title": "排位模式不可用",
       "csgo_ranked_unavailable_description": "CS:GO 服务器的排位模式尚未可用。",
       "ranked_server": "排位服务器",
-      "ranked_server_description": "由 5stack 完全管理的排位体验。",
+      "ranked_server_description": "由 YGuard 完全管理的排位体验。",
       "practice_server": "练习服务器",
       "practice_server_description": "用于承载道具练习会话。运行练习插件而非比赛插件，并且永远不会用于匹配。",
       "valve_modes": "Valve 模式",
       "valve_modes_description": "运行 casual、deathmatch 等 Valve 预设。",
       "custom_presets": "自定义预设",
-      "custom_presets_description": "使用 5Stack 为其安装的插件，运行自定义游戏模式。",
+      "custom_presets_description": "使用 YGuard 为其安装的插件，运行自定义游戏模式。",
       "connect_password": "连接密码",
       "connect_password_description": "连接服务器所需的密码（可选）",
       "rcon_password": "RCON 密码",
@@ -8209,7 +8209,7 @@
       "refresh_match": "刷新比赛",
       "metamod_info": "Metamod 信息",
       "css_version": "CounterStrikeSharp 版本",
-      "fivestack_status": "5Stack 状态",
+      "fivestack_status": "YGuard 状态",
       "swiftly_version": "Swiftly 版本",
       "swiftly_status": "Swiftly 状态（服务器日志）",
       "swiftly_plugins": "Swiftly 插件（服务器日志）",
@@ -8613,7 +8613,7 @@
       "elo": "Elo"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "外部"
     },
     "view_short": "查看",
@@ -9604,7 +9604,7 @@
       "denied": "浏览器拦截了摄像头访问。请为本站允许权限后重试。",
       "missing": "找不到摄像头。请接入一台，或在下方选择其他设备。",
       "busy": "其他应用正在使用摄像头。请先关闭再重试。",
-      "insecure": "摄像头需要安全连接。请通过 HTTPS（或 localhost）打开 5stack 后重试。",
+      "insecure": "摄像头需要安全连接。请通过 HTTPS（或 localhost）打开 YGuard 后重试。",
       "unknown": "无法启动摄像头，请重试。"
     },
     "media_pending": "正在等待摄像头权限…",
@@ -9623,7 +9623,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "语音聊天需要安全连接。请通过 HTTPS（或 localhost）打开 5stack 后重试。",
+      "insecure_origin": "语音聊天需要安全连接。请通过 HTTPS（或 localhost）打开 YGuard 后重试。",
       "unsupported": "这个浏览器不支持语音聊天。",
       "permission_denied": "麦克风访问被拦截。请在浏览器的网站设置中允许后重试。",
       "no_microphone": "找不到麦克风。请接入一支后重试。",
@@ -9752,7 +9752,7 @@
     "no_results": "没有匹配「{term}」的问题。",
     "links": {
       "features": "所有功能",
-      "overview": "什么是 5Stack？",
+      "overview": "什么是 YGuard？",
       "matchmaking": "匹配文档",
       "tournaments": "锦标赛文档",
       "stats_guide": "数据指南",
@@ -9772,18 +9772,18 @@
       "game_plugins": "游戏插件"
     },
     "about": {
-      "title": "关于 5Stack",
+      "title": "关于 YGuard",
       "what_is": {
-        "question": "什么是 5Stack？",
-        "answer": "5Stack 是 Counter-Strike 2 的赛事层，是介于游戏服务器与联赛之间的软件。一次安装即可运行整套系统：匹配、选人大厅、战队、锦标赛与赛季、数据与 Elo、demo 录制、浏览器内回放、集锦，以及直播转播。"
+        "question": "什么是 YGuard？",
+        "answer": "YGuard 是 Counter-Strike 2 的赛事层，是介于游戏服务器与联赛之间的软件。一次安装即可运行整套系统：匹配、选人大厅、战队、锦标赛与赛季、数据与 Elo、demo 录制、浏览器内回放、集锦，以及直播转播。"
       },
       "this_site": {
         "question": "{brand} 是什么？",
-        "answer": "{brand} 是一个 5Stack 站点。这套软件开源且自行部署，因此每个采用它的社区都运营自己的网站、自己的服务器和自己的规则，这里就是其中之一。"
+        "answer": "{brand} 是一个 YGuard 站点。这套软件开源且自行部署，因此每个采用它的社区都运营自己的网站、自己的服务器和自己的规则，这里就是其中之一。"
       },
       "cost": {
         "question": "免费吗？",
-        "answer": "是的。5Stack 免费且开源，并由你自行部署，因此项目不会按人数或场次收费。你只需承担自己选择的基础设施费用。它由一位开发者打造和维护，GitHub 赞助是开发得以持续的来源。"
+        "answer": "是的。YGuard 免费且开源，并由你自行部署，因此项目不会按人数或场次收费。你只需承担自己选择的基础设施费用。它由一位开发者打造和维护，GitHub 赞助是开发得以持续的来源。"
       },
       "sign_in": {
         "question": "怎么登录？",
@@ -9829,7 +9829,7 @@
       "title": "自行部署",
       "self_host": {
         "question": "我可以自己部署一个站点吗？",
-        "answer": "可以，这正是 5Stack 设计的使用方式。它由你自行部署，一条命令即可安装，会一并搭建 Kubernetes（K3s）、数据库、存储和面板本身。文档中的安装指南会从头到尾带你完成。"
+        "answer": "可以，这正是 YGuard 设计的使用方式。它由你自行部署，一条命令即可安装，会一并搭建 Kubernetes（K3s）、数据库、存储和面板本身。文档中的安装指南会从头到尾带你完成。"
       },
       "requirements": {
         "question": "部署需要什么？",
@@ -9845,7 +9845,7 @@
       },
       "managed": {
         "question": "有可以付费使用的托管版本吗？",
-        "answer": "没有。5Stack 只支持自行部署，没有可购买的 SaaS 套餐或托管服务。5stack.gg 是维护者自己的公开站点，适合在安装前先看看软件实际运行的样子。"
+        "answer": "没有。YGuard 只支持自行部署，没有可购买的 SaaS 套餐或托管服务。YGuard.gg 是维护者自己的公开站点，适合在安装前先看看软件实际运行的样子。"
       },
       "branding": {
         "question": "我可以让它看起来像我的组织吗？",
@@ -9853,12 +9853,12 @@
       },
       "extend": {
         "question": "我可以用自己的代码扩展它吗？",
-        "answer": "有两个地方可以。你可以把自己的 Web 应用嵌入为面板的原生页面，它们会沿用会话和设计系统，因此不需要维护分支。在服务端，你也可以在 CounterStrikeSharp 或 SwiftlyS2 上，把自己的 CS2 插件与 5Stack 的一起运行。"
+        "answer": "有两个地方可以。你可以把自己的 Web 应用嵌入为面板的原生页面，它们会沿用会话和设计系统，因此不需要维护分支。在服务端，你也可以在 CounterStrikeSharp 或 SwiftlyS2 上，把自己的 CS2 插件与 YGuard 的一起运行。"
       }
     },
     "support": {
       "title": "还是没解决？",
-      "description": "Discord 是找到真人最快的途径 — 运营 5Stack 站点的人都在那里。错误反馈与功能建议请前往 GitHub，文档则详细介绍了安装、服务器和每一项功能。",
+      "description": "Discord 是找到真人最快的途径 — 运营 YGuard 站点的人都在那里。错误反馈与功能建议请前往 GitHub，文档则详细介绍了安装、服务器和每一项功能。",
       "discord": "加入 Discord",
       "github": "反馈问题",
       "docs": "阅读文档"

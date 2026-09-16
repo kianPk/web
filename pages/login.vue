@@ -31,13 +31,13 @@ const loginFooterLinkClasses =
           <img
             v-if="logoUrl"
             :src="logoUrl"
-            :alt="brandName || '5Stack'"
+            :alt="brandName || 'YGuard'"
             class="relative max-h-[78%] max-w-[78%] object-contain [filter:drop-shadow(0_0_12px_hsl(var(--tac-amber)/0.28))]"
           />
           <NuxtImg
             v-else
             src="/favicon/512.png"
-            :alt="brandName || '5Stack'"
+            :alt="brandName || 'YGuard'"
             class="relative max-h-[78%] max-w-[78%] rounded-full object-contain [filter:drop-shadow(0_0_12px_hsl(var(--tac-amber)/0.28))]"
           />
         </div>
@@ -62,12 +62,12 @@ const loginFooterLinkClasses =
               aria-hidden="true"
               class="pointer-events-none absolute left-[5px] top-[5px] select-none text-transparent [-webkit-text-stroke:1.2px_hsl(var(--tac-amber)/0.4)]"
             >
-              {{ brandName || "5Stack" }}
+              {{ brandName || "YGuard" }}
             </span>
             <span
               class="relative bg-[linear-gradient(180deg,hsl(var(--foreground))_0%,hsl(var(--foreground)/0.7)_100%)] bg-clip-text text-transparent [-webkit-text-fill-color:transparent]"
             >
-              {{ brandName || "5Stack" }}
+              {{ brandName || "YGuard" }}
             </span>
           </h1>
           <span

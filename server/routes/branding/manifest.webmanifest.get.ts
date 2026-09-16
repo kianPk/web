@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
 
   const get = (name: string) => settings.find((s) => s.name === name)?.value;
 
-  const brandName = get("public.brand_name") || "5Stack";
+  const brandName = get("public.brand_name") || "YGuard";
   const pwaIcon = get("public.pwa_icon");
   const faviconUrl = get("public.favicon_url");
 

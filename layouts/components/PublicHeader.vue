@@ -5,7 +5,7 @@ import { useBranding } from "~/composables/useBranding";
 
 const { brandName, logoUrl } = useBranding();
 
-const displayName = computed(() => brandName.value || "5Stack");
+const displayName = computed(() => brandName.value || "YGuard");
 
 const gridRef = computed(() => {
   const src = (displayName.value || "5S").toUpperCase();

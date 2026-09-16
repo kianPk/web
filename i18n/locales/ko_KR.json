@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack 매치메이킹 실력 레이팅입니다 — 승패에 따라 오르내립니다."
+      "description": "YGuard 매치메이킹 실력 레이팅입니다 — 승패에 따라 오르내립니다."
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "액티브 듀티",
     "no_maps_match": "필터에 맞는 맵이 없습니다.",
     "accepted_elo_range": "허용 ELO 범위",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "주간 가능 시간",
     "allow_outside_hours": "이 시간 외의 요청도 허용",
     "outside_hours_help": "상대는 우리 팀이 칠한 가능 시간이 아니어도 아무 시간이나 제안할 수 있습니다. 가능 시간을 비워두면 언제든 요청을 받게 됩니다.",
@@ -1588,10 +1588,10 @@
         "voice": "음성 및 오디오",
         "api_keys_management": {
           "add_api_key": "API 키 추가",
-          "description": "API 키는 5Stack API 요청을 인증합니다 — 비밀번호처럼 안전하게 관리하세요.",
+          "description": "API 키는 YGuard API 요청을 인증합니다 — 비밀번호처럼 안전하게 관리하세요.",
           "view_docs": "API 문서 보기",
           "no_api_keys": "아직 API 키가 없습니다",
-          "no_api_keys_hint": "첫 API 키를 생성해 5Stack API 인증 요청을 시작하세요.",
+          "no_api_keys_hint": "첫 API 키를 생성해 YGuard API 인증 요청을 시작하세요.",
           "add_first_api_key": "첫 API 키 생성",
           "create_new_api_key": "새 API 키 생성",
           "create_new_description": "용도를 알 수 있는 라벨과 함께 새 API 키를 생성하세요.",
@@ -1636,7 +1636,7 @@
           "link": "Discord 연동",
           "unlink_dialog": {
             "title": "Discord 계정 연동 해제",
-            "description": "정말 Discord 계정 연동을 해제하시겠습니까? 5Stack 계정과 Discord 계정 간 연결이 제거됩니다.",
+            "description": "정말 Discord 계정 연동을 해제하시겠습니까? YGuard 계정과 Discord 계정 간 연결이 제거됩니다.",
             "confirm": "연동 해제"
           },
           "unlinked": "Discord 계정 연동이 해제되었습니다"
@@ -1646,7 +1646,7 @@
         "description": "마이크, 음량, 다른 사람의 소리 크기 설정입니다. 파티 로비, 경기, 드래프트 방 등 모든 음성 채널이 여기서 설정한 값을 사용하며, 카메라 영상의 마이크도 마찬가지입니다.",
         "this_device": {
           "title": "이 기기에 저장됨",
-          "description": "음성 설정은 5stack 계정의 일부가 아니며 이 브라우저를 벗어나지 않습니다. 플레이하는 각 컴퓨터가 저마다의 마이크, 출력, 감도, 플레이어 음량을 유지합니다. 바뀌는 것은 사람이 아니라 장비이므로 그것이 의도된 동작입니다. 이 사이트의 브라우저 데이터를 지우면 기본값으로 돌아갑니다."
+          "description": "음성 설정은 YGuard 계정의 일부가 아니며 이 브라우저를 벗어나지 않습니다. 플레이하는 각 컴퓨터가 저마다의 마이크, 출력, 감도, 플레이어 음량을 유지합니다. 바뀌는 것은 사람이 아니라 장비이므로 그것이 의도된 동작입니다. 이 사이트의 브라우저 데이터를 지우면 기본값으로 돌아갑니다."
         },
         "players": {
           "title": "플레이어 음량",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "알림 설정",
-        "description": "5stack이 무엇을 알려줄지, 그 알림을 어디서 받을지 선택하세요.",
+        "description": "YGuard이 무엇을 알려줄지, 그 알림을 어디서 받을지 선택하세요.",
         "save_failed": "설정을 저장하지 못했습니다. 다시 시도해 주세요.",
         "push": {
           "title": "푸시 알림",
-          "description": "5stack이 열려 있지 않아도 이 기기에서 알림을 받습니다.",
+          "description": "YGuard이 열려 있지 않아도 이 기기에서 알림을 받습니다.",
           "categories": "푸시할 항목",
           "unsupported": "이 브라우저는 푸시 알림을 지원하지 않습니다.",
-          "install_required": "사용하려면 5stack 앱을 설치하세요.",
+          "install_required": "사용하려면 YGuard 앱을 설치하세요.",
           "install": {
             "description": "푸시 알림은 설치된 앱이 전달하므로, 켜기 전에 기기에 앱이 있어야 합니다.",
-            "open_app": "이미 설치했나요? 홈 화면이나 앱 목록에서 5stack을 열고 거기서 푸시 알림을 켜세요."
+            "open_app": "이미 설치했나요? 홈 화면이나 앱 목록에서 YGuard을 열고 거기서 푸시 알림을 켜세요."
           },
-          "denied": "5stack의 알림이 차단되어 있습니다. 켜려면 브라우저 또는 기기 설정에서 허용하세요.",
+          "denied": "YGuard의 알림이 차단되어 있습니다. 켜려면 브라우저 또는 기기 설정에서 허용하세요.",
           "failed": "푸시 알림을 켜지 못했습니다. 다시 시도해 주세요.",
           "errors": {
             "permission": "알림 권한 요청에 응답이 없었습니다. 기기에 Google Play 서비스가 없거나 손상된 경우 발생할 수 있습니다.",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "뉴스",
-            "description": "5stack에 게시된 새 글."
+            "description": "YGuard에 게시된 새 글."
           },
           "staff_moderation": {
             "title": "운영",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "사운드 설정",
-        "description": "채팅, 매치 등에 대해 5Stack이 재생하는 알림음을 미리 듣고 조정하세요.",
+        "description": "채팅, 매치 등에 대해 YGuard이 재생하는 알림음을 미리 듣고 조정하세요.",
         "enabled": {
           "title": "알림음",
           "description": "채팅 메시지, 매치 이벤트 및 기타 알림에 소리를 재생합니다."
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "텔레메트리",
           "telemetry": "텔레메트리",
-          "telemetry_description": "익명 사용 데이터를 공유해 5stack 개선에 도움을 주세요.",
+          "telemetry_description": "익명 사용 데이터를 공유해 YGuard 개선에 도움을 주세요.",
           "update": "텔레메트리 설정 업데이트",
           "update_success": "텔레메트리 설정이 업데이트되었습니다",
           "google_tag_manager_code": "Google Tag Manager 코드",
@@ -1882,8 +1882,8 @@
           "updated": "설정이 업데이트되었습니다"
         },
         "fivestack_ranks": {
-          "title": "5stack 랭크",
-          "description": "플러그인이 게임 내에서 랭크를 표시할 수 있도록 각 플레이어의 5stack ELO를 서버로 전송합니다.",
+          "title": "YGuard 랭크",
+          "description": "플러그인이 게임 내에서 랭크를 표시할 수 있도록 각 플레이어의 YGuard ELO를 서버로 전송합니다.",
           "matches": "일반 매치에서 랭크 표시",
           "tournaments": "토너먼트 매치에서 랭크 표시",
           "warning_title": "경고: Steam GSLT가 밴될 수 있습니다",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "테마 색상을 사용자 지정합니다. 변경 사항은 실시간으로 미리 보입니다.",
           "reset_to_defaults": "기본값으로 초기화",
           "reset_confirm_title": "브랜딩을 기본값으로 초기화하시겠습니까?",
-          "reset_confirm_description": "브랜드 이름, 색상, 로그인 하단 링크, 업로드한 로고/파비콘/앱 아이콘이 모두 지워지고 기본 5Stack 테마로 복원됩니다. 이 작업은 되돌릴 수 없습니다.",
+          "reset_confirm_description": "브랜드 이름, 색상, 로그인 하단 링크, 업로드한 로고/파비콘/앱 아이콘이 모두 지워지고 기본 YGuard 테마로 복원됩니다. 이 작업은 되돌릴 수 없습니다.",
           "export_theme": "테마 내보내기",
           "import_theme": "테마 가져오기",
           "branding_saved": "브랜딩이 저장되었습니다",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "매치 하이라이트 자동 생성",
           "auto_generate_match_clips_description": "매치가 끝나면 각 플레이어의 매치 요약 하이라이트를 대기열에 추가합니다.",
           "auto_generate_match_clips_imported": "가져온 매치 포함",
-          "auto_generate_match_clips_imported_description": "5Stack 외부에서 가져온 매치 (예: Valve 매치 기록)에 대해서도 하이라이트를 자동 생성합니다. 가져온 매치가 렌더 대기열을 넘치게 하지 않도록 기본적으로 꺼져 있습니다.",
+          "auto_generate_match_clips_imported_description": "YGuard 외부에서 가져온 매치 (예: Valve 매치 기록)에 대해서도 하이라이트를 자동 생성합니다. 가져온 매치가 렌더 대기열을 넘치게 하지 않도록 기본적으로 꺼져 있습니다.",
           "pause_renders_during_active_match": "진행 중인 매치에서 하이라이트 렌더링 일시 중지",
           "pause_renders_during_active_match_description": "GPU 노드 기반 서버에서 매치가 라이브 상태가 되면 진행 중인 하이라이트 렌더링을 자동으로 일시 중지하여 게임 서버가 렌더 파드와 GPU를 두고 경쟁하지 않도록 합니다. 매치가 종료되면 렌더링이 자동으로 재개됩니다.",
           "auto_clip_default_visibility": "자동 생성 하이라이트의 기본 공개 범위",
@@ -2431,7 +2431,7 @@
           "docs_link": "패널 플러그인 문서 보기",
           "add": "패널 플러그인 추가",
           "empty_title": "패널 플러그인이 아직 없습니다",
-          "empty_description": "5Stack에 웹 앱 URL을 지정하면 패널 내부에서 네이티브 페이지로 렌더링됩니다.",
+          "empty_description": "YGuard에 웹 앱 URL을 지정하면 패널 내부에서 네이티브 페이지로 렌더링됩니다.",
           "public": "공개",
           "add_title": "패널 플러그인 추가",
           "edit_title": "패널 플러그인 편집",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "이 라벨로 플레이어 프로필에 이 플러그인을 탭으로 표시합니다. 비워두면 탭이 표시되지 않습니다. 플러그인은 프로필의 SteamID를 전달받습니다.",
             "deployments": "배포",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "이미지 업데이트를 감시할 Kubernetes 배포 이름입니다. 쉼표로 구분합니다. 업데이트는 5stack 자체 서비스와 함께 헤더에 표시됩니다."
+            "deployments_hint": "이미지 업데이트를 감시할 Kubernetes 배포 이름입니다. 쉼표로 구분합니다. 업데이트는 YGuard 자체 서비스와 함께 헤더에 표시됩니다."
           },
           "detect_label": "URL에서 자동 감지",
           "detect": "감지",
-          "detect_hint": "플러그인의 기본 URL(또는 5stack-plugin.json)을 붙여넣으면 아래 필드가 매니페스트에서 자동으로 채워집니다.",
-          "detect_failed": "해당 URL에서 5stack-plugin.json 매니페스트를 읽지 못했습니다.",
+          "detect_hint": "플러그인의 기본 URL(또는 YGuard-plugin.json)을 붙여넣으면 아래 필드가 매니페스트에서 자동으로 채워집니다.",
+          "detect_failed": "해당 URL에서 YGuard-plugin.json 매니페스트를 읽지 못했습니다.",
           "optional": "(선택 사항)",
           "advanced": "고급 설정",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "웹 푸시",
           "section": "웹 푸시 알림",
-          "description": "플레이어의 휴대폰이나 데스크톱으로 알림을 바로 보냅니다. 5stack이 어떤 탭에도 열려 있지 않아도 브라우저가 전달합니다. 플레이어가 자신의 알림 설정에서 기기별로 직접 구독하며, iOS에서는 5stack을 홈 화면에 설치해야만 동작합니다. 따로 설정할 것은 없습니다. 전달은 브라우저 자체의 푸시 서비스를 거치므로 외부 계정도 비용도 없습니다.",
+          "description": "플레이어의 휴대폰이나 데스크톱으로 알림을 바로 보냅니다. YGuard이 어떤 탭에도 열려 있지 않아도 브라우저가 전달합니다. 플레이어가 자신의 알림 설정에서 기기별로 직접 구독하며, iOS에서는 YGuard을 홈 화면에 설치해야만 동작합니다. 따로 설정할 것은 없습니다. 전달은 브라우저 자체의 푸시 서비스를 거치므로 외부 계정도 비용도 없습니다.",
           "state_live": "전송 중",
           "state_standby": "대기 중",
           "state_ready": "준비됨",
@@ -2522,7 +2522,7 @@
           "description": "설치 가능한 플러그인 카탈로그와 그 출처입니다. 관리자 전용.",
           "disabled_hint": "이 기능을 켜면 디렉터리를 둘러보고 게임 서버 노드에 플러그인을 설치할 수 있습니다.",
           "registry": "레지스트리",
-          "registry_description": "설치 가능한 플러그인 카탈로그를 가져오는 출처입니다. 비워 두면 공식 5Stack 레지스트리를 사용합니다.",
+          "registry_description": "설치 가능한 플러그인 카탈로그를 가져오는 출처입니다. 비워 두면 공식 YGuard 레지스트리를 사용합니다.",
           "registry_url": "레지스트리 URL",
           "catalog_count": "카탈로그에 플러그인 {count}개",
           "sync": "지금 동기화",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "제재",
           "section": "자동 제재",
-          "description": "5stack이 스스로 감지할 수 있는 행위를 어떻게 제재하는지입니다. 각 항목은 일정 기간 안의 위반 횟수를 세고, 단계별 제재에서 해당하는 단계를 적용합니다.",
-          "defaults_note": "아래 값은 5stack이 지금까지 계속 사용해 온 값입니다. 이 페이지를 여는 것만으로는 아무것도 바뀌지 않고, 수정해야만 바뀝니다.",
+          "description": "YGuard이 스스로 감지할 수 있는 행위를 어떻게 제재하는지입니다. 각 항목은 일정 기간 안의 위반 횟수를 세고, 단계별 제재에서 해당하는 단계를 적용합니다.",
+          "defaults_note": "아래 값은 YGuard이 지금까지 계속 사용해 온 값입니다. 이 페이지를 여는 것만으로는 아무것도 바뀌지 않고, 수정해야만 바뀝니다.",
           "unavailable": "사용 가능한 제재 항목이 없습니다. API가 아직 제재 마이그레이션을 실행하지 않았을 수 있습니다.",
           "load_failed": "제재 정책을 불러오지 못했습니다",
           "reset": "기본값으로 초기화",
           "permanent": "영구",
-          "platform_ban_narrowed": "‘둘 다 차단’ 이외의 범위에서는 이 항목이 플랫폼 전체 차단을 기록하지 않고 범위가 한정된 이용 제한만 적용합니다 — VAC 차단된 계정도 5stack의 나머지 절반은 그대로 쓸 수 있습니다.",
+          "platform_ban_narrowed": "‘둘 다 차단’ 이외의 범위에서는 이 항목이 플랫폼 전체 차단을 기록하지 않고 범위가 한정된 이용 제한만 적용합니다 — VAC 차단된 계정도 YGuard의 나머지 절반은 그대로 쓸 수 있습니다.",
           "threshold": {
             "label": "제재 시작 횟수",
             "first_offence": "첫 위반부터 제재합니다.",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steam 봇",
+        "presence_title": "YGuard Steam 봇",
         "presence_description": "봇을 Steam 친구로 추가하면 경쟁전 및 프리미어 매치가 종료되는 즉시 자동으로 가져옵니다.",
         "presence_connect": "봇을 친구로 추가",
         "presence_add_bot": "Steam에서 봇 열기",
@@ -2717,7 +2717,7 @@
         "presence_connected": "연결됨 — 즉시 가져오기가 진행됩니다.",
         "presence_not_connected": "아직 연결되지 않았습니다.",
         "presence_self_label": "친구들에게 보이는 내 모습",
-        "presence_unavailable": "지금은 5stack 봇을 사용할 수 없습니다. 잠시 후 다시 시도하거나 관리자에게 문의해 주세요.",
+        "presence_unavailable": "지금은 YGuard 봇을 사용할 수 없습니다. 잠시 후 다시 시도하거나 관리자에게 문의해 주세요.",
         "need_two_codes": "Valve에서 발급받은 코드 두 개가 필요합니다:",
         "step_auth_prefix": "회원님의",
         "steam_auth_code": "Steam 게임 인증 코드",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "전체",
         "settings_changed": "사용자 지정 설정 적용됨",
-        "source_all_unavailable_elo": "\"전체\"는 ELO 탭에서 사용할 수 없어 5Stack ELO만 표시합니다.",
+        "source_all_unavailable_elo": "\"전체\"는 ELO 탭에서 사용할 수 없어 YGuard ELO만 표시합니다.",
         "external_warning": {
           "title": "연동된 매치 기록 없음",
           "description": "Steam 매치 기록 인증 코드를 연동하면 프리미어, 컴페티티브, 윙맨 매치를 가져올 수 있습니다.",
@@ -3376,7 +3376,7 @@
       "only_enabled": "활성화된 노드만",
       "setup_dialog": {
         "title": "게임 서버 노드 설정",
-        "description": "서버에서 이 설치 스크립트를 실행하여 5Stack에 연결하세요",
+        "description": "서버에서 이 설치 스크립트를 실행하여 YGuard에 연결하세요",
         "installation_script": "설치 스크립트",
         "waiting_title": "노드 연결을 기다리는 중...",
         "waiting_description": "서버에서 설치 스크립트를 실행하세요. 노드가 연결되면 상태가 자동으로 업데이트됩니다.",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "데디케이티드 서버",
-      "description": "데디케이티드 서버는 5Stack에 상시 연결되어 매치, 토너먼트, 퍼블릭 플레이 호스팅에 자동으로 사용됩니다.",
+      "description": "데디케이티드 서버는 YGuard에 상시 연결되어 매치, 토너먼트, 퍼블릭 플레이 호스팅에 자동으로 사용됩니다.",
       "docs_link": "설정 가이드 보기",
       "no_servers_title": "데디케이티드 서버 없음",
       "no_servers": "데디케이티드 서버를 찾을 수 없습니다.",
@@ -3438,7 +3438,7 @@
         "player_management": "플레이어 관리",
         "no_players": "현재 이 서버에 접속 중인 플레이어가 없습니다",
         "sanctions_wip_title": "개발 진행 중",
-        "sanctions_wip": "킥 기능은 현재 정상 작동합니다. 퍼블릭 서버의 실시간 뮤트/각 적용은 아직 개발 중입니다. 새로운 5Stack 퍼블릭 서버 플러그인이 곧 출시되며, 출시 후에는 뮤트/각이 자동으로 적용됩니다.",
+        "sanctions_wip": "킥 기능은 현재 정상 작동합니다. 퍼블릭 서버의 실시간 뮤트/각 적용은 아직 개발 중입니다. 새로운 YGuard 퍼블릭 서버 플러그인이 곧 출시되며, 출시 후에는 뮤트/각이 자동으로 적용됩니다.",
         "status": {
           "disconnected": "서버 연결이 끊겼습니다",
           "no_rcon": "서버는 연결되었지만 RCON을 사용할 수 없습니다",
@@ -3838,7 +3838,7 @@
       "installed": "설치됨",
       "already_installed": "이미 패널에 설치되어 있습니다.",
       "open_plugin": "열기",
-      "panel_step_deploy": "패널을 호스팅하는 머신에서 5stack-panel 체크아웃으로 이 명령을 실행하세요.",
+      "panel_step_deploy": "패널을 호스팅하는 머신에서 panel 체크아웃으로 이 명령을 실행하세요.",
       "panel_step_dns": "출력된 도메인을 이 패널과 같은 주소로 향하게 하고 인증서 발급을 기다리세요.",
       "panel_step_register": "설정 → 애플리케이션 → 패널 플러그인 → 추가에서 등록하고, 해당 URL을 붙여넣은 뒤 감지를 누르세요.",
       "installs_everywhere": "온라인 노드 {count}개 전체에 설치합니다.",
@@ -3880,8 +3880,8 @@
         "warning_title": "경고: 이 설정 때문에 Steam GSLT가 차단될 수 있습니다",
         "warning_description": "Valve에 따르면 공식 서버 가이드라인을 벗어나 운영할 경우 서버 소유자의 Steam 계정에 있는 모든 Game Server Login Token(GSLT)이 차단될 수 있습니다. 활성화는 본인 책임입니다.",
         "warning_link_label": "Valve 서버 가이드라인",
-        "already_off": "이 배포에서는 이미 꺼져 있습니다: 5stack Ranks가 게임 내 랭크를 표시하기 위해 Valve 서버 가이드라인을 끄며, 그에 따르는 위험은 서버 한 대가 아니라 여러분의 Steam 계정에 미칩니다.",
-        "already_off_link": "5stack Ranks"
+        "already_off": "이 배포에서는 이미 꺼져 있습니다: YGuard Ranks가 게임 내 랭크를 표시하기 위해 Valve 서버 가이드라인을 끄며, 그에 따르는 위험은 서버 한 대가 아니라 여러분의 Steam 계정에 미칩니다.",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "자동으로 업데이트",
@@ -3892,7 +3892,7 @@
         "add": "플러그인 추가",
         "badge": "커스텀",
         "title": "카탈로그에 없는 플러그인 추가",
-        "description": "5Stack에 릴리스를 알려주면 다른 항목과 똑같이 등록됩니다. 모든 노드에 설치할 수 있고, 다운로드는 여기서 받은 다이제스트와 대조해 검증합니다.",
+        "description": "YGuard에 릴리스를 알려주면 다른 항목과 똑같이 등록됩니다. 모든 노드에 설치할 수 있고, 다운로드는 여기서 받은 다이제스트와 대조해 검증합니다.",
         "url": "릴리스 URL",
         "url_hint": "GitHub 저장소, 릴리스, 또는 .zip 파일로 바로 가는 링크. 저장소를 넣으면 최신 릴리스의 가장 새로운 Linux 아카이브로 연결됩니다.",
         "runtime": "프레임워크",
@@ -5024,7 +5024,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
       "systems_online": "{count}개 시스템 온라인 | {count}개 시스템 온라인",
       "navigation": {
         "dashboard": "내 통계",
@@ -5298,7 +5298,7 @@
   },
   "push_prompt": {
     "title": "알림 켜기",
-    "description": "5stack이 열려 있지 않아도 경기 초대, 로비 호출, 메시지를 이 기기에서 받습니다.",
+    "description": "YGuard이 열려 있지 않아도 경기 초대, 로비 호출, 메시지를 이 기기에서 받습니다.",
     "enable": "켜기",
     "dismiss": "닫기",
     "enabled": "푸시 알림을 켰습니다",
@@ -6146,7 +6146,7 @@
       },
       "regions": {
         "label": "선호 지역",
-        "description": "이 토너먼트의 매치가 호스팅되는 곳입니다. 선수를 거르는 조건이 아닙니다 — 5stack에는 선수별 지역 데이터가 없습니다.",
+        "description": "이 토너먼트의 매치가 호스팅되는 곳입니다. 선수를 거르는 조건이 아닙니다 — YGuard에는 선수별 지역 데이터가 없습니다.",
         "empty": "현재 이용 가능한 지역이 없습니다."
       },
       "invite_only": {
@@ -7505,7 +7505,7 @@
       "all": "전체"
     },
     "source_badge": {
-      "imported_external": "외부 소스에서 가져온 매치 — 5Stack 매치가 아닙니다"
+      "imported_external": "외부 소스에서 가져온 매치 — YGuard 매치가 아닙니다"
     },
     "scoreboard_overlay": {
       "final": "종료",
@@ -8179,18 +8179,18 @@
       "custom_mode_group": "커스텀 모드",
       "custom_mode_group_locked": "게임 서버 노드 필요",
       "custom_modes_need_node_title": "커스텀 모드에는 게임 서버 노드가 필요합니다",
-      "custom_modes_need_node_description": "커스텀 모드는 5Stack이 실행 대상 서버에 설치하는 플러그인 모음입니다. 외부 전용 서버에는 아무것도 설치할 수 없으니, 하나를 고르려면 연결에서 이 서버를 게임 서버 노드에 연결하세요.",
+      "custom_modes_need_node_description": "커스텀 모드는 YGuard이 실행 대상 서버에 설치하는 플러그인 모음입니다. 외부 전용 서버에는 아무것도 설치할 수 없으니, 하나를 고르려면 연결에서 이 서버를 게임 서버 노드에 연결하세요.",
       "game": "게임",
       "csgo_ranked_unavailable_title": "랭크 이용 불가",
       "csgo_ranked_unavailable_description": "CS:GO 서버에서는 아직 랭크 모드를 이용할 수 없습니다.",
       "ranked_server": "랭크 서버",
-      "ranked_server_description": "5Stack이 완전 관리하는 랭크 환경입니다.",
+      "ranked_server_description": "YGuard이 완전 관리하는 랭크 환경입니다.",
       "practice_server": "연습 서버",
       "practice_server_description": "유틸리티 연습 세션을 호스팅합니다. 경기용 대신 연습용 플러그인으로 동작하며, 매치메이킹에는 사용되지 않습니다.",
       "valve_modes": "Valve 모드",
       "valve_modes_description": "casual이나 deathmatch 같은 Valve 프리셋을 실행합니다.",
       "custom_presets": "커스텀 프리셋",
-      "custom_presets_description": "5Stack이 해당 모드용으로 설치하는 플러그인과 함께 커스텀 게임 모드를 실행합니다.",
+      "custom_presets_description": "YGuard이 해당 모드용으로 설치하는 플러그인과 함께 커스텀 게임 모드를 실행합니다.",
       "connect_password": "접속 비밀번호",
       "connect_password_description": "서버 접속에 필요한 비밀번호입니다 (선택 사항)",
       "rcon_password": "RCON 비밀번호",
@@ -8209,7 +8209,7 @@
       "refresh_match": "매치 새로고침",
       "metamod_info": "Metamod 정보",
       "css_version": "CounterStrikeSharp 버전",
-      "fivestack_status": "5Stack 상태",
+      "fivestack_status": "YGuard 상태",
       "swiftly_version": "Swiftly 버전",
       "swiftly_status": "Swiftly 상태 (서버 로그)",
       "swiftly_plugins": "Swiftly 플러그인 (서버 로그)",
@@ -8613,7 +8613,7 @@
       "elo": "Elo"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "외부"
     },
     "view_short": "보기",
@@ -9604,7 +9604,7 @@
       "denied": "브라우저가 카메라 접근을 차단했습니다. 이 사이트에 허용한 뒤 다시 시도하세요.",
       "missing": "카메라를 찾을 수 없습니다. 카메라를 연결하거나 아래에서 다른 기기를 선택하세요.",
       "busy": "다른 앱이 이미 카메라를 사용 중입니다. 종료한 뒤 다시 시도하세요.",
-      "insecure": "카메라에는 보안 연결이 필요합니다. HTTPS(또는 localhost)로 5stack을 열고 다시 시도하세요.",
+      "insecure": "카메라에는 보안 연결이 필요합니다. HTTPS(또는 localhost)로 YGuard을 열고 다시 시도하세요.",
       "unknown": "카메라를 시작하지 못했습니다. 다시 시도해 주세요."
     },
     "media_pending": "카메라 권한을 기다리는 중…",
@@ -9623,7 +9623,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "음성 채팅에는 보안 연결이 필요합니다. HTTPS(또는 localhost)로 5stack을 열고 다시 시도하세요.",
+      "insecure_origin": "음성 채팅에는 보안 연결이 필요합니다. HTTPS(또는 localhost)로 YGuard을 열고 다시 시도하세요.",
       "unsupported": "이 브라우저는 음성 채팅을 지원하지 않습니다.",
       "permission_denied": "마이크 접근이 차단되었습니다. 브라우저의 사이트 설정에서 허용한 뒤 다시 시도하세요.",
       "no_microphone": "마이크를 찾을 수 없습니다. 연결한 뒤 다시 시도하세요.",
@@ -9752,7 +9752,7 @@
     "no_results": "「{term}」과(와) 일치하는 질문이 없습니다.",
     "links": {
       "features": "모든 기능",
-      "overview": "5Stack이란",
+      "overview": "YGuard이란",
       "matchmaking": "매치메이킹 문서",
       "tournaments": "토너먼트 문서",
       "stats_guide": "통계 가이드",
@@ -9772,18 +9772,18 @@
       "game_plugins": "게임 플러그인"
     },
     "about": {
-      "title": "5Stack 소개",
+      "title": "YGuard 소개",
       "what_is": {
-        "question": "5Stack이란 무엇인가요?",
-        "answer": "5Stack은 Counter-Strike 2를 위한 경쟁 계층으로, 게임 서버와 리그 사이에 자리한 소프트웨어입니다. 설치 하나로 매치메이킹, 드래프트 로비, 팀, 토너먼트와 시즌, 통계와 Elo, 데모 기록, 브라우저 내 리플레이, 하이라이트, 라이브 방송까지 전체를 운영합니다."
+        "question": "YGuard이란 무엇인가요?",
+        "answer": "YGuard은 Counter-Strike 2를 위한 경쟁 계층으로, 게임 서버와 리그 사이에 자리한 소프트웨어입니다. 설치 하나로 매치메이킹, 드래프트 로비, 팀, 토너먼트와 시즌, 통계와 Elo, 데모 기록, 브라우저 내 리플레이, 하이라이트, 라이브 방송까지 전체를 운영합니다."
       },
       "this_site": {
         "question": "{brand}은(는) 무엇인가요?",
-        "answer": "{brand}은(는) 5Stack 인스턴스입니다. 이 소프트웨어는 오픈 소스이며 각자 직접 호스팅하므로, 운영하는 커뮤니티마다 자체 사이트, 자체 서버, 자체 규칙을 갖습니다. 이곳도 그중 하나입니다."
+        "answer": "{brand}은(는) YGuard 인스턴스입니다. 이 소프트웨어는 오픈 소스이며 각자 직접 호스팅하므로, 운영하는 커뮤니티마다 자체 사이트, 자체 서버, 자체 규칙을 갖습니다. 이곳도 그중 하나입니다."
       },
       "cost": {
         "question": "무료인가요?",
-        "answer": "네. 5Stack은 무료 오픈 소스이며 직접 호스팅하므로 프로젝트가 인원당이나 경기당 비용을 청구하지 않습니다. 비용은 운영에 사용하기로 선택한 인프라에만 듭니다. 개발과 유지 보수는 한 명의 개발자가 맡고 있으며, GitHub 후원이 개발을 이어가게 해줍니다."
+        "answer": "네. YGuard은 무료 오픈 소스이며 직접 호스팅하므로 프로젝트가 인원당이나 경기당 비용을 청구하지 않습니다. 비용은 운영에 사용하기로 선택한 인프라에만 듭니다. 개발과 유지 보수는 한 명의 개발자가 맡고 있으며, GitHub 후원이 개발을 이어가게 해줍니다."
       },
       "sign_in": {
         "question": "어떻게 로그인하나요?",
@@ -9829,7 +9829,7 @@
       "title": "직접 호스팅하기",
       "self_host": {
         "question": "직접 인스턴스를 운영할 수 있나요?",
-        "answer": "네. 그것이 5Stack의 본래 사용 방식입니다. 직접 호스팅하는 방식이며 명령 한 번으로 설치되어 Kubernetes(K3s), 데이터베이스, 스토리지, 패널 자체가 올라옵니다. 문서의 설치 가이드가 처음부터 끝까지 안내합니다."
+        "answer": "네. 그것이 YGuard의 본래 사용 방식입니다. 직접 호스팅하는 방식이며 명령 한 번으로 설치되어 Kubernetes(K3s), 데이터베이스, 스토리지, 패널 자체가 올라옵니다. 문서의 설치 가이드가 처음부터 끝까지 안내합니다."
       },
       "requirements": {
         "question": "호스팅하려면 무엇이 필요한가요?",
@@ -9845,7 +9845,7 @@
       },
       "managed": {
         "question": "돈을 내고 쓸 수 있는 호스팅형이나 관리형 버전이 있나요?",
-        "answer": "없습니다. 5Stack은 직접 호스팅만 지원하며, 구매할 수 있는 SaaS 요금제나 관리형 서비스는 없습니다. 5stack.gg은 관리자가 직접 운영하는 공개 인스턴스로, 설치 전에 동작을 확인하기에 좋습니다."
+        "answer": "없습니다. YGuard은 직접 호스팅만 지원하며, 구매할 수 있는 SaaS 요금제나 관리형 서비스는 없습니다. YGuard.gg은 관리자가 직접 운영하는 공개 인스턴스로, 설치 전에 동작을 확인하기에 좋습니다."
       },
       "branding": {
         "question": "우리 조직에 맞게 꾸밀 수 있나요?",
@@ -9853,12 +9853,12 @@
       },
       "extend": {
         "question": "직접 만든 코드로 확장할 수 있나요?",
-        "answer": "두 곳에서 가능합니다. 자체 웹 앱을 패널의 기본 페이지처럼 삽입할 수 있으며, 세션과 디자인 시스템을 그대로 물려받으므로 포크를 유지할 필요가 없습니다. 서버 쪽에서는 CounterStrikeSharp 또는 SwiftlyS2 위에서 5Stack의 플러그인과 나란히 자체 CS2 플러그인을 실행할 수 있습니다."
+        "answer": "두 곳에서 가능합니다. 자체 웹 앱을 패널의 기본 페이지처럼 삽입할 수 있으며, 세션과 디자인 시스템을 그대로 물려받으므로 포크를 유지할 필요가 없습니다. 서버 쪽에서는 CounterStrikeSharp 또는 SwiftlyS2 위에서 YGuard의 플러그인과 나란히 자체 CS2 플러그인을 실행할 수 있습니다."
       }
     },
     "support": {
       "title": "아직 해결되지 않았나요?",
-      "description": "사람에게 가장 빨리 닿는 길은 Discord입니다. 5Stack 인스턴스를 운영하는 사람들이 모여 있습니다. 버그와 기능 요청은 GitHub으로, 문서는 설치, 서버, 각 기능을 자세히 다룹니다.",
+      "description": "사람에게 가장 빨리 닿는 길은 Discord입니다. YGuard 인스턴스를 운영하는 사람들이 모여 있습니다. 버그와 기능 요청은 GitHub으로, 문서는 설치, 서버, 각 기능을 자세히 다룹니다.",
       "discord": "Discord 참여",
       "github": "문제 신고",
       "docs": "문서 읽기"

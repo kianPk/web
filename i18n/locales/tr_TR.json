@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack eşleştirme yetenek puanı — galibiyet ve mağlubiyetle yükselir ya da düşer."
+      "description": "YGuard eşleştirme yetenek puanı — galibiyet ve mağlubiyetle yükselir ya da düşer."
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "Active Duty",
     "no_maps_match": "Filtrelerine uyan harita yok.",
     "accepted_elo_range": "Kabul Edilen ELO Aralığı",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "Haftalık Uygunluk",
     "allow_outside_hours": "Bu saatler dışındaki isteklere de izin ver",
     "outside_hours_help": "Rakipler yalnızca boyadığın uygunluk değil, istediği herhangi bir zamanı önerebilir. Her zaman istek almak için uygunluğunu boş bırak.",
@@ -1588,10 +1588,10 @@
         "voice": "Ses ve mikrofon",
         "api_keys_management": {
           "add_api_key": "API anahtarı ekle",
-          "description": "Anahtarlar 5Stack API isteklerini doğrular — bunları şifre gibi koru.",
+          "description": "Anahtarlar YGuard API isteklerini doğrular — bunları şifre gibi koru.",
           "view_docs": "API dokümanlarını görüntüle",
           "no_api_keys": "Henüz API anahtarı yok",
-          "no_api_keys_hint": "5Stack API'ye kimlik doğrulamalı istekler göndermeye başlamak için ilk anahtarını oluştur.",
+          "no_api_keys_hint": "YGuard API'ye kimlik doğrulamalı istekler göndermeye başlamak için ilk anahtarını oluştur.",
           "add_first_api_key": "İlk anahtarını oluştur",
           "create_new_api_key": "Yeni API anahtarı oluştur",
           "create_new_description": "Amacını belirtmek için açıklayıcı bir etiketle yeni bir API anahtarı oluştur.",
@@ -1636,7 +1636,7 @@
           "link": "Discord bağla",
           "unlink_dialog": {
             "title": "Discord hesabının bağlantısını kaldır",
-            "description": "Discord hesabının bağlantısını kaldırmak istediğine emin misin? Bu, 5Stack ve Discord hesapların arasındaki bağlantıyı kaldırır.",
+            "description": "Discord hesabının bağlantısını kaldırmak istediğine emin misin? Bu, YGuard ve Discord hesapların arasındaki bağlantıyı kaldırır.",
             "confirm": "Bağlantıyı kaldır"
           },
           "unlinked": "Discord hesabının bağlantısı başarıyla kaldırıldı"
@@ -1646,7 +1646,7 @@
         "description": "Mikrofonun, seviyelerin ve herkesin sesinin ne kadar yüksek olduğu. Tüm ses kanalları burada ayarladıklarını kullanır — parti lobin, bir maç, bir draft odası — kamera yayınındaki mikrofon da öyle.",
         "this_device": {
           "title": "Bu cihazda saklanır",
-          "description": "Ses ayarları 5stack hesabının parçası değildir ve bu tarayıcıdan asla çıkmaz. Oynadığın her bilgisayar kendi mikrofonunu, çıkışını, hassasiyetini ve oyuncu seviyelerini tutar — asıl mesele de bu, çünkü değişen sensin değil donanım. Bu sitenin tarayıcı verilerini temizlersen varsayılanlara döner."
+          "description": "Ses ayarları YGuard hesabının parçası değildir ve bu tarayıcıdan asla çıkmaz. Oynadığın her bilgisayar kendi mikrofonunu, çıkışını, hassasiyetini ve oyuncu seviyelerini tutar — asıl mesele de bu, çünkü değişen sensin değil donanım. Bu sitenin tarayıcı verilerini temizlersen varsayılanlara döner."
         },
         "players": {
           "title": "Oyuncu seviyeleri",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "Bildirim tercihleri",
-        "description": "5stack'in seni neler hakkında bilgilendireceğini ve bu bildirimlerin nereye geleceğini seç.",
+        "description": "YGuard'in seni neler hakkında bilgilendireceğini ve bu bildirimlerin nereye geleceğini seç.",
         "save_failed": "Bu tercih kaydedilemedi. Tekrar dene.",
         "push": {
           "title": "Anlık bildirimler",
-          "description": "5stack açık olmasa bile bu cihazda bildirim al.",
+          "description": "YGuard açık olmasa bile bu cihazda bildirim al.",
           "categories": "Neler gönderilsin",
           "unsupported": "Bu tarayıcı anlık bildirimleri desteklemiyor.",
-          "install_required": "Bunları açmak için 5stack uygulamasını yükle.",
+          "install_required": "Bunları açmak için YGuard uygulamasını yükle.",
           "install": {
             "description": "Anlık bildirimleri yüklü uygulama teslim eder; bu yüzden açabilmen için uygulamanın cihazında olması gerekir.",
-            "open_app": "Zaten yüklü mü? 5stack'i ana ekranından veya uygulamalarından aç ve anlık bildirimleri oradan aç."
+            "open_app": "Zaten yüklü mü? YGuard'i ana ekranından veya uygulamalarından aç ve anlık bildirimleri oradan aç."
           },
-          "denied": "5stack için bildirimler engellenmiş. Bunu açabilmek için tarayıcı veya cihaz ayarlarından izin ver.",
+          "denied": "YGuard için bildirimler engellenmiş. Bunu açabilmek için tarayıcı veya cihaz ayarlarından izin ver.",
           "failed": "Anlık bildirimler açılamadı. Tekrar dene.",
           "errors": {
             "permission": "Bildirim izni isteği hiç yanıt vermedi. Cihazda Google Play Services eksik veya bozuksa bu olabilir.",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "Haberler",
-            "description": "5stack'te yayımlanan yeni yazılar."
+            "description": "YGuard'te yayımlanan yeni yazılar."
           },
           "staff_moderation": {
             "title": "Moderasyon",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "Ses ayarları",
-        "description": "5Stack'in sohbet, maç ve diğer olaylar için çaldığı uyarı seslerini önizle ve ayarla.",
+        "description": "YGuard'in sohbet, maç ve diğer olaylar için çaldığı uyarı seslerini önizle ve ayarla.",
         "enabled": {
           "title": "Bildirim sesleri",
           "description": "Sohbet mesajları, maç olayları ve diğer uyarılar için ses çal."
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "Telemetri",
           "telemetry": "Telemetri",
-          "telemetry_description": "Anonim kullanım verisi paylaşarak 5stack'in gelişmesine yardım et.",
+          "telemetry_description": "Anonim kullanım verisi paylaşarak YGuard'in gelişmesine yardım et.",
           "update": "Telemetri ayarlarını güncelle",
           "update_success": "Telemetri ayarları başarıyla güncellendi",
           "google_tag_manager_code": "Google Tag Manager kodu",
@@ -1882,8 +1882,8 @@
           "updated": "Ayarlar başarıyla güncellendi"
         },
         "fivestack_ranks": {
-          "title": "5stack rankları",
-          "description": "Eklentinin oyun içinde rank gösterebilmesi için her oyuncunun 5stack ELO'sunu sunucuya gönder.",
+          "title": "YGuard rankları",
+          "description": "Eklentinin oyun içinde rank gösterebilmesi için her oyuncunun YGuard ELO'sunu sunucuya gönder.",
           "matches": "Normal maçlarda rank göster",
           "tournaments": "Turnuva maçlarında rank göster",
           "warning_title": "Uyarı: bu, Steam GSLT'lerinin banlanmasına yol açabilir",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "Tema renklerini özelleştir. Değişiklikler anlık önizlenir.",
           "reset_to_defaults": "Varsayılana sıfırla",
           "reset_confirm_title": "Markalama varsayılana sıfırlansın mı?",
-          "reset_confirm_description": "Bu işlem marka adını, renkleri, giriş altbilgisini ve yüklenen logo/favicon/uygulama simgesini temizleyip varsayılan 5Stack temasını geri getirir. Geri alınamaz.",
+          "reset_confirm_description": "Bu işlem marka adını, renkleri, giriş altbilgisini ve yüklenen logo/favicon/uygulama simgesini temizleyip varsayılan YGuard temasını geri getirir. Geri alınamaz.",
           "export_theme": "Temayı dışa aktar",
           "import_theme": "Temayı içe aktar",
           "branding_saved": "Markalama kaydedildi",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "Maç öne çıkan anlarını otomatik oluştur",
           "auto_generate_match_clips_description": "Her oyuncunun maçı bittikten sonra bir maç özeti öne çıkan anı kuyruğa alır.",
           "auto_generate_match_clips_imported": "İçe aktarılan maçları dahil et",
-          "auto_generate_match_clips_imported_description": "5stack dışından içe aktarılan maçlar için de (ör. Valve maç geçmişi) otomatik öne çıkan an oluştur. İçe aktarılan maçların render kuyruğunu doldurmaması için varsayılan olarak kapalıdır.",
+          "auto_generate_match_clips_imported_description": "YGuard dışından içe aktarılan maçlar için de (ör. Valve maç geçmişi) otomatik öne çıkan an oluştur. İçe aktarılan maçların render kuyruğunu doldurmaması için varsayılan olarak kapalıdır.",
           "pause_renders_during_active_match": "Aktif Maç Sırasında Öne Çıkan An Render'larını Duraklat",
           "pause_renders_during_active_match_description": "Bir maç, GPU düğümü destekli bir sunucuda canlıya geçtiğinde, oyun sunucusu render pod'uyla GPU için yarışmasın diye devam eden öne çıkan an render'larını otomatik duraklatır. Maç bittiğinde render'lar otomatik devam eder.",
           "auto_clip_default_visibility": "Otomatik oluşturulan öne çıkan anlar için varsayılan görünürlük",
@@ -2431,7 +2431,7 @@
           "docs_link": "Panel eklentisi belgelerini oku",
           "add": "Panel Eklentisi Ekle",
           "empty_title": "Henüz panel eklentisi yok",
-          "empty_description": "5Stack'i bir web uygulamasının URL'sine yönlendir, panelinde yerel bir sayfa olarak render edilsin.",
+          "empty_description": "YGuard'i bir web uygulamasının URL'sine yönlendir, panelinde yerel bir sayfa olarak render edilsin.",
           "public": "Herkese açık",
           "add_title": "Panel Eklentisi Ekle",
           "edit_title": "Panel Eklentisini Düzenle",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "Bu eklentiyi oyuncu profillerinde bu etiketle bir sekme olarak göster. Sekme istemiyorsan boş bırak. Eklenti profilin Steam ID'sini alır.",
             "deployments": "Dağıtımlar",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "İmaj güncellemeleri için izlenecek Kubernetes dağıtım adları. Virgülle ayır. Güncellemeler 5stack'in kendi servisleriyle birlikte üst kısımda görünür."
+            "deployments_hint": "İmaj güncellemeleri için izlenecek Kubernetes dağıtım adları. Virgülle ayır. Güncellemeler YGuard'in kendi servisleriyle birlikte üst kısımda görünür."
           },
           "detect_label": "URL'den otomatik algıla",
           "detect": "Algıla",
-          "detect_hint": "Eklentinin temel URL'sini (ya da 5stack-plugin.json'ını) yapıştır, aşağıdaki alanları manifestinden dolduralım.",
-          "detect_failed": "Bu URL'de 5stack-plugin.json manifesti okunamadı.",
+          "detect_hint": "Eklentinin temel URL'sini (ya da YGuard-plugin.json'ını) yapıştır, aşağıdaki alanları manifestinden dolduralım.",
+          "detect_failed": "Bu URL'de YGuard-plugin.json manifesti okunamadı.",
           "optional": "(isteğe bağlı)",
           "advanced": "Gelişmiş ayarlar",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "Web push",
           "section": "Web push bildirimleri",
-          "description": "Uyarıları doğrudan oyuncunun telefonuna veya masaüstüne gönderir — 5stack hiçbir sekmede açık olmasa bile tarayıcı bunları teslim eder. Oyuncular kendi bildirim ayarlarından, cihaz bazında kendileri abone olur; iOS'ta bu ancak 5stack ana ekrana eklendiğinde çalışır. Kurulacak bir şey yok: teslimat tarayıcının kendi push servisinden geçer, yani ne üçüncü taraf hesabı ne de maliyet vardır.",
+          "description": "Uyarıları doğrudan oyuncunun telefonuna veya masaüstüne gönderir — YGuard hiçbir sekmede açık olmasa bile tarayıcı bunları teslim eder. Oyuncular kendi bildirim ayarlarından, cihaz bazında kendileri abone olur; iOS'ta bu ancak YGuard ana ekrana eklendiğinde çalışır. Kurulacak bir şey yok: teslimat tarayıcının kendi push servisinden geçer, yani ne üçüncü taraf hesabı ne de maliyet vardır.",
           "state_live": "Yayında",
           "state_standby": "Beklemede",
           "state_ready": "Hazır",
@@ -2522,7 +2522,7 @@
           "description": "Kurulabilir eklentilerin kataloğu ve nereden çekildiği. Yalnızca yöneticiler.",
           "disabled_hint": "Dizini gezmek ve oyun sunucusu düğümlerine eklenti kurmak için bunu aç.",
           "registry": "Kayıt defteri",
-          "registry_description": "Kurulabilir eklenti kataloğunun çekildiği yer. Resmî 5Stack kayıt defterini kullanmak için boş bırak.",
+          "registry_description": "Kurulabilir eklenti kataloğunun çekildiği yer. Resmî YGuard kayıt defterini kullanmak için boş bırak.",
           "registry_url": "Kayıt defteri URL'si",
           "catalog_count": "Katalogda {count} eklenti",
           "sync": "Şimdi Eşitle",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "Yaptırımlar",
           "section": "Otomatik yaptırımlar",
-          "description": "5stack kendi tespit edebildiği şeyleri nasıl cezalandırır. Her kaynak, bir pencere içindeki ihlalleri sayar ve kademeli yaptırımın uygun basamağını uygular.",
-          "defaults_note": "Aşağıdaki değerler 5stack’in her zaman kullandığı değerlerdir. Bu sayfayı okumak hiçbir şeyi değiştirmez — yalnızca bir düzenleme değiştirir.",
+          "description": "YGuard kendi tespit edebildiği şeyleri nasıl cezalandırır. Her kaynak, bir pencere içindeki ihlalleri sayar ve kademeli yaptırımın uygun basamağını uygular.",
+          "defaults_note": "Aşağıdaki değerler YGuard’in her zaman kullandığı değerlerdir. Bu sayfayı okumak hiçbir şeyi değiştirmez — yalnızca bir düzenleme değiştirir.",
           "unavailable": "Kullanılabilir yaptırım kaynağı yok. API henüz yaptırım geçişini çalıştırmamış olabilir.",
           "load_failed": "Yaptırım politikası yüklenemedi",
           "reset": "Varsayılana sıfırla",
           "permanent": "Kalıcı",
-          "platform_ban_narrowed": "“İkisini de engeller” dışındaki her kapsamda bu kaynak artık platform genelinde bir yasak yazmaz, yalnızca kapsamı sınırlı bir bekleme süresi uygular — VAC yasaklı bir hesap 5stack’in diğer yarısını korur.",
+          "platform_ban_narrowed": "“İkisini de engeller” dışındaki her kapsamda bu kaynak artık platform genelinde bir yasak yazmaz, yalnızca kapsamı sınırlı bir bekleme süresi uygular — VAC yasaklı bir hesap YGuard’in diğer yarısını korur.",
           "threshold": {
             "label": "Şu kadar ihlalden sonra",
             "first_offence": "İlk ihlal bile cezalandırılır.",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steam botu",
+        "presence_title": "YGuard Steam botu",
         "presence_description": "Rekabetçi ve Premier maçlarını bittikleri anda otomatik içe aktarmak için botu Steam arkadaşı olarak ekle.",
         "presence_connect": "Botu arkadaş olarak ekle",
         "presence_add_bot": "Botu Steam'de aç",
@@ -2717,7 +2717,7 @@
         "presence_connected": "Bağlandı — içe aktarımlar anında.",
         "presence_not_connected": "Henüz bağlanmadı.",
         "presence_self_label": "Arkadaşlarının seni gördüğü hâl",
-        "presence_unavailable": "5stack botu şu anda kullanılamıyor — lütfen daha sonra tekrar dene veya bir yöneticiyle iletişime geç.",
+        "presence_unavailable": "YGuard botu şu anda kullanılamıyor — lütfen daha sonra tekrar dene veya bir yöneticiyle iletişime geç.",
         "need_two_codes": "Valve'den iki koda ihtiyacın olacak:",
         "step_auth_prefix": "Senin",
         "steam_auth_code": "Steam Oyun Kimlik Doğrulama Kodun",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "Tümü",
         "settings_changed": "Özel ayarlar aktif",
-        "source_all_unavailable_elo": "\"Tümü\", ELO sekmesinde kullanılamaz — yalnızca 5Stack ELO gösteriliyor.",
+        "source_all_unavailable_elo": "\"Tümü\", ELO sekmesinde kullanılamaz — yalnızca YGuard ELO gösteriliyor.",
         "external_warning": {
           "title": "Maç geçmişi bağlanmadı",
           "description": "Premier, Competitive ve Wingman maçlarını içe aktarmak için Steam maç geçmişi kimlik doğrulama kodunu bağla.",
@@ -3376,7 +3376,7 @@
       "only_enabled": "Yalnızca etkin düğümler",
       "setup_dialog": {
         "title": "Sunucu düğümü kurulumu",
-        "description": "Sunucunu 5Stack'e bağlamak için bu kurulum betiğini sunucunda çalıştır",
+        "description": "Sunucunu YGuard'e bağlamak için bu kurulum betiğini sunucunda çalıştır",
         "installation_script": "Kurulum betiği",
         "waiting_title": "Düğümün bağlanması bekleniyor...",
         "waiting_description": "Kurulum betiğini sunucunda çalıştır. Düğüm bağlandığında durum otomatik olarak güncellenir.",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "Özel sunucular",
-      "description": "Özel sunucular 5Stack'e bağlı kalır ve maçları, turnuvaları ve herkese açık oyunları barındırmak için otomatik olarak kullanılır.",
+      "description": "Özel sunucular YGuard'e bağlı kalır ve maçları, turnuvaları ve herkese açık oyunları barındırmak için otomatik olarak kullanılır.",
       "docs_link": "Kurulum kılavuzunu görüntüle",
       "no_servers_title": "Özel sunucu yok",
       "no_servers": "Özel sunucu bulunamadı.",
@@ -3438,7 +3438,7 @@
         "player_management": "Oyuncu yönetimi",
         "no_players": "Bu sunucuda şu anda oyuncu yok",
         "sanctions_wip_title": "Geliştirme aşamasında",
-        "sanctions_wip": "Kick işlemi bugün çalışıyor. Herkese açık sunucularda canlı sessize alma/susturma uygulaması henüz geliştirme aşamasında — yeni bir 5Stack herkese açık sunucu eklentisi yakında geliyor, yayınlandığında sessize alma/susturma otomatik olarak uygulanacak.",
+        "sanctions_wip": "Kick işlemi bugün çalışıyor. Herkese açık sunucularda canlı sessize alma/susturma uygulaması henüz geliştirme aşamasında — yeni bir YGuard herkese açık sunucu eklentisi yakında geliyor, yayınlandığında sessize alma/susturma otomatik olarak uygulanacak.",
         "status": {
           "disconnected": "Sunucu bağlı değil",
           "no_rcon": "Sunucu bağlı ama RCON kullanılamıyor",
@@ -3838,7 +3838,7 @@
       "installed": "Kurulu",
       "already_installed": "Bu, panelinde zaten kurulu.",
       "open_plugin": "Aç",
-      "panel_step_deploy": "Bunu panelini barındıran makinede, 5stack-panel kopyandan çalıştır.",
+      "panel_step_deploy": "Bunu panelini barındıran makinede, panel kopyandan çalıştır.",
       "panel_step_dns": "Yazdırdığı alan adını bu panelle aynı adrese yönlendir ve sertifikayı bekle.",
       "panel_step_register": "Ayarlar → Uygulama → Panel Eklentileri → Ekle altında kaydet, o URL'yi yapıştır ve Algıla'ya bas.",
       "installs_everywhere": "Çevrimiçi {count} düğümün tamamına kurulur.",
@@ -3880,8 +3880,8 @@
         "warning_title": "Uyarı: bu, Steam GSLT'lerinin banlanmasına yol açabilir",
         "warning_description": "Valve'a göre, resmî sunucu kurallarının dışında çalışmak sunucu sahibinin Steam hesabındaki tüm Game Server Login Token'ların (GSLT) banlanmasını tetikleyebilir. Riski sana ait olmak üzere etkinleştir.",
         "warning_link_label": "Valve'ın sunucu kuralları",
-        "already_off": "Bu kurulumda zaten kapalı: 5stack Ranks, rütbeleri oyun içinde göstermek için Valve'ın sunucu kurallarını kapatır ve taşıdığı risk tek bir sunucu yerine Steam hesabını ilgilendirir.",
-        "already_off_link": "5stack Ranks"
+        "already_off": "Bu kurulumda zaten kapalı: YGuard Ranks, rütbeleri oyun içinde göstermek için Valve'ın sunucu kurallarını kapatır ve taşıdığı risk tek bir sunucu yerine Steam hesabını ilgilendirir.",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "Otomatik güncelle",
@@ -3892,7 +3892,7 @@
         "add": "Eklenti ekle",
         "badge": "Özel",
         "title": "Dizinde bulunmayan bir eklenti ekle",
-        "description": "5Stack'e bir sürüm göster, gerisi diğerleri gibi bir kayda dönüşür — her düğüme kurulabilir ve indirilen dosya burada alınan bir özet değerine karşı doğrulanır.",
+        "description": "YGuard'e bir sürüm göster, gerisi diğerleri gibi bir kayda dönüşür — her düğüme kurulabilir ve indirilen dosya burada alınan bir özet değerine karşı doğrulanır.",
         "url": "Sürüm URL'si",
         "url_hint": "Bir GitHub deposu, bir sürüm ya da doğrudan .zip bağlantısı. Bir depo, en son sürümünün en yeni Linux arşivine çözümlenir.",
         "runtime": "Framework",
@@ -5024,7 +5024,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
       "systems_online": "{count} sistem çevrimiçi | {count} sistem çevrimiçi",
       "navigation": {
         "dashboard": "İstatistiklerim",
@@ -5298,7 +5298,7 @@
   },
   "push_prompt": {
     "title": "Bildirimleri aç",
-    "description": "5stack açık olmasa bile maç davetlerini, lobi çağrılarını ve mesajları bu cihazda al.",
+    "description": "YGuard açık olmasa bile maç davetlerini, lobi çağrılarını ve mesajları bu cihazda al.",
     "enable": "Aç",
     "dismiss": "Kapat",
     "enabled": "Anlık bildirimler açıldı",
@@ -6146,7 +6146,7 @@
       },
       "regions": {
         "label": "Tercih edilen bölgeler",
-        "description": "Bu turnuvanın maçlarının hangi bölgede barındırılacağı. Oyuncu filtresi değildir — 5stack'te oyuncu bazlı bölge verisi yok.",
+        "description": "Bu turnuvanın maçlarının hangi bölgede barındırılacağı. Oyuncu filtresi değildir — YGuard'te oyuncu bazlı bölge verisi yok.",
         "empty": "Şu anda kullanılabilir bölge yok."
       },
       "invite_only": {
@@ -7505,7 +7505,7 @@
       "all": "Tümü"
     },
     "source_badge": {
-      "imported_external": "Harici bir kaynaktan içe aktarıldı — 5stack maçı değil"
+      "imported_external": "Harici bir kaynaktan içe aktarıldı — YGuard maçı değil"
     },
     "scoreboard_overlay": {
       "final": "Bitti",
@@ -8179,18 +8179,18 @@
       "custom_mode_group": "Özel modlar",
       "custom_mode_group_locked": "sunucu düğümü gerekir",
       "custom_modes_need_node_title": "Özel modlar için sunucu düğümü gerekir",
-      "custom_modes_need_node_description": "Özel bir mod, 5Stack'in çalıştığı sunucuya kurduğu bir eklenti setidir. Üçüncü taraf bir adanmış sunucuya hiçbir şey kuramaz; bu yüzden bir tane seçebilmek için bu sunucuyu Bağlantı altında bir sunucu düğümüne bağla.",
+      "custom_modes_need_node_description": "Özel bir mod, YGuard'in çalıştığı sunucuya kurduğu bir eklenti setidir. Üçüncü taraf bir adanmış sunucuya hiçbir şey kuramaz; bu yüzden bir tane seçebilmek için bu sunucuyu Bağlantı altında bir sunucu düğümüne bağla.",
       "game": "Oyun",
       "csgo_ranked_unavailable_title": "Ranked kullanılamıyor",
       "csgo_ranked_unavailable_description": "Ranked mod CS:GO sunucuları için henüz kullanılabilir değil.",
       "ranked_server": "Ranked Sunucu",
-      "ranked_server_description": "5stack tarafından tamamen yönetilen ranked deneyimi.",
+      "ranked_server_description": "YGuard tarafından tamamen yönetilen ranked deneyimi.",
       "practice_server": "Antrenman Sunucusu",
       "practice_server_description": "Utility antrenman oturumlarını barındırır. Maç eklentisi yerine antrenman eklentisini çalıştırır ve eşleştirmede asla kullanılmaz.",
       "valve_modes": "Valve Modları",
       "valve_modes_description": "Casual ya da deathmatch gibi bir Valve hazır ayarını çalıştırır.",
       "custom_presets": "Özel Hazır Ayarlar",
-      "custom_presets_description": "5Stack'in onun için kurduğu eklentilerle özel bir oyun modu çalıştırır.",
+      "custom_presets_description": "YGuard'in onun için kurduğu eklentilerle özel bir oyun modu çalıştırır.",
       "connect_password": "Bağlantı Şifresi",
       "connect_password_description": "Sunucuya bağlanmak için gereken şifre (isteğe bağlı)",
       "rcon_password": "RCON Şifresi",
@@ -8209,7 +8209,7 @@
       "refresh_match": "Maçı yenile",
       "metamod_info": "Metamod Bilgisi",
       "css_version": "CounterStrikeSharp Sürümü",
-      "fivestack_status": "5Stack Durumu",
+      "fivestack_status": "YGuard Durumu",
       "swiftly_version": "Swiftly Sürümü",
       "swiftly_status": "Swiftly Durumu (sunucu günlüğü)",
       "swiftly_plugins": "Swiftly Eklentileri (sunucu günlüğü)",
@@ -8613,7 +8613,7 @@
       "elo": "Elo"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "Harici"
     },
     "view_short": "Görüntüle",
@@ -9604,7 +9604,7 @@
       "denied": "Tarayıcın kameraya erişimi engelledi. Bu site için izin ver ve tekrar dene.",
       "missing": "Kamera bulunamadı. Bir tane bağla ya da aşağıdan başka bir cihaz seç.",
       "busy": "Kamerayı başka bir uygulama kullanıyor. Onu kapat ve tekrar dene.",
-      "insecure": "Kameran güvenli bir bağlantı gerektiriyor. 5stack'i HTTPS (veya localhost) üzerinden aç ve tekrar dene.",
+      "insecure": "Kameran güvenli bir bağlantı gerektiriyor. YGuard'i HTTPS (veya localhost) üzerinden aç ve tekrar dene.",
       "unknown": "Kamera başlatılamadı. Tekrar dene."
     },
     "media_pending": "Kamera izni bekleniyor…",
@@ -9623,7 +9623,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "Sesli sohbet güvenli bir bağlantı gerektirir. 5stack'i HTTPS (veya localhost) üzerinden aç ve tekrar dene.",
+      "insecure_origin": "Sesli sohbet güvenli bir bağlantı gerektirir. YGuard'i HTTPS (veya localhost) üzerinden aç ve tekrar dene.",
       "unsupported": "Bu tarayıcı sesli sohbeti desteklemiyor.",
       "permission_denied": "Mikrofon erişimi engellendi. Tarayıcının site ayarlarından izin ver ve tekrar dene.",
       "no_microphone": "Mikrofon bulunamadı. Bir tane bağla ve tekrar dene.",
@@ -9752,7 +9752,7 @@
     "no_results": "«{term}» ile eşleşen soru yok.",
     "links": {
       "features": "Tüm özellikler",
-      "overview": "5Stack nedir?",
+      "overview": "YGuard nedir?",
       "matchmaking": "Eşleştirme belgeleri",
       "tournaments": "Turnuva belgeleri",
       "stats_guide": "İstatistik rehberi",
@@ -9772,18 +9772,18 @@
       "game_plugins": "Oyun eklentileri"
     },
     "about": {
-      "title": "5Stack hakkında",
+      "title": "YGuard hakkında",
       "what_is": {
-        "question": "5Stack nedir?",
-        "answer": "5Stack, Counter-Strike 2 için rekabet katmanıdır — bir oyun sunucusuyla bir lig arasında duran yazılım. Tek bir kurulum tüm yığını çalıştırır: eşleştirme, draft lobileri, takımlar, turnuvalar ve sezonlar, istatistik ve Elo, demo kaydı, tarayıcı içi tekrarlar, öne çıkanlar ve canlı yayın."
+        "question": "YGuard nedir?",
+        "answer": "YGuard, Counter-Strike 2 için rekabet katmanıdır — bir oyun sunucusuyla bir lig arasında duran yazılım. Tek bir kurulum tüm yığını çalıştırır: eşleştirme, draft lobileri, takımlar, turnuvalar ve sezonlar, istatistik ve Elo, demo kaydı, tarayıcı içi tekrarlar, öne çıkanlar ve canlı yayın."
       },
       "this_site": {
         "question": "{brand} nedir?",
-        "answer": "{brand}, bir 5Stack kurulumudur. Yazılım açık kaynaklıdır ve herkes kendi sunucusunda barındırır; dolayısıyla onu çalıştıran her topluluk kendi sitesini, kendi sunucularını ve kendi kurallarını işletir — burası da onlardan biri."
+        "answer": "{brand}, bir YGuard kurulumudur. Yazılım açık kaynaklıdır ve herkes kendi sunucusunda barındırır; dolayısıyla onu çalıştıran her topluluk kendi sitesini, kendi sunucularını ve kendi kurallarını işletir — burası da onlardan biri."
       },
       "cost": {
         "question": "Ücretsiz mi?",
-        "answer": "Evet. 5Stack ücretsiz ve açık kaynaklıdır ve onu kendin barındırırsın; bu yüzden projeden kişi başı veya maç başı bir ücret çıkmaz. Yalnızca çalıştırmayı seçtiğin altyapı için ödeme yaparsın. Tek bir geliştirici tarafından yapılıp sürdürülüyor ve geliştirmeyi ayakta tutan şey GitHub sponsorlukları."
+        "answer": "Evet. YGuard ücretsiz ve açık kaynaklıdır ve onu kendin barındırırsın; bu yüzden projeden kişi başı veya maç başı bir ücret çıkmaz. Yalnızca çalıştırmayı seçtiğin altyapı için ödeme yaparsın. Tek bir geliştirici tarafından yapılıp sürdürülüyor ve geliştirmeyi ayakta tutan şey GitHub sponsorlukları."
       },
       "sign_in": {
         "question": "Nasıl giriş yaparım?",
@@ -9829,7 +9829,7 @@
       "title": "Kendi kurulumunu barındırmak",
       "self_host": {
         "question": "Kendi kurulumumu çalıştırabilir miyim?",
-        "answer": "Evet — 5Stack'in kullanılması gereken yol budur. Kendi sunucunda barındırılır ve tek bir komutla kurulur; bu komut Kubernetes'i (K3s), veritabanını, depolamayı ve panelin kendisini ayağa kaldırır. Belgelerdeki kurulum rehberi baştan sona anlatır."
+        "answer": "Evet — YGuard'in kullanılması gereken yol budur. Kendi sunucunda barındırılır ve tek bir komutla kurulur; bu komut Kubernetes'i (K3s), veritabanını, depolamayı ve panelin kendisini ayağa kaldırır. Belgelerdeki kurulum rehberi baştan sona anlatır."
       },
       "requirements": {
         "question": "Barındırmak için neye ihtiyacım var?",
@@ -9845,7 +9845,7 @@
       },
       "managed": {
         "question": "Ücretini ödeyebileceğim barındırılan veya yönetilen bir sürüm var mı?",
-        "answer": "Hayır. 5Stack yalnızca kendi sunucunda barındırılır; satın alınacak bir SaaS katmanı ya da yönetilen bir hizmet yoktur. 5stack.gg, bakımcının kendi genel kurulumudur; yazılımı kurmadan önce çalışırken görmek için kullanışlıdır."
+        "answer": "Hayır. YGuard yalnızca kendi sunucunda barındırılır; satın alınacak bir SaaS katmanı ya da yönetilen bir hizmet yoktur. YGuard.gg, bakımcının kendi genel kurulumudur; yazılımı kurmadan önce çalışırken görmek için kullanışlıdır."
       },
       "branding": {
         "question": "Kurumumun görünümüne büründürebilir miyim?",
@@ -9853,12 +9853,12 @@
       },
       "extend": {
         "question": "Kendi kodumla genişletebilir miyim?",
-        "answer": "İki yerde. Kendi web uygulamalarını yerel panel sayfaları olarak gömebilirsin — oturumu ve tasarım sistemini devraldıkları için sürdürülecek bir fork olmaz. Sunucu tarafında ise kendi CS2 eklentilerini 5Stack'inkilerle birlikte, CounterStrikeSharp veya SwiftlyS2 üzerinde çalıştırabilirsin."
+        "answer": "İki yerde. Kendi web uygulamalarını yerel panel sayfaları olarak gömebilirsin — oturumu ve tasarım sistemini devraldıkları için sürdürülecek bir fork olmaz. Sunucu tarafında ise kendi CS2 eklentilerini YGuard'inkilerle birlikte, CounterStrikeSharp veya SwiftlyS2 üzerinde çalıştırabilirsin."
       }
     },
     "support": {
       "title": "Hâlâ takıldın mı?",
-      "description": "Bir insana ulaşmanın en hızlı yolu Discord — 5Stack kurulumlarını işletenler orada. Hatalar ve özellik istekleri GitHub'a, belgeler ise kurulumu, sunucuları ve her özelliği ayrıntılı biçimde anlatır.",
+      "description": "Bir insana ulaşmanın en hızlı yolu Discord — YGuard kurulumlarını işletenler orada. Hatalar ve özellik istekleri GitHub'a, belgeler ise kurulumu, sunucuları ve her özelliği ayrıntılı biçimde anlatır.",
       "discord": "Discord'a katıl",
       "github": "Sorun bildir",
       "docs": "Belgeleri oku"

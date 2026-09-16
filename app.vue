@@ -57,9 +57,9 @@ const apiOrigin = (() => {
 })();
 
 useHead({
-  title: () => brandName.value || "5Stack",
+  title: () => brandName.value || "YGuard",
   titleTemplate: (pageTitle?: string) => {
-    const base = brandName.value || "5Stack";
+    const base = brandName.value || "YGuard";
     if (pageTitle && pageTitle !== base) {
       return `${pageTitle} | ${base}`;
     }
@@ -78,7 +78,7 @@ useHead({
   meta: [
     {
       name: "apple-mobile-web-app-title",
-      content: () => brandName.value || "5Stack",
+      content: () => brandName.value || "YGuard",
     },
   ],
 });

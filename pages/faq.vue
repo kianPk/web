@@ -73,6 +73,10 @@ const sections = computed<FaqSection[]>(() => [
         links: [doc("/getting-started", t("faq.links.overview"))],
       },
       {
+        q: t("layouts.application_settings.groups.developer"),
+        a: "Kian",
+      },
+      {
         q: t("faq.about.sign_in.question"),
         a: t("faq.about.sign_in.answer"),
       },

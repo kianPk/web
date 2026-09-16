@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack matchmaking-rating — stiger og falder med sejre og nederlag."
+      "description": "YGuard matchmaking-rating — stiger og falder med sejre og nederlag."
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "Active Duty",
     "no_maps_match": "Ingen maps matcher dine filtre.",
     "accepted_elo_range": "Accepteret ELO-interval",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "Ugentlige ledige tider",
     "allow_outside_hours": "Tillad anmodninger uden for disse tider",
     "outside_hours_help": "Modstandere kan foreslå et hvilket som helst tidspunkt, ikke kun dine markerede tider. Lad dine ledige tider stå tomme for at tage imod anmodninger når som helst.",
@@ -1588,10 +1588,10 @@
         "voice": "Stemme og lyd",
         "api_keys_management": {
           "add_api_key": "Tilføj API-nøgle",
-          "description": "Nøgler godkender kald til 5Stack API — behandl dem som adgangskoder.",
+          "description": "Nøgler godkender kald til YGuard API — behandl dem som adgangskoder.",
           "view_docs": "Se API-dokumentation",
           "no_api_keys": "Ingen API-nøgler endnu",
-          "no_api_keys_hint": "Opret din første nøgle for at begynde at sende godkendte kald til 5Stack API.",
+          "no_api_keys_hint": "Opret din første nøgle for at begynde at sende godkendte kald til YGuard API.",
           "add_first_api_key": "Opret din første nøgle",
           "create_new_api_key": "Opret ny API-nøgle",
           "create_new_description": "Opret en ny API-nøgle med en beskrivende label, så du kan se, hvad den bruges til.",
@@ -1636,7 +1636,7 @@
           "link": "Tilknyt Discord",
           "unlink_dialog": {
             "title": "Fjern Discord-konto",
-            "description": "Vil du fjerne tilknytningen til din Discord-konto? Forbindelsen mellem din 5Stack-konto og Discord bliver afbrudt.",
+            "description": "Vil du fjerne tilknytningen til din Discord-konto? Forbindelsen mellem din YGuard-konto og Discord bliver afbrudt.",
             "confirm": "Fjern"
           },
           "unlinked": "Discord-kontoen er ikke længere tilknyttet"
@@ -1646,7 +1646,7 @@
         "description": "Din mikrofon, dine niveauer, og hvor højt alle andre lyder. Alle stemmekanaler bruger det, du sætter her — din gruppes lobby, en kamp, et draft-rum — og det gør mikrofonen på dit kamerafeed også.",
         "this_device": {
           "title": "Gemt på denne enhed",
-          "description": "Stemmeindstillinger er ikke en del af din 5stack-konto og forlader aldrig denne browser. Hver computer, du spiller fra, har sin egen mikrofon, sit eget output, sin egen følsomhed og sine egne spillerniveauer — hvilket er hele pointen, for det er hardwaren, der skifter, ikke dig. Rydder du sidens browserdata, sættes de tilbage til standard."
+          "description": "Stemmeindstillinger er ikke en del af din YGuard-konto og forlader aldrig denne browser. Hver computer, du spiller fra, har sin egen mikrofon, sit eget output, sin egen følsomhed og sine egne spillerniveauer — hvilket er hele pointen, for det er hardwaren, der skifter, ikke dig. Rydder du sidens browserdata, sættes de tilbage til standard."
         },
         "players": {
           "title": "Spillerniveauer",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "Notifikationsindstillinger",
-        "description": "Vælg hvad 5stack skal give dig besked om, og hvor de beskeder lander.",
+        "description": "Vælg hvad YGuard skal give dig besked om, og hvor de beskeder lander.",
         "save_failed": "Kunne ikke gemme den indstilling. Prøv igen.",
         "push": {
           "title": "Push-notifikationer",
-          "description": "Få besked på denne enhed, også når 5stack ikke er åben.",
+          "description": "Få besked på denne enhed, også når YGuard ikke er åben.",
           "categories": "Hvad der skal pushes",
           "unsupported": "Push-notifikationer understøttes ikke i denne browser.",
-          "install_required": "Installer 5stack-appen for at slå dem til.",
+          "install_required": "Installer YGuard-appen for at slå dem til.",
           "install": {
             "description": "Push-notifikationer leveres af den installerede app, så den skal være på din enhed, før du kan slå dem til.",
-            "open_app": "Allerede installeret? Åbn 5stack fra din hjemmeskærm eller dine programmer, og slå push-notifikationer til der."
+            "open_app": "Allerede installeret? Åbn YGuard fra din hjemmeskærm eller dine programmer, og slå push-notifikationer til der."
           },
-          "denied": "Notifikationer er blokeret for 5stack. Tillad dem i din browsers eller enheds indstillinger for at slå dette til.",
+          "denied": "Notifikationer er blokeret for YGuard. Tillad dem i din browsers eller enheds indstillinger for at slå dette til.",
           "failed": "Kunne ikke slå push-notifikationer til. Prøv igen.",
           "errors": {
             "permission": "Anmodningen om notifikationstilladelse svarede aldrig. Det kan ske, når Google Play Services mangler eller er defekt på enheden.",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "Nyheder",
-            "description": "Nye artikler udgivet på 5stack."
+            "description": "Nye artikler udgivet på YGuard."
           },
           "staff_moderation": {
             "title": "Moderation",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "Lydindstillinger",
-        "description": "Hør og justér de lyde, 5Stack afspiller ved chat, kampe og andet.",
+        "description": "Hør og justér de lyde, YGuard afspiller ved chat, kampe og andet.",
         "enabled": {
           "title": "Notifikationslyde",
           "description": "Afspil en lyd ved chatbeskeder, kamphændelser og andre notifikationer."
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "Telemetri",
           "telemetry": "Telemetri",
-          "telemetry_description": "Hjælp med at forbedre 5stack ved at dele anonyme brugsdata.",
+          "telemetry_description": "Hjælp med at forbedre YGuard ved at dele anonyme brugsdata.",
           "update": "Opdater telemetriindstillinger",
           "update_success": "Telemetriindstillinger opdateret",
           "google_tag_manager_code": "Google Tag Manager-kode",
@@ -1882,8 +1882,8 @@
           "updated": "Indstillinger opdateret"
         },
         "fivestack_ranks": {
-          "title": "5stack-ranks",
-          "description": "Send hver spillers 5stack-ELO til serveren, så pluginnet kan vise ranks i spillet.",
+          "title": "YGuard-ranks",
+          "description": "Send hver spillers YGuard-ELO til serveren, så pluginnet kan vise ranks i spillet.",
           "matches": "Vis ranks i almindelige kampe",
           "tournaments": "Vis ranks i turneringskampe",
           "warning_title": "Advarsel: dette kan få dine Steam-GSLT'er banned",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "Tilpas temafarverne. Ændringer vises live.",
           "reset_to_defaults": "Nulstil til standard",
           "reset_confirm_title": "Nulstil branding til standard?",
-          "reset_confirm_description": "Dette rydder dit brandnavn, farver, login-sidefod og uploadet logo/favicon/app-ikon og gendanner standardtemaet fra 5Stack. Det kan ikke fortrydes.",
+          "reset_confirm_description": "Dette rydder dit brandnavn, farver, login-sidefod og uploadet logo/favicon/app-ikon og gendanner standardtemaet fra YGuard. Det kan ikke fortrydes.",
           "export_theme": "Eksportér tema",
           "import_theme": "Importér tema",
           "branding_saved": "Branding gemt",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "Generér kamp-highlights automatisk",
           "auto_generate_match_clips_description": "Sæt et kampresumé-highlight i kø til hver spiller, når deres kamp er slut.",
           "auto_generate_match_clips_imported": "Inkludér importerede kampe",
-          "auto_generate_match_clips_imported_description": "Generér også automatisk highlights for kampe importeret fra andre kilder end 5Stack (f.eks. Valves kamphistorik). Slået fra som standard, så importerede kampe ikke oversvømmer renderkøen.",
+          "auto_generate_match_clips_imported_description": "Generér også automatisk highlights for kampe importeret fra andre kilder end YGuard (f.eks. Valves kamphistorik). Slået fra som standard, så importerede kampe ikke oversvømmer renderkøen.",
           "pause_renders_during_active_match": "Sæt highlight-render på pause under aktiv kamp",
           "pause_renders_during_active_match_description": "Når en kamp går live på en server bakket op af en GPU-node, sættes igangværende highlight-render automatisk på pause, så game serveren ikke konkurrerer med renderpodden om GPU'en. Render fortsætter automatisk, når kampen er slut.",
           "auto_clip_default_visibility": "Standardsynlighed for automatisk genererede highlights",
@@ -2431,7 +2431,7 @@
           "docs_link": "Læs dokumentationen for panel-plugins",
           "add": "Tilføj panel-plugin",
           "empty_title": "Ingen panel-plugins endnu",
-          "empty_description": "Peg 5Stack på en webapps URL, så vises den som en native side inde i dit panel.",
+          "empty_description": "Peg YGuard på en webapps URL, så vises den som en native side inde i dit panel.",
           "public": "Offentlig",
           "add_title": "Tilføj panel-plugin",
           "edit_title": "Redigér panel-plugin",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "Vis dette plugin som en fane på spillerprofiler med denne tekst. Lad stå tomt for ingen fane. Pluginnet modtager profilens SteamID.",
             "deployments": "Deployments",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "Navne på Kubernetes-deployments, der skal overvåges for image-opdateringer. Kommasepareret. Opdateringer vises i headeren sammen med 5Stacks egne tjenester."
+            "deployments_hint": "Navne på Kubernetes-deployments, der skal overvåges for image-opdateringer. Kommasepareret. Opdateringer vises i headeren sammen med YGuards egne tjenester."
           },
           "detect_label": "Find automatisk ud fra URL",
           "detect": "Find",
-          "detect_hint": "Indsæt pluginnets base-URL (eller dets 5stack-plugin.json), så udfyldes felterne nedenfor ud fra manifestet.",
-          "detect_failed": "Der kunne ikke læses et 5stack-plugin.json-manifest på den URL.",
+          "detect_hint": "Indsæt pluginnets base-URL (eller dets YGuard-plugin.json), så udfyldes felterne nedenfor ud fra manifestet.",
+          "detect_failed": "Der kunne ikke læses et YGuard-plugin.json-manifest på den URL.",
           "optional": "(valgfri)",
           "advanced": "Avancerede indstillinger",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "Web push",
           "section": "Web push-notifikationer",
-          "description": "Sender advarsler direkte til en spillers telefon eller computer — browseren leverer dem, selv når 5stack ikke er åben i en fane. Spillere tilmelder sig selv, pr. enhed, i deres egne notifikationsindstillinger; på iOS virker det først, når 5stack er lagt på hjemmeskærmen. Intet at sætte op: leveringen går gennem browserens egen push-tjeneste, så der er hverken tredjepartskonto eller omkostninger.",
+          "description": "Sender advarsler direkte til en spillers telefon eller computer — browseren leverer dem, selv når YGuard ikke er åben i en fane. Spillere tilmelder sig selv, pr. enhed, i deres egne notifikationsindstillinger; på iOS virker det først, når YGuard er lagt på hjemmeskærmen. Intet at sætte op: leveringen går gennem browserens egen push-tjeneste, så der er hverken tredjepartskonto eller omkostninger.",
           "state_live": "Sender",
           "state_standby": "Standby",
           "state_ready": "Klar",
@@ -2522,7 +2522,7 @@
           "description": "Kataloget over plugins der kan installeres, og hvor det hentes fra. Kun administratorer.",
           "disabled_hint": "Slå dette til for at gennemse kataloget og installere plugins på dine game server nodes.",
           "registry": "Registry",
-          "registry_description": "Hvor kataloget over plugins hentes fra. Lad stå tomt for at bruge 5Stacks officielle registry.",
+          "registry_description": "Hvor kataloget over plugins hentes fra. Lad stå tomt for at bruge YGuards officielle registry.",
           "registry_url": "Registry-URL",
           "catalog_count": "{count} plugins i kataloget",
           "sync": "Synkronisér nu",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "Sanktioner",
           "section": "Automatiske sanktioner",
-          "description": "Hvordan 5stack straffer det, den selv kan opdage. Hver kilde tæller forseelser inden for en periode og anvender det tilsvarende trin på en optrapningsskala.",
-          "defaults_note": "Værdierne nedenfor er dem, 5stack altid har brugt. At læse denne side ændrer ingenting — det gør kun en redigering.",
+          "description": "Hvordan YGuard straffer det, den selv kan opdage. Hver kilde tæller forseelser inden for en periode og anvender det tilsvarende trin på en optrapningsskala.",
+          "defaults_note": "Værdierne nedenfor er dem, YGuard altid har brugt. At læse denne side ændrer ingenting — det gør kun en redigering.",
           "unavailable": "Ingen sanktionskilder tilgængelige. API'et har måske ikke kørt sanktionsmigreringen endnu.",
           "load_failed": "Sanktionspolitikken kunne ikke indlæses",
           "reset": "Nulstil til standard",
           "permanent": "Permanent",
-          "platform_ban_narrowed": "Ved ethvert omfang ud over “Blokerer begge” skriver denne kilde ikke længere en platformsdækkende udelukkelse, men kun en afgrænset karantæne — en VAC-bannet konto beholder den anden halvdel af 5stack.",
+          "platform_ban_narrowed": "Ved ethvert omfang ud over “Blokerer begge” skriver denne kilde ikke længere en platformsdækkende udelukkelse, men kun en afgrænset karantæne — en VAC-bannet konto beholder den anden halvdel af YGuard.",
           "threshold": {
             "label": "Sanktionér fra",
             "first_offence": "Allerede den første forseelse straffes.",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5Stack Steam-bot",
+        "presence_title": "YGuard Steam-bot",
         "presence_description": "Tilføj botten som Steam-ven, så dine Competitive- og Premier-kampe importeres automatisk, så snart de slutter.",
         "presence_connect": "Tilføj bot som ven",
         "presence_add_bot": "Åbn botten på Steam",
@@ -2717,7 +2717,7 @@
         "presence_connected": "Forbundet — import sker øjeblikkeligt.",
         "presence_not_connected": "Ikke forbundet endnu.",
         "presence_self_label": "Sådan ser dine venner dig",
-        "presence_unavailable": "5Stack-botten er ikke tilgængelig lige nu — prøv igen senere, eller kontakt en admin.",
+        "presence_unavailable": "YGuard-botten er ikke tilgængelig lige nu — prøv igen senere, eller kontakt en admin.",
         "need_two_codes": "Du skal bruge to koder fra Valve:",
         "step_auth_prefix": "Din",
         "steam_auth_code": "Steam Game Authentication Code",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "Alle",
         "settings_changed": "Egne indstillinger aktive",
-        "source_all_unavailable_elo": "\"Alle\" er ikke muligt på ELO-fanen — viser kun 5Stack ELO.",
+        "source_all_unavailable_elo": "\"Alle\" er ikke muligt på ELO-fanen — viser kun YGuard ELO.",
         "external_warning": {
           "title": "Ingen kamphistorik tilknyttet",
           "description": "Tilknyt din Steam match-history-kode for at importere dine Premier-, Competitive- og Wingman-kampe.",
@@ -3376,7 +3376,7 @@
       "only_enabled": "Kun aktive noder",
       "setup_dialog": {
         "title": "Opsætning af game server node",
-        "description": "Kør dette installationsscript på din server for at forbinde den til 5Stack",
+        "description": "Kør dette installationsscript på din server for at forbinde den til YGuard",
         "installation_script": "Installationsscript",
         "waiting_title": "Venter på at noden forbinder...",
         "waiting_description": "Kør installationsscriptet på din server. Statussen opdateres automatisk, når noden forbinder.",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "Dedikerede servere",
-      "description": "Dedikerede servere forbliver forbundet til 5Stack og bruges automatisk til at afvikle kampe, turneringer og offentligt spil.",
+      "description": "Dedikerede servere forbliver forbundet til YGuard og bruges automatisk til at afvikle kampe, turneringer og offentligt spil.",
       "docs_link": "Se opsætningsguide",
       "no_servers_title": "Ingen dedikerede servere",
       "no_servers": "Ingen dedikerede servere fundet.",
@@ -3438,7 +3438,7 @@
         "player_management": "Spillerstyring",
         "no_players": "Ingen spillere på denne server lige nu",
         "sanctions_wip_title": "Under udvikling",
-        "sanctions_wip": "Kick virker allerede. Live mute/gag på offentlige servere er stadig under udvikling — et nyt offentligt 5Stack-serverplugin er på vej, og mutes/gags håndhæves automatisk, når det udkommer.",
+        "sanctions_wip": "Kick virker allerede. Live mute/gag på offentlige servere er stadig under udvikling — et nyt offentligt YGuard-serverplugin er på vej, og mutes/gags håndhæves automatisk, når det udkommer.",
         "status": {
           "disconnected": "Serveren er afbrudt",
           "no_rcon": "Serveren er forbundet, men RCON er ikke tilgængelig",
@@ -3838,7 +3838,7 @@
       "installed": "Installeret",
       "already_installed": "Dette er allerede installeret på dit panel.",
       "open_plugin": "Åbn",
-      "panel_step_deploy": "Kør dette på maskinen der hoster dit panel, fra dit 5stack-panel-checkout.",
+      "panel_step_deploy": "Kør dette på maskinen der hoster dit panel, fra dit panel-checkout.",
       "panel_step_dns": "Peg det domæne, den udskriver, mod samme adresse som dette panel, og vent på certifikatet.",
       "panel_step_register": "Registrér det under Indstillinger → Applikation → Panel-plugins → Tilføj, indsæt den URL og tryk Detektér.",
       "installs_everywhere": "Installeres på alle {count} online noder.",
@@ -3880,8 +3880,8 @@
         "warning_title": "Advarsel: dette kan få dine Steam-GSLT'er bannet",
         "warning_description": "Ifølge Valve kan drift uden for deres officielle server guidelines udløse et ban af alle Game Server Login Tokens (GSLT) på serverejerens Steam-konto. Slå det til på eget ansvar.",
         "warning_link_label": "Valves server guidelines",
-        "already_off": "Allerede slået fra på denne deployment: 5stack Ranks slår Valves server guidelines fra for at vise ranks i spillet, og risikoen ved det rammer din Steam-konto frem for en enkelt server.",
-        "already_off_link": "5stack Ranks"
+        "already_off": "Allerede slået fra på denne deployment: YGuard Ranks slår Valves server guidelines fra for at vise ranks i spillet, og risikoen ved det rammer din Steam-konto frem for en enkelt server.",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "Opdatér automatisk",
@@ -3892,7 +3892,7 @@
         "add": "Tilføj et plugin",
         "badge": "Tilpasset",
         "title": "Tilføj et plugin, som kataloget ikke har",
-        "description": "Peg 5Stack på en release, så bliver den til et opslag som alle andre — installerbar på alle noder, med downloadet tjekket mod et digest taget her.",
+        "description": "Peg YGuard på en release, så bliver den til et opslag som alle andre — installerbar på alle noder, med downloadet tjekket mod et digest taget her.",
         "url": "Release-URL",
         "url_hint": "Et GitHub-repository, en release eller et link direkte til .zip-filen. Et repository slår op i det nyeste Linux-arkiv fra dets seneste release.",
         "runtime": "Framework",
@@ -5024,7 +5024,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
       "systems_online": "{count} system online | {count} systemer online",
       "navigation": {
         "dashboard": "Mine stats",
@@ -5298,7 +5298,7 @@
   },
   "push_prompt": {
     "title": "Slå notifikationer til",
-    "description": "Få kampinvitationer, lobbyopkald og beskeder på denne enhed, også når 5stack ikke er åben.",
+    "description": "Få kampinvitationer, lobbyopkald og beskeder på denne enhed, også når YGuard ikke er åben.",
     "enable": "Slå til",
     "dismiss": "Afvis",
     "enabled": "Push-notifikationer slået til",
@@ -6146,7 +6146,7 @@
       },
       "regions": {
         "label": "Foretrukne regioner",
-        "description": "Hvor kampene i denne turnering hostes. Det er ikke et spillerfilter — 5stack har ingen regionsdata pr. spiller.",
+        "description": "Hvor kampene i denne turnering hostes. Det er ikke et spillerfilter — YGuard har ingen regionsdata pr. spiller.",
         "empty": "Ingen regioner er tilgængelige lige nu."
       },
       "invite_only": {
@@ -7505,7 +7505,7 @@
       "all": "Alle"
     },
     "source_badge": {
-      "imported_external": "Importeret fra en ekstern kilde — ikke en 5Stack-kamp"
+      "imported_external": "Importeret fra en ekstern kilde — ikke en YGuard-kamp"
     },
     "scoreboard_overlay": {
       "final": "Slut",
@@ -8179,18 +8179,18 @@
       "custom_mode_group": "Tilpassede tilstande",
       "custom_mode_group_locked": "kræver en game server node",
       "custom_modes_need_node_title": "Tilpassede tilstande kræver en game server node",
-      "custom_modes_need_node_description": "En tilpasset tilstand er et sæt plugins, som 5Stack installerer på den server, den kører på. Den kan ikke installere noget på en tredjeparts dedikeret server, så knyt denne server til en game server node under Forbindelse for at kunne vælge en.",
+      "custom_modes_need_node_description": "En tilpasset tilstand er et sæt plugins, som YGuard installerer på den server, den kører på. Den kan ikke installere noget på en tredjeparts dedikeret server, så knyt denne server til en game server node under Forbindelse for at kunne vælge en.",
       "game": "Spil",
       "csgo_ranked_unavailable_title": "Ranked ikke tilgængelig",
       "csgo_ranked_unavailable_description": "Ranked-tilstand er endnu ikke tilgængelig for CS:GO-servere.",
       "ranked_server": "Ranked server",
-      "ranked_server_description": "Fuldt administreret ranked-oplevelse fra 5Stack.",
+      "ranked_server_description": "Fuldt administreret ranked-oplevelse fra YGuard.",
       "practice_server": "Træningsserver",
       "practice_server_description": "Kører utility-træningssessioner. Bruger trænings-plugin'et i stedet for kamp-plugin'et og bruges aldrig til matchmaking.",
       "valve_modes": "Valve-tilstande",
       "valve_modes_description": "Kører en Valve-forudindstilling som casual eller deathmatch.",
       "custom_presets": "Egne forudindstillinger",
-      "custom_presets_description": "Kører en egen spiltilstand med de plugins, 5Stack installerer til den.",
+      "custom_presets_description": "Kører en egen spiltilstand med de plugins, YGuard installerer til den.",
       "connect_password": "Connect-password",
       "connect_password_description": "Password der kræves for at forbinde til serveren (valgfrit)",
       "rcon_password": "RCON-password",
@@ -8209,7 +8209,7 @@
       "refresh_match": "Opdater kamp",
       "metamod_info": "Metamod-info",
       "css_version": "CounterStrikeSharp-version",
-      "fivestack_status": "5Stack-status",
+      "fivestack_status": "YGuard-status",
       "swiftly_version": "Swiftly-version",
       "swiftly_status": "Swiftly-status (serverlog)",
       "swiftly_plugins": "Swiftly-plugins (serverlog)",
@@ -8613,7 +8613,7 @@
       "elo": "ELO"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "Ekstern"
     },
     "view_short": "Se",
@@ -9604,7 +9604,7 @@
       "denied": "Din browser blokerede adgangen til kameraet. Tillad det for denne side, og prøv igen.",
       "missing": "Der blev ikke fundet noget kamera. Tilslut et, eller vælg en anden enhed nedenfor.",
       "busy": "En anden app bruger allerede kameraet. Luk den, og prøv igen.",
-      "insecure": "Dit kamera kræver en sikker forbindelse. Åbn 5stack over HTTPS (eller localhost), og prøv igen.",
+      "insecure": "Dit kamera kræver en sikker forbindelse. Åbn YGuard over HTTPS (eller localhost), og prøv igen.",
       "unknown": "Kameraet kunne ikke startes. Prøv igen."
     },
     "media_pending": "Venter på kameratilladelse…",
@@ -9623,7 +9623,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "Stemmechat kræver en sikker forbindelse. Åbn 5stack over HTTPS (eller localhost), og prøv igen.",
+      "insecure_origin": "Stemmechat kræver en sikker forbindelse. Åbn YGuard over HTTPS (eller localhost), og prøv igen.",
       "unsupported": "Denne browser understøtter ikke stemmechat.",
       "permission_denied": "Adgangen til mikrofonen blev blokeret. Tillad den i din browsers sideindstillinger, og prøv igen.",
       "no_microphone": "Der blev ikke fundet nogen mikrofon. Tilslut en, og prøv igen.",
@@ -9752,7 +9752,7 @@
     "no_results": "Ingen spørgsmål matcher «{term}».",
     "links": {
       "features": "Alle funktioner",
-      "overview": "Hvad er 5Stack?",
+      "overview": "Hvad er YGuard?",
       "matchmaking": "Matchmaking-dokumentation",
       "tournaments": "Turneringsdokumentation",
       "stats_guide": "Statistikguide",
@@ -9772,18 +9772,18 @@
       "game_plugins": "Spil-plugins"
     },
     "about": {
-      "title": "Om 5Stack",
+      "title": "Om YGuard",
       "what_is": {
-        "question": "Hvad er 5Stack?",
-        "answer": "5Stack er konkurrencelaget til Counter-Strike 2 — den software, der ligger mellem en spilserver og en liga. Én installation kører hele stakken: matchmaking, draft-lobbyer, hold, turneringer og sæsoner, statistik og Elo, demooptagelse, replays i browseren, højdepunkter og live-udsendelse."
+        "question": "Hvad er YGuard?",
+        "answer": "YGuard er konkurrencelaget til Counter-Strike 2 — den software, der ligger mellem en spilserver og en liga. Én installation kører hele stakken: matchmaking, draft-lobbyer, hold, turneringer og sæsoner, statistik og Elo, demooptagelse, replays i browseren, højdepunkter og live-udsendelse."
       },
       "this_site": {
         "question": "Hvad er {brand}?",
-        "answer": "{brand} er en 5Stack-instans. Softwaren er open source og hostes af ejerne selv, så hvert fællesskab, der kører den, driver sin egen side, sine egne servere og sine egne regler — dette er et af dem."
+        "answer": "{brand} er en YGuard-instans. Softwaren er open source og hostes af ejerne selv, så hvert fællesskab, der kører den, driver sin egen side, sine egne servere og sine egne regler — dette er et af dem."
       },
       "cost": {
         "question": "Er det gratis?",
-        "answer": "Ja. 5Stack er gratis og open source, og du hoster det selv, så der er ingen pris pr. bruger eller pr. kamp fra projektet. Du betaler kun for den infrastruktur, du vælger at køre det på. Det bygges og vedligeholdes af én udvikler, og GitHub-sponsorater er det, der holder udviklingen i gang."
+        "answer": "Ja. YGuard er gratis og open source, og du hoster det selv, så der er ingen pris pr. bruger eller pr. kamp fra projektet. Du betaler kun for den infrastruktur, du vælger at køre det på. Det bygges og vedligeholdes af én udvikler, og GitHub-sponsorater er det, der holder udviklingen i gang."
       },
       "sign_in": {
         "question": "Hvordan logger jeg ind?",
@@ -9829,7 +9829,7 @@
       "title": "At hoste din egen",
       "self_host": {
         "question": "Kan jeg køre min egen instans?",
-        "answer": "Ja — det er sådan, 5Stack er tænkt brugt. Det hostes af ejeren selv og installeres med én kommando, som rejser Kubernetes (K3s), databasen, lagringen og selve panelet. Installationsguiden i dokumentationen går igennem det hele."
+        "answer": "Ja — det er sådan, YGuard er tænkt brugt. Det hostes af ejeren selv og installeres med én kommando, som rejser Kubernetes (K3s), databasen, lagringen og selve panelet. Installationsguiden i dokumentationen går igennem det hele."
       },
       "requirements": {
         "question": "Hvad skal jeg bruge for at hoste det?",
@@ -9845,7 +9845,7 @@
       },
       "managed": {
         "question": "Findes der en hostet eller administreret version, jeg kan betale for?",
-        "answer": "Nej. 5Stack hostes udelukkende af ejeren selv; der er intet SaaS-niveau og intet administreret tilbud at købe. 5stack.gg er vedligeholderens egen offentlige instans, god til at se softwaren køre, før du installerer den."
+        "answer": "Nej. YGuard hostes udelukkende af ejeren selv; der er intet SaaS-niveau og intet administreret tilbud at købe. YGuard.gg er vedligeholderens egen offentlige instans, god til at se softwaren køre, før du installerer den."
       },
       "branding": {
         "question": "Kan jeg få det til at se ud som min organisation?",
@@ -9853,12 +9853,12 @@
       },
       "extend": {
         "question": "Kan jeg udvide det med min egen kode?",
-        "answer": "To steder. Du kan indlejre dine egne webapps som native panelsider — de arver sessionen og designsystemet, så der er ingen fork at vedligeholde. Og på serversiden kan du køre dine egne CS2-plugins side om side med 5Stacks, på enten CounterStrikeSharp eller SwiftlyS2."
+        "answer": "To steder. Du kan indlejre dine egne webapps som native panelsider — de arver sessionen og designsystemet, så der er ingen fork at vedligeholde. Og på serversiden kan du køre dine egne CS2-plugins side om side med YGuards, på enten CounterStrikeSharp eller SwiftlyS2."
       }
     },
     "support": {
       "title": "Stadig gået i stå?",
-      "description": "Discord er den hurtigste vej til et menneske — de folk, der driver 5Stack-instanser, er derinde. Fejl og ønsker hører til på GitHub, og dokumentationen dækker installation, servere og hver funktion i dybden.",
+      "description": "Discord er den hurtigste vej til et menneske — de folk, der driver YGuard-instanser, er derinde. Fejl og ønsker hører til på GitHub, og dokumentationen dækker installation, servere og hver funktion i dybden.",
       "discord": "Kom med på Discord",
       "github": "Rapportér et problem",
       "docs": "Læs dokumentationen"

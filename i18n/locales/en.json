@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack matchmaking skill rating — rises and falls with wins and losses."
+      "description": "YGuard matchmaking skill rating — rises and falls with wins and losses."
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "Active Duty",
     "no_maps_match": "No maps match your filters.",
     "accepted_elo_range": "Accepted ELO Range",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "Weekly Availability",
     "allow_outside_hours": "Allow requests outside these hours",
     "outside_hours_help": "Opponents can propose any time, not just your painted availability. Leave your availability empty to take requests at any time.",
@@ -1588,10 +1588,10 @@
         "voice": "Voice & Audio",
         "api_keys_management": {
           "add_api_key": "Add API Key",
-          "description": "Keys authenticate requests to the 5Stack API — treat them like passwords.",
+          "description": "Keys authenticate requests to the YGuard API — treat them like passwords.",
           "view_docs": "View API docs",
           "no_api_keys": "No API keys yet",
-          "no_api_keys_hint": "Create your first key to start making authenticated requests to the 5Stack API.",
+          "no_api_keys_hint": "Create your first key to start making authenticated requests to the YGuard API.",
           "add_first_api_key": "Create your first key",
           "create_new_api_key": "Create New API Key",
           "create_new_description": "Create a new API key with a descriptive label to identify its purpose.",
@@ -1636,7 +1636,7 @@
           "link": "Link Discord",
           "unlink_dialog": {
             "title": "Unlink Discord Account",
-            "description": "Are you sure you want to unlink your Discord account? This will remove the connection between your 5Stack and Discord accounts.",
+            "description": "Are you sure you want to unlink your Discord account? This will remove the connection between your YGuard and Discord accounts.",
             "confirm": "Unlink"
           },
           "unlinked": "Discord account unlinked successfully"
@@ -1646,7 +1646,7 @@
         "description": "Your microphone, your levels, and how loud everyone else is. Every voice channel uses what you set here — your party lobby, a match, a draft room — and so does the microphone on your camera feed.",
         "this_device": {
           "title": "Saved on this device",
-          "description": "Voice settings are not part of your 5stack account and never leave this browser. Every computer you play from keeps its own microphone, output, sensitivity and player levels — which is the point, since it is the hardware that changes, not you. Clearing this site's browser data puts them back to default."
+          "description": "Voice settings are not part of your YGuard account and never leave this browser. Every computer you play from keeps its own microphone, output, sensitivity and player levels — which is the point, since it is the hardware that changes, not you. Clearing this site's browser data puts them back to default."
         },
         "players": {
           "title": "Player Levels",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "Notification Preferences",
-        "description": "Choose what 5stack notifies you about, and where those notifications arrive.",
+        "description": "Choose what YGuard notifies you about, and where those notifications arrive.",
         "save_failed": "Couldn't save that preference. Try again.",
         "push": {
           "title": "Push notifications",
-          "description": "Get notified on this device even when 5stack isn't open.",
+          "description": "Get notified on this device even when YGuard isn't open.",
           "categories": "What to push",
           "unsupported": "Push notifications aren't supported in this browser.",
-          "install_required": "Install the 5stack app to turn these on.",
+          "install_required": "Install the YGuard app to turn these on.",
           "install": {
             "description": "Push notifications are delivered by the installed app, so it needs to be on your device before you can turn them on.",
-            "open_app": "Already installed? Open 5stack from your home screen or applications and turn push notifications on there."
+            "open_app": "Already installed? Open YGuard from your home screen or applications and turn push notifications on there."
           },
-          "denied": "Notifications are blocked for 5stack. Enable them in your browser or device settings to turn this on.",
+          "denied": "Notifications are blocked for YGuard. Enable them in your browser or device settings to turn this on.",
           "failed": "Couldn't enable push notifications. Try again.",
           "errors": {
             "permission": "The notification permission prompt never responded. This can happen when Google Play Services is missing or broken on the device.",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "News",
-            "description": "New articles published on 5stack."
+            "description": "New articles published on YGuard."
           },
           "staff_moderation": {
             "title": "Moderation",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "Sound Settings",
-        "description": "Preview and adjust the alert sounds 5Stack plays for chat, matches, and more.",
+        "description": "Preview and adjust the alert sounds YGuard plays for chat, matches, and more.",
         "enabled": {
           "title": "Notification sounds",
           "description": "Play a sound for chat messages, match events, and other alerts."
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "Telemetry",
           "telemetry": "Telemetry",
-          "telemetry_description": "Help improve 5stack by sharing anonymous usage data.",
+          "telemetry_description": "Help improve YGuard by sharing anonymous usage data.",
           "update": "Update Telemetry Settings",
           "update_success": "Telemetry settings updated successfully",
           "google_tag_manager_code": "Google Tag Manager Code",
@@ -1882,8 +1882,8 @@
           "updated": "Settings updated successfully"
         },
         "fivestack_ranks": {
-          "title": "5stack Ranks",
-          "description": "Send each player's 5stack ELO to the server so the plugin can display ranks in-game.",
+          "title": "YGuard Ranks",
+          "description": "Send each player's YGuard ELO to the server so the plugin can display ranks in-game.",
           "matches": "Show ranks in regular matches",
           "tournaments": "Show ranks in tournament matches",
           "warning_title": "Warning: this can get your Steam GSLTs banned",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "Customize the theme colors. Changes are previewed live.",
           "reset_to_defaults": "Reset to Defaults",
           "reset_confirm_title": "Reset branding to defaults?",
-          "reset_confirm_description": "This clears your brand name, colors, login footer, and uploaded logo/favicon/app icon, restoring the default 5Stack theme. This cannot be undone.",
+          "reset_confirm_description": "This clears your brand name, colors, login footer, and uploaded logo/favicon/app icon, restoring the default YGuard theme. This cannot be undone.",
           "export_theme": "Export Theme",
           "import_theme": "Import Theme",
           "branding_saved": "Branding saved",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "Auto-generate match highlights",
           "auto_generate_match_clips_description": "Queue a match-recap highlight for each player after their match finishes.",
           "auto_generate_match_clips_imported": "Include imported matches",
-          "auto_generate_match_clips_imported_description": "Also auto-generate highlights for matches imported from outside 5stack (e.g. Valve match history). Off by default so imported matches don't flood the render queue.",
+          "auto_generate_match_clips_imported_description": "Also auto-generate highlights for matches imported from outside YGuard (e.g. Valve match history). Off by default so imported matches don't flood the render queue.",
           "pause_renders_during_active_match": "Pause Highlight Renders During Active Match",
           "pause_renders_during_active_match_description": "When a match goes Live on a server backed by a GPU node, auto-pause in-flight highlight renders so the game server isn't competing with the render pod for GPU. Renders resume automatically once the match ends.",
           "auto_clip_default_visibility": "Default visibility for auto-generated highlights",
@@ -2431,7 +2431,7 @@
           "docs_link": "Read the panel plugin docs",
           "add": "Add Panel Plugin",
           "empty_title": "No panel plugins yet",
-          "empty_description": "Point 5Stack at a web app's URL and it renders as a native page inside your panel.",
+          "empty_description": "Point YGuard at a web app's URL and it renders as a native page inside your panel.",
           "public": "Public",
           "add_title": "Add Panel Plugin",
           "edit_title": "Edit Panel Plugin",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "Show this plugin as a tab on player profiles, using this label. Leave blank for no tab. The plugin receives the profile's Steam ID.",
             "deployments": "Deployments",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "Kubernetes deployment names to watch for image updates. Comma separated. Updates show in the header alongside 5stack's own services."
+            "deployments_hint": "Kubernetes deployment names to watch for image updates. Comma separated. Updates show in the header alongside YGuard's own services."
           },
           "detect_label": "Auto-detect from URL",
           "detect": "Detect",
-          "detect_hint": "Paste the plugin's base URL (or its 5stack-plugin.json) and we'll fill in the fields below from its manifest.",
-          "detect_failed": "Could not read a 5stack-plugin.json manifest at that URL.",
+          "detect_hint": "Paste the plugin's base URL (or its YGuard-plugin.json) and we'll fill in the fields below from its manifest.",
+          "detect_failed": "Could not read a YGuard-plugin.json manifest at that URL.",
           "optional": "(optional)",
           "advanced": "Advanced settings",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "Web Push",
           "section": "Web Push Notifications",
-          "description": "Sends alerts straight to a player's phone or desktop — the browser delivers them even when 5stack isn't open in a tab. Players opt in themselves, per device, from their own notification settings; on iOS that only works once 5stack is installed to the home screen. Nothing to set up: delivery runs through the browser's own push service, so there is no third-party account and no cost.",
+          "description": "Sends alerts straight to a player's phone or desktop — the browser delivers them even when YGuard isn't open in a tab. Players opt in themselves, per device, from their own notification settings; on iOS that only works once YGuard is installed to the home screen. Nothing to set up: delivery runs through the browser's own push service, so there is no third-party account and no cost.",
           "state_live": "Transmitting",
           "state_standby": "Standby",
           "state_ready": "Ready",
@@ -2522,7 +2522,7 @@
           "description": "The catalog of installable plugins, and where it is pulled from. Administrators only.",
           "disabled_hint": "Turn this on to browse the directory and install plugins onto your game server nodes.",
           "registry": "Registry",
-          "registry_description": "Where the catalog of installable plugins is pulled from. Leave blank to use the official 5Stack registry.",
+          "registry_description": "Where the catalog of installable plugins is pulled from. Leave blank to use the official YGuard registry.",
           "registry_url": "Registry URL",
           "catalog_count": "{count} plugins in the catalog",
           "sync": "Sync Now",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "Sanctions",
           "section": "Automatic Sanctions",
-          "description": "How 5stack punishes the things it can detect on its own. Each source counts occurrences inside a window and applies the matching step of an escalation ladder.",
-          "defaults_note": "The values below are the ones 5stack has always used. Reading this page changes nothing — only an edit does.",
+          "description": "How YGuard punishes the things it can detect on its own. Each source counts occurrences inside a window and applies the matching step of an escalation ladder.",
+          "defaults_note": "The values below are the ones YGuard has always used. Reading this page changes nothing — only an edit does.",
           "unavailable": "No sanction sources are available. The API may not have run the sanctions migration yet.",
           "load_failed": "Could not load the sanctions policy",
           "reset": "Reset to default",
           "permanent": "Permanent",
-          "platform_ban_narrowed": "At any scope other than “Bars everything” this source stops writing a platform-wide ban and only issues a scoped cooldown — a VAC-banned account keeps the other half of 5stack.",
+          "platform_ban_narrowed": "At any scope other than “Bars everything” this source stops writing a platform-wide ban and only issues a scoped cooldown — a VAC-banned account keeps the other half of YGuard.",
           "threshold": {
             "label": "Sanction after",
             "first_offence": "The first occurrence is punished.",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steam bot",
+        "presence_title": "YGuard Steam bot",
         "presence_description": "Add the bot as a Steam friend to auto-import your Competitive & Premier matches the moment they end.",
         "presence_connect": "Add bot as friend",
         "presence_add_bot": "Open the bot on Steam",
@@ -2717,7 +2717,7 @@
         "presence_connected": "Connected — imports are instant.",
         "presence_not_connected": "Not connected yet.",
         "presence_self_label": "As your friends see you",
-        "presence_unavailable": "The 5stack bot isn't available right now — please try again later or contact an admin.",
+        "presence_unavailable": "The YGuard bot isn't available right now — please try again later or contact an admin.",
         "need_two_codes": "You'll need two codes from Valve:",
         "step_auth_prefix": "Your",
         "steam_auth_code": "Steam Game Authentication Code",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "All",
         "settings_changed": "Custom settings active",
-        "source_all_unavailable_elo": "\"All\" isn't available on the ELO tab — showing 5Stack ELO only.",
+        "source_all_unavailable_elo": "\"All\" isn't available on the ELO tab — showing YGuard ELO only.",
         "external_warning": {
           "title": "No match history linked",
           "description": "Link your Steam match-history auth code to import your Premier, Competitive and Wingman matches.",
@@ -3376,7 +3376,7 @@
       "only_enabled": "Only Enabled Nodes",
       "setup_dialog": {
         "title": "Game Server Node Setup",
-        "description": "Run this installation script on your server to connect it to 5Stack",
+        "description": "Run this installation script on your server to connect it to YGuard",
         "installation_script": "Installation Script",
         "waiting_title": "Waiting for node to connect...",
         "waiting_description": "Run the installation script on your server. The status will update automatically when the node connects.",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "Dedicated Servers",
-      "description": "Dedicated servers stay connected to 5Stack and are automatically used to host matches, tournaments, and public play.",
+      "description": "Dedicated servers stay connected to YGuard and are automatically used to host matches, tournaments, and public play.",
       "docs_link": "View setup guide",
       "no_servers_title": "No Dedicated Servers",
       "no_servers": "No dedicated servers found.",
@@ -3438,7 +3438,7 @@
         "player_management": "Player Management",
         "no_players": "No players currently on this server",
         "sanctions_wip_title": "Work in progress",
-        "sanctions_wip": "Kicks work today. Live mute/gag enforcement on public servers is a work in progress — a new 5Stack public server plugin is coming soon, and mutes/gags will apply automatically once it ships.",
+        "sanctions_wip": "Kicks work today. Live mute/gag enforcement on public servers is a work in progress — a new YGuard public server plugin is coming soon, and mutes/gags will apply automatically once it ships.",
         "status": {
           "disconnected": "Server is disconnected",
           "no_rcon": "Server is connected but RCON is not available",
@@ -3838,7 +3838,7 @@
       "installed": "Installed",
       "already_installed": "This is already installed on your panel.",
       "open_plugin": "Open",
-      "panel_step_deploy": "Run this on the machine hosting your panel, from your 5stack-panel checkout.",
+      "panel_step_deploy": "Run this on the machine hosting your panel, from your panel checkout.",
       "panel_step_dns": "Point the domain it prints at the same address as this panel, and wait for the certificate.",
       "panel_step_register": "Register it under Settings → Application → Panel Plugins → Add, paste that URL, and press Detect.",
       "installs_everywhere": "Installs on all {count} online nodes.",
@@ -3880,8 +3880,8 @@
         "warning_title": "Warning: this can get your Steam GSLTs banned",
         "warning_description": "Per Valve, running outside their official server guidelines can trigger every Game Server Login Token (GSLT) on the server owner's Steam account to be banned. Enable at your own risk.",
         "warning_link_label": "Valve's server guidelines",
-        "already_off": "Already off for this deployment: 5stack Ranks turns Valve's server guidelines off to show ranks in-game, and the risk it carries is against your Steam account rather than one server.",
-        "already_off_link": "5stack Ranks"
+        "already_off": "Already off for this deployment: YGuard Ranks turns Valve's server guidelines off to show ranks in-game, and the risk it carries is against your Steam account rather than one server.",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "Automatically update",
@@ -3892,7 +3892,7 @@
         "add": "Add a plugin",
         "badge": "Custom",
         "title": "Add a plugin the catalog does not carry",
-        "description": "Point 5Stack at a release and it becomes an entry like any other — installable on every node, with the download checked against a digest taken here.",
+        "description": "Point YGuard at a release and it becomes an entry like any other — installable on every node, with the download checked against a digest taken here.",
         "url": "Release URL",
         "url_hint": "A GitHub repository, a release, or a link straight to the .zip. A repository resolves to the newest Linux archive of its latest release.",
         "runtime": "Framework",
@@ -5024,7 +5024,9 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
+      "developer_name": "Kian",
+      "developer_name": "Kian",
       "systems_online": "{count} System Online | {count} Systems Online",
       "navigation": {
         "dashboard": "My Stats",
@@ -5298,7 +5300,7 @@
   },
   "push_prompt": {
     "title": "Turn on notifications",
-    "description": "Get match invites, lobby calls and messages on this device, even when 5stack isn't open.",
+    "description": "Get match invites, lobby calls and messages on this device, even when YGuard isn't open.",
     "enable": "Enable",
     "dismiss": "Dismiss",
     "enabled": "Push notifications enabled",
@@ -6146,7 +6148,7 @@
       },
       "regions": {
         "label": "Preferred regions",
-        "description": "Where this tournament's matches are hosted. Not a player gate — 5stack has no per-player region data.",
+        "description": "Where this tournament's matches are hosted. Not a player gate — YGuard has no per-player region data.",
         "empty": "No regions are currently available."
       },
       "invite_only": {
@@ -7505,7 +7507,7 @@
       "all": "All"
     },
     "source_badge": {
-      "imported_external": "Imported from an external source — not a 5stack match"
+      "imported_external": "Imported from an external source — not a YGuard match"
     },
     "scoreboard_overlay": {
       "final": "Final",
@@ -8179,18 +8181,18 @@
       "custom_mode_group": "Custom modes",
       "custom_mode_group_locked": "needs a game server node",
       "custom_modes_need_node_title": "Custom modes need a game server node",
-      "custom_modes_need_node_description": "A custom mode is a set of plugins 5Stack installs onto the server it runs. It cannot install anything on a third-party dedicated server, so attach this server to a game server node under Connection to pick one.",
+      "custom_modes_need_node_description": "A custom mode is a set of plugins YGuard installs onto the server it runs. It cannot install anything on a third-party dedicated server, so attach this server to a game server node under Connection to pick one.",
       "game": "Game",
       "csgo_ranked_unavailable_title": "Ranked Not Available",
       "csgo_ranked_unavailable_description": "Ranked mode is not yet available for CS:GO servers.",
       "ranked_server": "Ranked Server",
-      "ranked_server_description": "Fully managed ranked experience by 5stack.",
+      "ranked_server_description": "Fully managed ranked experience by YGuard.",
       "practice_server": "Practice Server",
       "practice_server_description": "Hosts utility practice sessions. Runs the practice plugin instead of the match plugin, and is never used for matchmaking.",
       "valve_modes": "Valve Modes",
       "valve_modes_description": "Run a Valve preset like casual or deathmatch.",
       "custom_presets": "Custom Presets",
-      "custom_presets_description": "Run a custom game mode with the plugins 5Stack installs for it.",
+      "custom_presets_description": "Run a custom game mode with the plugins YGuard installs for it.",
       "connect_password": "Connect Password",
       "connect_password_description": "Password required to connect to the server (optional)",
       "rcon_password": "RCON Password",
@@ -8209,7 +8211,7 @@
       "refresh_match": "Refresh Match",
       "metamod_info": "Metamod Info",
       "css_version": "CounterStrikeSharp Version",
-      "fivestack_status": "5Stack Status",
+      "fivestack_status": "YGuard Status",
       "swiftly_version": "Swiftly Version",
       "swiftly_status": "Swiftly Status (server log)",
       "swiftly_plugins": "Swiftly Plugins (server log)",
@@ -8613,7 +8615,7 @@
       "elo": "Elo"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "External"
     },
     "view_short": "View",
@@ -9604,7 +9606,7 @@
       "denied": "Your browser blocked access to the camera. Allow it for this site, then try again.",
       "missing": "No camera was found. Connect one, or pick a different device below.",
       "busy": "Another app is already using the camera. Close it and try again.",
-      "insecure": "Your camera needs a secure connection. Open 5stack over HTTPS (or localhost) and try again.",
+      "insecure": "Your camera needs a secure connection. Open YGuard over HTTPS (or localhost) and try again.",
       "unknown": "The camera could not be started. Try again."
     },
     "media_pending": "Waiting for camera permission…",
@@ -9623,7 +9625,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "Voice chat needs a secure connection. Open 5stack over HTTPS (or localhost) and try again.",
+      "insecure_origin": "Voice chat needs a secure connection. Open YGuard over HTTPS (or localhost) and try again.",
       "unsupported": "This browser does not support voice chat.",
       "permission_denied": "Microphone access was blocked. Allow it in your browser's site settings, then try again.",
       "no_microphone": "No microphone was found. Connect one and try again.",
@@ -9752,7 +9754,7 @@
     "no_results": "No questions match \"{term}\".",
     "links": {
       "features": "All features",
-      "overview": "What is 5Stack?",
+      "overview": "What is YGuard?",
       "matchmaking": "Matchmaking docs",
       "tournaments": "Tournament docs",
       "stats_guide": "Stats guide",
@@ -9772,18 +9774,22 @@
       "game_plugins": "Game plugins"
     },
     "about": {
-      "title": "About 5Stack",
+      "title": "About YGuard",
       "what_is": {
-        "question": "What is 5Stack?",
-        "answer": "5Stack is the competition layer for Counter-Strike 2 — the software that sits between a game server and a league. One install runs the whole stack: matchmaking, draft lobbies, teams, tournaments and seasons, stats and Elo, demo capture, in-browser replays, highlights, and live broadcast."
+        "question": "What is YGuard?",
+        "answer": "YGuard is the competition layer for Counter-Strike 2 — the software that sits between a game server and a league. One install runs the whole stack: matchmaking, draft lobbies, teams, tournaments and seasons, stats and Elo, demo capture, in-browser replays, highlights, and live broadcast."
       },
       "this_site": {
         "question": "What is {brand}?",
-        "answer": "{brand} is a 5Stack instance. The software is open source and self-hosted, so every community that runs it operates its own site, its own servers, and its own rules — this is one of them."
+        "answer": "{brand} is a YGuard instance. The software is open source and self-hosted, so every community that runs it operates its own site, its own servers, and its own rules — this is one of them."
       },
       "cost": {
         "question": "Is it free?",
-        "answer": "Yes. 5Stack is free and open source, and you host it yourself, so there is no per-seat or per-match cost from the project. You pay only for whatever infrastructure you choose to run it on. It is built and maintained by a single developer, and GitHub sponsorships are what keep development going."
+        "answer": "Yes. YGuard is free for this community to use. The site is developed and maintained by Kian."
+      },
+      "developer": {
+        "question": "Who developed this site?",
+        "answer": "Kian."
       },
       "sign_in": {
         "question": "How do I sign in?",
@@ -9829,7 +9835,7 @@
       "title": "Hosting your own",
       "self_host": {
         "question": "Can I run my own instance?",
-        "answer": "Yes — that is the intended way to use 5Stack. It is self-hosted and installs with a single command, which brings up Kubernetes (K3s), the database, storage, and the panel itself. The install guide in the docs walks through it end to end."
+        "answer": "Yes — that is the intended way to use YGuard. It is self-hosted and installs with a single command, which brings up Kubernetes (K3s), the database, storage, and the panel itself. The install guide in the docs walks through it end to end."
       },
       "requirements": {
         "question": "What do I need to host it?",
@@ -9845,7 +9851,7 @@
       },
       "managed": {
         "question": "Is there a hosted or managed version I can pay for?",
-        "answer": "No. 5Stack is self-hosted only; there is no SaaS tier or managed offering to buy. 5stack.gg is the maintainer's own public instance, useful for seeing the software running before you install it."
+        "answer": "No. YGuard is self-hosted only. This community site is developed by Kian."
       },
       "branding": {
         "question": "Can I make it look like my organization?",
@@ -9853,12 +9859,12 @@
       },
       "extend": {
         "question": "Can I extend it with my own code?",
-        "answer": "In two places. You can embed your own web apps as native panel pages — they inherit the session and design system, so there's no fork to maintain. And on the server side you can run your own CS2 plugins alongside 5Stack's, on either CounterStrikeSharp or SwiftlyS2."
+        "answer": "In two places. You can embed your own web apps as native panel pages — they inherit the session and design system, so there's no fork to maintain. And on the server side you can run your own CS2 plugins alongside YGuard's, on either CounterStrikeSharp or SwiftlyS2."
       }
     },
     "support": {
       "title": "Still stuck?",
-      "description": "Discord is the fastest route to a human — the people running 5Stack instances are in there. Bugs and feature requests belong on GitHub, and the docs cover installation, servers, and every feature in depth.",
+      "description": "Discord is the fastest route to a human — the people running YGuard instances are in there. Bugs and feature requests belong on GitHub, and the docs cover installation, servers, and every feature in depth.",
       "discord": "Join Discord",
       "github": "Report an issue",
       "docs": "Read the docs"

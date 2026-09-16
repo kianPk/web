@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="5Stack" />
+    <meta property="og:site_name" content="YGuard" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safePage}" />

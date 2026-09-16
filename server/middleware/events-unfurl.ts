@@ -116,8 +116,8 @@ export default defineEventHandler(async (event) => {
   const description = truncate(
     record.description ||
       (facts.length
-        ? `Counter-Strike event on 5Stack · ${facts.join(" · ")}`
-        : "Counter-Strike event on 5Stack."),
+        ? `Counter-Strike event on YGuard · ${facts.join(" · ")}`
+        : "Counter-Strike event on YGuard."),
   );
 
   setResponseHeader(event, "Content-Type", "text/html; charset=utf-8");

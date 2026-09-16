@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack のマッチメイキング用スキルレーティングです。勝敗に応じて上下します。"
+      "description": "YGuard のマッチメイキング用スキルレーティングです。勝敗に応じて上下します。"
     },
     "kda": {
       "label": "K / D / A",
@@ -1110,7 +1110,7 @@
     "active_duty": "アクティブデューティ",
     "no_maps_match": "フィルター条件に一致するマップがありません。",
     "accepted_elo_range": "受け入れるELO範囲",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "YGuard ELO",
     "weekly_availability": "週間空き時間",
     "allow_outside_hours": "この時間外の申請も許可する",
     "outside_hours_help": "相手チームは塗った空き時間以外の時間も提案できます。空き時間を未設定のままにすると、いつでも申請を受け付けます。",
@@ -1588,10 +1588,10 @@
         "voice": "音声とオーディオ",
         "api_keys_management": {
           "add_api_key": "API キーを追加",
-          "description": "キーは 5Stack API へのリクエストを認証します。パスワードと同じように扱ってください。",
+          "description": "キーは YGuard API へのリクエストを認証します。パスワードと同じように扱ってください。",
           "view_docs": "API ドキュメント",
           "no_api_keys": "API キーなし",
-          "no_api_keys_hint": "最初のキーを作成すると、5Stack API へ認証付きのリクエストを送れるようになります。",
+          "no_api_keys_hint": "最初のキーを作成すると、YGuard API へ認証付きのリクエストを送れるようになります。",
           "add_first_api_key": "最初のキーを作成",
           "create_new_api_key": "新しい API キーを作成",
           "create_new_description": "用途がわかるラベルを付けて、新しい API キーを作成します。",
@@ -1636,7 +1636,7 @@
           "link": "Discord と連携",
           "unlink_dialog": {
             "title": "Discord 連携の解除",
-            "description": "Discord アカウントの連携を解除しますか？5Stack と Discord のアカウント接続が削除されます。",
+            "description": "Discord アカウントの連携を解除しますか？YGuard と Discord のアカウント接続が削除されます。",
             "confirm": "解除する"
           },
           "unlinked": "Discord アカウントの連携を解除しました"
@@ -1646,7 +1646,7 @@
         "description": "マイク、レベル、ほかの人の音量の設定です。パーティーロビー、試合、ドラフトルームなど、すべてのボイスチャンネルがここでの設定を使います。カメラ映像のマイクも同様です。",
         "this_device": {
           "title": "この端末に保存されます",
-          "description": "音声設定は5stackアカウントの一部ではなく、このブラウザから外に出ることはありません。プレイに使う各パソコンがそれぞれ独自のマイク、出力、感度、プレイヤーレベルを保持します。変わるのはあなたではなく機材なので、それが狙いです。このサイトのブラウザデータを消すと初期値に戻ります。"
+          "description": "音声設定はYGuardアカウントの一部ではなく、このブラウザから外に出ることはありません。プレイに使う各パソコンがそれぞれ独自のマイク、出力、感度、プレイヤーレベルを保持します。変わるのはあなたではなく機材なので、それが狙いです。このサイトのブラウザデータを消すと初期値に戻ります。"
         },
         "players": {
           "title": "プレイヤー音量",
@@ -1665,19 +1665,19 @@
       },
       "notification_preferences": {
         "title": "通知設定",
-        "description": "5stackが何を知らせるか、その通知をどこで受け取るかを選びます。",
+        "description": "YGuardが何を知らせるか、その通知をどこで受け取るかを選びます。",
         "save_failed": "設定を保存できませんでした。もう一度お試しください。",
         "push": {
           "title": "プッシュ通知",
-          "description": "5stackを開いていないときでも、この端末で通知を受け取ります。",
+          "description": "YGuardを開いていないときでも、この端末で通知を受け取ります。",
           "categories": "プッシュする内容",
           "unsupported": "このブラウザはプッシュ通知に対応していません。",
-          "install_required": "有効にするには5stackアプリをインストールしてください。",
+          "install_required": "有効にするにはYGuardアプリをインストールしてください。",
           "install": {
             "description": "プッシュ通知はインストール済みアプリが配信するため、有効にする前に端末にアプリが必要です。",
-            "open_app": "すでにインストール済みですか？ ホーム画面またはアプリ一覧から5stackを開き、そこでプッシュ通知を有効にしてください。"
+            "open_app": "すでにインストール済みですか？ ホーム画面またはアプリ一覧からYGuardを開き、そこでプッシュ通知を有効にしてください。"
           },
-          "denied": "5stackの通知がブロックされています。有効にするには、ブラウザまたは端末の設定で許可してください。",
+          "denied": "YGuardの通知がブロックされています。有効にするには、ブラウザまたは端末の設定で許可してください。",
           "failed": "プッシュ通知を有効にできませんでした。もう一度お試しください。",
           "errors": {
             "permission": "通知の許可ダイアログから応答がありませんでした。端末のGoogle Play Servicesが欠落または破損している場合に起こることがあります。",
@@ -1725,7 +1725,7 @@
           },
           "news": {
             "title": "ニュース",
-            "description": "5stackで公開された新しい記事。"
+            "description": "YGuardで公開された新しい記事。"
           },
           "staff_moderation": {
             "title": "モデレーション",
@@ -1831,7 +1831,7 @@
       },
       "notifications": {
         "title": "サウンド設定",
-        "description": "チャットや試合などで 5Stack が鳴らす通知音を試聴し、調整できます。",
+        "description": "チャットや試合などで YGuard が鳴らす通知音を試聴し、調整できます。",
         "enabled": {
           "title": "通知音",
           "description": "チャットメッセージ、試合イベント、その他の通知で音を鳴らします。"
@@ -1869,7 +1869,7 @@
         "telemetry": {
           "title": "テレメトリ",
           "telemetry": "テレメトリ",
-          "telemetry_description": "匿名の利用データを共有して 5stack の改善に協力します。",
+          "telemetry_description": "匿名の利用データを共有して YGuard の改善に協力します。",
           "update": "テレメトリ設定を更新",
           "update_success": "テレメトリ設定を更新しました",
           "google_tag_manager_code": "Google Tag Manager コード",
@@ -1882,8 +1882,8 @@
           "updated": "設定を更新しました"
         },
         "fivestack_ranks": {
-          "title": "5stack ランク",
-          "description": "各プレイヤーの 5stack ELO をサーバーへ送信し、プラグインがゲーム内でランクを表示できるようにします。",
+          "title": "YGuard ランク",
+          "description": "各プレイヤーの YGuard ELO をサーバーへ送信し、プラグインがゲーム内でランクを表示できるようにします。",
           "matches": "通常の試合でランクを表示",
           "tournaments": "トーナメントの試合でランクを表示",
           "warning_title": "警告：Steam の GSLT が Ban される可能性があります",
@@ -2104,7 +2104,7 @@
           "theme_colors_description": "テーマカラーをカスタマイズします。変更はリアルタイムでプレビューされます。",
           "reset_to_defaults": "初期設定に戻す",
           "reset_confirm_title": "ブランディングを初期設定に戻しますか？",
-          "reset_confirm_description": "ブランド名、カラー、ログインフッター、アップロード済みのロゴ・favicon・アプリアイコンをすべて消去し、5Stackの初期テーマに戻します。この操作は元に戻せません。",
+          "reset_confirm_description": "ブランド名、カラー、ログインフッター、アップロード済みのロゴ・favicon・アプリアイコンをすべて消去し、YGuardの初期テーマに戻します。この操作は元に戻せません。",
           "export_theme": "テーマをエクスポート",
           "import_theme": "テーマをインポート",
           "branding_saved": "ブランディングを保存しました",
@@ -2321,7 +2321,7 @@
           "auto_generate_match_clips": "試合ハイライトを自動生成",
           "auto_generate_match_clips_description": "試合終了後、各プレイヤーの試合ダイジェストハイライトをキューに追加します。",
           "auto_generate_match_clips_imported": "インポートした試合も含める",
-          "auto_generate_match_clips_imported_description": "5stack外部からインポートした試合（例：Valveの試合履歴）についてもハイライトを自動生成します。インポートした試合でレンダーキューが溢れないよう、デフォルトではオフです。",
+          "auto_generate_match_clips_imported_description": "YGuard外部からインポートした試合（例：Valveの試合履歴）についてもハイライトを自動生成します。インポートした試合でレンダーキューが溢れないよう、デフォルトではオフです。",
           "pause_renders_during_active_match": "試合進行中はハイライトレンダーを一時停止",
           "pause_renders_during_active_match_description": "GPUノード上のサーバーで試合がLiveになった際、進行中のハイライトレンダーを自動的に一時停止し、ゲームサーバーとレンダーポッドがGPUを取り合わないようにします。試合終了後、レンダーは自動的に再開します。",
           "auto_clip_default_visibility": "自動生成ハイライトのデフォルト公開範囲",
@@ -2431,7 +2431,7 @@
           "docs_link": "パネルプラグインのドキュメントを読む",
           "add": "パネルプラグインを追加",
           "empty_title": "パネルプラグインがまだありません",
-          "empty_description": "5Stack にウェブアプリの URL を指定すると、パネル内にネイティブページとして表示されます。",
+          "empty_description": "YGuard にウェブアプリの URL を指定すると、パネル内にネイティブページとして表示されます。",
           "public": "公開",
           "add_title": "パネルプラグインを追加",
           "edit_title": "パネルプラグインを編集",
@@ -2463,12 +2463,12 @@
             "profile_tab_label_hint": "このラベルでプレイヤープロフィールにタブとして表示します。空欄の場合はタブを表示しません。プラグインにはプロフィールのSteam IDが渡されます。",
             "deployments": "デプロイメント",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "イメージ更新を監視するKubernetesデプロイメント名です。カンマ区切り。更新は5stack自身のサービスと並んでヘッダーに表示されます。"
+            "deployments_hint": "イメージ更新を監視するKubernetesデプロイメント名です。カンマ区切り。更新はYGuard自身のサービスと並んでヘッダーに表示されます。"
           },
           "detect_label": "URLから自動検出",
           "detect": "検出",
-          "detect_hint": "プラグインのベースURL（または5stack-plugin.json）を貼り付けると、マニフェストから以下の項目を自動入力します。",
-          "detect_failed": "そのURLに5stack-plugin.jsonマニフェストが見つかりませんでした。",
+          "detect_hint": "プラグインのベースURL（またはYGuard-plugin.json）を貼り付けると、マニフェストから以下の項目を自動入力します。",
+          "detect_failed": "そのURLにYGuard-plugin.jsonマニフェストが見つかりませんでした。",
           "optional": "（任意）",
           "advanced": "詳細設定",
           "icon_picker": {
@@ -2490,7 +2490,7 @@
         "web_push": {
           "title": "ウェブプッシュ",
           "section": "ウェブプッシュ通知",
-          "description": "プレイヤーのスマートフォンやデスクトップに直接通知を送ります。5stackがタブで開かれていなくても、ブラウザが配信します。プレイヤーは自分の通知設定から、端末ごとに自分で登録します。iOSではホーム画面に5stackをインストールした場合のみ動作します。設定は不要で、配信はブラウザ自身のプッシュサービスを経由するため、外部アカウントも費用もありません。",
+          "description": "プレイヤーのスマートフォンやデスクトップに直接通知を送ります。YGuardがタブで開かれていなくても、ブラウザが配信します。プレイヤーは自分の通知設定から、端末ごとに自分で登録します。iOSではホーム画面にYGuardをインストールした場合のみ動作します。設定は不要で、配信はブラウザ自身のプッシュサービスを経由するため、外部アカウントも費用もありません。",
           "state_live": "送信中",
           "state_standby": "待機中",
           "state_ready": "準備完了",
@@ -2522,7 +2522,7 @@
           "description": "インストール可能なプラグインのカタログと、その取得元です。管理者のみ。",
           "disabled_hint": "オンにすると、ディレクトリを閲覧してゲームサーバーノードにプラグインをインストールできます。",
           "registry": "レジストリ",
-          "registry_description": "インストール可能なプラグインのカタログの取得元です。空欄にすると公式の 5Stack レジストリを使用します。",
+          "registry_description": "インストール可能なプラグインのカタログの取得元です。空欄にすると公式の YGuard レジストリを使用します。",
           "registry_url": "レジストリ URL",
           "catalog_count": "カタログに {count} 件のプラグイン",
           "sync": "今すぐ同期",
@@ -2629,13 +2629,13 @@
         "sanctions": {
           "title": "処分",
           "section": "自動処分",
-          "description": "5stack が自力で検知できるものにどう対処するかです。各ソースは一定期間内の違反回数を数え、段階的な処分の該当する段を適用します。",
-          "defaults_note": "以下の値は 5stack がこれまでずっと使ってきたものです。このページを開くだけでは何も変わりません。変わるのは編集したときだけです。",
+          "description": "YGuard が自力で検知できるものにどう対処するかです。各ソースは一定期間内の違反回数を数え、段階的な処分の該当する段を適用します。",
+          "defaults_note": "以下の値は YGuard がこれまでずっと使ってきたものです。このページを開くだけでは何も変わりません。変わるのは編集したときだけです。",
           "unavailable": "利用できる処分ソースがありません。API がまだ処分のマイグレーションを実行していない可能性があります。",
           "load_failed": "処分ポリシーを読み込めませんでした",
           "reset": "デフォルトに戻す",
           "permanent": "無期限",
-          "platform_ban_narrowed": "「両方を禁止」以外の範囲では、このソースはプラットフォーム全体の BAN を書き込まなくなり、範囲を限定したクールダウンのみを適用します。VAC BAN を受けたアカウントも 5stack のもう半分は使えます。",
+          "platform_ban_narrowed": "「両方を禁止」以外の範囲では、このソースはプラットフォーム全体の BAN を書き込まなくなり、範囲を限定したクールダウンのみを適用します。VAC BAN を受けたアカウントも YGuard のもう半分は使えます。",
           "threshold": {
             "label": "処分を開始する回数",
             "first_offence": "1 回目の違反から処分されます。",
@@ -2709,7 +2709,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steamボット",
+        "presence_title": "YGuard Steamボット",
         "presence_description": "ボットをSteamフレンドに追加すると、コンペティティブ・プレミアの試合が終了した瞬間に自動でインポートされます。",
         "presence_connect": "ボットをフレンド追加",
         "presence_add_bot": "Steamでボットを開く",
@@ -2717,7 +2717,7 @@
         "presence_connected": "接続済み — インポートは即時に行われます。",
         "presence_not_connected": "まだ接続されていません。",
         "presence_self_label": "フレンドから見た表示",
-        "presence_unavailable": "現在5stackボットを利用できません。しばらくしてから再試行するか、管理者に問い合わせてください。",
+        "presence_unavailable": "現在YGuardボットを利用できません。しばらくしてから再試行するか、管理者に問い合わせてください。",
         "need_two_codes": "Valveから2つのコードが必要です：",
         "step_auth_prefix": "あなたの",
         "steam_auth_code": "Steamゲーム認証コード",
@@ -3037,7 +3037,7 @@
       "detail": {
         "all_short": "全体",
         "settings_changed": "カスタム設定が有効",
-        "source_all_unavailable_elo": "ELO タブでは「全体」を利用できません。5Stack ELO のみ表示します。",
+        "source_all_unavailable_elo": "ELO タブでは「全体」を利用できません。YGuard ELO のみ表示します。",
         "external_warning": {
           "title": "試合履歴が未連携",
           "description": "Steam の試合履歴認証コードを連携すると、Premier・競技・ウィングマンの試合を取り込めます。",
@@ -3376,7 +3376,7 @@
       "only_enabled": "有効なノードのみ",
       "setup_dialog": {
         "title": "ゲームサーバーノードのセットアップ",
-        "description": "サーバー上で以下のインストールスクリプトを実行し、5Stackに接続してください",
+        "description": "サーバー上で以下のインストールスクリプトを実行し、YGuardに接続してください",
         "installation_script": "インストールスクリプト",
         "waiting_title": "ノードの接続を待機しています...",
         "waiting_description": "サーバー上でインストールスクリプトを実行してください。ノードが接続すると状態が自動的に更新されます。",
@@ -3406,7 +3406,7 @@
     },
     "dedicated_servers": {
       "title": "専用サーバー",
-      "description": "専用サーバーは5Stackに常時接続され、試合・トーナメント・パブリックプレイのホストに自動で使用されます。",
+      "description": "専用サーバーはYGuardに常時接続され、試合・トーナメント・パブリックプレイのホストに自動で使用されます。",
       "docs_link": "セットアップガイドを見る",
       "no_servers_title": "専用サーバーなし",
       "no_servers": "専用サーバーが見つかりませんでした。",
@@ -3438,7 +3438,7 @@
         "player_management": "プレイヤー管理",
         "no_players": "現在このサーバーにプレイヤーはいません",
         "sanctions_wip_title": "対応中の機能です",
-        "sanctions_wip": "キックは現時点で利用できます。パブリックサーバーでのミュート・ゲグの即時反映は現在対応中です。新しい5Stackパブリックサーバープラグインが近日公開予定で、リリース後はミュート・ゲグも自動的に適用されます。",
+        "sanctions_wip": "キックは現時点で利用できます。パブリックサーバーでのミュート・ゲグの即時反映は現在対応中です。新しいYGuardパブリックサーバープラグインが近日公開予定で、リリース後はミュート・ゲグも自動的に適用されます。",
         "status": {
           "disconnected": "サーバーは切断されています",
           "no_rcon": "サーバーは接続していますがRCONが利用できません",
@@ -3838,7 +3838,7 @@
       "installed": "インストール済み",
       "already_installed": "これはすでにパネルにインストールされています。",
       "open_plugin": "開く",
-      "panel_step_deploy": "パネルをホストしているマシン上で、5stack-panel のチェックアウトからこれを実行します。",
+      "panel_step_deploy": "パネルをホストしているマシン上で、panel のチェックアウトからこれを実行します。",
       "panel_step_dns": "表示されたドメインをこのパネルと同じアドレスに向け、証明書の発行を待ちます。",
       "panel_step_register": "設定 → アプリケーション → パネルプラグイン → 追加 で登録し、その URL を貼り付けて「検出」を押します。",
       "installs_everywhere": "オンラインの {count} 台すべてのノードにインストールします。",
@@ -3880,8 +3880,8 @@
         "warning_title": "警告: Steam の GSLT が BAN される可能性があります",
         "warning_description": "Valve によると、公式のサーバーガイドラインから外れて運用すると、サーバー所有者の Steam アカウントにあるすべての Game Server Login Token (GSLT) が BAN される可能性があります。有効化は自己責任で行ってください。",
         "warning_link_label": "Valve のサーバーガイドライン",
-        "already_off": "このデプロイではすでに無効です: 5stack Ranks はゲーム内でランクを表示するために Valve のサーバーガイドラインを無効にしており、そのリスクは 1 台のサーバーではなくあなたの Steam アカウントに及びます。",
-        "already_off_link": "5stack Ranks"
+        "already_off": "このデプロイではすでに無効です: YGuard Ranks はゲーム内でランクを表示するために Valve のサーバーガイドラインを無効にしており、そのリスクは 1 台のサーバーではなくあなたの Steam アカウントに及びます。",
+        "already_off_link": "YGuard Ranks"
       },
       "auto_update": {
         "toggle": "自動的に更新",
@@ -3892,7 +3892,7 @@
         "add": "プラグインを追加",
         "badge": "カスタム",
         "title": "カタログにないプラグインを追加",
-        "description": "リリースを 5Stack に指定すれば、他と同じエントリになります。すべてのノードにインストールでき、ダウンロードはここで取得したダイジェストと照合されます。",
+        "description": "リリースを YGuard に指定すれば、他と同じエントリになります。すべてのノードにインストールでき、ダウンロードはここで取得したダイジェストと照合されます。",
         "url": "リリース URL",
         "url_hint": "GitHub リポジトリ、リリース、または .zip への直接リンク。リポジトリを指定すると、最新リリースの最も新しい Linux 用アーカイブに解決されます。",
         "runtime": "フレームワーク",
@@ -5024,7 +5024,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "YGuard",
       "systems_online": "{count} 件のシステムがオンライン | {count} 件のシステムがオンライン",
       "navigation": {
         "dashboard": "マイスタッツ",
@@ -5298,7 +5298,7 @@
   },
   "push_prompt": {
     "title": "通知をオンにする",
-    "description": "5stackを開いていなくても、試合の招待、ロビーの呼び出し、メッセージをこの端末で受け取れます。",
+    "description": "YGuardを開いていなくても、試合の招待、ロビーの呼び出し、メッセージをこの端末で受け取れます。",
     "enable": "オンにする",
     "dismiss": "閉じる",
     "enabled": "プッシュ通知を有効にしました",
@@ -6146,7 +6146,7 @@
       },
       "regions": {
         "label": "希望リージョン",
-        "description": "このトーナメントの試合をどこでホストするかです。プレイヤーの制限ではありません — 5stack にプレイヤーごとのリージョン情報はありません。",
+        "description": "このトーナメントの試合をどこでホストするかです。プレイヤーの制限ではありません — YGuard にプレイヤーごとのリージョン情報はありません。",
         "empty": "現在利用可能なリージョンはありません。"
       },
       "invite_only": {
@@ -7505,7 +7505,7 @@
       "all": "すべて"
     },
     "source_badge": {
-      "imported_external": "外部ソースからインポート — 5stackの試合ではありません"
+      "imported_external": "外部ソースからインポート — YGuardの試合ではありません"
     },
     "scoreboard_overlay": {
       "final": "終了",
@@ -8179,18 +8179,18 @@
       "custom_mode_group": "カスタムモード",
       "custom_mode_group_locked": "ゲームサーバーノードが必要",
       "custom_modes_need_node_title": "カスタムモードにはゲームサーバーノードが必要です",
-      "custom_modes_need_node_description": "カスタムモードは、5Stack が実行先のサーバーにインストールするプラグインのセットです。サードパーティの専用サーバーには何もインストールできないため、選べるようにするには「接続」でこのサーバーをゲームサーバーノードに紐付けてください。",
+      "custom_modes_need_node_description": "カスタムモードは、YGuard が実行先のサーバーにインストールするプラグインのセットです。サードパーティの専用サーバーには何もインストールできないため、選べるようにするには「接続」でこのサーバーをゲームサーバーノードに紐付けてください。",
       "game": "ゲーム",
       "csgo_ranked_unavailable_title": "ランクは利用不可",
       "csgo_ranked_unavailable_description": "CS:GO サーバーではランクモードをまだ利用できません。",
       "ranked_server": "ランクサーバー",
-      "ranked_server_description": "5Stack が完全に管理するランク環境です。",
+      "ranked_server_description": "YGuard が完全に管理するランク環境です。",
       "practice_server": "練習サーバー",
       "practice_server_description": "ユーティリティ練習セッションをホストします。試合用ではなく練習用プラグインで動作し、マッチメイキングには使われません。",
       "valve_modes": "Valve モード",
       "valve_modes_description": "casual や deathmatch などの Valve プリセットを実行します。",
       "custom_presets": "カスタムプリセット",
-      "custom_presets_description": "5Stack がそのために導入するプラグインで、カスタムゲームモードを実行します。",
+      "custom_presets_description": "YGuard がそのために導入するプラグインで、カスタムゲームモードを実行します。",
       "connect_password": "接続パスワード",
       "connect_password_description": "サーバーへの接続に必要なパスワード（任意）",
       "rcon_password": "RCON パスワード",
@@ -8209,7 +8209,7 @@
       "refresh_match": "試合を再読込",
       "metamod_info": "Metamod 情報",
       "css_version": "CounterStrikeSharp バージョン",
-      "fivestack_status": "5Stack ステータス",
+      "fivestack_status": "YGuard ステータス",
       "swiftly_version": "Swiftly バージョン",
       "swiftly_status": "Swiftly ステータス（サーバーログ）",
       "swiftly_plugins": "Swiftly プラグイン（サーバーログ）",
@@ -8613,7 +8613,7 @@
       "elo": "ELO"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "YGuard",
       "external": "外部"
     },
     "view_short": "表示",
@@ -9604,7 +9604,7 @@
       "denied": "ブラウザがカメラへのアクセスをブロックしました。このサイトに許可を与えてから再試行してください。",
       "missing": "カメラが見つかりませんでした。接続するか、下から別の端末を選んでください。",
       "busy": "他のアプリがすでにカメラを使用しています。終了してから再試行してください。",
-      "insecure": "カメラには安全な接続が必要です。HTTPS（またはlocalhost）で5stackを開いて再試行してください。",
+      "insecure": "カメラには安全な接続が必要です。HTTPS（またはlocalhost）でYGuardを開いて再試行してください。",
       "unknown": "カメラを起動できませんでした。もう一度お試しください。"
     },
     "media_pending": "カメラの許可を待っています…",
@@ -9623,7 +9623,7 @@
   },
   "voice": {
     "errors": {
-      "insecure_origin": "ボイスチャットには安全な接続が必要です。HTTPS（またはlocalhost）で5stackを開いて再試行してください。",
+      "insecure_origin": "ボイスチャットには安全な接続が必要です。HTTPS（またはlocalhost）でYGuardを開いて再試行してください。",
       "unsupported": "このブラウザはボイスチャットに対応していません。",
       "permission_denied": "マイクへのアクセスがブロックされました。ブラウザのサイト設定で許可してから再試行してください。",
       "no_microphone": "マイクが見つかりませんでした。接続してから再試行してください。",
@@ -9752,7 +9752,7 @@
     "no_results": "「{term}」に一致する質問はありません。",
     "links": {
       "features": "すべての機能",
-      "overview": "5Stackとは",
+      "overview": "YGuardとは",
       "matchmaking": "マッチメイキングのドキュメント",
       "tournaments": "トーナメントのドキュメント",
       "stats_guide": "統計ガイド",
@@ -9772,18 +9772,18 @@
       "game_plugins": "ゲームプラグイン"
     },
     "about": {
-      "title": "5Stackについて",
+      "title": "YGuardについて",
       "what_is": {
-        "question": "5Stackとは何ですか？",
-        "answer": "5StackはCounter-Strike 2のための競技レイヤーで、ゲームサーバーとリーグの間に位置するソフトウェアです。1つのインストールで、マッチメイキング、ドラフトロビー、チーム、トーナメントとシーズン、統計とElo、デモ記録、ブラウザ内リプレイ、ハイライト、ライブ配信といったすべてを動かします。"
+        "question": "YGuardとは何ですか？",
+        "answer": "YGuardはCounter-Strike 2のための競技レイヤーで、ゲームサーバーとリーグの間に位置するソフトウェアです。1つのインストールで、マッチメイキング、ドラフトロビー、チーム、トーナメントとシーズン、統計とElo、デモ記録、ブラウザ内リプレイ、ハイライト、ライブ配信といったすべてを動かします。"
       },
       "this_site": {
         "question": "{brand}とは何ですか？",
-        "answer": "{brand}は5Stackのインスタンスです。ソフトウェアはオープンソースで各自がホストするため、これを運用するコミュニティはそれぞれ独自のサイト、サーバー、ルールを持ちます。ここもその1つです。"
+        "answer": "{brand}はYGuardのインスタンスです。ソフトウェアはオープンソースで各自がホストするため、これを運用するコミュニティはそれぞれ独自のサイト、サーバー、ルールを持ちます。ここもその1つです。"
       },
       "cost": {
         "question": "無料ですか？",
-        "answer": "はい。5Stackは無料のオープンソースで、自分でホストするため、プロジェクト側から人数課金や試合ごとの課金はありません。費用がかかるのは、動かすために選んだインフラだけです。開発と保守は1人の開発者が行っており、GitHubスポンサーが開発を支えています。"
+        "answer": "はい。YGuardは無料のオープンソースで、自分でホストするため、プロジェクト側から人数課金や試合ごとの課金はありません。費用がかかるのは、動かすために選んだインフラだけです。開発と保守は1人の開発者が行っており、GitHubスポンサーが開発を支えています。"
       },
       "sign_in": {
         "question": "ログインはどうしますか？",
@@ -9829,7 +9829,7 @@
       "title": "自分でホストする",
       "self_host": {
         "question": "自分のインスタンスを運用できますか？",
-        "answer": "はい。それが5Stackの本来の使い方です。自分でホストする方式で、1つのコマンドでインストールでき、Kubernetes（K3s）、データベース、ストレージ、パネル本体が立ち上がります。ドキュメントのインストールガイドが最初から最後まで案内します。"
+        "answer": "はい。それがYGuardの本来の使い方です。自分でホストする方式で、1つのコマンドでインストールでき、Kubernetes（K3s）、データベース、ストレージ、パネル本体が立ち上がります。ドキュメントのインストールガイドが最初から最後まで案内します。"
       },
       "requirements": {
         "question": "ホストするには何が必要ですか？",
@@ -9845,7 +9845,7 @@
       },
       "managed": {
         "question": "有料のホスト版やマネージド版はありますか？",
-        "answer": "いいえ。5Stackは自分でホストする形式のみで、購入できるSaaSプランやマネージドサービスはありません。5stack.ggはメンテナー自身の公開インスタンスで、インストール前に動作を確認するのに役立ちます。"
+        "answer": "いいえ。YGuardは自分でホストする形式のみで、購入できるSaaSプランやマネージドサービスはありません。YGuard.ggはメンテナー自身の公開インスタンスで、インストール前に動作を確認するのに役立ちます。"
       },
       "branding": {
         "question": "自分の組織らしい見た目にできますか？",
@@ -9853,12 +9853,12 @@
       },
       "extend": {
         "question": "自分のコードで拡張できますか？",
-        "answer": "2か所で可能です。自作のWebアプリをパネルのネイティブページとして埋め込めます。セッションとデザインシステムを引き継ぐため、フォークを維持する必要はありません。サーバー側では、CounterStrikeSharpまたはSwiftlyS2上で、5Stackのプラグインと並べて自作のCS2プラグインを動かせます。"
+        "answer": "2か所で可能です。自作のWebアプリをパネルのネイティブページとして埋め込めます。セッションとデザインシステムを引き継ぐため、フォークを維持する必要はありません。サーバー側では、CounterStrikeSharpまたはSwiftlyS2上で、YGuardのプラグインと並べて自作のCS2プラグインを動かせます。"
       }
     },
     "support": {
       "title": "まだ解決しませんか？",
-      "description": "人に相談する最短の方法はDiscordです。5Stackのインスタンスを運用している人たちがいます。不具合や機能の要望はGitHubへ、ドキュメントはインストール、サーバー、各機能を詳しく解説しています。",
+      "description": "人に相談する最短の方法はDiscordです。YGuardのインスタンスを運用している人たちがいます。不具合や機能の要望はGitHubへ、ドキュメントはインストール、サーバー、各機能を詳しく解説しています。",
       "discord": "Discordに参加",
       "github": "問題を報告",
       "docs": "ドキュメントを読む"

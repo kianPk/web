@@ -103,7 +103,7 @@ import {
                 $t("pages.settings.application.branding.brand_name_description")
               }}
             </p>
-            <Input v-model="brandName" placeholder="5Stack" class="max-w-sm" />
+            <Input v-model="brandName" placeholder="YGuard" class="max-w-sm" />
           </div>
 
           <div class="space-y-2">
