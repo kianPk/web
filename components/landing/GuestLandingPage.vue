@@ -5,6 +5,7 @@ import { useBranding } from "~/composables/useBranding";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { loginLinks } from "~/utilities/loginLinks";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
+import LandingRankings from "~/components/landing/LandingRankings.vue";
 
 const { locale } = useI18n();
 const { brandName, logoUrl } = useBranding();
@@ -310,6 +311,8 @@ function loginWithSteam() {
         </div>
       </div>
     </section>
+
+    <LandingRankings />
 
     <section class="relative z-10 border-t border-white/10">
       <div
