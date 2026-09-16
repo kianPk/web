@@ -5025,7 +5025,6 @@
     },
     "app_nav": {
       "brand": "YGuard",
-      "developer_name": "Kian",
       "systems_online": "{count} سامانه آنلاین | {count} سامانه آنلاین",
       "navigation": {
         "dashboard": "آمار من",
@@ -9785,10 +9784,6 @@
       "cost": {
         "question": "رایگان است؟",
         "answer": "بله. استفاده از YGuard برای این جامعه رایگان است. توسعه‌دهنده و نگهدارنده سایت: Kian."
-      },
-      "developer": {
-        "question": "توسعه‌دهنده سایت کیست؟",
-        "answer": "Kian."
       },
       "sign_in": {
         "question": "چطور sign in؟",

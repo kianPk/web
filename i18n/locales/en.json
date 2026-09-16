@@ -5026,7 +5026,6 @@
     "app_nav": {
       "brand": "YGuard",
       "developer_name": "Kian",
-      "developer_name": "Kian",
       "systems_online": "{count} System Online | {count} Systems Online",
       "navigation": {
         "dashboard": "My Stats",
@@ -9786,10 +9785,6 @@
       "cost": {
         "question": "Is it free?",
         "answer": "Yes. YGuard is free for this community to use. The site is developed and maintained by Kian."
-      },
-      "developer": {
-        "question": "Who developed this site?",
-        "answer": "Kian."
       },
       "sign_in": {
         "question": "How do I sign in?",
