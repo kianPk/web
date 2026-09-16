@@ -6,7 +6,7 @@ const sw = process.env.SW === "true";
 
 const title = "YGuard — Counter-Strike Management System";
 const description =
-  "Counter-Strike Management System — a comprehensive panel for managing servers, matches, and tournaments.";
+  "YGuard — Counter-Strike Management System for servers, matches, and tournaments.";
 
 // TODO - i tired to get SSO to work but it wont
 const url = `https://yguard.ir`;
