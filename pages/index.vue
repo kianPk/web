@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { watch, ref, onMounted, onBeforeUnmount } from "vue";
+import { watch, ref, onMounted, onBeforeUnmount, computed } from "vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import { usePluginsStore } from "~/stores/Plugins";
 import LoadingScreen from "~/components/LoadingScreen.vue";
+import GuestLandingPage from "~/components/landing/GuestLandingPage.vue";
 
 definePageMeta({
-  layout: "public",
+  layout: "landing",
 });
 
 const authStore = useAuthStore();
 const pluginsStore = usePluginsStore();
-// Don't wait forever for the plugin registry WS — proceed to /me or /watch.
 const pluginsDeadlinePassed = ref(pluginsStore.initialized);
 let pluginsDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -39,9 +39,11 @@ onBeforeUnmount(() => {
   }
 });
 
-// A plugin flagged is_default takes over the landing route, but only once
-// the registry has loaded and only if the current viewer may see it — otherwise
-// fall back to the normal /me vs /watch redirect.
+const showGuestLanding = computed(
+  () => authStore.hasCheckedSession && !authStore.me?.steam_id,
+);
+
+// Logged-in: default plugin or /me. Guests stay here — never Inventory.
 watch(
   [
     () => authStore.hasCheckedSession,
@@ -57,7 +59,7 @@ watch(
     defaultPlugin,
     deadlinePassed,
   ]) => {
-    if (!hasCheckedSession) {
+    if (!hasCheckedSession || !steamId) {
       return;
     }
     if (!initialized && !deadlinePassed) {
@@ -69,14 +71,13 @@ watch(
       return;
     }
 
-    void navigateTo(steamId ? "/me" : "/watch", {
-      replace: true,
-    });
+    void navigateTo("/me", { replace: true });
   },
   { immediate: true },
 );
 </script>
 
 <template>
-  <LoadingScreen class="min-h-screen" />
+  <GuestLandingPage v-if="showGuestLanding" />
+  <LoadingScreen v-else class="min-h-screen" />
 </template>
