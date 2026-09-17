@@ -3504,6 +3504,7 @@
       "all_modes": "همه",
       "no_mode": "وانیل",
       "vip_members": "اعضای VIP",
+      "vip_none": "هنوز عضو VIP فعالی نیست",
       "vip_permanent": "دائمی",
       "vip_remaining_days": "{days}ر {hours}س",
       "vip_remaining_hours": "{hours}س {mins}د",

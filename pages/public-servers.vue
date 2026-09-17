@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings2 } from "lucide-vue-next";
+import { Crown, Settings2 } from "lucide-vue-next";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import cleanMapName from "~/utilities/cleanMapName";
@@ -214,38 +221,32 @@ const canManage = computed(() =>
                     />
                   </div>
 
-                  <!-- VIP members for this public server -->
-                  <div
-                    v-if="vipMembers(server.id).length"
-                    class="mt-3 border-t border-border/60 pt-2"
-                  >
-                    <p
-                      class="mb-1.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                  <!-- VIP roster opens in a dialog (keeps cards compact) -->
+                  <div class="mt-3 border-t border-border/60 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      class="h-8 w-full justify-between gap-2 px-2.5 font-normal"
+                      @click="openVipDialog(server)"
                     >
-                      {{ $t("pages.public_servers.vip_members") }}
-                    </p>
-                    <ul class="max-h-28 space-y-1 overflow-y-auto">
-                      <li
-                        v-for="vip in vipMembers(server.id)"
-                        :key="`${server.id}-${vip.steam_id}`"
-                        class="flex items-center gap-2 text-xs"
-                      >
-                        <img
-                          v-if="vip.player?.avatar_url"
-                          :src="vip.player.avatar_url"
-                          alt=""
-                          class="h-5 w-5 rounded-sm object-cover"
+                      <span class="flex min-w-0 items-center gap-1.5">
+                        <Crown
+                          class="h-3.5 w-3.5 shrink-0 text-[hsl(var(--tac-amber))]"
                         />
-                        <span class="min-w-0 flex-1 truncate font-medium">
-                          {{ vip.player?.name || vip.steam_id }}
-                        </span>
                         <span
-                          class="shrink-0 font-mono text-[0.65rem] text-[hsl(var(--tac-amber))]"
+                          class="truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
                         >
-                          {{ formatVipRemaining(vip.expires_at) }}
+                          {{ $t("pages.public_servers.vip_members") }}
                         </span>
-                      </li>
-                    </ul>
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        class="shrink-0 font-mono text-[0.65rem]"
+                      >
+                        {{ vipMembers(server.id).length }}
+                      </Badge>
+                    </Button>
                   </div>
                 </div>
 
@@ -280,6 +281,58 @@ const canManage = computed(() =>
       </Transition>
     </div>
   </PageTransition>
+
+  <Dialog
+    :open="!!vipDialogServer"
+    @update:open="(v) => !v && (vipDialogServer = null)"
+  >
+    <DialogContent class="max-w-md">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <Crown class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
+          {{ $t("pages.public_servers.vip_members") }}
+        </DialogTitle>
+        <DialogDescription v-if="vipDialogServer">
+          {{ vipDialogServer.label }}
+        </DialogDescription>
+      </DialogHeader>
+
+      <ul
+        v-if="vipDialogServer && vipMembers(vipDialogServer.id).length"
+        class="max-h-[min(60vh,24rem)] space-y-2 overflow-y-auto pr-1"
+      >
+        <li
+          v-for="vip in vipMembers(vipDialogServer.id)"
+          :key="`${vipDialogServer.id}-${vip.steam_id}`"
+          class="flex items-center gap-2.5 rounded-md border border-border/50 px-2.5 py-2 text-sm"
+        >
+          <img
+            v-if="vip.player?.avatar_url"
+            :src="vip.player.avatar_url"
+            alt=""
+            class="h-7 w-7 rounded-sm object-cover"
+          />
+          <div
+            v-else
+            class="flex h-7 w-7 items-center justify-center rounded-sm bg-muted font-mono text-[0.65rem] text-muted-foreground"
+          >
+            VIP
+          </div>
+          <span class="min-w-0 flex-1 truncate font-medium">
+            {{ vip.player?.name || vip.steam_id }}
+          </span>
+          <span
+            class="shrink-0 font-mono text-[0.7rem] text-[hsl(var(--tac-amber))]"
+          >
+            {{ formatVipRemaining(vip.expires_at) }}
+          </span>
+        </li>
+      </ul>
+      <p v-else class="py-6 text-center text-sm text-muted-foreground">
+        {{ $t("pages.public_servers.vip_none") }}
+      </p>
+    </DialogContent>
+  </Dialog>
 
   <!-- LAN Servers -->
   <PageTransition :delay="200">
@@ -402,6 +455,7 @@ export default {
       getDedicatedServerInfo: undefined as any[] | undefined,
       maps: undefined as any[] | undefined,
       storeVipGrants: [] as any[],
+      vipDialogServer: null as null | { id: string; label: string },
       _vipTimer: 0 as number,
       loading: true,
     };
@@ -562,6 +616,9 @@ export default {
       } catch {
         this.storeVipGrants = [];
       }
+    },
+    openVipDialog(server: { id: string; label: string }) {
+      this.vipDialogServer = { id: server.id, label: server.label };
     },
     matchingMode(servers: Array<Record<string, any>>) {
       if (this.modeFilter === "all") {
