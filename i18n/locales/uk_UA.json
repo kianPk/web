@@ -2716,6 +2716,9 @@
             "price_irr": "Price (Toman)",
             "ypoint_amount": "Ypoints credited",
             "sort_order": "Sort order",
+            "image": "Product image",
+            "image_upload": "Upload image",
+            "image_hint": "PNG, JPEG, WebP or GIF — up to 5 MB",
             "image_url": "Image URL",
             "active": "Active",
             "vip_server": "VIP server (auto-activate)",
@@ -2731,6 +2734,67 @@
             "webhook": "Webhook URL: {url}"
           },
           "vip_hint": "After payment, the API runs css_addvip on that dedicated server (needs RCON + YGuardVIP). Example duration: 30d or 1mo."
+        },
+        "ypoints": {
+          "title": "Ypoints",
+          "updated": "Ypoint settings saved",
+          "free_label": "Free",
+          "costs_title": "Match fees (Ypoints)",
+          "costs_description": "Set the price for each mode. Use Free on a ranked mode to charge 0 without losing the saved price.",
+          "fields": {
+            "duel": "Duel",
+            "wingman": "Wingman",
+            "trios": "Trios",
+            "draft_create": "Draft create",
+            "draft_join": "Draft join"
+          }
+        },
+        "finance": {
+          "title": "Finance",
+          "description": "Payments, VIP subscriptions, and manual Ypoint adjustments.",
+          "tabs": {
+            "payments": "Payments",
+            "subscriptions": "Subscriptions",
+            "adjust": "Adjust Ypoints"
+          },
+          "payments_title": "Store payments",
+          "payments_description": "Recent Bale Pay store orders.",
+          "payments_empty": "No orders yet.",
+          "vip_title": "VIP subscriptions",
+          "vip_description": "Active and past VIP grants from store purchases.",
+          "vip_empty": "No VIP grants yet.",
+          "vip_active_count": "{count} active",
+          "vip_permanent": "Permanent",
+          "adjust_title": "Adjust Ypoints",
+          "adjust_description": "Add or remove Ypoints for a player. Removals cannot go below zero.",
+          "search_player": "Find player",
+          "search_placeholder": "SteamID64 or name",
+          "current_balance": "Balance",
+          "amount": "Amount",
+          "note": "Note (optional)",
+          "note_placeholder": "Reason for this adjustment",
+          "add": "Add",
+          "remove": "Remove",
+          "pick_player": "Select a player first",
+          "invalid_amount": "Enter a positive amount",
+          "adjust_ok": "Ypoints updated",
+          "adjust_ok_desc": "Delta {delta} · new balance {balance}",
+          "adjust_failed": "Could not adjust Ypoints",
+          "search_failed": "Player search failed",
+          "load_failed": "Could not load finance data",
+          "loading": "Loading…",
+          "refresh": "Refresh",
+          "status": "Status",
+          "status_all": "All",
+          "toman": "Toman",
+          "col_player": "Player",
+          "col_product": "Product",
+          "col_amount": "Amount",
+          "col_status": "Status",
+          "col_when": "When",
+          "col_server": "Server",
+          "col_expires": "Expires",
+          "col_granted": "Granted"
         }
       },
       "language": {
@@ -3603,7 +3667,7 @@
       "match_types": {
         "all": "Усі типи",
         "competitive": "Рейтинговий",
-      "trios": "3v3",
+        "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Дуель",
         "scrimmage": "Скрим",
@@ -5133,7 +5197,8 @@
         "manage_league": "Керування лігою",
         "stream_deck": "Стрім-дек",
         "manage_events": "Керування івентами",
-        "awards": "Нагороди"
+        "awards": "Нагороди",
+        "finance": "Finance"
       },
       "system": {
         "title": "Система",
@@ -5186,7 +5251,8 @@
         "utility_drift": "Зміщення розкидок гранат",
         "utility": "Розкидки гранат",
         "teamspeak": "TeamSpeak",
-        "store": "Store"
+        "store": "Store",
+        "finance": "Finance — payments, VIP, Ypoints"
       },
       "logout_dialog": {
         "title": "Вийти",
@@ -8692,7 +8758,6 @@
     "view_short": "Перегляд",
     "premier": "Premier",
     "competitive": "Competitive",
-      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · імпортовано з {source}"
   },
