@@ -65,29 +65,66 @@ function formatPrice(irr: number) {
 
 async function buy(product: Product) {
   if (buyingId.value) return;
+  const steamId = useAuthStore().me?.steam_id;
+  if (!steamId) {
+    toast({
+      variant: "destructive",
+      title: t("pages.store.checkout_failed"),
+      description: "Sign in required",
+    });
+    return;
+  }
   buyingId.value = product.id;
   try {
-    const apiDomain = useRuntimeConfig().public.apiDomain;
-    const result = await $fetch<{
-      orderId: string;
-      deepLink: string;
-      productTitle: string;
-    }>(`https://${apiDomain}/store/checkout`, {
-      method: "POST",
-      credentials: "include",
-      body: { productId: product.id },
+    const orderId = crypto.randomUUID();
+    const payload = `store:${orderId}`;
+    await apollo.mutate({
+      mutation: gql`
+        mutation CreateStoreOrder(
+          $id: uuid!
+          $productId: uuid!
+          $buyerSteamId: bigint!
+          $amountIrr: Int!
+          $payload: String!
+        ) {
+          insert_store_orders_one(
+            object: {
+              id: $id
+              product_id: $productId
+              buyer_steam_id: $buyerSteamId
+              amount_irr: $amountIrr
+              bale_payload: $payload
+            }
+          ) {
+            id
+          }
+        }
+      `,
+      variables: {
+        id: orderId,
+        productId: product.id,
+        buyerSteamId: steamId,
+        amountIrr: product.price_irr,
+        payload,
+      },
     });
+
+    const status = await $fetch<{ botUsername: string | null }>(
+      "/api/store/status",
+    );
+    const start = `pay_${orderId.replace(/-/g, "")}`;
+    const username = (status.botUsername || "yguardbot").replace(/^@/, "");
+    const deepLink = `https://ble.ir/${username}?start=${start}`;
 
     toast({
       title: t("pages.store.checkout_started"),
       description: t("pages.store.checkout_hint"),
     });
 
-    if (result.deepLink) {
-      window.open(result.deepLink, "_blank", "noopener,noreferrer");
-    }
+    window.open(deepLink, "_blank", "noopener,noreferrer");
   } catch (error: any) {
     const message =
+      error?.graphQLErrors?.[0]?.message ||
       error?.data?.message ||
       error?.statusMessage ||
       error?.message ||

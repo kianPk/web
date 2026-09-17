@@ -162,11 +162,7 @@ async function refresh() {
 
 async function refreshBaleStatus() {
   try {
-    const apiDomain = useRuntimeConfig().public.apiDomain;
-    baleStatus.value = await $fetch(
-      `https://${apiDomain}/store/status`,
-      { credentials: "include" },
-    );
+    baleStatus.value = await $fetch("/api/store/status");
   } catch {
     baleStatus.value = null;
   }
