@@ -55,9 +55,19 @@ type Product = {
   active: boolean;
   sort_order: number;
   ypoint_amount: number | null;
+  vip_server_id: string | null;
+  vip_duration: string | null;
+};
+
+type DedicatedServer = {
+  id: string;
+  label: string | null;
+  host: string;
+  port: number;
 };
 
 const products = ref<Product[]>([]);
+const dedicatedServers = ref<DedicatedServer[]>([]);
 const loading = ref(true);
 const dialogOpen = ref(false);
 const submitting = ref(false);
@@ -77,6 +87,8 @@ const emptyForm = () => ({
   image_url: "",
   active: true,
   sort_order: 0,
+  vip_server_id: "" as string,
+  vip_duration: "30d",
 });
 
 const form = reactive(emptyForm());
@@ -93,6 +105,22 @@ const LIST_QUERY = gql`
       image_url
       active
       sort_order
+      vip_server_id
+      vip_duration
+    }
+  }
+`;
+
+const SERVERS_QUERY = gql`
+  query AdminStoreVipServers {
+    servers(
+      where: { is_dedicated: { _eq: true } }
+      order_by: [{ label: asc }, { host: asc }]
+    ) {
+      id
+      label
+      host
+      port
     }
   }
 `;
@@ -149,6 +177,8 @@ function openEdit(product: Product) {
     image_url: product.image_url || "",
     active: product.active,
     sort_order: product.sort_order,
+    vip_server_id: product.vip_server_id || "",
+    vip_duration: product.vip_duration || "30d",
   });
   dialogOpen.value = true;
 }
@@ -156,11 +186,20 @@ function openEdit(product: Product) {
 async function refresh() {
   loading.value = true;
   try {
-    const { data } = await apollo.query({
-      query: LIST_QUERY,
-      fetchPolicy: "network-only",
-    });
+    const [{ data }, serversRes] = await Promise.all([
+      apollo.query({
+        query: LIST_QUERY,
+        fetchPolicy: "network-only",
+      }),
+      apollo
+        .query({
+          query: SERVERS_QUERY,
+          fetchPolicy: "network-only",
+        })
+        .catch(() => ({ data: { servers: [] } })),
+    ]);
     products.value = data?.store_products ?? [];
+    dedicatedServers.value = serversRes.data?.servers ?? [];
   } catch (error) {
     console.error(error);
     products.value = [];
@@ -193,6 +232,10 @@ async function save() {
       image_url: form.image_url.trim() || null,
       active: form.active,
       sort_order: Math.round(Number(form.sort_order) || 0),
+      vip_server_id: form.vip_server_id.trim() || null,
+      vip_duration: form.vip_server_id.trim()
+        ? (form.vip_duration.trim() || "30d")
+        : null,
       updated_at: new Date().toISOString(),
     };
     if (!object.title || !object.slug) {
@@ -368,6 +411,9 @@ onMounted(() => {
                   <Badge v-if="product.ypoint_amount" variant="secondary">
                     +{{ product.ypoint_amount }} YP
                   </Badge>
+                  <Badge v-if="product.vip_server_id" variant="secondary">
+                    VIP {{ product.vip_duration || "30d" }}
+                  </Badge>
                   <Badge :variant="product.active ? 'default' : 'secondary'">
                     {{
                       product.active
@@ -483,6 +529,41 @@ onMounted(() => {
             }}</Label>
             <Input v-model="form.image_url" type="url" placeholder="https://" />
           </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-2">
+              <Label>{{
+                $t("pages.settings.application.store.fields.vip_server")
+              }}</Label>
+              <select
+                v-model="form.vip_server_id"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">
+                  {{ $t("pages.settings.application.store.fields.vip_server_none") }}
+                </option>
+                <option
+                  v-for="server in dedicatedServers"
+                  :key="server.id"
+                  :value="server.id"
+                >
+                  {{ server.label || server.host }}:{{ server.port }}
+                </option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <Label>{{
+                $t("pages.settings.application.store.fields.vip_duration")
+              }}</Label>
+              <Input
+                v-model="form.vip_duration"
+                placeholder="30d"
+                :disabled="!form.vip_server_id"
+              />
+            </div>
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ $t("pages.settings.application.store.vip_hint") }}
+          </p>
           <div class="flex items-center justify-between rounded-md border px-3 py-2">
             <Label>{{ $t("pages.settings.application.store.fields.active") }}</Label>
             <Switch v-model="form.active" />

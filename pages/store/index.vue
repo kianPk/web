@@ -23,6 +23,7 @@ type Product = {
   price_irr: number;
   image_url: string | null;
   ypoint_amount: number | null;
+  vip_duration: string | null;
 };
 
 const products = ref<Product[]>([]);
@@ -43,6 +44,7 @@ const PRODUCTS_QUERY = gql`
       price_irr
       image_url
       ypoint_amount
+      vip_duration
     }
   }
 `;
@@ -221,6 +223,12 @@ onMounted(() => {
                   class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
                 >
                   +{{ product.ypoint_amount }} YP
+                </span>
+                <span
+                  v-if="product.vip_duration"
+                  class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground"
+                >
+                  {{ $t("pages.store.vip_badge", { duration: product.vip_duration }) }}
                 </span>
               </div>
               <Button

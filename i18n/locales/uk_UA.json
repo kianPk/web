@@ -2717,7 +2717,10 @@
             "ypoint_amount": "Ypoints credited",
             "sort_order": "Sort order",
             "image_url": "Image URL",
-            "active": "Active"
+            "active": "Active",
+            "vip_server": "VIP server (auto-activate)",
+            "vip_server_none": "None (no VIP grant)",
+            "vip_duration": "VIP duration"
           },
           "bale": {
             "title": "Bale Pay",
@@ -2726,7 +2729,8 @@
             "ready": "Bale Pay configured (bot: {bot}).",
             "missing": "Bale Pay not configured yet — set BALE_BOT_TOKEN and BALE_PROVIDER_TOKEN on the API.",
             "webhook": "Webhook URL: {url}"
-          }
+          },
+          "vip_hint": "After payment, the API runs css_addvip on that dedicated server (needs RCON + YGuardVIP). Example duration: 30d or 1mo."
         }
       },
       "language": {
@@ -5001,7 +5005,8 @@
       "checkout_started": "Continue in Bale",
       "checkout_hint": "Open the Bale link and complete payment in the bot.",
       "checkout_failed": "Checkout failed",
-      "price": "{amount} Toman"
+      "price": "{amount} Toman",
+      "vip_badge": "VIP {duration}"
     }
   },
   "ypoint": {

@@ -2717,7 +2717,10 @@
             "ypoint_amount": "مقدار Ypoint",
             "sort_order": "ترتیب",
             "image_url": "آدرس تصویر",
-            "active": "فعال"
+            "active": "فعال",
+            "vip_server": "سرور VIP (فعال‌سازی خودکار)",
+            "vip_server_none": "هیچ (بدون VIP)",
+            "vip_duration": "مدت VIP"
           },
           "bale": {
             "title": "بله‌پی",
@@ -2726,7 +2729,8 @@
             "ready": "بله‌پی پیکربندی شده (بازو: {bot}).",
             "missing": "بله‌پی هنوز پیکربندی نشده — توکن‌ها را روی API ست کنید.",
             "webhook": "آدرس وب‌هوک: {url}"
-          }
+          },
+          "vip_hint": "بعد از پرداخت، روی همان سرور Dedicated دستور css_addvip زده می‌شود (RCON + YGuardVIP لازم است). مثال مدت: 30d یا 1mo."
         }
       },
       "language": {
@@ -5001,7 +5005,8 @@
       "checkout_started": "ادامه در بله",
       "checkout_hint": "لینک بله را باز کنید و پرداخت را در بازو کامل کنید.",
       "checkout_failed": "خرید ناموفق بود",
-      "price": "{amount} تومان"
+      "price": "{amount} تومان",
+      "vip_badge": "VIP {duration}"
     }
   },
   "ypoint": {
