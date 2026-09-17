@@ -49,6 +49,7 @@ type Product = {
   image_url: string | null;
   active: boolean;
   sort_order: number;
+  ypoint_amount: number | null;
 };
 
 const products = ref<Product[]>([]);
@@ -67,6 +68,7 @@ const emptyForm = () => ({
   slug: "",
   description: "",
   price_irr: 0,
+  ypoint_amount: null as number | null,
   image_url: "",
   active: true,
   sort_order: 0,
@@ -82,6 +84,7 @@ const LIST_QUERY = gql`
       slug
       description
       price_irr
+      ypoint_amount
       image_url
       active
       sort_order
@@ -137,6 +140,7 @@ function openEdit(product: Product) {
     slug: product.slug,
     description: product.description || "",
     price_irr: product.price_irr,
+    ypoint_amount: product.ypoint_amount,
     image_url: product.image_url || "",
     active: product.active,
     sort_order: product.sort_order,
@@ -177,6 +181,10 @@ async function save() {
       slug: (form.slug || slugify(form.title)).trim(),
       description: form.description.trim(),
       price_irr: Math.max(0, Math.round(Number(form.price_irr) || 0)),
+      ypoint_amount:
+        form.ypoint_amount === null || form.ypoint_amount === ("" as any)
+          ? null
+          : Math.max(0, Math.round(Number(form.ypoint_amount) || 0)) || null,
       image_url: form.image_url.trim() || null,
       active: form.active,
       sort_order: Math.round(Number(form.sort_order) || 0),
@@ -317,6 +325,9 @@ onMounted(() => {
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="truncate font-medium">{{ product.title }}</span>
                   <Badge variant="outline">{{ formatPrice(product.price_irr) }}</Badge>
+                  <Badge v-if="product.ypoint_amount" variant="secondary">
+                    +{{ product.ypoint_amount }} YP
+                  </Badge>
                   <Badge :variant="product.active ? 'default' : 'secondary'">
                     {{
                       product.active
@@ -410,10 +421,21 @@ onMounted(() => {
             </div>
             <div class="space-y-2">
               <Label>{{
-                $t("pages.settings.application.store.fields.sort_order")
+                $t("pages.settings.application.store.fields.ypoint_amount")
               }}</Label>
-              <Input v-model.number="form.sort_order" type="number" />
+              <Input
+                v-model.number="form.ypoint_amount"
+                type="number"
+                min="0"
+                placeholder="0"
+              />
             </div>
+          </div>
+          <div class="space-y-2">
+            <Label>{{
+              $t("pages.settings.application.store.fields.sort_order")
+            }}</Label>
+            <Input v-model.number="form.sort_order" type="number" />
           </div>
           <div class="space-y-2">
             <Label>{{

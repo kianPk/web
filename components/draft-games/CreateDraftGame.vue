@@ -69,6 +69,9 @@ const emit = defineEmits<{
 const REHOST_KEY = "draft-games:rehost";
 
 const submitting = ref(false);
+const { costs: ypointCosts, refresh: refreshYpoints } = useYpoints();
+const draftCreateCost = computed(() => ypointCosts.value.draft_create);
+void refreshYpoints();
 
 const source = props.rehost || props.initial;
 
@@ -643,6 +646,21 @@ const submit = form.handleSubmit(async (values: any) => {
 
   submitting.value = true;
 
+  if (!props.editing) {
+    const { costs, canAfford, refresh } = useYpoints();
+    await refresh();
+    const createCost = costs.value.draft_create;
+    if (createCost > 0 && !canAfford(createCost)) {
+      toast({
+        title: t("ypoint.insufficient"),
+        description: t("ypoint.need_buy", { amount: createCost }),
+        variant: "destructive",
+      });
+      submitting.value = false;
+      return;
+    }
+  }
+
   if (props.editing && props.initial) {
     try {
       await useDraftGamesStore().update(props.initial.id, payload);
@@ -1154,6 +1172,12 @@ const submit = form.handleSubmit(async (values: any) => {
           </span>
           <span :class="{ invisible: submitting }">
             {{ $t("draft_games.create.deploy") }}
+            <span
+              v-if="draftCreateCost > 0"
+              class="ms-1 font-mono text-[0.7em] tracking-normal opacity-80"
+            >
+              · {{ draftCreateCost }} YP
+            </span>
           </span>
           <ArrowRight class="h-4 w-4" :class="{ invisible: submitting }" />
         </button>

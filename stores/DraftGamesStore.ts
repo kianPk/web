@@ -620,16 +620,13 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
   const approve = (draftGameId: string, steamId: string) =>
     getGraphqlClient().mutate({
       mutation: gql`
-        mutation ApproveDraftPlayer($draftGameId: uuid!, $steamId: bigint!) {
-          update_draft_game_players_by_pk(
-            pk_columns: { draft_game_id: $draftGameId, steam_id: $steamId }
-            _set: { status: Accepted }
-          ) {
-            draft_game_id
+        mutation ApproveDraftPlayer($draftGameId: uuid!, $steamId: String!) {
+          approveDraftPlayer(draftGameId: $draftGameId, steamId: $steamId) {
+            success
           }
         }
       `,
-      variables: { draftGameId, steamId },
+      variables: { draftGameId, steamId: String(steamId) },
     });
 
   const setCaptain = (draftGameId: string, steamId: string, lineup: number) =>

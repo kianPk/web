@@ -21,11 +21,13 @@ type Product = {
   description: string;
   price_irr: number;
   image_url: string | null;
+  ypoint_amount: number | null;
 };
 
 const products = ref<Product[]>([]);
 const loading = ref(true);
 const buyingId = ref<string | null>(null);
+const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 const PRODUCTS_QUERY = gql`
   query StoreProducts {
@@ -39,6 +41,7 @@ const PRODUCTS_QUERY = gql`
       description
       price_irr
       image_url
+      ypoint_amount
     }
   }
 `;
@@ -141,6 +144,7 @@ async function buy(product: Product) {
 
 onMounted(() => {
   void refresh();
+  void refreshYpoints();
 });
 </script>
 
@@ -150,6 +154,14 @@ onMounted(() => {
       <template #title>{{ $t("pages.store.title") }}</template>
       <template #subtitle>{{ $t("pages.store.description") }}</template>
     </TacticalPageHeader>
+
+    <div
+      v-if="ypointBalance !== null"
+      class="inline-flex items-center gap-2 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
+    >
+      <span class="opacity-70">{{ $t("ypoint.balance_label") }}</span>
+      <span class="tabular-nums">{{ ypointBalance }}</span>
+    </div>
 
     <PageTransition>
       <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -196,9 +208,17 @@ onMounted(() => {
               </p>
             </div>
             <div class="mt-auto flex items-center justify-between gap-3">
-              <span class="font-mono text-sm font-semibold tabular-nums">
-                {{ formatPrice(product.price_irr) }}
-              </span>
+              <div class="flex flex-col gap-0.5">
+                <span class="font-mono text-sm font-semibold tabular-nums">
+                  {{ formatPrice(product.price_irr) }}
+                </span>
+                <span
+                  v-if="product.ypoint_amount"
+                  class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
+                >
+                  +{{ product.ypoint_amount }} YP
+                </span>
+              </div>
               <Button
                 type="button"
                 size="sm"

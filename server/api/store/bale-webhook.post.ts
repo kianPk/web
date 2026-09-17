@@ -170,7 +170,15 @@ export default defineEventHandler(async (event) => {
         "",
     );
     if (payload.startsWith("store:")) {
-      await hasura(
+      const paid = await hasura<{
+        update_store_orders: {
+          returning: Array<{
+            id: string;
+            buyer_steam_id: string;
+            product: { ypoint_amount: number | null };
+          }>;
+        };
+      }>(
         `mutation ($payload: String!, $chargeId: String, $paidAt: timestamptz!) {
           update_store_orders(
             where: { bale_payload: { _eq: $payload }, status: { _eq: "pending" } }
@@ -179,7 +187,13 @@ export default defineEventHandler(async (event) => {
               paid_at: $paidAt
               bale_payment_charge_id: $chargeId
             }
-          ) { affected_rows }
+          ) {
+            returning {
+              id
+              buyer_steam_id
+              product { ypoint_amount }
+            }
+          }
         }`,
         {
           payload,
@@ -187,6 +201,67 @@ export default defineEventHandler(async (event) => {
           paidAt: new Date().toISOString(),
         },
       );
+
+      const order = paid.update_store_orders?.returning?.[0];
+      const ypoints = Number(order?.product?.ypoint_amount || 0);
+      if (order && ypoints > 0) {
+        // Idempotent: skip if this order already credited.
+        const existing = await hasura<{
+          ypoint_ledger: Array<{ id: string }>;
+        }>(
+          `query ($steamId: bigint!, $refId: String!) {
+            ypoint_ledger(
+              where: {
+                steam_id: { _eq: $steamId }
+                ref_type: { _eq: "store_order" }
+                ref_id: { _eq: $refId }
+                delta: { _gt: 0 }
+              }
+              limit: 1
+            ) { id }
+          }`,
+          { steamId: order.buyer_steam_id, refId: order.id },
+        );
+        if (!existing.ypoint_ledger?.length) {
+          const updated = await hasura<{
+            update_players_by_pk: { ypoint_balance: number } | null;
+          }>(
+            `mutation ($steamId: bigint!, $amount: Int!) {
+              update_players_by_pk(
+                pk_columns: { steam_id: $steamId }
+                _inc: { ypoint_balance: $amount }
+              ) { ypoint_balance }
+            }`,
+            { steamId: order.buyer_steam_id, amount: ypoints },
+          );
+          const balanceAfter = Number(
+            updated.update_players_by_pk?.ypoint_balance ?? 0,
+          );
+          await hasura(
+            `mutation (
+              $steamId: bigint!
+              $delta: Int!
+              $balanceAfter: Int!
+              $refId: String!
+            ) {
+              insert_ypoint_ledger_one(object: {
+                steam_id: $steamId
+                delta: $delta
+                balance_after: $balanceAfter
+                reason: "store_purchase"
+                ref_type: "store_order"
+                ref_id: $refId
+              }) { id }
+            }`,
+            {
+              steamId: order.buyer_steam_id,
+              delta: ypoints,
+              balanceAfter,
+              refId: order.id,
+            },
+          );
+        }
+      }
     }
     return { ok: true };
   }

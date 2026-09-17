@@ -397,6 +397,12 @@ function releaseSwapHeight(el: Element): void {
                   class="relative z-[1] flex-1 min-w-0 flex flex-col gap-[0.4rem]"
                 >
                   <div
+                    v-if="ypointCost(type.value) > 0"
+                    class="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
+                  >
+                    {{ ypointCost(type.value) }} YP
+                  </div>
+                  <div
                     class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[hsl(var(--tac-amber))]"
                   >
                     <span
@@ -615,7 +621,22 @@ export default {
         });
         return;
       }
+      const cost = this.ypointCost(matchType);
+      if (cost > 0 && !this.canAffordYpoints(cost)) {
+        toast({
+          title: this.$t("ypoint.insufficient") as string,
+          description: this.$t("ypoint.need_buy", { amount: cost }) as string,
+          variant: "destructive",
+        });
+        return;
+      }
       this.joinMatchmaking(matchType);
+    },
+    ypointCost(matchType: e_match_types_enum): number {
+      return useYpoints().costForMatchType(matchType);
+    },
+    canAffordYpoints(amount: number): boolean {
+      return useYpoints().canAfford(amount);
     },
     joinMatchmaking(matchType: e_match_types_enum): void {
       socket.event("matchmaking:join-queue", {

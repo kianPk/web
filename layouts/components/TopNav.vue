@@ -36,6 +36,8 @@ const { openLastOrDefaultHub } = useHubState();
 const { brandName, logoUrl } = useBranding();
 const matchmakingStore = useMatchmakingStore();
 const { openMatchReadyModal } = useMatchReadyModal();
+const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
+void refreshYpoints();
 // Genuine matchmaking ready-check only. Active matches (Veto/Live/etc.) are
 // already surfaced by the lineup pills in <MatchLobbies>, so we don't duplicate
 // them as a top-nav check-in banner.
@@ -589,6 +591,15 @@ const loginArrowClasses =
           </button>
           <DraftRoomNav v-if="!isMobile" />
           <MatchLobbies v-if="!isMobile" />
+          <NuxtLink
+            v-if="authStore.me && ypointBalance !== null"
+            to="/store"
+            class="hidden items-center gap-1.5 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-2.5 py-1 font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))] no-underline transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.14)] sm:inline-flex"
+            :title="$t('ypoint.balance_title')"
+          >
+            <span class="opacity-70">YP</span>
+            <span class="tabular-nums">{{ ypointBalance }}</span>
+          </NuxtLink>
           <Button
             variant="ghost"
             size="icon"

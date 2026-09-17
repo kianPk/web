@@ -2711,6 +2711,7 @@
             "slug": "اسلاگ",
             "description": "توضیحات",
             "price_irr": "قیمت (ریال)",
+            "ypoint_amount": "مقدار Ypoint",
             "sort_order": "ترتیب",
             "image_url": "آدرس تصویر",
             "active": "فعال"
@@ -4989,7 +4990,7 @@
     },
     "store": {
       "title": "فروشگاه",
-      "description": "محصولات را ببینید و با بله‌پی پرداخت کنید.",
+      "description": "پک Ypoint بخرید و برای دوئل، وینگمن و درفت استفاده کنید.",
       "empty_title": "هنوز محصولی نیست",
       "empty_body": "به‌زودی محصولات اضافه می‌شوند.",
       "buy": "خرید",
@@ -4998,6 +4999,12 @@
       "checkout_hint": "لینک بله را باز کنید و پرداخت را در بازو کامل کنید.",
       "checkout_failed": "خرید ناموفق بود"
     }
+  },
+  "ypoint": {
+    "balance_label": "Ypoint",
+    "balance_title": "موجودی Ypoint — برای شارژ به فروشگاه بروید",
+    "insufficient": "Ypoint کافی نیست",
+    "need_buy": "به {amount} YP نیاز دارید. از فروشگاه پک بخرید."
   },
   "custom_match": {
     "description": "مسابقهٔ خودتان را با قوانین، نقشه‌ها و ترکیب‌های سفارشی بسازید"
