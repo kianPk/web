@@ -85,27 +85,64 @@ async function buy(product: Product) {
   }
   buyingId.value = product.id;
   try {
-    // Price is taken from DB on the API — never from a stale client cache.
-    const checkout = await $fetch<{
-      orderId: string;
-      deepLink: string;
-      botUsername: string | null;
-      startParam: string;
-    }>("/api/store/checkout", {
-      method: "POST",
-      body: { productId: product.id },
-      credentials: "include",
+    // Live price from DB — never trust a stale card amount.
+    const { data: liveData } = await apollo.query({
+      query: gql`
+        query StoreProductPrice($id: uuid!) {
+          store_products_by_pk(id: $id) {
+            id
+            price_irr
+            active
+          }
+        }
+      `,
+      variables: { id: product.id },
+      fetchPolicy: "network-only",
+    });
+    const live = liveData?.store_products_by_pk;
+    if (!live?.active) {
+      throw new Error("Product unavailable");
+    }
+
+    const orderId = crypto.randomUUID();
+    const payload = `store:${orderId}`;
+    await apollo.mutate({
+      mutation: gql`
+        mutation CreateStoreOrder(
+          $id: uuid!
+          $productId: uuid!
+          $buyerSteamId: bigint!
+          $amountIrr: Int!
+          $payload: String!
+        ) {
+          insert_store_orders_one(
+            object: {
+              id: $id
+              product_id: $productId
+              buyer_steam_id: $buyerSteamId
+              amount_irr: $amountIrr
+              bale_payload: $payload
+            }
+          ) {
+            id
+          }
+        }
+      `,
+      variables: {
+        id: orderId,
+        productId: product.id,
+        buyerSteamId: steamId,
+        amountIrr: live.price_irr,
+        payload,
+      },
     });
 
-    const deepLink =
-      checkout.deepLink ||
-      (() => {
-        const username = (checkout.botUsername || "yguardbot").replace(
-          /^@/,
-          "",
-        );
-        return `https://ble.ir/${username}?start=${checkout.startParam}`;
-      })();
+    const status = await $fetch<{ botUsername: string | null }>(
+      "/api/store/status",
+    );
+    const start = `pay_${orderId.replace(/-/g, "")}`;
+    const username = (status.botUsername || "yguardbot").replace(/^@/, "");
+    const deepLink = `https://ble.ir/${username}?start=${start}`;
 
     toast({
       title: t("pages.store.checkout_started"),
