@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Todos",
         "competitive": "Competitivo",
+      "trios": "3v3",
         "wingman": "Braço Direito",
         "duel": "X1",
         "scrimmage": "Modo Treino",
@@ -7954,6 +7955,10 @@
         "title": "Competitivo",
         "description": "Modo competitivo clássico 5v5. Jogue em equipe, gerencie economia, execute estratégias e suba no ranking."
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Braço Direito",
         "description": "Modo 2v2 em ritmo acelerado em mapas reduzidos. Junte-se a um amigo e dispute partidas 2v2 em ritmo acelerado. Rápido, objetivo e cooperativo. Perfeito para jogar com um amigo."
@@ -8687,6 +8692,7 @@
     "view_short": "Ver",
     "premier": "Premier",
     "competitive": "Competitivo",
+      "trios": "3v3",
     "wingman": "Braço Direito",
     "imported_from": "{type} · importada de {source}"
   },

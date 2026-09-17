@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "全部類型",
         "competitive": "競技",
+      "trios": "3v3",
         "wingman": "搭檔",
         "duel": "單挑",
         "scrimmage": "練習賽",
@@ -7954,6 +7955,10 @@
         "title": "競技",
         "description": "經典的 5 vs 5 競技體驗，需要完整的團隊配合"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "搭檔",
         "description": "與好友組隊，在快節奏的 2v2 比賽中一較高下"
@@ -8687,6 +8692,7 @@
     "view_short": "檢視",
     "premier": "菁英",
     "competitive": "競技",
+      "trios": "3v3",
     "wingman": "雙人",
     "imported_from": "{type} · 匯入自 {source}"
   },

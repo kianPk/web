@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Tüm türler",
         "competitive": "Rekabetçi",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Düello",
         "scrimmage": "Scrim",
@@ -7954,6 +7955,10 @@
         "title": "Rekabetçi",
         "description": "Tam takım koordinasyonuyla klasik 5'e 5 rekabetçi deneyim"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "Bir arkadaşınla eşleş ve hızlı tempolu 2v2 maçlarda yarış"
@@ -8687,6 +8692,7 @@
     "view_short": "Görüntüle",
     "premier": "Premier",
     "competitive": "Rekabetçi",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · {source} kaynağından içe aktarıldı"
   },

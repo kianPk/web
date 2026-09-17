@@ -936,6 +936,7 @@ export default {
       if (!t) return "";
       const full: Record<string, string> = {
         Competitive: this.$t("pages.leaderboard.match_types.competitive"),
+        Trios: this.$t("pages.leaderboard.match_types.trios"),
         Wingman: this.$t("pages.leaderboard.match_types.wingman"),
         Premier: "Premier",
         Faceit: "Faceit",

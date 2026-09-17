@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Alla typer",
         "competitive": "Competitive",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Duell",
         "scrimmage": "Scrim",
@@ -7954,6 +7955,10 @@
         "title": "Competitive",
         "description": "Den klassiska 5 mot 5-tävlingsupplevelsen med full lagkoordinering"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "Gå ihop med en vän och tävla i snabba 2v2-matcher"
@@ -8687,6 +8692,7 @@
     "view_short": "Visa",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · importerad från {source}"
   },

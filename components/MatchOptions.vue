@@ -1880,6 +1880,8 @@ export default {
           switch (this.form.values.type) {
             case e_match_types_enum.Competitive:
               return map.type === e_match_types_enum.Competitive;
+            case e_match_types_enum.Trios:
+              return map.type === e_match_types_enum.Trios;
             case e_match_types_enum.Wingman:
               return map.type === e_match_types_enum.Wingman;
             case e_match_types_enum.Duel:

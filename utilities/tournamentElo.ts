@@ -1,4 +1,4 @@
-type EloLadder = "Competitive" | "Wingman";
+type EloLadder = "Competitive" | "Trios" | "Wingman";
 
 type TournamentLike =
   | {
@@ -14,16 +14,17 @@ type PlayerLike =
   | undefined;
 
 /**
- * Mirrors get_tournament_player_elo: a 2-per-lineup format is rated on the
- * Wingman ladder and everything else on Competitive. The entry gate, the draft
- * and the free agent pool all have to read the same ladder the server does.
+ * Mirrors get_tournament_player_elo: 2-per-lineup → Wingman, 3 → Trios,
+ * everything else → Competitive.
  */
 export function tournamentEloLadder(tournament: TournamentLike): EloLadder {
   const size =
     Number(tournament?.min_players_per_lineup) ||
     Number(tournament?.max_players_per_lineup) ||
     0;
-  return size === 2 ? "Wingman" : "Competitive";
+  if (size === 2) return "Wingman";
+  if (size === 3) return "Trios";
+  return "Competitive";
 }
 
 /**

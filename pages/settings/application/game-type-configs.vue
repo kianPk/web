@@ -48,6 +48,7 @@ export default defineComponent<ComponentData>({
         }) {
           const gameConfigTypes = [
             e_game_cfg_types_enum.Competitive,
+            e_game_cfg_types_enum.Trios,
             e_game_cfg_types_enum.Wingman,
             e_game_cfg_types_enum.Duel,
             e_game_cfg_types_enum.Lan,

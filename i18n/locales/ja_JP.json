@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "すべての種別",
         "competitive": "コンペティティブ",
+      "trios": "3v3",
         "wingman": "ウィングマン",
         "duel": "デュエル",
         "scrimmage": "スクリム",
@@ -7954,6 +7955,10 @@
         "title": "コンペティティブ",
         "description": "フルチーム連携によるクラシックな5対5の競技体験"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "ウィングマン",
         "description": "フレンドとペアを組んでテンポの速い2v2で対戦"
@@ -8687,6 +8692,7 @@
     "view_short": "表示",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · {source} からインポート"
   },

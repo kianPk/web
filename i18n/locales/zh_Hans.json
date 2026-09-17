@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "全部类型",
         "competitive": "竞技",
+      "trios": "3v3",
         "wingman": "搭档",
         "duel": "单挑",
         "scrimmage": "训练赛",
@@ -7954,6 +7955,10 @@
         "title": "竞技",
         "description": "经典的 5 vs 5 竞技体验，需要完整的团队配合"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "搭档",
         "description": "与好友组队，在快节奏的 2v2 比赛中竞技"
@@ -8687,6 +8692,7 @@
     "view_short": "查看",
     "premier": "优先",
     "competitive": "竞技",
+      "trios": "3v3",
     "wingman": "搭档",
     "imported_from": "{type} · 导入自 {source}"
   },

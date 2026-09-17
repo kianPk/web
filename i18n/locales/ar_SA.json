@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "كل الأنواع",
         "competitive": "تنافسي",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "مبارزة",
         "scrimmage": "Scrim",
@@ -7954,6 +7955,10 @@
         "title": "تنافسي",
         "description": "تجربة 5 ضد 5 التنافسية الكلاسيكية بتنسيق كامل بين الفريق"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "شارك مع صديق وتنافس في مباريات 2v2 سريعة الإيقاع"
@@ -8687,6 +8692,7 @@
     "view_short": "عرض",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · مستوردة من {source}"
   },

@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Wszystkie typy",
         "competitive": "Competitive",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Duel",
         "scrimmage": "Scrim",
@@ -7954,6 +7955,10 @@
         "title": "Competitive",
         "description": "Klasyczne doświadczenie 5 na 5 z pełną koordynacją drużyny"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "Zbierz się z przyjacielem i rywalizuj w dynamicznych meczach 2v2"
@@ -8687,6 +8692,7 @@
     "view_short": "Zobacz",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · zaimportowany z {source}"
   },

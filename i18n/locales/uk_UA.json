@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Усі типи",
         "competitive": "Рейтинговий",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Дуель",
         "scrimmage": "Скрим",
@@ -7954,6 +7955,10 @@
         "title": "Рейтинговий",
         "description": "Класичний змагальний формат 5 на 5 з повною командною координацією"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "Об'єднайся з другом і змагайся в динамічних матчах 2 на 2"
@@ -8687,6 +8692,7 @@
     "view_short": "Перегляд",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · імпортовано з {source}"
   },

@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "Alle typer",
         "competitive": "Competitive",
+      "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Duel",
         "scrimmage": "Scrim",
@@ -7954,6 +7955,10 @@
         "title": "Competitive",
         "description": "Den klassiske 5 mod 5-oplevelse med fuld holdkoordinering"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "Wingman",
         "description": "Gå sammen med en ven og spil hurtige 2v2-kampe"
@@ -8687,6 +8692,7 @@
     "view_short": "Se",
     "premier": "Premier",
     "competitive": "Competitive",
+      "trios": "3v3",
     "wingman": "Wingman",
     "imported_from": "{type} · importeret fra {source}"
   },

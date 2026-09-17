@@ -35,23 +35,26 @@ function buildSlots(perTeam: number): SpecSlot[] {
 }
 
 const COMPETITIVE = buildSlots(5);
+const TRIOS = buildSlots(3);
 const WINGMAN = buildSlots(2);
 const DUEL = buildSlots(1);
 
 // `type` comes from match_streams.match.options.type — matches the
-// e_match_types_enum values: "Competitive" | "Wingman" | "Duel".
+// e_match_types_enum values: "Competitive" | "Trios" | "Wingman" | "Duel".
 // Anything unrecognized falls through to Competitive so a misconfigured
 // row doesn't render an empty grid.
 export function specSlotsForMatchType(
   type: string | null | undefined,
 ): SpecSlot[] {
+  if (type === "Trios") return TRIOS;
   if (type === "Wingman") return WINGMAN;
   if (type === "Duel") return DUEL;
   return COMPETITIVE;
 }
 
-// Total players per team (1 / 2 / 5) — handy for grid-cols sizing.
+// Total players per team (1 / 2 / 3 / 5) — handy for grid-cols sizing.
 export function teamSizeForMatchType(type: string | null | undefined): number {
+  if (type === "Trios") return 3;
   if (type === "Wingman") return 2;
   if (type === "Duel") return 1;
   return 5;

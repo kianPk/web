@@ -13,7 +13,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
 <template>
   <HoverCard
-    v-if="snapshotElo || competitiveElo || wingmanElo || duelElo"
+    v-if="snapshotElo || competitiveElo || triosElo || wingmanElo || duelElo"
     :open-delay="80"
     :close-delay="140"
   >
@@ -154,7 +154,7 @@ import {
   type RankTier,
 } from "~/utils/eloTier";
 
-type ModeKey = "competitive" | "wingman" | "duel";
+type ModeKey = "competitive" | "trios" | "wingman" | "duel";
 
 function bracketProgress(elo: number): number {
   if (elo < ELO_BASELINE) return 0;
@@ -185,6 +185,7 @@ export default {
     elo: {
       type: Object as () => {
         competitive?: number;
+        trios?: number;
         wingman?: number;
         duel?: number;
       },
@@ -193,6 +194,7 @@ export default {
     peak: {
       type: Object as () => {
         competitive?: number;
+        trios?: number;
         wingman?: number;
         duel?: number;
       },
@@ -221,6 +223,9 @@ export default {
     competitiveElo(): number | undefined {
       return this.elo?.competitive;
     },
+    triosElo(): number | undefined {
+      return this.elo?.trios;
+    },
     wingmanElo(): number | undefined {
       return this.elo?.wingman;
     },
@@ -229,7 +234,11 @@ export default {
     },
     modeKey(): ModeKey {
       const normalized = (this.type ?? "").toLowerCase();
-      if (normalized === "wingman" || normalized === "duel") {
+      if (
+        normalized === "trios" ||
+        normalized === "wingman" ||
+        normalized === "duel"
+      ) {
         return normalized;
       }
       // Premier / Faceit / unknown types rank on the competitive ladder.
@@ -239,6 +248,7 @@ export default {
       return (
         this.elo?.[this.modeKey] ??
         this.competitiveElo ??
+        this.triosElo ??
         this.wingmanElo ??
         this.duelElo
       );
@@ -254,13 +264,17 @@ export default {
       return this.displayElo ? tierFor(this.displayElo) : RANK_TIERS.at(-1)!;
     },
     activeCount(): number {
-      return [this.competitiveElo, this.wingmanElo, this.duelElo].filter(
-        Boolean,
-      ).length;
+      return [
+        this.competitiveElo,
+        this.triosElo,
+        this.wingmanElo,
+        this.duelElo,
+      ].filter(Boolean).length;
     },
     modeLabels(): Record<ModeKey, string> {
       return {
         competitive: this.$t("pages.leaderboard.match_types.competitive"),
+        trios: this.$t("pages.leaderboard.match_types.trios"),
         wingman: this.$t("pages.leaderboard.match_types.wingman"),
         duel: this.$t("pages.leaderboard.match_types.duel"),
       };
@@ -306,6 +320,13 @@ export default {
           label: this.modeLabels.competitive,
           value: this.competitiveElo,
           peak: this.peak?.competitive,
+        },
+        {
+          key: "trios",
+          mode: this.modeLabels.trios,
+          label: this.modeLabels.trios,
+          value: this.triosElo,
+          peak: this.peak?.trios,
         },
         {
           key: "wingman",

@@ -314456,6 +314456,7 @@ export enum e_game_cfg_types_enum {
 	Global = "Global",
 	Lan = "Lan",
 	Live = "Live",
+	Trios = "Trios",
 	Wingman = "Wingman"
 }
 /** select columns of table "e_game_cfg_types" */
@@ -314683,6 +314684,7 @@ export enum e_map_pool_types_enum {
 	Competitive = "Competitive",
 	Custom = "Custom",
 	Duel = "Duel",
+	Trios = "Trios",
 	Wingman = "Wingman"
 }
 /** select columns of table "e_map_pool_types" */
@@ -314814,6 +314816,7 @@ export enum e_match_types_enum {
 	Duel = "Duel",
 	Faceit = "Faceit",
 	Premier = "Premier",
+	Trios = "Trios",
 	Wingman = "Wingman"
 }
 /** select columns of table "e_match_types" */

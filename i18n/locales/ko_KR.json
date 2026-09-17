@@ -3603,6 +3603,7 @@
       "match_types": {
         "all": "전체 유형",
         "competitive": "경쟁전",
+      "trios": "3v3",
         "wingman": "윙맨",
         "duel": "듀얼",
         "scrimmage": "스크림",
@@ -7954,6 +7955,10 @@
         "title": "경쟁전",
         "description": "완전한 팀 협력이 요구되는 클래식 5 대 5 경쟁전"
       },
+      "trios": {
+        "title": "Ranked 3v3",
+        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
+      },
       "wingman": {
         "title": "윙맨",
         "description": "친구와 팀을 이뤄 빠른 템포의 2v2 매치를 즐기세요"
@@ -8687,6 +8692,7 @@
     "view_short": "보기",
     "premier": "프리미어",
     "competitive": "컴페티티브",
+      "trios": "3v3",
     "wingman": "윙맨",
     "imported_from": "{type} · {source}에서 가져옴"
   },

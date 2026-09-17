@@ -239,6 +239,7 @@ export default {
       searchQuery: "",
       matchTypes: [
         e_match_types_enum.Competitive,
+        e_match_types_enum.Trios,
         e_match_types_enum.Wingman,
         e_match_types_enum.Duel,
       ],

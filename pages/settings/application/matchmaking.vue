@@ -37,7 +37,7 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
               </p>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <template
-                  v-for="match_type in ['competitive', 'wingman', 'duel']"
+                  v-for="match_type in ['competitive', 'trios', 'wingman', 'duel']"
                 >
                   <div
                     class="flex flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
