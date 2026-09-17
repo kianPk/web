@@ -2716,6 +2716,9 @@
             "price_irr": "Price (Toman)",
             "ypoint_amount": "Ypoints credited",
             "sort_order": "Sort order",
+            "image": "Product image",
+            "image_upload": "Upload image",
+            "image_hint": "PNG, JPEG, WebP or GIF — up to 5 MB",
             "image_url": "Image URL",
             "active": "Active",
             "vip_server": "VIP server (auto-activate)",
@@ -2735,11 +2738,9 @@
         "ypoints": {
           "title": "Ypoints",
           "updated": "Ypoint settings saved",
-          "ranked_free_title": "Free ranked play modes",
-          "ranked_free_description": "When on, Duel, Wingman, and Trios cost 0 Ypoints. Draft fees stay as set below. Turn off to charge the prices again.",
-          "ranked_free_active_hint": "Ranked modes are free right now. Saved prices below still apply when you turn this off.",
+          "free_label": "Free",
           "costs_title": "Match fees (Ypoints)",
-          "costs_description": "How many Ypoints each queue / draft action costs. Set 0 for free.",
+          "costs_description": "Set the price for each mode. Use Free on a ranked mode to charge 0 without losing the saved price.",
           "fields": {
             "duel": "Duel",
             "wingman": "Wingman",

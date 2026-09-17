@@ -15,57 +15,47 @@ definePageMeta({
     <PageTransition :delay="0">
       <form @submit.prevent="updateSettings" class="space-y-6">
         <SettingsSection
-          id="ypoint-ranked-free"
-          :title="$t('pages.settings.application.ypoints.ranked_free_title')"
-          :description="
-            $t('pages.settings.application.ypoints.ranked_free_description')
-          "
-          clickable-header
-          @header-click="toggleRankedFree"
-        >
-          <template #action>
-            <Switch
-              :model-value="rankedFree"
-              @update:model-value="toggleRankedFree"
-            />
-          </template>
-        </SettingsSection>
-
-        <SettingsSection
           id="ypoint-costs"
           :title="$t('pages.settings.application.ypoints.costs_title')"
           :description="$t('pages.settings.application.ypoints.costs_description')"
         >
-          <p
-            v-if="rankedFree"
-            class="text-sm text-muted-foreground rounded-md border border-dashed px-3 py-2"
-          >
-            {{ $t("pages.settings.application.ypoints.ranked_free_active_hint") }}
-          </p>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField
+          <div class="space-y-3">
+            <div
               v-for="field in costFields"
               :key="field.name"
-              v-slot="{ componentField }"
-              :name="field.name"
+              class="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-end sm:justify-between"
             >
-              <FormItem>
-                <FormLabel>{{
-                  $t(`pages.settings.application.ypoints.fields.${field.label}`)
-                }}</FormLabel>
-                <FormControl>
-                  <Input
-                    v-bind="componentField"
-                    type="number"
-                    min="0"
-                    step="1"
-                    :disabled="rankedFree && field.ranked"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+              <FormField v-slot="{ componentField }" :name="field.name">
+                <FormItem class="flex-1 min-w-0">
+                  <FormLabel>{{
+                    $t(`pages.settings.application.ypoints.fields.${field.label}`)
+                  }}</FormLabel>
+                  <FormControl>
+                    <Input
+                      v-bind="componentField"
+                      type="number"
+                      min="0"
+                      step="1"
+                      :disabled="field.ranked && isModeFree(field.freeKey)"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <div
+                v-if="field.ranked && field.freeKey"
+                class="flex items-center justify-between gap-3 rounded-md border px-3 py-2 sm:min-w-[10rem]"
+              >
+                <span class="text-sm font-medium">{{
+                  $t("pages.settings.application.ypoints.free_label")
+                }}</span>
+                <Switch
+                  :model-value="isModeFree(field.freeKey)"
+                  @update:model-value="toggleModeFree(field.freeKey)"
+                />
+              </div>
+            </div>
           </div>
         </SettingsSection>
 
@@ -94,30 +84,35 @@ const COST_FIELDS = [
     label: "duel",
     fallback: 8,
     ranked: true,
+    freeKey: "ypoint_free_duel",
   },
   {
     key: "ypoint_cost_wingman",
     label: "wingman",
     fallback: 0,
     ranked: true,
+    freeKey: "ypoint_free_wingman",
   },
   {
     key: "ypoint_cost_trios",
     label: "trios",
     fallback: 12,
     ranked: true,
+    freeKey: "ypoint_free_trios",
   },
   {
     key: "ypoint_cost_draft_create",
     label: "draft_create",
     fallback: 15,
     ranked: false,
+    freeKey: null as string | null,
   },
   {
     key: "ypoint_cost_draft_join",
     label: "draft_join",
     fallback: 10,
     ranked: false,
+    freeKey: null as string | null,
   },
 ] as const;
 
@@ -170,14 +165,24 @@ export default {
     },
   },
   methods: {
-    async toggleRankedFree() {
+    isModeFree(freeKey: string | null | undefined) {
+      if (!freeKey) return false;
+      const setting = this.settings.find(
+        (s: { name: string; value: string | null }) =>
+          s.name === settingName(freeKey),
+      );
+      return setting?.value === "true" || setting?.value === "1";
+    },
+    async toggleModeFree(freeKey: string | null | undefined) {
+      if (!freeKey) return;
+      const next = this.isModeFree(freeKey) ? "false" : "true";
       await (this as any).$apollo.mutate({
         mutation: generateMutation({
           insert_settings_one: [
             {
               object: {
-                name: "public.ypoint_ranked_free",
-                value: this.rankedFree ? "false" : "true",
+                name: settingName(freeKey),
+                value: next,
               },
               on_conflict: {
                 constraint: settings_constraint.settings_pkey,
@@ -235,13 +240,6 @@ export default {
   computed: {
     settings() {
       return useApplicationSettingsStore().settings;
-    },
-    rankedFree() {
-      const setting = this.settings.find(
-        (s: { name: string; value: string | null }) =>
-          s.name === "public.ypoint_ranked_free",
-      );
-      return setting?.value === "true" || setting?.value === "1";
     },
   },
 };

@@ -30,9 +30,9 @@ function settingCost(name: string, fallback: number) {
   return Number.isFinite(num) ? Math.max(0, num) : fallback;
 }
 
-function rankedFreeFromSettings() {
+function settingFlag(name: string) {
   const raw = useApplicationSettingsStore().settings?.find(
-    (s) => s.name === "public.ypoint_ranked_free",
+    (s) => s.name === name,
   )?.value;
   return raw === "true" || raw === "1";
 }
@@ -53,13 +53,14 @@ export function useYpoints() {
   const settingsStore = useApplicationSettingsStore();
 
   const syncCostsFromSettings = () => {
-    const rankedFree = rankedFreeFromSettings();
     costs.value = {
-      duel: rankedFree ? 0 : settingCost("public.ypoint_cost_duel", costs.value.duel),
-      wingman: rankedFree
+      duel: settingFlag("public.ypoint_free_duel")
+        ? 0
+        : settingCost("public.ypoint_cost_duel", costs.value.duel),
+      wingman: settingFlag("public.ypoint_free_wingman")
         ? 0
         : settingCost("public.ypoint_cost_wingman", costs.value.wingman),
-      trios: rankedFree
+      trios: settingFlag("public.ypoint_free_trios")
         ? 0
         : settingCost("public.ypoint_cost_trios", costs.value.trios),
       draft_create: settingCost(
@@ -81,7 +82,6 @@ export function useYpoints() {
       try {
         const apiDomain = useRuntimeConfig().public.apiDomain as string;
 
-        // Public costs — always refresh so price changes show without login.
         try {
           const publicCosts = await $fetch<YpointCosts>(
             `https://${apiDomain}/ypoint/costs`,
@@ -140,14 +140,13 @@ export function useYpoints() {
         void refresh();
       },
     );
-    // When Hasura settings subscription delivers new prices, pick them up.
     watch(
       () =>
         settingsStore.settings
           ?.filter(
             (s) =>
               s.name.startsWith("public.ypoint_cost_") ||
-              s.name === "public.ypoint_ranked_free",
+              s.name.startsWith("public.ypoint_free_"),
           )
           .map((s) => `${s.name}:${s.value}`)
           .join("|") ?? "",

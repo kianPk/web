@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Store as StoreIcon } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import SettingsPage from "~/components/settings/SettingsPage.vue";
 import SettingsSection from "~/components/settings/SettingsSection.vue";
+import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -37,6 +38,7 @@ import {
   irrToToman,
   tomanToIrr,
 } from "~/utilities/irrToman";
+import { useStoreImageUpload } from "~/composables/useStoreImageUpload";
 
 definePageMeta({
   middleware: "admin",
@@ -44,6 +46,8 @@ definePageMeta({
 
 const { t, locale } = useI18n();
 const { client: apollo } = useApolloClient();
+const { upload: uploadStoreImage, accept: storeImageAccept } =
+  useStoreImageUpload();
 
 type Product = {
   id: string;
@@ -530,9 +534,23 @@ onMounted(() => {
           </div>
           <div class="space-y-2">
             <Label>{{
-              $t("pages.settings.application.store.fields.image_url")
+              $t("pages.settings.application.store.fields.image")
             }}</Label>
-            <Input v-model="form.image_url" type="url" placeholder="https://" />
+            <ImageUploadTile
+              aspect="square"
+              fit="contain"
+              :crop="true"
+              :crop-output="{ w: 512, h: 512 }"
+              :accept="storeImageAccept"
+              :upload-fn="uploadStoreImage"
+              :delete-fn="async () => { form.image_url = ''; }"
+              :has-custom="!!form.image_url"
+              :current-src="form.image_url || null"
+              :label="$t('pages.settings.application.store.fields.image_upload')"
+              :hint="$t('pages.settings.application.store.fields.image_hint')"
+              @uploaded="(url) => (form.image_url = url)"
+              @removed="form.image_url = ''"
+            />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
