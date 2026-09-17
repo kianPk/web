@@ -3502,7 +3502,12 @@
       "lan_servers_title": "سيرفرات LAN",
       "manage": "إدارة",
       "all_modes": "الكل",
-      "no_mode": "أصلي"
+      "no_mode": "أصلي",
+      "vip_members": "VIP members",
+      "vip_permanent": "Permanent",
+      "vip_remaining_days": "{days}d {hours}h",
+      "vip_remaining_hours": "{hours}h {mins}m",
+      "vip_remaining_mins": "{mins}m"
     },
     "map_pools": {
       "title": "قوائم الخرائط",

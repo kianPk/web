@@ -88,8 +88,8 @@ function expandOrderId(compact: string): string | null {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-/** Best-effort VIP grant via API (needs ingress path /store). */
-async function tryGrantVipViaApi(payload: string, chargeId: string) {
+/** Forward paid events to the API for VIP RCON + in-app notifications. */
+async function tryFulfillViaApi(payload: string, chargeId: string) {
   const apiDomain = process.env.NUXT_PUBLIC_API_DOMAIN;
   if (!apiDomain) return;
   try {
@@ -104,7 +104,7 @@ async function tryGrantVipViaApi(payload: string, chargeId: string) {
       }),
     });
   } catch {
-    // VIP grant is best-effort when API /store is not exposed.
+    // Best-effort when API /store is unreachable.
   }
 }
 
@@ -311,8 +311,8 @@ export default defineEventHandler(async (event) => {
         }
       }
 
-      if (order?.product?.vip_server_id && order.product.vip_duration) {
-        await tryGrantVipViaApi(payload, chargeId);
+      if (order) {
+        await tryFulfillViaApi(payload, chargeId);
       }
     }
     return { ok: true };

@@ -3502,7 +3502,12 @@
       "lan_servers_title": "سرورهای LAN",
       "manage": "مدیریت کنید",
       "all_modes": "همه",
-      "no_mode": "وانیل"
+      "no_mode": "وانیل",
+      "vip_members": "اعضای VIP",
+      "vip_permanent": "دائمی",
+      "vip_remaining_days": "{days}ر {hours}س",
+      "vip_remaining_hours": "{hours}س {mins}د",
+      "vip_remaining_mins": "{mins}د"
     },
     "map_pools": {
       "title": "استخرهای نقشه",

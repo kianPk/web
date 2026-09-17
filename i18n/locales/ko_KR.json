@@ -3502,7 +3502,12 @@
       "lan_servers_title": "LAN 서버",
       "manage": "관리",
       "all_modes": "전체",
-      "no_mode": "바닐라"
+      "no_mode": "바닐라",
+      "vip_members": "VIP members",
+      "vip_permanent": "Permanent",
+      "vip_remaining_days": "{days}d {hours}h",
+      "vip_remaining_hours": "{hours}h {mins}m",
+      "vip_remaining_mins": "{mins}m"
     },
     "map_pools": {
       "title": "맵 풀",

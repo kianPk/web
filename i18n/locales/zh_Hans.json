@@ -3502,7 +3502,12 @@
       "lan_servers_title": "LAN 服务器",
       "manage": "管理",
       "all_modes": "全部",
-      "no_mode": "原版"
+      "no_mode": "原版",
+      "vip_members": "VIP members",
+      "vip_permanent": "Permanent",
+      "vip_remaining_days": "{days}d {hours}h",
+      "vip_remaining_hours": "{hours}h {mins}m",
+      "vip_remaining_mins": "{mins}m"
     },
     "map_pools": {
       "title": "地图池",

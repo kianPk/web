@@ -213,6 +213,40 @@ const canManage = computed(() =>
                       :style="`width: ${capacityPercent(server)}%`"
                     />
                   </div>
+
+                  <!-- VIP members for this public server -->
+                  <div
+                    v-if="vipMembers(server.id).length"
+                    class="mt-3 border-t border-border/60 pt-2"
+                  >
+                    <p
+                      class="mb-1.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                    >
+                      {{ $t("pages.public_servers.vip_members") }}
+                    </p>
+                    <ul class="max-h-28 space-y-1 overflow-y-auto">
+                      <li
+                        v-for="vip in vipMembers(server.id)"
+                        :key="`${server.id}-${vip.steam_id}`"
+                        class="flex items-center gap-2 text-xs"
+                      >
+                        <img
+                          v-if="vip.player?.avatar_url"
+                          :src="vip.player.avatar_url"
+                          alt=""
+                          class="h-5 w-5 rounded-sm object-cover"
+                        />
+                        <span class="min-w-0 flex-1 truncate font-medium">
+                          {{ vip.player?.name || vip.steam_id }}
+                        </span>
+                        <span
+                          class="shrink-0 font-mono text-[0.65rem] text-[hsl(var(--tac-amber))]"
+                        >
+                          {{ formatVipRemaining(vip.expires_at) }}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
 
                 <!-- Zone C: CTA Footer -->
@@ -367,6 +401,8 @@ export default {
       lanServers: undefined as any[] | undefined,
       getDedicatedServerInfo: undefined as any[] | undefined,
       maps: undefined as any[] | undefined,
+      storeVipGrants: [] as any[],
+      _vipTimer: 0 as number,
       loading: true,
     };
   },
@@ -510,7 +546,23 @@ export default {
       ];
     },
   },
+  mounted() {
+    void this.refreshVipGrants();
+    this._vipTimer = window.setInterval(() => {
+      void this.refreshVipGrants();
+    }, 60_000);
+  },
+  beforeUnmount() {
+    if (this._vipTimer) window.clearInterval(this._vipTimer);
+  },
   methods: {
+    async refreshVipGrants() {
+      try {
+        this.storeVipGrants = await $fetch("/api/store/vip-roster");
+      } catch {
+        this.storeVipGrants = [];
+      }
+    },
     matchingMode(servers: Array<Record<string, any>>) {
       if (this.modeFilter === "all") {
         return servers;
@@ -539,6 +591,37 @@ export default {
         this.getDedicatedServerInfo?.find((server) => server.id === id)
           ?.players || 0
       );
+    },
+    vipMembers(serverId: string) {
+      const now = Date.now();
+      return (this.storeVipGrants || []).filter((g: any) => {
+        if (g.server_id !== serverId) return false;
+        if (!g.expires_at) return true;
+        return new Date(g.expires_at).getTime() > now;
+      });
+    },
+    formatVipRemaining(expiresAt: string | null) {
+      if (!expiresAt) {
+        return String(this.$t("pages.public_servers.vip_permanent"));
+      }
+      const ms = new Date(expiresAt).getTime() - Date.now();
+      if (ms <= 0) return "—";
+      const days = Math.floor(ms / 86_400_000);
+      const hours = Math.floor((ms % 86_400_000) / 3_600_000);
+      if (days >= 1) {
+        return this.$t("pages.public_servers.vip_remaining_days", {
+          days,
+          hours,
+        });
+      }
+      const mins = Math.floor((ms % 3_600_000) / 60_000);
+      if (hours >= 1) {
+        return this.$t("pages.public_servers.vip_remaining_hours", {
+          hours,
+          mins,
+        });
+      }
+      return this.$t("pages.public_servers.vip_remaining_mins", { mins });
     },
     mapPatch(id: string): string | undefined {
       const name = this.getDedicatedServerMap(id);

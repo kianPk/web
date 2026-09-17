@@ -3502,7 +3502,12 @@
       "lan_servers_title": "LANサーバー",
       "manage": "管理",
       "all_modes": "すべて",
-      "no_mode": "バニラ"
+      "no_mode": "バニラ",
+      "vip_members": "VIP members",
+      "vip_permanent": "Permanent",
+      "vip_remaining_days": "{days}d {hours}h",
+      "vip_remaining_hours": "{hours}h {mins}m",
+      "vip_remaining_mins": "{mins}m"
     },
     "map_pools": {
       "title": "マッププール",

@@ -137,6 +137,13 @@ async function buy(product: Product) {
       },
     });
 
+    // Cancel other unfinished checkouts and notify the buyer.
+    void $fetch("/api/store/cancel-pending", {
+      method: "POST",
+      body: { exceptOrderId: orderId, steamId },
+      credentials: "include",
+    }).catch(() => undefined);
+
     const status = await $fetch<{ botUsername: string | null }>(
       "/api/store/status",
     );
