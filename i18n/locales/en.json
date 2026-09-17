@@ -2731,6 +2731,22 @@
             "webhook": "Webhook URL: {url}"
           },
           "vip_hint": "After payment, the API runs css_addvip on that dedicated server (needs RCON + YGuardVIP). Example duration: 30d or 1mo."
+        },
+        "ypoints": {
+          "title": "Ypoints",
+          "updated": "Ypoint settings saved",
+          "ranked_free_title": "Free ranked play modes",
+          "ranked_free_description": "When on, Duel, Wingman, and Trios cost 0 Ypoints. Draft fees stay as set below. Turn off to charge the prices again.",
+          "ranked_free_active_hint": "Ranked modes are free right now. Saved prices below still apply when you turn this off.",
+          "costs_title": "Match fees (Ypoints)",
+          "costs_description": "How many Ypoints each queue / draft action costs. Set 0 for free.",
+          "fields": {
+            "duel": "Duel",
+            "wingman": "Wingman",
+            "trios": "Trios",
+            "draft_create": "Draft create",
+            "draft_join": "Draft join"
+          }
         }
       },
       "language": {
@@ -5004,7 +5020,7 @@
     },
     "store": {
       "title": "Store",
-      "description": "Buy Ypoint packs with Bale Pay for Duel, Wingman, and Draft.",
+      "description": "Buy Ypoint packs with Bale Pay for Duel, Wingman, Trios, and Draft.",
       "empty_title": "No products yet",
       "empty_body": "Check back soon — the shop is being stocked.",
       "buy": "Buy",

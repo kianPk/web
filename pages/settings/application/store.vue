@@ -410,9 +410,9 @@ onMounted(() => {
                   <Badge variant="outline">{{ formatPrice(product.price_irr) }}</Badge>
                   <Badge v-if="product.ypoint_amount" variant="secondary" class="inline-flex items-center gap-1">
                     <img
-                      src="/img/ypoint-logo.jpg"
+                      src="/img/ypoint-logo.png"
                       alt=""
-                      class="h-3 w-3 rounded-sm object-cover"
+                      class="h-3.5 w-3.5 object-contain"
                     />
                     +{{ product.ypoint_amount }}
                   </Badge>

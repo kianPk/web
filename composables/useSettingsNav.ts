@@ -92,6 +92,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             labelKey: "pages.settings.application.store.title",
             order: 5,
           },
+          {
+            path: "/settings/application/ypoints",
+            labelKey: "pages.settings.application.ypoints.title",
+            order: 6,
+          },
         ],
       },
       {

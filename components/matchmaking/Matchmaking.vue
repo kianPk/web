@@ -401,9 +401,9 @@ function releaseSwapHeight(el: Element): void {
                     class="inline-flex items-center gap-1 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
                   >
                     <img
-                      src="/img/ypoint-logo.jpg"
+                      src="/img/ypoint-logo.png"
                       alt=""
-                      class="h-3.5 w-3.5 rounded-sm object-cover"
+                      class="h-4 w-4 shrink-0 object-contain"
                     />
                     {{ ypointCostFor(type.value) }}
                   </div>
@@ -642,6 +642,9 @@ export default {
       if (matchType === e_match_types_enum.Duel) return this.ypointCosts.duel;
       if (matchType === e_match_types_enum.Wingman) {
         return this.ypointCosts.wingman;
+      }
+      if (matchType === e_match_types_enum.Trios) {
+        return this.ypointCosts.trios;
       }
       return 0;
     },

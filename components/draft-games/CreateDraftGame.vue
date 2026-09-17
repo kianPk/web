@@ -1178,9 +1178,9 @@ const submit = form.handleSubmit(async (values: any) => {
             >
               ·
               <img
-                src="/img/ypoint-logo.jpg"
+                src="/img/ypoint-logo.png"
                 alt=""
-                class="h-3 w-3 rounded-sm object-cover"
+                class="h-3.5 w-3.5 object-contain"
               />
               {{ draftCreateCost }}
             </span>

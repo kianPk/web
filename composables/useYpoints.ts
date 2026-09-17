@@ -5,6 +5,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 export type YpointCosts = {
   duel: number;
   wingman: number;
+  trios: number;
   draft_create: number;
   draft_join: number;
 };
@@ -13,6 +14,7 @@ const balance = ref<number | null>(null);
 const costs = ref<YpointCosts>({
   duel: 8,
   wingman: 0,
+  trios: 12,
   draft_create: 15,
   draft_join: 10,
 });
@@ -28,11 +30,19 @@ function settingCost(name: string, fallback: number) {
   return Number.isFinite(num) ? Math.max(0, num) : fallback;
 }
 
+function rankedFreeFromSettings() {
+  const raw = useApplicationSettingsStore().settings?.find(
+    (s) => s.name === "public.ypoint_ranked_free",
+  )?.value;
+  return raw === "true" || raw === "1";
+}
+
 function applyCosts(next: Partial<YpointCosts> | null | undefined) {
   if (!next) return;
   costs.value = {
     duel: Math.max(0, Number(next.duel) || 0),
     wingman: Math.max(0, Number(next.wingman) || 0),
+    trios: Math.max(0, Number(next.trios) || 0),
     draft_create: Math.max(0, Number(next.draft_create) || 0),
     draft_join: Math.max(0, Number(next.draft_join) || 0),
   };
@@ -43,9 +53,15 @@ export function useYpoints() {
   const settingsStore = useApplicationSettingsStore();
 
   const syncCostsFromSettings = () => {
+    const rankedFree = rankedFreeFromSettings();
     costs.value = {
-      duel: settingCost("public.ypoint_cost_duel", costs.value.duel),
-      wingman: settingCost("public.ypoint_cost_wingman", costs.value.wingman),
+      duel: rankedFree ? 0 : settingCost("public.ypoint_cost_duel", costs.value.duel),
+      wingman: rankedFree
+        ? 0
+        : settingCost("public.ypoint_cost_wingman", costs.value.wingman),
+      trios: rankedFree
+        ? 0
+        : settingCost("public.ypoint_cost_trios", costs.value.trios),
       draft_create: settingCost(
         "public.ypoint_cost_draft_create",
         costs.value.draft_create,
@@ -103,6 +119,7 @@ export function useYpoints() {
   const costForMatchType = (type: string) => {
     if (type === "Duel") return costs.value.duel;
     if (type === "Wingman") return costs.value.wingman;
+    if (type === "Trios") return costs.value.trios;
     return 0;
   };
 
@@ -127,7 +144,11 @@ export function useYpoints() {
     watch(
       () =>
         settingsStore.settings
-          ?.filter((s) => s.name.startsWith("public.ypoint_cost_"))
+          ?.filter(
+            (s) =>
+              s.name.startsWith("public.ypoint_cost_") ||
+              s.name === "public.ypoint_ranked_free",
+          )
           .map((s) => `${s.name}:${s.value}`)
           .join("|") ?? "",
       () => {

@@ -193,12 +193,12 @@ onMounted(() => {
 
     <div
       v-if="ypointBalance !== null"
-      class="inline-flex items-center gap-2 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
+      class="inline-flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-foreground"
     >
       <img
-        src="/img/ypoint-logo.jpg"
+        src="/img/ypoint-logo.png"
         alt="Ypoint"
-        class="h-5 w-5 shrink-0 rounded-sm object-cover"
+        class="h-6 w-6 shrink-0 object-contain"
       />
       <span class="opacity-70">{{ $t("ypoint.balance_label") }}</span>
       <span class="tabular-nums">{{ ypointBalance }}</span>
@@ -259,7 +259,7 @@ onMounted(() => {
                 >
                   <span class="inline-flex items-center gap-1">
                     <img
-                      src="/img/ypoint-logo.jpg"
+                      src="/img/ypoint-logo.png"
                       alt=""
                       class="h-3.5 w-3.5 rounded-sm object-cover"
                     />

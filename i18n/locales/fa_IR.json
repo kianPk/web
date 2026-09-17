@@ -2731,6 +2731,22 @@
             "webhook": "آدرس وب‌هوک: {url}"
           },
           "vip_hint": "بعد از پرداخت، روی همان سرور Dedicated دستور css_addvip زده می‌شود (RCON + YGuardVIP لازم است). مثال مدت: 30d یا 1mo."
+        },
+        "ypoints": {
+          "title": "Ypoint",
+          "updated": "تنظیمات Ypoint ذخیره شد",
+          "ranked_free_title": "مودهای رنکد رایگان",
+          "ranked_free_description": "اگر روشن باشد، دوئل، وینگمن و Trios رایگان می‌شوند. هزینهٔ درفت همان پایین می‌ماند. برای پولی کردن دوباره خاموش کنید.",
+          "ranked_free_active_hint": "الان مودهای رنکد رایگان‌اند. قیمت‌های ذخیره‌شده پایین بعد از خاموش کردن سوییچ دوباره اعمال می‌شوند.",
+          "costs_title": "هزینهٔ مچ (Ypoint)",
+          "costs_description": "تعداد Ypoint برای هر صف / اکشن درفت. ۰ یعنی رایگان.",
+          "fields": {
+            "duel": "دوئل",
+            "wingman": "وینگمن",
+            "trios": "Trios",
+            "draft_create": "ساخت درفت",
+            "draft_join": "ورود به درفت"
+          }
         }
       },
       "language": {
@@ -5004,7 +5020,7 @@
     },
     "store": {
       "title": "فروشگاه",
-      "description": "پک Ypoint بخرید و برای دوئل، وینگمن و درفت استفاده کنید.",
+      "description": "پک Ypoint بخرید و برای دوئل، وینگمن، Trios و درفت استفاده کنید.",
       "empty_title": "هنوز محصولی نیست",
       "empty_body": "به‌زودی محصولات اضافه می‌شوند.",
       "buy": "خرید",
