@@ -32,12 +32,17 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/toast";
+import {
+  formatTomanAmount,
+  irrToToman,
+  tomanToIrr,
+} from "~/utilities/irrToman";
 
 definePageMeta({
   middleware: "admin",
 });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { client: apollo } = useApolloClient();
 
 type Product = {
@@ -67,7 +72,7 @@ const emptyForm = () => ({
   title: "",
   slug: "",
   description: "",
-  price_irr: 0,
+  price_toman: 0,
   ypoint_amount: null as number | null,
   image_url: "",
   active: true,
@@ -139,7 +144,7 @@ function openEdit(product: Product) {
     title: product.title,
     slug: product.slug,
     description: product.description || "",
-    price_irr: product.price_irr,
+    price_toman: irrToToman(product.price_irr),
     ypoint_amount: product.ypoint_amount,
     image_url: product.image_url || "",
     active: product.active,
@@ -180,7 +185,7 @@ async function save() {
       title: form.title.trim(),
       slug: (form.slug || slugify(form.title)).trim(),
       description: form.description.trim(),
-      price_irr: Math.max(0, Math.round(Number(form.price_irr) || 0)),
+      price_irr: tomanToIrr(form.price_toman),
       ypoint_amount:
         form.ypoint_amount === null || form.ypoint_amount === ("" as any)
           ? null
@@ -270,7 +275,10 @@ async function remove(product: Product) {
 }
 
 function formatPrice(irr: number) {
-  return `${irr.toLocaleString("en-US")} IRR`;
+  const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
+  return t("pages.store.price", {
+    amount: formatTomanAmount(irr, numberLocale),
+  });
 }
 
 const baleHint = computed(() => {
@@ -449,7 +457,7 @@ onMounted(() => {
               <Label>{{
                 $t("pages.settings.application.store.fields.price_irr")
               }}</Label>
-              <Input v-model.number="form.price_irr" type="number" min="0" required />
+              <Input v-model.number="form.price_toman" type="number" min="0" required />
             </div>
             <div class="space-y-2">
               <Label>{{

@@ -10,8 +10,9 @@ import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import Empty from "~/components/ui/empty/Empty.vue";
 import { toast } from "~/components/ui/toast";
+import { formatTomanAmount } from "~/utilities/irrToman";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { client: apollo } = useApolloClient();
 
 type Product = {
@@ -63,7 +64,10 @@ async function refresh() {
 }
 
 function formatPrice(irr: number) {
-  return `${Number(irr).toLocaleString("en-US")} IRR`;
+  const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
+  return t("pages.store.price", {
+    amount: formatTomanAmount(irr, numberLocale),
+  });
 }
 
 async function buy(product: Product) {

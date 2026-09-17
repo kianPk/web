@@ -2695,7 +2695,7 @@
         "store": {
           "title": "Store",
           "section": "Products",
-          "description": "Add products that appear on the public Store page. Prices are in Iranian Rials (IRR).",
+          "description": "Add products that appear on the public Store page. Enter prices in Tomans (shown to buyers). Payment still settles in Rials.",
           "add": "Add product",
           "edit": "Edit product",
           "empty": "No products yet. Add your first product.",
@@ -2713,7 +2713,7 @@
             "title": "Title",
             "slug": "Slug",
             "description": "Description",
-            "price_irr": "Price (IRR)",
+            "price_irr": "Price (Toman)",
             "ypoint_amount": "Ypoints credited",
             "sort_order": "Sort order",
             "image_url": "Image URL",
@@ -5000,7 +5000,8 @@
       "buying": "Opening Bale…",
       "checkout_started": "Continue in Bale",
       "checkout_hint": "Open the Bale link and complete payment in the bot.",
-      "checkout_failed": "Checkout failed"
+      "checkout_failed": "Checkout failed",
+      "price": "{amount} Toman"
     }
   },
   "ypoint": {
