@@ -195,6 +195,11 @@ onMounted(() => {
       v-if="ypointBalance !== null"
       class="inline-flex items-center gap-2 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2 font-mono text-sm font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
     >
+      <img
+        src="/img/ypoint-logo.jpg"
+        alt="Ypoint"
+        class="h-5 w-5 shrink-0 rounded-sm object-cover"
+      />
       <span class="opacity-70">{{ $t("ypoint.balance_label") }}</span>
       <span class="tabular-nums">{{ ypointBalance }}</span>
     </div>
@@ -252,7 +257,14 @@ onMounted(() => {
                   v-if="product.ypoint_amount"
                   class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
                 >
-                  +{{ product.ypoint_amount }} YP
+                  <span class="inline-flex items-center gap-1">
+                    <img
+                      src="/img/ypoint-logo.jpg"
+                      alt=""
+                      class="h-3.5 w-3.5 rounded-sm object-cover"
+                    />
+                    +{{ product.ypoint_amount }}
+                  </span>
                 </span>
                 <span
                   v-if="product.vip_duration"

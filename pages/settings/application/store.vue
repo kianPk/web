@@ -408,8 +408,13 @@ onMounted(() => {
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="truncate font-medium">{{ product.title }}</span>
                   <Badge variant="outline">{{ formatPrice(product.price_irr) }}</Badge>
-                  <Badge v-if="product.ypoint_amount" variant="secondary">
-                    +{{ product.ypoint_amount }} YP
+                  <Badge v-if="product.ypoint_amount" variant="secondary" class="inline-flex items-center gap-1">
+                    <img
+                      src="/img/ypoint-logo.jpg"
+                      alt=""
+                      class="h-3 w-3 rounded-sm object-cover"
+                    />
+                    +{{ product.ypoint_amount }}
                   </Badge>
                   <Badge v-if="product.vip_server_id" variant="secondary">
                     VIP {{ product.vip_duration || "30d" }}

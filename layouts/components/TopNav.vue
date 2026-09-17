@@ -594,10 +594,14 @@ const loginArrowClasses =
           <NuxtLink
             v-if="authStore.me && ypointBalance !== null"
             to="/store"
-            class="hidden items-center gap-1.5 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-2.5 py-1 font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))] no-underline transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.14)] sm:inline-flex"
+            class="hidden items-center gap-1.5 border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-2 py-1 font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))] no-underline transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.14)] sm:inline-flex"
             :title="$t('ypoint.balance_title')"
           >
-            <span class="opacity-70">YP</span>
+            <img
+              src="/img/ypoint-logo.jpg"
+              alt="Ypoint"
+              class="h-4 w-4 shrink-0 rounded-sm object-cover"
+            />
             <span class="tabular-nums">{{ ypointBalance }}</span>
           </NuxtLink>
           <Button

@@ -398,9 +398,14 @@ function releaseSwapHeight(el: Element): void {
                 >
                   <div
                     v-if="ypointCostFor(type.value) > 0"
-                    class="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
+                    class="inline-flex items-center gap-1 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
                   >
-                    {{ ypointCostFor(type.value) }} YP
+                    <img
+                      src="/img/ypoint-logo.jpg"
+                      alt=""
+                      class="h-3.5 w-3.5 rounded-sm object-cover"
+                    />
+                    {{ ypointCostFor(type.value) }}
                   </div>
                   <div
                     class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[hsl(var(--tac-amber))]"

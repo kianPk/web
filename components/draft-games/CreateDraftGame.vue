@@ -1174,9 +1174,15 @@ const submit = form.handleSubmit(async (values: any) => {
             {{ $t("draft_games.create.deploy") }}
             <span
               v-if="draftCreateCost > 0"
-              class="ms-1 font-mono text-[0.7em] tracking-normal opacity-80"
+              class="ms-1 inline-flex items-center gap-1 font-mono text-[0.7em] tracking-normal opacity-80"
             >
-              · {{ draftCreateCost }} YP
+              ·
+              <img
+                src="/img/ypoint-logo.jpg"
+                alt=""
+                class="h-3 w-3 rounded-sm object-cover"
+              />
+              {{ draftCreateCost }}
             </span>
           </span>
           <ArrowRight class="h-4 w-4" :class="{ invisible: submitting }" />
