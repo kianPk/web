@@ -2748,6 +2748,53 @@
             "draft_create": "ساخت درفت",
             "draft_join": "ورود به درفت"
           }
+        },
+        "finance": {
+          "title": "مدیریت مالی",
+          "description": "پرداخت‌ها، اشتراک‌های VIP و تنظیم دستی Ypoint.",
+          "tabs": {
+            "payments": "پرداخت‌ها",
+            "subscriptions": "اشتراک‌ها",
+            "adjust": "تنظیم Ypoint"
+          },
+          "payments_title": "پرداخت‌های فروشگاه",
+          "payments_description": "سفارش‌های اخیر بله‌پی.",
+          "payments_empty": "هنوز سفارشی نیست.",
+          "vip_title": "اشتراک‌های VIP",
+          "vip_description": "گرنت‌های VIP فعال و قبلی از خرید فروشگاه.",
+          "vip_empty": "هنوز VIP ثبت نشده.",
+          "vip_active_count": "{count} فعال",
+          "vip_permanent": "دائمی",
+          "adjust_title": "تنظیم Ypoint",
+          "adjust_description": "به بازیکن Ypoint اضافه یا کم کن. موجودی از صفر پایین‌تر نمی‌رود.",
+          "search_player": "جستجوی بازیکن",
+          "search_placeholder": "SteamID64 یا نام",
+          "current_balance": "موجودی",
+          "amount": "مقدار",
+          "note": "یادداشت (اختیاری)",
+          "note_placeholder": "دلیل این تغییر",
+          "add": "افزودن",
+          "remove": "کاهش",
+          "pick_player": "اول یک بازیکن انتخاب کن",
+          "invalid_amount": "مقدار مثبت وارد کن",
+          "adjust_ok": "Ypoint به‌روز شد",
+          "adjust_ok_desc": "تغییر {delta} · موجودی جدید {balance}",
+          "adjust_failed": "تنظیم Ypoint ناموفق بود",
+          "search_failed": "جستجوی بازیکن ناموفق بود",
+          "load_failed": "بارگذاری اطلاعات مالی ناموفق بود",
+          "loading": "در حال بارگذاری…",
+          "refresh": "بازنشانی",
+          "status": "وضعیت",
+          "status_all": "همه",
+          "toman": "تومان",
+          "col_player": "بازیکن",
+          "col_product": "محصول",
+          "col_amount": "مبلغ",
+          "col_status": "وضعیت",
+          "col_when": "زمان",
+          "col_server": "سرور",
+          "col_expires": "انقضا",
+          "col_granted": "اعطا"
         }
       },
       "language": {
@@ -5150,7 +5197,8 @@
         "manage_league": "مدیریت لیگ",
         "stream_deck": "Stream Deck",
         "manage_events": "مدیریت رویدادها",
-        "awards": "جوایز"
+        "awards": "جوایز",
+        "finance": "مدیریت مالی"
       },
       "system": {
         "title": "سیستم",
@@ -5203,7 +5251,8 @@
         "utility_drift": "انحراف ترکیب سودمند",
         "utility": "ترکیب‌های سودمند",
         "teamspeak": "TeamSpeak",
-        "store": "فروشگاه"
+        "store": "فروشگاه",
+        "finance": "مدیریت مالی — پرداخت‌ها، VIP، Ypoint"
       },
       "logout_dialog": {
         "title": "خروج",

@@ -97,6 +97,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             labelKey: "pages.settings.application.ypoints.title",
             order: 6,
           },
+          {
+            path: "/settings/application/finance",
+            labelKey: "pages.settings.application.finance.title",
+            order: 7,
+          },
         ],
       },
       {

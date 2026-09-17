@@ -28,6 +28,7 @@ import {
   Medal,
   CalendarRange,
   ShoppingBag,
+  Wallet,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -926,6 +927,28 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem
+                v-if="isAdmin"
+                :tooltip="$t('layouts.app_nav.tooltips.finance')"
+              >
+                <SidebarMenuButton
+                  as-child
+                  :tooltip="$t('layouts.app_nav.tooltips.finance')"
+                >
+                  <NuxtLink
+                    :to="{ name: 'settings-application-finance' }"
+                    :class="{
+                      'router-link-active': isRouteActive(
+                        'settings-application-finance',
+                      ),
+                    }"
+                  >
+                    <Wallet />
+                    {{ $t("layouts.app_nav.administration.finance") }}
+                  </NuxtLink>
+                </SidebarMenuButton>
               </SidebarMenuItem>
 
               <SidebarMenuItem

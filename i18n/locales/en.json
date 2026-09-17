@@ -2748,6 +2748,53 @@
             "draft_create": "Draft create",
             "draft_join": "Draft join"
           }
+        },
+        "finance": {
+          "title": "Finance",
+          "description": "Payments, VIP subscriptions, and manual Ypoint adjustments.",
+          "tabs": {
+            "payments": "Payments",
+            "subscriptions": "Subscriptions",
+            "adjust": "Adjust Ypoints"
+          },
+          "payments_title": "Store payments",
+          "payments_description": "Recent Bale Pay store orders.",
+          "payments_empty": "No orders yet.",
+          "vip_title": "VIP subscriptions",
+          "vip_description": "Active and past VIP grants from store purchases.",
+          "vip_empty": "No VIP grants yet.",
+          "vip_active_count": "{count} active",
+          "vip_permanent": "Permanent",
+          "adjust_title": "Adjust Ypoints",
+          "adjust_description": "Add or remove Ypoints for a player. Removals cannot go below zero.",
+          "search_player": "Find player",
+          "search_placeholder": "SteamID64 or name",
+          "current_balance": "Balance",
+          "amount": "Amount",
+          "note": "Note (optional)",
+          "note_placeholder": "Reason for this adjustment",
+          "add": "Add",
+          "remove": "Remove",
+          "pick_player": "Select a player first",
+          "invalid_amount": "Enter a positive amount",
+          "adjust_ok": "Ypoints updated",
+          "adjust_ok_desc": "Delta {delta} · new balance {balance}",
+          "adjust_failed": "Could not adjust Ypoints",
+          "search_failed": "Player search failed",
+          "load_failed": "Could not load finance data",
+          "loading": "Loading…",
+          "refresh": "Refresh",
+          "status": "Status",
+          "status_all": "All",
+          "toman": "Toman",
+          "col_player": "Player",
+          "col_product": "Product",
+          "col_amount": "Amount",
+          "col_status": "Status",
+          "col_when": "When",
+          "col_server": "Server",
+          "col_expires": "Expires",
+          "col_granted": "Granted"
         }
       },
       "language": {
@@ -5150,7 +5197,8 @@
         "manage_league": "Manage League",
         "stream_deck": "Stream Deck",
         "manage_events": "Manage Events",
-        "awards": "Awards"
+        "awards": "Awards",
+        "finance": "Finance"
       },
       "system": {
         "title": "System",
@@ -5203,7 +5251,8 @@
         "utility_drift": "Utility Lineup Drift",
         "utility": "Utility Lineups",
         "teamspeak": "TeamSpeak",
-        "store": "Store"
+        "store": "Store",
+        "finance": "Finance — payments, VIP, Ypoints"
       },
       "logout_dialog": {
         "title": "Logout",
