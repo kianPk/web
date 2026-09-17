@@ -11,9 +11,9 @@ export type YpointCosts = {
 
 const balance = ref<number | null>(null);
 const costs = ref<YpointCosts>({
-  duel: 5,
-  wingman: 8,
-  draft_create: 10,
+  duel: 8,
+  wingman: 0,
+  draft_create: 15,
   draft_join: 10,
 });
 const loading = ref(false);

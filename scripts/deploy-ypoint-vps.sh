@@ -33,9 +33,9 @@ ALTER TABLE public.store_products
   CHECK (ypoint_amount IS NULL OR ypoint_amount > 0);
 
 INSERT INTO public.settings (name, value) VALUES
-  ('public.ypoint_cost_duel', '5'),
-  ('public.ypoint_cost_wingman', '8'),
-  ('public.ypoint_cost_draft_create', '10'),
+  ('public.ypoint_cost_duel', '8'),
+  ('public.ypoint_cost_wingman', '0'),
+  ('public.ypoint_cost_draft_create', '15'),
   ('public.ypoint_cost_draft_join', '10')
 ON CONFLICT (name) DO NOTHING;
 
