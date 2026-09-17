@@ -2702,7 +2702,10 @@
           "active": "Active",
           "inactive": "Inactive",
           "delete_title": "Delete product?",
-          "delete_body": "Remove \"{title}\" from the store catalog.",
+          "delete_body": "Remove \"{title}\" from the store catalog. If it already has orders, it will be deactivated instead so order history stays intact.",
+          "deleted": "Product deleted",
+          "archived_title": "Product deactivated",
+          "archived_body": "This product has past orders, so it was hidden from the store instead of deleted.",
           "errors": {
             "required": "Title and slug are required."
           },
