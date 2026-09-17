@@ -2695,7 +2695,7 @@
         "store": {
           "title": "Store",
           "section": "Products",
-          "description": "Add products that appear on the public Store page. Enter prices in Tomans (shown to buyers). Payment still settles in Rials.",
+          "description": "Add store products. Enter prices in Tomans. Bale invoices show Rials (Toman × 10).",
           "add": "Add product",
           "edit": "Edit product",
           "empty": "No products yet. Add your first product.",
@@ -5006,7 +5006,8 @@
       "checkout_hint": "Open the Bale link and complete payment in the bot.",
       "checkout_failed": "Checkout failed",
       "price": "{amount} Toman",
-      "vip_badge": "VIP {duration}"
+      "vip_badge": "VIP {duration}",
+      "bale_rial_note": "Note: Bale invoices are in Rials — e.g. 100,000 Toman = 1,000,000 Rials."
     }
   },
   "ypoint": {

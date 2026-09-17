@@ -85,45 +85,27 @@ async function buy(product: Product) {
   }
   buyingId.value = product.id;
   try {
-    const orderId = crypto.randomUUID();
-    const payload = `store:${orderId}`;
-    await apollo.mutate({
-      mutation: gql`
-        mutation CreateStoreOrder(
-          $id: uuid!
-          $productId: uuid!
-          $buyerSteamId: bigint!
-          $amountIrr: Int!
-          $payload: String!
-        ) {
-          insert_store_orders_one(
-            object: {
-              id: $id
-              product_id: $productId
-              buyer_steam_id: $buyerSteamId
-              amount_irr: $amountIrr
-              bale_payload: $payload
-            }
-          ) {
-            id
-          }
-        }
-      `,
-      variables: {
-        id: orderId,
-        productId: product.id,
-        buyerSteamId: steamId,
-        amountIrr: product.price_irr,
-        payload,
-      },
+    // Price is taken from DB on the API — never from a stale client cache.
+    const checkout = await $fetch<{
+      orderId: string;
+      deepLink: string;
+      botUsername: string | null;
+      startParam: string;
+    }>("/api/store/checkout", {
+      method: "POST",
+      body: { productId: product.id },
+      credentials: "include",
     });
 
-    const status = await $fetch<{ botUsername: string | null }>(
-      "/api/store/status",
-    );
-    const start = `pay_${orderId.replace(/-/g, "")}`;
-    const username = (status.botUsername || "yguardbot").replace(/^@/, "");
-    const deepLink = `https://ble.ir/${username}?start=${start}`;
+    const deepLink =
+      checkout.deepLink ||
+      (() => {
+        const username = (checkout.botUsername || "yguardbot").replace(
+          /^@/,
+          "",
+        );
+        return `https://ble.ir/${username}?start=${checkout.startParam}`;
+      })();
 
     toast({
       title: t("pages.store.checkout_started"),
@@ -160,6 +142,10 @@ onMounted(() => {
       <template #title>{{ $t("pages.store.title") }}</template>
       <template #subtitle>{{ $t("pages.store.description") }}</template>
     </TacticalPageHeader>
+
+    <p class="m-0 text-xs text-muted-foreground">
+      {{ $t("pages.store.bale_rial_note") }}
+    </p>
 
     <div
       v-if="ypointBalance !== null"
