@@ -397,10 +397,10 @@ function releaseSwapHeight(el: Element): void {
                   class="relative z-[1] flex-1 min-w-0 flex flex-col gap-[0.4rem]"
                 >
                   <div
-                    v-if="ypointCost(type.value) > 0"
+                    v-if="ypointCostFor(type.value) > 0"
                     class="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
                   >
-                    {{ ypointCost(type.value) }} YP
+                    {{ ypointCostFor(type.value) }} YP
                   </div>
                   <div
                     class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[hsl(var(--tac-amber))]"
@@ -621,7 +621,7 @@ export default {
         });
         return;
       }
-      const cost = this.ypointCost(matchType);
+      const cost = this.ypointCostFor(matchType);
       if (cost > 0 && !this.canAffordYpoints(cost)) {
         toast({
           title: this.$t("ypoint.insufficient") as string,
@@ -632,8 +632,12 @@ export default {
       }
       this.joinMatchmaking(matchType);
     },
-    ypointCost(matchType: e_match_types_enum): number {
-      return useYpoints().costForMatchType(matchType);
+    ypointCostFor(matchType: e_match_types_enum): number {
+      if (matchType === e_match_types_enum.Duel) return this.ypointCosts.duel;
+      if (matchType === e_match_types_enum.Wingman) {
+        return this.ypointCosts.wingman;
+      }
+      return 0;
     },
     canAffordYpoints(amount: number): boolean {
       return useYpoints().canAfford(amount);
@@ -650,7 +654,14 @@ export default {
       socket.event("matchmaking:leave");
     },
   },
+  mounted() {
+    void useYpoints().refresh();
+  },
   computed: {
+    ypointCosts() {
+      // Read .value so Vue tracks the shared costs ref.
+      return useYpoints().costs.value;
+    },
     showSeparators() {
       return useApplicationSettingsStore().showSeparators;
     },
