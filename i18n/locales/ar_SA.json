@@ -2711,6 +2711,7 @@
             "slug": "Slug",
             "description": "Description",
             "price_irr": "Price (IRR)",
+            "ypoint_amount": "Ypoints credited",
             "sort_order": "Sort order",
             "image_url": "Image URL",
             "active": "Active"
@@ -4998,6 +4999,12 @@
       "checkout_hint": "Open the Bale link and complete payment in the bot.",
       "checkout_failed": "Checkout failed"
     }
+  },
+  "ypoint": {
+    "balance_label": "Ypoints",
+    "balance_title": "Your Ypoint balance — open Store to top up",
+    "insufficient": "Not enough Ypoints",
+    "need_buy": "You need {amount} YP. Buy a pack from the Store."
   },
   "custom_match": {
     "description": "أنشئ مباراتك الخاصة بقواعد وخرائط وتشكيلات مخصصة"
