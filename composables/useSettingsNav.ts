@@ -87,6 +87,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             labelKey: "pages.settings.application.highlights.title",
             order: 4,
           },
+          {
+            path: "/settings/application/store",
+            labelKey: "pages.settings.application.store.title",
+            order: 5,
+          },
         ],
       },
       {

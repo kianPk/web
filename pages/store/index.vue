@@ -1,0 +1,183 @@
+<script setup lang="ts">
+import gql from "graphql-tag";
+import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useApolloClient } from "@vue/apollo-composable";
+import { ShoppingBag } from "lucide-vue-next";
+import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
+import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
+import Empty from "~/components/ui/empty/Empty.vue";
+import { toast } from "~/components/ui/toast";
+
+const { t } = useI18n();
+const { client: apollo } = useApolloClient();
+
+type Product = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  price_irr: number;
+  image_url: string | null;
+};
+
+const products = ref<Product[]>([]);
+const loading = ref(true);
+const buyingId = ref<string | null>(null);
+
+const PRODUCTS_QUERY = gql`
+  query StoreProducts {
+    store_products(
+      where: { active: { _eq: true } }
+      order_by: [{ sort_order: asc }, { created_at: desc }]
+    ) {
+      id
+      title
+      slug
+      description
+      price_irr
+      image_url
+    }
+  }
+`;
+
+async function refresh() {
+  loading.value = true;
+  try {
+    const { data } = await apollo.query({
+      query: PRODUCTS_QUERY,
+      fetchPolicy: "network-only",
+    });
+    products.value = data?.store_products ?? [];
+  } catch (error) {
+    console.error(error);
+    products.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+function formatPrice(irr: number) {
+  return `${Number(irr).toLocaleString("en-US")} IRR`;
+}
+
+async function buy(product: Product) {
+  if (buyingId.value) return;
+  buyingId.value = product.id;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain;
+    const result = await $fetch<{
+      orderId: string;
+      deepLink: string;
+      productTitle: string;
+    }>(`https://${apiDomain}/store/checkout`, {
+      method: "POST",
+      credentials: "include",
+      body: { productId: product.id },
+    });
+
+    toast({
+      title: t("pages.store.checkout_started"),
+      description: t("pages.store.checkout_hint"),
+    });
+
+    if (result.deepLink) {
+      window.open(result.deepLink, "_blank", "noopener,noreferrer");
+    }
+  } catch (error: any) {
+    const message =
+      error?.data?.message ||
+      error?.statusMessage ||
+      error?.message ||
+      String(error);
+    toast({
+      variant: "destructive",
+      title: t("pages.store.checkout_failed"),
+      description: message,
+    });
+  } finally {
+    buyingId.value = null;
+  }
+}
+
+onMounted(() => {
+  void refresh();
+});
+</script>
+
+<template>
+  <div class="space-y-6">
+    <TacticalPageHeader>
+      <template #title>{{ $t("pages.store.title") }}</template>
+      <template #subtitle>{{ $t("pages.store.description") }}</template>
+    </TacticalPageHeader>
+
+    <PageTransition>
+      <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Skeleton v-for="i in 6" :key="i" class="h-64 rounded-lg" />
+      </div>
+
+      <Empty v-else-if="products.length === 0">
+        <h2 class="m-0 text-lg font-semibold">{{ $t("pages.store.empty_title") }}</h2>
+        <p class="m-0 text-sm text-muted-foreground">
+          {{ $t("pages.store.empty_body") }}
+        </p>
+      </Empty>
+
+      <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <article
+          v-for="product in products"
+          :key="product.id"
+          class="flex flex-col overflow-hidden rounded-lg border border-border bg-card/40"
+        >
+          <div class="aspect-[16/10] bg-muted">
+            <img
+              v-if="product.image_url"
+              :src="product.image_url"
+              :alt="product.title"
+              class="h-full w-full object-cover"
+            />
+            <div
+              v-else
+              class="flex h-full w-full items-center justify-center text-muted-foreground"
+            >
+              <ShoppingBag class="h-10 w-10 opacity-40" />
+            </div>
+          </div>
+          <div class="flex flex-1 flex-col gap-3 p-4">
+            <div>
+              <h2 class="m-0 font-sans text-base font-semibold">
+                {{ product.title }}
+              </h2>
+              <p
+                v-if="product.description"
+                class="mt-1 line-clamp-3 text-sm text-muted-foreground"
+              >
+                {{ product.description }}
+              </p>
+            </div>
+            <div class="mt-auto flex items-center justify-between gap-3">
+              <span class="font-mono text-sm font-semibold tabular-nums">
+                {{ formatPrice(product.price_irr) }}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                :disabled="buyingId === product.id"
+                @click="buy(product)"
+              >
+                {{
+                  buyingId === product.id
+                    ? $t("pages.store.buying")
+                    : $t("pages.store.buy")
+                }}
+              </Button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </PageTransition>
+  </div>
+</template>

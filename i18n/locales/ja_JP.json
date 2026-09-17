@@ -2691,6 +2691,38 @@
               "description": "チームが必須のトーナメントチェックインを逃しました。参加時にのみ判定されるため、進行中のブラケットにいるプレイヤーはその場所を保持します。"
             }
           }
+        },
+        "store": {
+          "title": "Store",
+          "section": "Products",
+          "description": "Add products that appear on the public Store page. Prices are in Iranian Rials (IRR).",
+          "add": "Add product",
+          "edit": "Edit product",
+          "empty": "No products yet. Add your first product.",
+          "active": "Active",
+          "inactive": "Inactive",
+          "delete_title": "Delete product?",
+          "delete_body": "Remove \"{title}\" from the store catalog.",
+          "errors": {
+            "required": "Title and slug are required."
+          },
+          "fields": {
+            "title": "Title",
+            "slug": "Slug",
+            "description": "Description",
+            "price_irr": "Price (IRR)",
+            "sort_order": "Sort order",
+            "image_url": "Image URL",
+            "active": "Active"
+          },
+          "bale": {
+            "title": "Bale Pay",
+            "description": "Server env: BALE_BOT_TOKEN, BALE_PROVIDER_TOKEN, optional BALE_BOT_USERNAME and BALE_WEBHOOK_SECRET.",
+            "unknown": "Could not reach the API for Bale status.",
+            "ready": "Bale Pay configured (bot: {bot}).",
+            "missing": "Bale Pay not configured yet — set BALE_BOT_TOKEN and BALE_PROVIDER_TOKEN on the API.",
+            "webhook": "Webhook URL: {url}"
+          }
         }
       },
       "language": {
@@ -4954,6 +4986,17 @@
         "public_note": "公開には審査が必要です。行メニューの「審査に送信」を使ってください。",
         "geometry_note": "立ち位置・エイム・飛距離は編集できません。投げそのものを変えるにはフォークしてください。"
       }
+    },
+    "store": {
+      "title": "Store",
+      "description": "Browse products and pay with Bale Pay.",
+      "empty_title": "No products yet",
+      "empty_body": "Check back soon — the shop is being stocked.",
+      "buy": "Buy",
+      "buying": "Opening Bale…",
+      "checkout_started": "Continue in Bale",
+      "checkout_hint": "Open the Bale link and complete payment in the bot.",
+      "checkout_failed": "Checkout failed"
     }
   },
   "custom_match": {
@@ -5042,7 +5085,8 @@
         "leagues": "リーグ",
         "events": "イベント",
         "utility": "ユーティリティ",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "community": {
         "title": "コミュニティ"
@@ -5117,7 +5161,8 @@
         "system_media_server": "メディアサーバー",
         "utility_drift": "ユーティリティラインナップのずれ",
         "utility": "ユーティリティラインナップ",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "logout_dialog": {
         "title": "ログアウト",

@@ -2691,6 +2691,38 @@
               "description": "Un team ha saltato un check-in obbligatorio del torneo. Viene verificato solo all'ingresso, quindi un giocatore già in un bracket in corso mantiene il suo posto."
             }
           }
+        },
+        "store": {
+          "title": "Store",
+          "section": "Products",
+          "description": "Add products that appear on the public Store page. Prices are in Iranian Rials (IRR).",
+          "add": "Add product",
+          "edit": "Edit product",
+          "empty": "No products yet. Add your first product.",
+          "active": "Active",
+          "inactive": "Inactive",
+          "delete_title": "Delete product?",
+          "delete_body": "Remove \"{title}\" from the store catalog.",
+          "errors": {
+            "required": "Title and slug are required."
+          },
+          "fields": {
+            "title": "Title",
+            "slug": "Slug",
+            "description": "Description",
+            "price_irr": "Price (IRR)",
+            "sort_order": "Sort order",
+            "image_url": "Image URL",
+            "active": "Active"
+          },
+          "bale": {
+            "title": "Bale Pay",
+            "description": "Server env: BALE_BOT_TOKEN, BALE_PROVIDER_TOKEN, optional BALE_BOT_USERNAME and BALE_WEBHOOK_SECRET.",
+            "unknown": "Could not reach the API for Bale status.",
+            "ready": "Bale Pay configured (bot: {bot}).",
+            "missing": "Bale Pay not configured yet — set BALE_BOT_TOKEN and BALE_PROVIDER_TOKEN on the API.",
+            "webhook": "Webhook URL: {url}"
+          }
         }
       },
       "language": {
@@ -4954,6 +4986,17 @@
         "public_note": "Renderlo pubblico passa da una revisione: usa «Invia in revisione» dal menu della riga.",
         "geometry_note": "Dove ti posizioni, dove miri e quanto vola non si possono modificare. Duplicalo per cambiare il lancio stesso."
       }
+    },
+    "store": {
+      "title": "Store",
+      "description": "Browse products and pay with Bale Pay.",
+      "empty_title": "No products yet",
+      "empty_body": "Check back soon — the shop is being stocked.",
+      "buy": "Buy",
+      "buying": "Opening Bale…",
+      "checkout_started": "Continue in Bale",
+      "checkout_hint": "Open the Bale link and complete payment in the bot.",
+      "checkout_failed": "Checkout failed"
     }
   },
   "custom_match": {
@@ -5042,7 +5085,8 @@
         "leagues": "Lega",
         "events": "Eventi",
         "utility": "Utility",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "community": {
         "title": "Community"
@@ -5117,7 +5161,8 @@
         "system_media_server": "Server multimediale",
         "utility_drift": "Deriva dei lineup di utility",
         "utility": "Lineup di utility",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "logout_dialog": {
         "title": "Esci",

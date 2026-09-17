@@ -27,6 +27,7 @@ import {
   Leaf,
   Medal,
   CalendarRange,
+  ShoppingBag,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -471,6 +472,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Newspaper />
                   {{ newsLabel || $t("layouts.app_nav.navigation.news") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.store')"
+              >
+                <NuxtLink
+                  :to="{ name: 'store' }"
+                  :class="{
+                    'router-link-active': isRouteActive('store'),
+                  }"
+                >
+                  <ShoppingBag />
+                  {{ $t("layouts.app_nav.navigation.store") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

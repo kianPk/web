@@ -2691,6 +2691,38 @@
               "description": "팀이 필수 토너먼트 체크인을 놓쳤습니다. 진입할 때만 확인하므로 이미 진행 중인 대진표에 있는 플레이어는 자리를 유지합니다."
             }
           }
+        },
+        "store": {
+          "title": "Store",
+          "section": "Products",
+          "description": "Add products that appear on the public Store page. Prices are in Iranian Rials (IRR).",
+          "add": "Add product",
+          "edit": "Edit product",
+          "empty": "No products yet. Add your first product.",
+          "active": "Active",
+          "inactive": "Inactive",
+          "delete_title": "Delete product?",
+          "delete_body": "Remove \"{title}\" from the store catalog.",
+          "errors": {
+            "required": "Title and slug are required."
+          },
+          "fields": {
+            "title": "Title",
+            "slug": "Slug",
+            "description": "Description",
+            "price_irr": "Price (IRR)",
+            "sort_order": "Sort order",
+            "image_url": "Image URL",
+            "active": "Active"
+          },
+          "bale": {
+            "title": "Bale Pay",
+            "description": "Server env: BALE_BOT_TOKEN, BALE_PROVIDER_TOKEN, optional BALE_BOT_USERNAME and BALE_WEBHOOK_SECRET.",
+            "unknown": "Could not reach the API for Bale status.",
+            "ready": "Bale Pay configured (bot: {bot}).",
+            "missing": "Bale Pay not configured yet — set BALE_BOT_TOKEN and BALE_PROVIDER_TOKEN on the API.",
+            "webhook": "Webhook URL: {url}"
+          }
         }
       },
       "language": {
@@ -4954,6 +4986,17 @@
         "public_note": "공개하려면 검토를 거쳐야 합니다. 행 메뉴의 \"검토 요청\"을 사용하세요.",
         "geometry_note": "서는 위치, 조준, 비행 거리는 편집할 수 없습니다. 투척 자체를 바꾸려면 포크하세요."
       }
+    },
+    "store": {
+      "title": "Store",
+      "description": "Browse products and pay with Bale Pay.",
+      "empty_title": "No products yet",
+      "empty_body": "Check back soon — the shop is being stocked.",
+      "buy": "Buy",
+      "buying": "Opening Bale…",
+      "checkout_started": "Continue in Bale",
+      "checkout_hint": "Open the Bale link and complete payment in the bot.",
+      "checkout_failed": "Checkout failed"
     }
   },
   "custom_match": {
@@ -5042,7 +5085,8 @@
         "leagues": "리그",
         "events": "이벤트",
         "utility": "유틸리티",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "community": {
         "title": "커뮤니티"
@@ -5117,7 +5161,8 @@
         "system_media_server": "미디어 서버",
         "utility_drift": "유틸리티 라인업 변동",
         "utility": "유틸리티 라인업",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "logout_dialog": {
         "title": "로그아웃",

@@ -2691,6 +2691,38 @@
               "description": "یک تیم بررسی مسابقات لازم را از دست داد. فقط در راه بررسی شد، بنابراین بازیکنی که از قبل در یک براکت در حال دویدن است جای خود را حفظ می کند."
             }
           }
+        },
+        "store": {
+          "title": "فروشگاه",
+          "section": "محصولات",
+          "description": "محصولاتی که در صفحه Store نمایش داده می‌شوند. قیمت به ریال (IRR) است.",
+          "add": "افزودن محصول",
+          "edit": "ویرایش محصول",
+          "empty": "هنوز محصولی نیست. اولین محصول را اضافه کنید.",
+          "active": "فعال",
+          "inactive": "غیرفعال",
+          "delete_title": "حذف محصول؟",
+          "delete_body": "«{title}» از کاتالوگ حذف شود.",
+          "errors": {
+            "required": "عنوان و اسلاگ الزامی است."
+          },
+          "fields": {
+            "title": "عنوان",
+            "slug": "اسلاگ",
+            "description": "توضیحات",
+            "price_irr": "قیمت (ریال)",
+            "sort_order": "ترتیب",
+            "image_url": "آدرس تصویر",
+            "active": "فعال"
+          },
+          "bale": {
+            "title": "بله‌پی",
+            "description": "متغیرهای سرور: BALE_BOT_TOKEN، BALE_PROVIDER_TOKEN و اختیاری BALE_BOT_USERNAME و BALE_WEBHOOK_SECRET.",
+            "unknown": "وضعیت بله از API دریافت نشد.",
+            "ready": "بله‌پی پیکربندی شده (بازو: {bot}).",
+            "missing": "بله‌پی هنوز پیکربندی نشده — توکن‌ها را روی API ست کنید.",
+            "webhook": "آدرس وب‌هوک: {url}"
+          }
         }
       },
       "language": {
@@ -4954,6 +4986,17 @@
         "public_note": "عمومی کردن نیاز به بازبینی دارد — از منوی ردیف «ارسال برای بازبینی» را بزنید.",
         "geometry_note": "جایی که می‌ایستید، کجا نشانه می‌گیرید و چقدر می‌پرد قابل ویرایش نیست. برای تغییر خود پرتاب آن را fork کنید."
       }
+    },
+    "store": {
+      "title": "فروشگاه",
+      "description": "محصولات را ببینید و با بله‌پی پرداخت کنید.",
+      "empty_title": "هنوز محصولی نیست",
+      "empty_body": "به‌زودی محصولات اضافه می‌شوند.",
+      "buy": "خرید",
+      "buying": "در حال باز کردن بله…",
+      "checkout_started": "ادامه در بله",
+      "checkout_hint": "لینک بله را باز کنید و پرداخت را در بازو کامل کنید.",
+      "checkout_failed": "خرید ناموفق بود"
     }
   },
   "custom_match": {
@@ -5042,7 +5085,8 @@
         "leagues": "لیگ",
         "events": "رویدادها",
         "utility": "سودمند",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "فروشگاه"
       },
       "community": {
         "title": "جامعه"
@@ -5117,7 +5161,8 @@
         "system_media_server": "سرور مدیا",
         "utility_drift": "انحراف ترکیب سودمند",
         "utility": "ترکیب‌های سودمند",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "فروشگاه"
       },
       "logout_dialog": {
         "title": "خروج",

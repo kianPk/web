@@ -2691,6 +2691,38 @@
               "description": "队伍错过了赛事的必需签到。仅在进入时检查，因此已经在进行中的对阵表里的玩家会保留位置。"
             }
           }
+        },
+        "store": {
+          "title": "Store",
+          "section": "Products",
+          "description": "Add products that appear on the public Store page. Prices are in Iranian Rials (IRR).",
+          "add": "Add product",
+          "edit": "Edit product",
+          "empty": "No products yet. Add your first product.",
+          "active": "Active",
+          "inactive": "Inactive",
+          "delete_title": "Delete product?",
+          "delete_body": "Remove \"{title}\" from the store catalog.",
+          "errors": {
+            "required": "Title and slug are required."
+          },
+          "fields": {
+            "title": "Title",
+            "slug": "Slug",
+            "description": "Description",
+            "price_irr": "Price (IRR)",
+            "sort_order": "Sort order",
+            "image_url": "Image URL",
+            "active": "Active"
+          },
+          "bale": {
+            "title": "Bale Pay",
+            "description": "Server env: BALE_BOT_TOKEN, BALE_PROVIDER_TOKEN, optional BALE_BOT_USERNAME and BALE_WEBHOOK_SECRET.",
+            "unknown": "Could not reach the API for Bale status.",
+            "ready": "Bale Pay configured (bot: {bot}).",
+            "missing": "Bale Pay not configured yet — set BALE_BOT_TOKEN and BALE_PROVIDER_TOKEN on the API.",
+            "webhook": "Webhook URL: {url}"
+          }
         }
       },
       "language": {
@@ -4954,6 +4986,17 @@
         "public_note": "设为公开需要经过审核——请使用行菜单里的「提交审核」。",
         "geometry_note": "站位、瞄准和飞行距离无法编辑。要改动投掷本身，请复刻这个点位。"
       }
+    },
+    "store": {
+      "title": "Store",
+      "description": "Browse products and pay with Bale Pay.",
+      "empty_title": "No products yet",
+      "empty_body": "Check back soon — the shop is being stocked.",
+      "buy": "Buy",
+      "buying": "Opening Bale…",
+      "checkout_started": "Continue in Bale",
+      "checkout_hint": "Open the Bale link and complete payment in the bot.",
+      "checkout_failed": "Checkout failed"
     }
   },
   "custom_match": {
@@ -5042,7 +5085,8 @@
         "leagues": "联赛",
         "events": "活动",
         "utility": "道具",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "community": {
         "title": "社区"
@@ -5117,7 +5161,8 @@
         "system_media_server": "媒体服务器",
         "utility_drift": "道具点位偏移",
         "utility": "道具点位",
-        "teamspeak": "TeamSpeak"
+        "teamspeak": "TeamSpeak",
+        "store": "Store"
       },
       "logout_dialog": {
         "title": "登出",
