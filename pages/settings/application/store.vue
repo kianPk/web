@@ -226,13 +226,45 @@ async function remove(product: Product) {
       mutation: DELETE,
       variables: { id: product.id },
     });
-    toast({ title: t("pages.settings.application.update_success") });
+    toast({ title: t("pages.settings.application.store.deleted") });
     await refresh();
   } catch (error: any) {
+    const message =
+      error?.graphQLErrors?.[0]?.message ||
+      error?.message ||
+      String(error);
+    // Orders keep a FK to the product — archive instead of hard-delete.
+    if (/foreign key|store_orders_product_id/i.test(message)) {
+      try {
+        await apollo.mutate({
+          mutation: UPDATE,
+          variables: {
+            id: product.id,
+            set: {
+              active: false,
+              updated_at: new Date().toISOString(),
+            },
+          },
+        });
+        toast({
+          title: t("pages.settings.application.store.archived_title"),
+          description: t("pages.settings.application.store.archived_body"),
+        });
+        await refresh();
+        return;
+      } catch (archiveError: any) {
+        toast({
+          variant: "destructive",
+          title: t("common.error"),
+          description: archiveError?.message || String(archiveError),
+        });
+        return;
+      }
+    }
     toast({
       variant: "destructive",
       title: t("common.error"),
-      description: error?.message || String(error),
+      description: message,
     });
   }
 }
