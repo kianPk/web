@@ -2794,7 +2794,11 @@
           "col_when": "When",
           "col_server": "Server",
           "col_expires": "Expires",
-          "col_granted": "Granted"
+          "col_granted": "Granted",
+          "balances_title": "Player balances",
+          "balances_description": "Players with Ypoints, highest first. Click a row to adjust.",
+          "balances_empty": "No players with a Ypoint balance yet.",
+          "col_balance": "Balance"
         }
       },
       "language": {
@@ -7187,7 +7191,8 @@
       "side_on_map": "{team} · primeiro tempo em {map}",
       "side_for_map": "O lado vale para este mapa",
       "side_role_ct": "Defender",
-      "side_role_t": "Atacar"
+      "side_role_t": "Atacar",
+      "empty_pool": "Nenhum mapa neste pool. Um admin precisa configurar Map Pools nas configuracoes."
     },
     "map_lineup": {
       "picked": "Escolhido"

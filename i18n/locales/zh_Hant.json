@@ -2794,7 +2794,11 @@
           "col_when": "When",
           "col_server": "Server",
           "col_expires": "Expires",
-          "col_granted": "Granted"
+          "col_granted": "Granted",
+          "balances_title": "Player balances",
+          "balances_description": "Players with Ypoints, highest first. Click a row to adjust.",
+          "balances_empty": "No players with a Ypoint balance yet.",
+          "col_balance": "Balance"
         }
       },
       "language": {
@@ -7187,7 +7191,8 @@
       "side_on_map": "{team} · {map} 上半場",
       "side_for_map": "該陣營選擇適用於這張地圖",
       "side_role_ct": "防守",
-      "side_role_t": "進攻"
+      "side_role_t": "進攻",
+      "empty_pool": "此比賽地圖池為空。管理員需在設定中配置 Map Pools。"
     },
     "map_lineup": {
       "picked": "已選"

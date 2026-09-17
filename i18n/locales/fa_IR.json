@@ -2794,7 +2794,11 @@
           "col_when": "زمان",
           "col_server": "سرور",
           "col_expires": "انقضا",
-          "col_granted": "اعطا"
+          "col_granted": "اعطا",
+          "balances_title": "موجودی بازیکنان",
+          "balances_description": "بازیکنانی که Ypoint دارند، از بیشترین به کمترین. روی ردیف بزن تا تنظیم کنی.",
+          "balances_empty": "هنوز کسی موجودی Ypoint ندارد.",
+          "col_balance": "موجودی"
         }
       },
       "language": {
@@ -7187,7 +7191,8 @@
       "side_on_map": "{team} · نیمه اول روی {map}",
       "side_for_map": "سمت برای این مپ است",
       "side_role_ct": "دفاع",
-      "side_role_t": "حمله"
+      "side_role_t": "حمله",
+      "empty_pool": "هیچ مپی در پول این مچ نیست. ادمین باید Map Pools را در تنظیمات درست کند."
     },
     "map_lineup": {
       "picked": "انتخاب شد"

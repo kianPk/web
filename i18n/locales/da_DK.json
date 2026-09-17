@@ -2794,7 +2794,11 @@
           "col_when": "When",
           "col_server": "Server",
           "col_expires": "Expires",
-          "col_granted": "Granted"
+          "col_granted": "Granted",
+          "balances_title": "Player balances",
+          "balances_description": "Players with Ypoints, highest first. Click a row to adjust.",
+          "balances_empty": "No players with a Ypoint balance yet.",
+          "col_balance": "Balance"
         }
       },
       "language": {
@@ -7187,7 +7191,8 @@
       "side_on_map": "{team} · første halvleg på {map}",
       "side_for_map": "Siden gælder denne bane",
       "side_role_ct": "Forsvar",
-      "side_role_t": "Angrib"
+      "side_role_t": "Angrib",
+      "empty_pool": "Ingen maps i denne match-pool. En admin skal indstille Map Pools under indstillinger."
     },
     "map_lineup": {
       "picked": "Picket"

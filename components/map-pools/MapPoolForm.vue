@@ -71,7 +71,8 @@ import { FormSection } from "~/components/ui/form";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { z } from "zod";
-import { generateMutation } from "~/graphql/graphqlGen";
+import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
+import { order_by } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 
 interface Map {
@@ -207,10 +208,188 @@ export default {
           title: this.$t("pages.map_pool.save_success"),
         });
 
+        // Keep Trios ranked pool in step with Competitive settings (same
+        // map names, separate map rows).
+        if (this.pool.type === "Competitive") {
+          await this.syncTriosPoolFromCompetitive();
+        }
+
         this.takeSnapshot();
       } finally {
         this.submitLock = false;
         this.submitting = false;
+      }
+    },
+    async syncTriosPoolFromCompetitive() {
+      try {
+        const selectedIds = this.form.values.map_pool || [];
+        if (!selectedIds.length) return;
+
+        const { data: compData } = await this.$apollo.query({
+          query: generateQuery({
+            maps: [
+              { where: { id: { _in: selectedIds } } },
+              {
+                id: true,
+                name: true,
+                label: true,
+                poster: true,
+                patch: true,
+                workshop_map_id: true,
+                active_pool: true,
+              },
+            ],
+          }),
+          fetchPolicy: "network-only",
+        });
+
+        const compMaps = (compData?.maps || []) as Array<{
+          id: string;
+          name: string;
+          label?: string | null;
+          poster?: string | null;
+          patch?: string | null;
+          workshop_map_id?: string | null;
+          active_pool?: boolean | null;
+        }>;
+        if (!compMaps.length) return;
+
+        const compNames = compMaps.map((m) => m.name);
+
+        const { data: triosData } = await this.$apollo.query({
+          query: generateQuery({
+            map_pools: [
+              {
+                where: {
+                  type: { _eq: "Trios" },
+                  enabled: { _eq: true },
+                },
+                limit: 1,
+                order_by: [{ seed: order_by.desc }],
+              },
+              { id: true },
+            ],
+            maps: [
+              {
+                where: {
+                  type: { _eq: "Trios" },
+                  name: { _in: compNames },
+                  deleted_at: { _is_null: true },
+                },
+              },
+              { id: true, name: true, enabled: true },
+            ],
+          }),
+          fetchPolicy: "network-only",
+        });
+
+        const triosPoolId = triosData?.map_pools?.[0]?.id as string | undefined;
+        if (!triosPoolId) return;
+
+        const existingByName = new Map<
+          string,
+          { id: string; enabled: boolean }
+        >();
+        for (const m of triosData?.maps || []) {
+          existingByName.set(m.name, { id: m.id, enabled: !!m.enabled });
+        }
+
+        const missing = compMaps.filter((m) => !existingByName.has(m.name));
+        if (missing.length) {
+          const { data: inserted } = await this.$apollo.mutate({
+            mutation: generateMutation({
+              insert_maps: [
+                {
+                  objects: missing.map((m) => ({
+                    name: m.name,
+                    type: "Trios",
+                    label: m.label,
+                    poster: m.poster,
+                    patch: m.patch,
+                    workshop_map_id: m.workshop_map_id,
+                    active_pool: m.active_pool ?? false,
+                    enabled: true,
+                  })),
+                  on_conflict: {
+                    constraint: "maps_name_type_key",
+                    update_columns: [
+                      "label",
+                      "poster",
+                      "patch",
+                      "workshop_map_id",
+                      "active_pool",
+                      "enabled",
+                    ],
+                  },
+                },
+                { returning: { id: true, name: true } },
+              ],
+            }),
+          });
+          for (const m of inserted?.insert_maps?.returning || []) {
+            existingByName.set(m.name, { id: m.id, enabled: true });
+          }
+        }
+
+        // Re-enable any soft-disabled Trios twins that Competitive still uses.
+        const disabledIds = [...existingByName.values()]
+          .filter((m) => !m.enabled)
+          .map((m) => m.id);
+        if (disabledIds.length) {
+          await this.$apollo.mutate({
+            mutation: generateMutation({
+              update_maps: [
+                {
+                  where: { id: { _in: disabledIds } },
+                  _set: { enabled: true, deleted_at: null },
+                },
+                { affected_rows: true },
+              ],
+            }),
+          });
+        }
+
+        const triosIds = compNames
+          .map((name) => existingByName.get(name)?.id)
+          .filter(Boolean) as string[];
+
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete__map_pool: [
+              {
+                where: {
+                  map_pool_id: { _eq: triosPoolId },
+                  ...(triosIds.length
+                    ? { map_id: { _nin: triosIds } }
+                    : {}),
+                },
+              },
+              { affected_rows: true },
+            ],
+          }),
+        });
+
+        if (triosIds.length) {
+          await this.$apollo.mutate({
+            mutation: generateMutation({
+              insert__map_pool: [
+                {
+                  objects: triosIds.map((mapId: string) => ({
+                    map_pool_id: triosPoolId,
+                    map_id: mapId,
+                  })),
+                  on_conflict: {
+                    constraint: "map_pool_pkey",
+                    update_columns: [],
+                  },
+                },
+                { affected_rows: true },
+              ],
+            }),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to sync Trios map pool from Competitive", error);
       }
     },
   },

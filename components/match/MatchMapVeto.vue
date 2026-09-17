@@ -134,7 +134,14 @@ import {
             </div>
 
             <div v-else key="maps">
+              <p
+                v-if="!mapPool?.length"
+                class="rounded-md border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground"
+              >
+                {{ $t("match.map_veto.empty_pool") }}
+              </p>
               <MapSelector
+                v-else
                 :model-value="form.values.map_id"
                 :map-pool="mapPool"
                 :picks="picks"

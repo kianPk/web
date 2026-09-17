@@ -67,6 +67,8 @@ const selectedPlayer = ref<PlayerHit | null>(null);
 const adjustAmount = ref<number>(10);
 const adjustNote = ref("");
 const adjusting = ref(false);
+const balances = ref<PlayerHit[]>([]);
+const loadingBalances = ref(false);
 
 const ORDERS_QUERY = gql`
   query AdminFinanceOrders($where: store_orders_bool_exp!, $limit: Int!) {
@@ -185,6 +187,28 @@ async function searchPlayers() {
   }
 }
 
+async function loadBalances() {
+  loadingBalances.value = true;
+  try {
+    const data = await $fetch<{ players: PlayerHit[] }>(
+      `https://${apiDomain}/ypoint/admin/balances`,
+      {
+        credentials: "include",
+        query: { limit: 100 },
+      },
+    );
+    balances.value = data.players ?? [];
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: t("pages.settings.application.finance.load_failed"),
+      variant: "destructive",
+    });
+  } finally {
+    loadingBalances.value = false;
+  }
+}
+
 function selectPlayer(p: PlayerHit) {
   selectedPlayer.value = p;
   playerHits.value = [];
@@ -226,6 +250,21 @@ async function applyAdjust(sign: 1 | -1) {
       ...selectedPlayer.value,
       ypoint_balance: data.balance,
     };
+    // Keep the balances table in sync after an adjust.
+    const idx = balances.value.findIndex(
+      (b) => b.steam_id === selectedPlayer.value!.steam_id,
+    );
+    if (idx >= 0) {
+      balances.value[idx] = {
+        ...balances.value[idx],
+        ypoint_balance: data.balance,
+      };
+      balances.value = [...balances.value].sort(
+        (a, b) => b.ypoint_balance - a.ypoint_balance,
+      );
+    } else if (data.balance > 0) {
+      void loadBalances();
+    }
     toast({
       title: t("pages.settings.application.finance.adjust_ok"),
       description: t("pages.settings.application.finance.adjust_ok_desc", {
@@ -273,6 +312,7 @@ watch(statusFilter, () => {
 watch(tab, (next) => {
   if (next === "payments" && !orders.value.length) void loadOrders();
   if (next === "subscriptions" && !vipGrants.value.length) void loadVip();
+  if (next === "adjust") void loadBalances();
 });
 
 onMounted(() => {
@@ -527,7 +567,8 @@ onMounted(() => {
             $t('pages.settings.application.finance.adjust_description')
           "
         >
-          <div class="max-w-lg space-y-4">
+          <div class="grid gap-6 lg:grid-cols-2">
+            <div class="space-y-4">
             <div class="space-y-2">
               <Label>{{
                 $t("pages.settings.application.finance.search_player")
@@ -629,6 +670,81 @@ onMounted(() => {
                 <Minus class="h-4 w-4" />
                 {{ $t("pages.settings.application.finance.remove") }}
               </Button>
+            </div>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-sm font-medium">
+                  {{ $t("pages.settings.application.finance.balances_title") }}
+                </h3>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  :disabled="loadingBalances"
+                  @click="loadBalances"
+                >
+                  {{ $t("pages.settings.application.finance.refresh") }}
+                </Button>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ $t("pages.settings.application.finance.balances_description") }}
+              </p>
+              <p
+                v-if="loadingBalances"
+                class="text-sm text-muted-foreground"
+              >
+                {{ $t("pages.settings.application.finance.loading") }}
+              </p>
+              <p
+                v-else-if="!balances.length"
+                class="text-sm text-muted-foreground"
+              >
+                {{ $t("pages.settings.application.finance.balances_empty") }}
+              </p>
+              <div
+                v-else
+                class="max-h-[28rem] overflow-auto rounded-md border border-border"
+              >
+                <table class="w-full text-left text-sm">
+                  <thead
+                    class="sticky top-0 border-b border-border bg-muted/80 text-xs uppercase tracking-wide text-muted-foreground backdrop-blur"
+                  >
+                    <tr>
+                      <th class="px-3 py-2 font-medium">
+                        {{ $t("pages.settings.application.finance.col_player") }}
+                      </th>
+                      <th class="px-3 py-2 font-medium text-right">
+                        {{ $t("pages.settings.application.finance.col_balance") }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="p in balances"
+                      :key="p.steam_id"
+                      class="cursor-pointer border-b border-border/60 last:border-0 hover:bg-muted/40"
+                      @click="selectPlayer(p)"
+                    >
+                      <td class="px-3 py-2">
+                        <div class="font-medium">
+                          {{ p.name || p.steam_id }}
+                        </div>
+                        <div
+                          class="font-mono text-[0.65rem] text-muted-foreground"
+                        >
+                          {{ p.steam_id }}
+                        </div>
+                      </td>
+                      <td class="px-3 py-2 text-right">
+                        <Badge variant="secondary"
+                          >{{ p.ypoint_balance }} YP</Badge
+                        >
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </SettingsSection>

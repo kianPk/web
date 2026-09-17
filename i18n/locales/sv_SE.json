@@ -2794,7 +2794,11 @@
           "col_when": "When",
           "col_server": "Server",
           "col_expires": "Expires",
-          "col_granted": "Granted"
+          "col_granted": "Granted",
+          "balances_title": "Player balances",
+          "balances_description": "Players with Ypoints, highest first. Click a row to adjust.",
+          "balances_empty": "No players with a Ypoint balance yet.",
+          "col_balance": "Balance"
         }
       },
       "language": {
@@ -7187,7 +7191,8 @@
       "side_on_map": "{team} · första halvlek på {map}",
       "side_for_map": "Sidan gäller den här kartan",
       "side_role_ct": "Försvara",
-      "side_role_t": "Anfalla"
+      "side_role_t": "Anfalla",
+      "empty_pool": "Inga kartor i denna matchpool. En admin maste stalla in Map Pools i installningarna."
     },
     "map_lineup": {
       "picked": "Vald"

@@ -1,5 +1,6 @@
 import { Selector } from "~/generated/zeus";
 import { mapFields } from "~/graphql/mapGraphql";
+import { order_by } from "~/generated/zeus";
 
 export const matchOptionsFields = Selector("match_options")({
   id: true,
@@ -35,6 +36,11 @@ export const matchOptionsFields = Selector("match_options")({
     e_type: {
       description: true,
     },
-    maps: [{}, mapFields],
+    maps: [
+      {
+        order_by: [{ name: order_by.asc }],
+      },
+      mapFields,
+    ],
   },
 });
