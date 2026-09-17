@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Run on the panel VPS after CI is green for kianpk/web and kianpk/api.
-# Export Bale secrets in your shell first (do not commit them):
+# Bale tokens can also live in settings (bale.bot_token / bale.provider_token /
+# bale.bot_username) — preferred when kubectl env is hard to reach.
+# Optional env override:
 #   export BALE_BOT_TOKEN='...'
 #   export BALE_PROVIDER_TOKEN='...'
 #   export BALE_BOT_USERNAME='yguardbot'
 
 set -euo pipefail
-: "${BALE_BOT_TOKEN:?set BALE_BOT_TOKEN}"
-: "${BALE_PROVIDER_TOKEN:?set BALE_PROVIDER_TOKEN}"
 : "${BALE_BOT_USERNAME:=yguardbot}"
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
@@ -53,23 +53,23 @@ echo "Using postgres pod: $PGPOD"
 kubectl -n 5stack cp "$SQL_FILE" "$PGPOD:/tmp/store_products_orders.sql"
 kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/store_products_orders.sql'
 
-kubectl -n 5stack set env deploy/api \
-  "BALE_BOT_TOKEN=${BALE_BOT_TOKEN}" \
-  "BALE_PROVIDER_TOKEN=${BALE_PROVIDER_TOKEN}" \
-  "BALE_BOT_USERNAME=${BALE_BOT_USERNAME}"
+if [[ -n "${BALE_BOT_TOKEN:-}" && -n "${BALE_PROVIDER_TOKEN:-}" ]]; then
+  kubectl -n 5stack set env deploy/api \
+    "BALE_BOT_TOKEN=${BALE_BOT_TOKEN}" \
+    "BALE_PROVIDER_TOKEN=${BALE_PROVIDER_TOKEN}" \
+    "BALE_BOT_USERNAME=${BALE_BOT_USERNAME}"
+fi
 
 kubectl -n 5stack set image deploy/web web=ghcr.io/kianpk/web:latest
 kubectl -n 5stack set image deploy/api api=ghcr.io/kianpk/api:latest
-kubectl -n 5stack rollout restart deploy/web deploy/api
+kubectl -n 5stack set image deploy/hasura migrations=ghcr.io/kianpk/api:latest
+kubectl -n 5stack rollout restart deploy/web deploy/api deploy/hasura
 kubectl -n 5stack rollout status deploy/web --timeout=5m
 kubectl -n 5stack rollout status deploy/api --timeout=5m
-
-# Reload Hasura metadata so GraphQL sees the new tables (from updated api/hasura on disk if present)
-if [ -d /root/5stack-panel ]; then
-  echo "If your panel tracks hasura metadata from the api repo, apply metadata now."
-fi
+kubectl -n 5stack rollout status deploy/hasura --timeout=5m
 
 kubectl -n 5stack get pods | grep -E 'web|api|hasura' || true
-curl -sS https://api.yguard.ir/store/status || true
+curl -sS https://yguard.ir/api/store/status || true
 echo
+echo "Webhook should be https://yguard.ir/api/store/bale-webhook"
 echo "Done. Smoke: Settings → Store → add product → /store → Buy → Bale."
