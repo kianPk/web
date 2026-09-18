@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,9 +15,18 @@ internal static class AttestCrypto
     public static string Canonical(Dictionary<string, object?> fields)
     {
         static string Flag(object? v) =>
-            v is true || (v is bool b && b) || $"{v}" == "True" ? "1" : "0";
+            v is bool b ? (b ? "1" : "0") : (v is true ? "1" : "0");
 
-        string S(string key) => Convert.ToString(fields.GetValueOrDefault(key)) ?? "";
+        string S(string key)
+        {
+            var v = fields.GetValueOrDefault(key);
+            return v switch
+            {
+                null => "",
+                IFormattable f => f.ToString(null, CultureInfo.InvariantCulture) ?? "",
+                _ => Convert.ToString(v, CultureInfo.InvariantCulture) ?? "",
+            };
+        }
 
         return string.Join(
             "\n",
@@ -66,7 +77,6 @@ internal static class SecureTokenStore
             CryptographicOperations.ZeroMemory(plain);
         }
 
-        // Remove any legacy plaintext sibling.
         var legacy = path + ".txt";
         try { if (File.Exists(legacy)) File.Delete(legacy); } catch { /* ignore */ }
     }
@@ -77,7 +87,6 @@ internal static class SecureTokenStore
         try
         {
             var raw = File.ReadAllBytes(path);
-            // Legacy plaintext (ASCII/UTF8 token) — migrate to DPAPI.
             if (LooksLikePlainToken(raw))
             {
                 var plain = Encoding.UTF8.GetString(raw).Trim();
@@ -114,7 +123,7 @@ internal static class SecureTokenStore
     }
 }
 
-/// <summary>Lightweight anti-tamper / anti-debug gates before attest.</summary>
+/// <summary>Lightweight anti-debug gate before attest.</summary>
 internal static class ClientGuard
 {
     [DllImport("kernel32.dll")]
@@ -128,25 +137,14 @@ internal static class ClientGuard
     {
         try
         {
+            if (Debugger.IsAttached) return true;
             if (IsDebuggerPresent()) return true;
             var remote = false;
             CheckRemoteDebuggerPresent(
                 System.Diagnostics.Process.GetCurrentProcess().Handle, ref remote);
             if (remote) return true;
-            if (System.Diagnostics.Debugger.IsAttached) return true;
         }
-        catch { /* ignore — fail open on API absence */ }
-
-        try
-        {
-            var name = Path.GetFileNameWithoutExtension(Environment.ProcessPath ?? "");
-            if (!string.IsNullOrEmpty(name) &&
-                !name.Equals("YGuardAC", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-        catch { /* ignore */ }
+        catch { /* fail open */ }
 
         return false;
     }

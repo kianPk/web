@@ -749,20 +749,23 @@ internal sealed class MainForm : Form
         }
     }
 
+    private bool _attestInFlight;
+
     private async Task AttestAsync()
     {
         if (string.IsNullOrEmpty(_deviceToken)) return;
+        if (_attestInFlight) return;
+        _attestInFlight = true;
         PaintChecks();
         try
         {
             if (ClientGuard.IsTamperedEnvironment())
             {
                 _connectedOk = false;
-                SetStatus("Security check failed — restart YGuardAC.exe", false);
+                SetStatus("Security check failed — close debugger and retry", false);
                 return;
             }
 
-            // Fresh cheat scan so we can unban once files/security are fixed.
             List<CheatScanner.Hit> hits;
             try { hits = CheatScanner.Scan(); }
             catch { hits = new List<CheatScanner.Hit>(); }
@@ -774,20 +777,34 @@ internal sealed class MainForm : Form
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
 
-            // One-time server challenge — blocks simple token-replay scripts.
-            var challengeRes = await http.PostAsync("/plugins/ac/challenge", null);
+            // Empty JSON body — some proxies reject POST with no entity.
+            using var challengeContent = new StringContent(
+                "{}", Encoding.UTF8, "application/json");
+            var challengeRes = await http.PostAsync("/plugins/ac/challenge", challengeContent);
+            var challengeRaw = await challengeRes.Content.ReadAsStringAsync();
             if (!challengeRes.IsSuccessStatusCode)
             {
                 _connectedOk = false;
-                SetStatus("Connection refused", false);
+                SetStatus(DescribeAcHttpError("challenge", (int)challengeRes.StatusCode, challengeRaw), false);
                 return;
             }
-            using var challengeDoc = JsonDocument.Parse(await challengeRes.Content.ReadAsStringAsync());
-            var challenge = challengeDoc.RootElement.GetProperty("challenge").GetString() ?? "";
+
+            string challenge;
+            try
+            {
+                using var challengeDoc = JsonDocument.Parse(challengeRaw);
+                challenge = challengeDoc.RootElement.GetProperty("challenge").GetString() ?? "";
+            }
+            catch
+            {
+                _connectedOk = false;
+                SetStatus("AC challenge invalid — update API / migrate DB", false);
+                return;
+            }
             if (string.IsNullOrEmpty(challenge))
             {
                 _connectedOk = false;
-                SetStatus("Connection refused", false);
+                SetStatus("AC challenge empty — retry", false);
                 return;
             }
 
@@ -795,7 +812,6 @@ internal sealed class MainForm : Form
             var body = new Dictionary<string, object?>
             {
                 ["secure_boot"] = payload.secure_boot,
-                // IOMMU removed from client UI — always report OK so older API flags don't block.
                 ["iommu"] = true,
                 ["tpm_20"] = payload.tpm_20,
                 ["tpm_attestation"] = payload.tpm_attestation,
@@ -808,13 +824,13 @@ internal sealed class MainForm : Form
                 ["ts"] = ts,
                 ["client_version"] = AutoUpdater.CurrentVersion,
             };
-            body["signature"] = AttestCrypto.Sign(_deviceToken, AttestCrypto.Canonical(body));
+            body["signature"] = AttestCrypto.Sign(_deviceToken!, AttestCrypto.Canonical(body));
 
             var res = await http.PostAsJsonAsync("/plugins/ac/attest", body);
+            var errBody = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode)
             {
                 _connectedOk = false;
-                var errBody = await res.Content.ReadAsStringAsync();
                 if (errBody.Contains("fingerprint", StringComparison.OrdinalIgnoreCase) ||
                     errBody.Contains("pair again", StringComparison.OrdinalIgnoreCase))
                 {
@@ -827,10 +843,20 @@ internal sealed class MainForm : Form
                     SetStatus("Update required — download latest from yguard.ir", false);
                     return;
                 }
-                SetStatus("Connection refused", false);
+                if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetStatus("AC signature rejected — reinstall client 0.3.1+", false);
+                    return;
+                }
+                if (errBody.Contains("challenge", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetStatus("AC challenge expired — retry in a moment", false);
+                    return;
+                }
+                SetStatus(DescribeAcHttpError("attest", (int)res.StatusCode, errBody), false);
                 return;
             }
-            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            using var doc = JsonDocument.Parse(errBody);
             var root = doc.RootElement;
             var passed = root.TryGetProperty("passed", out var p) && p.GetBoolean();
             var banned = root.TryGetProperty("banned", out var b) && b.GetBoolean();
@@ -857,11 +883,28 @@ internal sealed class MainForm : Form
             _connectedOk = true;
             RefreshConnectedStatus(force: true);
         }
-        catch
+        catch (Exception ex)
         {
             _connectedOk = false;
-            SetStatus("Connection refused", false);
+            SetStatus($"Connection error: {ex.GetType().Name}", false);
         }
+        finally
+        {
+            _attestInFlight = false;
+        }
+    }
+
+    private static string DescribeAcHttpError(string step, int status, string body)
+    {
+        if (status == 401) return $"AC {step}: unauthorized — log out and pair again";
+        if (status == 403) return $"AC {step}: forbidden — update client";
+        if (status >= 500)
+            return $"AC {step}: server error {status} — apply DB migrate / restart API";
+        var shortBody = string.IsNullOrWhiteSpace(body)
+            ? ""
+            : " — " + body.Replace('\n', ' ').Trim();
+        if (shortBody.Length > 80) shortBody = shortBody[..80] + "…";
+        return $"AC {step} failed ({status}){shortBody}";
     }
 
     /// <summary>
