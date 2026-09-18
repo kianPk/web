@@ -20,6 +20,23 @@ const status = ref<{
   latest: Record<string, unknown> | null;
 } | null>(null);
 const loading = ref(false);
+const launcherVersion = ref("0.3.1");
+const launcherUrl = ref(
+  "https://github.com/kianPk/web/releases/download/client-v0.3.1/YGuardAC-0.3.1-client.zip",
+);
+
+async function loadLauncher() {
+  try {
+    const release = await $fetch<{ version?: string; download_url?: string }>(
+      `https://${apiDomain}/plugins/ac/launcher`,
+      { query: { _: Date.now() } },
+    );
+    if (release?.version) launcherVersion.value = release.version;
+    if (release?.download_url) launcherUrl.value = release.download_url;
+  } catch {
+    /* keep fallback 0.3.1 */
+  }
+}
 
 async function loadStatus() {
   if (!auth.me?.steam_id) return;
@@ -58,6 +75,7 @@ async function startPair() {
 
 onMounted(() => {
   void loadStatus();
+  void loadLauncher();
 });
 </script>
 
@@ -111,6 +129,12 @@ onMounted(() => {
         <p class="text-sm text-muted-foreground">
           {{ $t("ac.download_desc") }}
         </p>
+        <Button as-child class="bg-orange-600 hover:bg-orange-500">
+          <a :href="launcherUrl">
+            <Download class="mr-2 h-4 w-4" />
+            {{ $t("ac.install_button") }} (v{{ launcherVersion }})
+          </a>
+        </Button>
         <ol class="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
           <li>{{ $t("ac.step_download") }}</li>
           <li>{{ $t("ac.step_pair") }}</li>
