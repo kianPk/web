@@ -834,8 +834,8 @@ internal sealed class MainForm : Form
                 if (errBody.Contains("fingerprint", StringComparison.OrdinalIgnoreCase) ||
                     errBody.Contains("pair again", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("PC changed — log in again to re-pair", false);
-                    Logout();
+                    // Server no longer hard-revokes on HW churn; retry next tick.
+                    SetStatus("AC hardware check updating — wait a moment", false);
                     return;
                 }
                 if (errBody.Contains("Update YGuard", StringComparison.OrdinalIgnoreCase))
@@ -845,7 +845,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.1+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.2+", false);
                     return;
                 }
                 if (errBody.Contains("challenge", StringComparison.OrdinalIgnoreCase))
@@ -896,7 +896,23 @@ internal sealed class MainForm : Form
 
     private static string DescribeAcHttpError(string step, int status, string body)
     {
-        if (status == 401) return $"AC {step}: unauthorized — log out and pair again";
+        if (status == 401)
+        {
+            // Most 401s after the HW-revoke fix are expired challenge or bad
+            // signature — ask for a soft retry, not a full re-pair, unless the
+            // token itself is gone.
+            if (body.Contains("revoked", StringComparison.OrdinalIgnoreCase) ||
+                body.Contains("Invalid or revoked", StringComparison.OrdinalIgnoreCase) ||
+                body.Contains("Device token", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"AC {step}: session expired — log out and login again";
+            }
+            if (body.Contains("challenge", StringComparison.OrdinalIgnoreCase))
+                return $"AC {step}: challenge expired — retry";
+            if (body.Contains("signature", StringComparison.OrdinalIgnoreCase))
+                return $"AC {step}: signature rejected — update client";
+            return $"AC {step}: unauthorized — retry in a moment";
+        }
         if (status == 403) return $"AC {step}: forbidden — update client";
         if (status >= 500)
             return $"AC {step}: server error {status} — apply DB migrate / restart API";
@@ -1202,24 +1218,22 @@ internal static class SecurityChecks
     }
 
     /// <summary>
-    /// Stable machine fingerprint used to bind the device token.
-    /// Moving the token to another PC revokes the device server-side.
+    /// Stable fingerprint: Windows MachineGuid only.
+    /// Disk serial / MachineName churn was false-positive revoking players.
     /// </summary>
     private static string BuildHardwareFingerprint()
     {
-        var parts = new List<string>
+        var guid = GetGuid();
+        if (string.IsNullOrWhiteSpace(guid))
         {
-            GetGuid(),
-            Wmi("Win32_BaseBoard", "SerialNumber"),
-            Wmi("Win32_BIOS", "SerialNumber"),
-            Wmi("Win32_Processor", "ProcessorId"),
-            Wmi("Win32_DiskDrive", "SerialNumber"),
-            Environment.MachineName,
-        };
-        var material = string.Join("|", parts.Select(p => (p ?? "").Trim()));
+            // Extremely rare — fall back to a still-stable board id if present.
+            guid = Wmi("Win32_BaseBoard", "SerialNumber");
+        }
+        if (string.IsNullOrWhiteSpace(guid))
+            guid = "unknown";
         return Convert.ToHexString(
             System.Security.Cryptography.SHA256.HashData(
-                Encoding.UTF8.GetBytes(material))).ToLowerInvariant();
+                Encoding.UTF8.GetBytes("yg-hw-v2|" + guid.Trim()))).ToLowerInvariant();
     }
 
     private static string Wmi(string cls, string prop)
