@@ -10051,6 +10051,7 @@
     "connect_prompt": "Open YGuard Anti-Cheat and keep it running to queue.",
     "connect_link": "Open Anti-Cheat page",
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
+    "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "refresh": "Refresh status",
     "download_title": "Get the launcher",
     "download_desc": "One Windows .exe. After login it reports Secure Boot, TPM, and related checks. Keep it open while you play.",

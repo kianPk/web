@@ -14,7 +14,12 @@ import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
       </div>
     </template>
     <template
-      v-if="isLive && match.tv_connection_string && !match.connection_link"
+      v-if="
+        isLive &&
+        match.tv_connection_string &&
+        !match.connection_link &&
+        !blockedByAc
+      "
     >
       <div
         class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10 mb-2"
@@ -32,11 +37,6 @@ import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
       <Separator class="my-4" label="OR" v-if="match.connection_string" />
     </template>
 
-    <!-- One slot, three states -- offline, booting, connect -- traded through
-         a measured height swap instead of popping between very different
-         boxes on the frame the server comes up. The two booting variants
-         (before and after the connection string exists) share one branch and
-         one key, so the string arriving mid-boot changes nothing on screen. -->
     <HeightSwap>
       <div v-if="showOffline" key="offline">
         <div
@@ -76,6 +76,22 @@ import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
         </div>
       </div>
 
+      <div v-else-if="blockedByAc" key="ac">
+        <div
+          class="flex items-center gap-2 p-4 rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)]"
+        >
+          <div
+            class="flex w-full flex-wrap items-center justify-center gap-2 rounded-md bg-background/40 p-3 text-sm"
+          >
+            <AlertTriangle class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]" />
+            <span>{{ $t("ac.join_need_ac") }}</span>
+            <NuxtLink to="/ac" class="underline font-medium">
+              {{ $t("ac.connect_link") }}
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+
       <div v-else-if="showConnect" key="connect">
         <div
           class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10"
@@ -96,7 +112,11 @@ import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
             </div>
           </ClipBoard>
           <template v-if="match.connection_link">
-            <a :href="match.connection_link" class="w-full" @click="handleClick">
+            <a
+              :href="match.connection_link"
+              class="w-full"
+              @click="handleJoinClick"
+            >
               <Button
                 variant="outline"
                 class="w-full h-12 connect-action"
@@ -129,6 +149,7 @@ import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import ClipBoard from "~/components/ClipBoard.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
+import { toast } from "@/components/ui/toast";
 
 export default {
   components: {
@@ -145,14 +166,10 @@ export default {
       type: Object,
       required: true,
     },
-    // Suppress the booting spinner when the surrounding UI already shows a
-    // booting indicator (e.g. the draft room's "Match Starting" panel).
     hideBooting: {
       type: Boolean,
       default: false,
     },
-    // Owned by the match page, which flips it once CameraRequirementOverlay
-    // confirms this viewer's own camera is live.
     cameraReady: {
       type: Boolean,
       default: false,
@@ -161,10 +178,56 @@ export default {
   data() {
     return {
       isLoading: false,
+      acRequired: false,
+      acValid: true,
+      _acTimer: 0 as number,
     };
   },
+  mounted() {
+    void this.refreshAc();
+    this._acTimer = window.setInterval(() => void this.refreshAc(), 10_000);
+  },
+  beforeUnmount() {
+    if (this._acTimer) window.clearInterval(this._acTimer);
+  },
   methods: {
-    handleClick() {
+    async refreshAc() {
+      if (!this.me?.steam_id) {
+        this.acRequired = false;
+        this.acValid = true;
+        return;
+      }
+      try {
+        const apiDomain = useRuntimeConfig().public.apiDomain as string;
+        const status = await $fetch<{ required?: boolean; valid?: boolean }>(
+          `https://${apiDomain}/plugins/ac/status`,
+          { credentials: "include" },
+        );
+        this.acRequired = !!status?.required;
+        this.acValid = !!status?.valid;
+      } catch {
+        this.acRequired = false;
+        this.acValid = true;
+      }
+    },
+    async handleJoinClick(e: Event) {
+      if (!this.isInLineup) {
+        this.isLoading = true;
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 10000);
+        return;
+      }
+      await this.refreshAc();
+      if (this.blockedByAc) {
+        e.preventDefault();
+        toast({
+          title: this.$t("ac.title"),
+          description: this.$t("ac.join_need_ac"),
+          variant: "destructive",
+        });
+        return;
+      }
       this.isLoading = true;
       setTimeout(() => {
         this.isLoading = false;
@@ -186,8 +249,6 @@ export default {
     showBootingState() {
       return this.isAssignedOnDemandServerBooting && !this.hideBooting;
     },
-    // The swap's three branches, mutually exclusive by construction. Booting
-    // deliberately covers both before and after the connection string arrives.
     showOffline() {
       return (
         !!this.match.connection_string &&
@@ -207,19 +268,25 @@ export default {
       return this.showBootingState;
     },
     showConnect() {
-      return !!this.match.connection_string && this.match.is_server_online;
+      return (
+        !!this.match.connection_string &&
+        this.match.is_server_online &&
+        !this.blockedByAc
+      );
     },
     showConnectPanel() {
       return !!this.me && this.isLive && !this.blockedByCamera;
     },
-    // A rostered player has to publish a camera before the server details are
-    // shown. Coaches and organizers never publish, so they are never blocked.
     blockedByCamera() {
       return (
         !!this.match.options?.camera_required &&
         !!this.match.is_in_lineup &&
         !this.cameraReady
       );
+    },
+    /** Rostered players must keep AC open — hide join/IP while launcher is offline. */
+    blockedByAc() {
+      return !!this.isInLineup && this.acRequired && !this.acValid;
     },
     me() {
       return useAuthStore().me;

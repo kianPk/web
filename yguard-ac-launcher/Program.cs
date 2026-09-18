@@ -164,7 +164,7 @@ internal sealed class MainForm : Form
         Load += async (_, _) =>
         {
             Text = $"YGuard Anti-Cheat  v{AutoUpdater.CurrentVersion}";
-            PaintChecks();
+            PaintChecks(animate: true);
             _ = CheckForUpdateAsync();
             TryLoadToken();
             if (!string.IsNullOrEmpty(_deviceToken))
@@ -185,12 +185,16 @@ internal sealed class MainForm : Form
             // Closing AC while CS2 is open must kill the game — otherwise players
             // can drop AC mid-match and enable cheats.
             if (!_exitingForUpdate)
+            {
                 KillGameIfRunning();
+                // Sync so attestation dies before the process exits (async FormClosed
+                // often never finishes when the user closes the window).
+                NotifyDisconnectSync();
+            }
         };
-        FormClosed += async (_, _) =>
+        FormClosed += (_, _) =>
         {
             _loginCts?.Cancel();
-            await NotifyDisconnectAsync();
         };
     }
 
@@ -443,9 +447,18 @@ internal sealed class MainForm : Form
             true);
     }
 
-    private void PaintChecks()
+    private void PaintChecks(bool animate = false)
     {
-        var r = SecurityChecks.Run();
+        if (animate)
+        {
+            _ = AnimateChecksAsync();
+            return;
+        }
+        ApplyChecksInstant(SecurityChecks.Run());
+    }
+
+    private void ApplyChecksInstant(CheckReport r)
+    {
         void Set(string p)
         {
             _pills[p + "Secure Boot"].SetOk(r.secure_boot);
@@ -456,6 +469,41 @@ internal sealed class MainForm : Form
         }
         Set("o:");
         Set("i:");
+    }
+
+    private async Task AnimateChecksAsync()
+    {
+        var r = SecurityChecks.Run();
+        void SetChecking(string p)
+        {
+            _pills[p + "Secure Boot"].SetChecking();
+            _pills[p + "TPM 2.0"].SetChecking();
+            _pills[p + "TPM Attestation"].SetChecking();
+            _pills[p + "HVCI"].SetChecking();
+            _pills[p + "Windows Security Updates"].SetChecking();
+        }
+        SetChecking("o:");
+        SetChecking("i:");
+
+        var results = new (string label, bool ok)[]
+        {
+            ("Secure Boot", r.secure_boot),
+            ("TPM 2.0", r.tpm_20),
+            ("TPM Attestation", r.tpm_attestation),
+            ("HVCI", r.hvci),
+            ("Windows Security Updates", r.windows_updates),
+        };
+
+        for (var i = 0; i < results.Length; i++)
+        {
+            await Task.Delay(180);
+            if (IsDisposed) return;
+            var (label, ok) = results[i];
+            if (_pills.TryGetValue("o:" + label, out var outPill))
+                outPill.SetOk(ok);
+            if (_pills.TryGetValue("i:" + label, out var inPill))
+                inPill.SetOk(ok);
+        }
     }
 
     /// <summary>
@@ -549,6 +597,20 @@ internal sealed class MainForm : Form
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
             await http.PostAsync("/plugins/ac/disconnect", null);
+        }
+        catch { /* closing — best effort */ }
+    }
+
+    private void NotifyDisconnectSync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken)) return;
+        try
+        {
+            using var http = Http();
+            http.Timeout = TimeSpan.FromSeconds(3);
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            http.PostAsync("/plugins/ac/disconnect", null).GetAwaiter().GetResult();
         }
         catch { /* closing — best effort */ }
     }
@@ -942,6 +1004,9 @@ internal sealed class FeaturePill : Control
 {
     private readonly string _label;
     private bool _ok = true;
+    private bool _checking;
+    private float _spinAngle;
+    private readonly System.Windows.Forms.Timer _spinTimer = new() { Interval = 16 };
 
     public FeaturePill(string label)
     {
@@ -951,9 +1016,35 @@ internal sealed class FeaturePill : Control
         Margin = new Padding(0, 0, 8, 8);
         DoubleBuffered = true;
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+        _spinTimer.Tick += (_, _) =>
+        {
+            if (!_checking) return;
+            _spinAngle = (_spinAngle + 12f) % 360f;
+            Invalidate();
+        };
     }
 
-    public void SetOk(bool ok) { _ok = ok; Invalidate(); }
+    public void SetChecking()
+    {
+        _checking = true;
+        _spinAngle = 0;
+        if (!_spinTimer.Enabled) _spinTimer.Start();
+        Invalidate();
+    }
+
+    public void SetOk(bool ok)
+    {
+        _checking = false;
+        _ok = ok;
+        _spinTimer.Stop();
+        Invalidate();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) _spinTimer.Dispose();
+        base.Dispose(disposing);
+    }
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -965,15 +1056,29 @@ internal sealed class FeaturePill : Control
             g.FillPath(br, path);
 
         int cx = 14, cy = Height / 2;
-        using (var c = new SolidBrush(_ok ? Theme.Green : Theme.Red))
-            g.FillEllipse(c, cx - 7, cy - 7, 14, 14);
-        using var pen = new Pen(Color.White, 1.5f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
-        if (_ok)
-            g.DrawLines(pen, new[] { new Point(cx - 3, cy), new Point(cx - 1, cy + 3), new Point(cx + 4, cy - 3) });
+        if (_checking)
+        {
+            using var track = new Pen(Color.FromArgb(70, 70, 74), 2f);
+            g.DrawEllipse(track, cx - 7, cy - 7, 14, 14);
+            using var arc = new Pen(Theme.Orange, 2f)
+            {
+                StartCap = LineCap.Round,
+                EndCap = LineCap.Round,
+            };
+            g.DrawArc(arc, cx - 7, cy - 7, 14, 14, _spinAngle, 110f);
+        }
         else
         {
-            g.DrawLine(pen, cx - 3, cy - 3, cx + 3, cy + 3);
-            g.DrawLine(pen, cx + 3, cy - 3, cx - 3, cy + 3);
+            using (var c = new SolidBrush(_ok ? Theme.Green : Theme.Red))
+                g.FillEllipse(c, cx - 7, cy - 7, 14, 14);
+            using var pen = new Pen(Color.White, 1.5f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+            if (_ok)
+                g.DrawLines(pen, new[] { new Point(cx - 3, cy), new Point(cx - 1, cy + 3), new Point(cx + 4, cy - 3) });
+            else
+            {
+                g.DrawLine(pen, cx - 3, cy - 3, cx + 3, cy + 3);
+                g.DrawLine(pen, cx + 3, cy - 3, cx - 3, cy + 3);
+            }
         }
 
         TextRenderer.DrawText(g, _label, new Font("Segoe UI", 9f),
