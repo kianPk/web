@@ -39,9 +39,24 @@ internal static class Theme
         try
         {
             var png = Path.Combine(baseDir, "Assets", "logo.png");
-            if (!File.Exists(png)) return;
-            using var src = Image.FromFile(png);
-            LogoMark = new Bitmap(src); // own a copy so file/stream can close
+            if (File.Exists(png))
+            {
+                using var src = Image.FromFile(png);
+                LogoMark = new Bitmap(src);
+                return;
+            }
+        }
+        catch { /* fall through to embedded */ }
+
+        try
+        {
+            var asm = typeof(Theme).Assembly;
+            var name = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase));
+            if (name == null) return;
+            using var stream = asm.GetManifestResourceStream(name);
+            if (stream == null) return;
+            LogoMark = new Bitmap(stream);
         }
         catch { /* ignore */ }
     }
@@ -89,7 +104,6 @@ internal sealed class MainForm : Form
     private static readonly (string key, string label)[] Features =
     [
         ("secure_boot", "Secure Boot"),
-        ("iommu", "IOMMU"),
         ("tpm_20", "TPM 2.0"),
         ("tpm_attestation", "TPM Attestation"),
         ("hvci", "HVCI"),
@@ -103,15 +117,25 @@ internal sealed class MainForm : Form
         MaximizeBox = false;
         MinimizeBox = true;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(480, 360);
+        // FACEIT-like compact window (wide + short).
+        ClientSize = new Size(560, 292);
         BackColor = Theme.Bg;
         Font = new Font("Segoe UI", 9.5f);
         DoubleBuffered = true;
         Theme.LoadAssets(AppContext.BaseDirectory);
         try
         {
-            var ico = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+            // Prefer real exe folder for assets/icon (single-file BaseDirectory is a temp cache).
+            var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+            var ico = Path.Combine(exeDir, "Assets", "app.ico");
+            if (!File.Exists(ico))
+                ico = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
             if (File.Exists(ico)) Icon = new Icon(ico);
+            else if (Theme.LogoMark != null)
+            {
+                using var bmp = new Bitmap(Theme.LogoMark, 32, 32);
+                Icon = Icon.FromHandle(bmp.GetHicon());
+            }
         }
         catch { /* ignore */ }
         TryDarkTitle();
@@ -173,7 +197,7 @@ internal sealed class MainForm : Form
     private void BuildOut()
     {
         // Error banner — FACEIT style
-        _errorBanner.Size = new Size(416, 48);
+        _errorBanner.Size = new Size(496, 44);
         _errorBanner.Radius = 8;
         _errorBanner.Fill = Theme.Surface;
         _errorBanner.Paint += (_, e) =>
@@ -204,7 +228,7 @@ internal sealed class MainForm : Form
         _loginBtn.Text = "LOGIN WITH YGUARD";
         _loginBtn.Click += async (_, _) => await StartBrowserLoginAsync();
 
-        _featuresOutTitle.Text = "Required Security Features";
+        _featuresOutTitle.Text = "Recommended Security Features";
         _featuresOutTitle.Font = new Font("Segoe UI Semibold", 12f);
         _featuresOutTitle.ForeColor = Theme.Text;
         _featuresOutTitle.AutoSize = true;
@@ -214,17 +238,16 @@ internal sealed class MainForm : Form
         void Layout(object? s, EventArgs e)
         {
             int w = _outView.ClientSize.Width;
-            int top = _errorBanner.Visible ? 24 : 56;
             _errorBanner.Left = (w - _errorBanner.Width) / 2;
-            _errorBanner.Top = 24;
+            _errorBanner.Top = 18;
             _loginBtn.Left = (w - _loginBtn.Width) / 2;
-            _loginBtn.Top = _errorBanner.Visible ? 92 : 64;
-            _featuresOutTitle.Left = 32;
-            _featuresOutTitle.Top = _loginBtn.Bottom + 36;
-            _outPills.Left = 32;
-            _outPills.Top = _featuresOutTitle.Bottom + 14;
-            _outPills.Width = w - 64;
-            _outPills.Height = 100;
+            _loginBtn.Top = _errorBanner.Visible ? 78 : 48;
+            _featuresOutTitle.Left = 28;
+            _featuresOutTitle.Top = _loginBtn.Bottom + 28;
+            _outPills.Left = 28;
+            _outPills.Top = _featuresOutTitle.Bottom + 12;
+            _outPills.Width = w - 56;
+            _outPills.Height = 80;
         }
         _outView.Resize += Layout;
         _outView.Controls.Add(_errorBanner);
@@ -237,19 +260,19 @@ internal sealed class MainForm : Form
     private void BuildIn()
     {
         _avatar.Size = new Size(48, 48);
-        _avatar.Location = new Point(32, 28);
+        _avatar.Location = new Point(28, 22);
         _avatar.SizeMode = PictureBoxSizeMode.Zoom;
         _avatar.BackColor = Theme.Surface;
 
         _nameLbl.Font = new Font("Segoe UI Semibold", 15f);
         _nameLbl.ForeColor = Theme.Text;
         _nameLbl.AutoSize = true;
-        _nameLbl.Location = new Point(92, 28);
+        _nameLbl.Location = new Point(88, 22);
 
         _memberLbl.Font = new Font("Segoe UI", 9f);
         _memberLbl.ForeColor = Theme.Muted;
         _memberLbl.AutoSize = true;
-        _memberLbl.Location = new Point(92, 56);
+        _memberLbl.Location = new Point(88, 50);
 
         _logout.Text = "LOGOUT";
         _logout.Font = new Font("Segoe UI Semibold", 9f);
@@ -261,26 +284,26 @@ internal sealed class MainForm : Form
         _logout.Cursor = Cursors.Hand;
         _logout.Click += (_, _) => Logout();
 
-        _featuresInTitle.Text = "Required Security Features";
+        _featuresInTitle.Text = "Recommended Security Features";
         _featuresInTitle.Font = new Font("Segoe UI Semibold", 12f);
         _featuresInTitle.ForeColor = Theme.Text;
         _featuresInTitle.AutoSize = true;
-        _featuresInTitle.Location = new Point(32, 100);
+        _featuresInTitle.Location = new Point(28, 92);
 
         SetupPills(_inPills, "i:");
-        _inPills.Location = new Point(32, 136);
-        _inPills.Size = new Size(416, 110);
+        _inPills.Location = new Point(28, 124);
+        _inPills.Size = new Size(504, 90);
 
         _statusBar.Dock = DockStyle.Bottom;
-        _statusBar.Height = 40;
+        _statusBar.Height = 36;
         _statusBar.BackColor = Theme.Bg;
         _statusBar.Paint += (_, e) =>
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using var b = new SolidBrush(_statusOk ? Theme.Green : Theme.Red);
-            e.Graphics.FillEllipse(b, 32, 14, 10, 10);
+            e.Graphics.FillEllipse(b, 28, 13, 10, 10);
         };
-        _statusText.Location = new Point(50, 11);
+        _statusText.Location = new Point(46, 9);
         _statusText.AutoSize = true;
         _statusText.ForeColor = Theme.Muted;
         _statusText.Font = new Font("Segoe UI", 9f);
@@ -289,9 +312,9 @@ internal sealed class MainForm : Form
 
         _inView.Resize += (_, _) =>
         {
-            _logout.Left = _inView.ClientSize.Width - _logout.Width - 32;
-            _logout.Top = 32;
-            _inPills.Width = _inView.ClientSize.Width - 64;
+            _logout.Left = _inView.ClientSize.Width - _logout.Width - 28;
+            _logout.Top = 26;
+            _inPills.Width = _inView.ClientSize.Width - 56;
         };
 
         _inView.Controls.Add(_avatar);
@@ -330,25 +353,25 @@ internal sealed class MainForm : Form
         _inView.Visible = true;
         _outView.Visible = false;
         _inView.BringToFront();
-        _logout.Left = _inView.ClientSize.Width - _logout.Width - 32;
-        _logout.Top = 32;
+        _logout.Left = _inView.ClientSize.Width - _logout.Width - 28;
+        _logout.Top = 26;
     }
 
     private void ShowError(string msg)
     {
         _errorLbl.Text = msg;
         _errorBanner.Visible = true;
-        _loginBtn.Top = 92;
-        _featuresOutTitle.Top = _loginBtn.Bottom + 36;
-        _outPills.Top = _featuresOutTitle.Bottom + 14;
+        _loginBtn.Top = 78;
+        _featuresOutTitle.Top = _loginBtn.Bottom + 28;
+        _outPills.Top = _featuresOutTitle.Bottom + 12;
     }
 
     private void HideError()
     {
         _errorBanner.Visible = false;
-        _loginBtn.Top = 64;
-        _featuresOutTitle.Top = _loginBtn.Bottom + 36;
-        _outPills.Top = _featuresOutTitle.Bottom + 14;
+        _loginBtn.Top = 48;
+        _featuresOutTitle.Top = _loginBtn.Bottom + 28;
+        _outPills.Top = _featuresOutTitle.Bottom + 12;
     }
 
     private void SetStatus(string text, bool ok)
@@ -364,7 +387,6 @@ internal sealed class MainForm : Form
         void Set(string p)
         {
             _pills[p + "Secure Boot"].SetOk(r.secure_boot);
-            _pills[p + "IOMMU"].SetOk(r.iommu);
             _pills[p + "TPM 2.0"].SetOk(r.tpm_20);
             _pills[p + "TPM Attestation"].SetOk(r.tpm_attestation);
             _pills[p + "HVCI"].SetOk(r.hvci);
@@ -614,7 +636,8 @@ internal sealed class MainForm : Form
             var body = new Dictionary<string, object?>
             {
                 ["secure_boot"] = payload.secure_boot,
-                ["iommu"] = payload.iommu,
+                // IOMMU removed from client UI — always report OK so older API flags don't block.
+                ["iommu"] = true,
                 ["tpm_20"] = payload.tpm_20,
                 ["tpm_attestation"] = payload.tpm_attestation,
                 ["hvci"] = payload.hvci,
@@ -654,7 +677,7 @@ internal sealed class MainForm : Form
                 SetStatus("Fix required security features, then wait", false);
                 return;
             }
-            SetStatus("Connected | Keep this window open during matches", true);
+            SetStatus("Connected | Waiting for game to launch", true);
         }
         catch
         {
@@ -816,26 +839,11 @@ internal sealed class RoundedButton : Control
         using var br = new SolidBrush(fill);
         e.Graphics.FillPath(br, path);
 
-        // Brand mark — transparent Y (no black bg); white on red button for contrast
+        // Brand mark — transparent red Y on the orange/red login button
         if (Theme.LogoMark != null)
         {
             var dest = new Rectangle(12, 8, 32, 32);
-            using var attrs = new System.Drawing.Imaging.ImageAttributes();
-            var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
-            {
-                new float[] {0,0,0,0,0},
-                new float[] {0,0,0,0,0},
-                new float[] {0,0,0,0,0},
-                new float[] {0,0,0,1,0},
-                new float[] {1,1,1,0,1}, // force RGB white, keep alpha
-            });
-            attrs.SetColorMatrix(cm);
-            e.Graphics.DrawImage(
-                Theme.LogoMark,
-                dest,
-                0, 0, Theme.LogoMark.Width, Theme.LogoMark.Height,
-                GraphicsUnit.Pixel,
-                attrs);
+            e.Graphics.DrawImage(Theme.LogoMark, dest);
         }
         else
         {
@@ -902,7 +910,6 @@ internal sealed class FeaturePill : Control
 internal sealed class CheckReport
 {
     [JsonPropertyName("secure_boot")] public bool secure_boot { get; set; }
-    [JsonPropertyName("iommu")] public bool iommu { get; set; }
     [JsonPropertyName("tpm_20")] public bool tpm_20 { get; set; }
     [JsonPropertyName("tpm_attestation")] public bool tpm_attestation { get; set; }
     [JsonPropertyName("hvci")] public bool hvci { get; set; }
@@ -919,7 +926,6 @@ internal static class SecurityChecks
         return new CheckReport
         {
             secure_boot = RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1,
-            iommu = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity") == 1,
             tpm_20 = tpm,
             tpm_attestation = tpm,
             hvci = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled") == 1,
