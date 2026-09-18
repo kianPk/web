@@ -44,6 +44,36 @@ const isPermanentExpiry = (value: unknown) => String(value) === "infinity";
 // simply stays undefined -- which renders as no cooldown.
 const meSteamId = computed(() => useAuthStore().me?.steam_id);
 
+const acRequired = ref(false);
+const acValid = ref(true);
+
+async function refreshAcStatus() {
+  if (!meSteamId.value) {
+    acRequired.value = false;
+    acValid.value = true;
+    return;
+  }
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    const status = await $fetch<{ required?: boolean; valid?: boolean }>(
+      `https://${apiDomain}/plugins/ac/status`,
+      { credentials: "include" },
+    );
+    acRequired.value = !!status?.required;
+    acValid.value = !!status?.valid;
+  } catch {
+    // Don't lock the play UI if status endpoint fails.
+    acRequired.value = false;
+    acValid.value = true;
+  }
+}
+
+watch(meSteamId, () => void refreshAcStatus(), { immediate: true });
+onMounted(() => {
+  const id = window.setInterval(() => void refreshAcStatus(), 30_000);
+  onUnmounted(() => window.clearInterval(id));
+});
+
 const { result: tournamentCooldownResult } = useSubscription(
   TOURNAMENT_COOLDOWN_SUBSCRIPTION,
   () => ({ steamId: meSteamId.value }),
@@ -128,6 +158,17 @@ function releaseSwapHeight(el: Element): void {
                 })
               : $t("matchmaking.banned")
           }}
+        </AlertDescription>
+      </Alert>
+    </template>
+    <template v-else-if="acRequired && !acValid">
+      <Alert class="my-3">
+        <AlertDescription class="flex flex-wrap items-center gap-2">
+          <AlertTriangle class="h-4 w-4" />
+          <span>{{ $t("ac.connect_prompt") }}</span>
+          <NuxtLink to="/ac" class="underline font-medium">
+            {{ $t("ac.connect_link") }}
+          </NuxtLink>
         </AlertDescription>
       </Alert>
     </template>

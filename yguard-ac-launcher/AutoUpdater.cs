@@ -85,7 +85,8 @@ internal static class AutoUpdater
 
             var bat = Path.Combine(updateRoot, "apply.bat");
             var pid = Environment.ProcessId;
-            // Wait for this process to exit, robocopy payload over app dir, restart.
+            var exeName = Path.GetFileName(exePath);
+            // Wait for exit, replace the exe (single-file) or robocopy folder, restart.
             var batBody = $@"@echo off
 setlocal
 :wait
@@ -94,7 +95,7 @@ if %ERRORLEVEL%==0 (
   timeout /t 1 /nobreak >NUL
   goto wait
 )
-robocopy ""{payload}"" ""{appDir}"" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /nc /ns /np >NUL
+copy /Y ""{Path.Combine(payload, "YGuardAC.exe")}"" ""{Path.Combine(appDir, exeName)}"" >NUL
 start """" ""{exePath}""
 rd /s /q ""{updateRoot}""
 ";

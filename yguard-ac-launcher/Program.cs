@@ -73,7 +73,7 @@ internal sealed class MainForm : Form
     private bool _statusOk;
 
     private readonly Dictionary<string, FeaturePill> _pills = new();
-    private readonly System.Windows.Forms.Timer _heartbeat = new() { Interval = 45_000 };
+    private readonly System.Windows.Forms.Timer _heartbeat = new() { Interval = 30_000 };
     private readonly System.Windows.Forms.Timer _cheatScan = new() { Interval = 20_000 };
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
@@ -150,7 +150,11 @@ internal sealed class MainForm : Form
             _cheatScan.Start();
         };
 
-        FormClosed += (_, _) => _loginCts?.Cancel();
+        FormClosed += async (_, _) =>
+        {
+            _loginCts?.Cancel();
+            await NotifyDisconnectAsync();
+        };
     }
 
     private void TryDarkTitle()
@@ -451,8 +455,23 @@ internal sealed class MainForm : Form
         }
     }
 
+    private async Task NotifyDisconnectAsync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken)) return;
+        try
+        {
+            using var http = Http();
+            http.Timeout = TimeSpan.FromSeconds(4);
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            await http.PostAsync("/plugins/ac/disconnect", null);
+        }
+        catch { /* closing — best effort */ }
+    }
+
     private void Logout()
     {
+        _ = NotifyDisconnectAsync();
         _loginCts?.Cancel();
         try { if (File.Exists(_tokenPath)) File.Delete(_tokenPath); } catch { }
         _deviceToken = null;
@@ -598,12 +617,17 @@ internal sealed class MainForm : Form
                 SetStatus("Banned | Cheat software detected — remove it to play", false);
                 return;
             }
-            if (banned || !passed)
+            if (banned)
             {
-                SetStatus("Banned | Enable required security features to play", false);
+                SetStatus("Banned on site | Contact support or remove cheats", false);
                 return;
             }
-            SetStatus("Connected | Waiting for match ready", true);
+            if (!passed)
+            {
+                SetStatus("Fix required security features, then wait", false);
+                return;
+            }
+            SetStatus("Connected | Keep this window open during matches", true);
         }
         catch
         {

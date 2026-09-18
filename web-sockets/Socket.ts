@@ -548,10 +548,19 @@ socket.listen("players-online", (onlinePlayerSteamIds) => {
 });
 
 socket.listen("matchmaking:error", (data: { message: string }) => {
+  const raw = data?.message || "";
+  const isAc =
+    /anti-?cheat/i.test(raw) ||
+    /YGuard AC/i.test(raw) ||
+    /open yguard/i.test(raw);
   toast({
     variant: "destructive",
-    title: useNuxtApp().$i18n.t("common.error"),
-    description: data.message,
+    title: isAc
+      ? useNuxtApp().$i18n.t("ac.title")
+      : useNuxtApp().$i18n.t("common.error"),
+    description: isAc
+      ? useNuxtApp().$i18n.t("ac.queue_need_ac")
+      : raw,
   });
 });
 
