@@ -39,3 +39,13 @@ public/replay-assets/
 
 # Machine-translation cache for locale generation
 scripts/.fa-translate-cache.json
+
+# YGuard AC launcher build
+yguard-ac-launcher/bin/
+yguard-ac-launcher/obj/
+cs2-plugins/YGuardAC/bin/
+cs2-plugins/YGuardAC/obj/
+cs2-plugins/YGuardVIP/bin/
+cs2-plugins/YGuardVIP/obj/
+cs2-plugins/YGuardNoFF/bin/
+cs2-plugins/YGuardNoFF/obj/

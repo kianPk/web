@@ -10039,5 +10039,28 @@
       "open_plugin": "صفحه plugin در tab جدید",
       "archived_instead": "مسابقه این مود run شده — hidden نه deleted. هر وقت restore."
     }
+  },
+  "ac": {
+    "title": "آنتی‌چیت YGuard",
+    "description": "لانچر را نصب کن، چک‌های سخت‌افزاری (Secure Boot، TPM و …) را پاس کن، بعد Find Match رنک. TBAC سمت سرور همچنان داخل بازی کار می‌کند.",
+    "status_title": "وضعیت AC تو",
+    "status_valid": "آماده رنک",
+    "status_invalid": "تأیید نشده",
+    "required_on": "برای صف رنک لانچر اجباری است.",
+    "required_off": "الان لانچر اختیاری است (ادمین می‌تواند روشن کند).",
+    "refresh": "بروزرسانی وضعیت",
+    "download_title": "دانلود لانچر",
+    "download_desc": "اپ ویندوز. بعد از جفت‌سازی، Secure Boot، IOMMU، TPM 2.0، HVCI و آپدیت را به پنل می‌فرستد.",
+    "step_download": "YGuardAC را روی PC بساز/نصب کن (پوشه yguard-ac-launcher).",
+    "step_pair": "اینجا کد جفت‌سازی بساز و در لانچر وارد کن.",
+    "step_checks": "چک‌ها را بزن — هر چه FAIL بود در BIOS/ویندوز روشن کن.",
+    "step_queue": "Submit کن، بعد در سایت Find Match بزن.",
+    "pair_title": "جفت‌سازی این PC",
+    "pair_desc": "باید لاگین باشی. کد ۱۰ دقیقه اعتبار دارد.",
+    "generate_code": "ساخت کد جفت‌سازی",
+    "code_expires": "این کد را در لانچر بزن. تا ۱۰ دقیقه معتبر است.",
+    "login_required": "اول با Steam وارد شو",
+    "pair_ready": "کد آماده است",
+    "pair_failed": "ساخت کد ممکن نشد"
   }
 }

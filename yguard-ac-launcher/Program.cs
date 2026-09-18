@@ -1,0 +1,845 @@
+using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Management;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.Win32;
+
+namespace YGuardAC;
+
+internal static class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        ApplicationConfiguration.Initialize();
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        Application.Run(new MainForm());
+    }
+}
+
+internal static class Theme
+{
+    public static readonly Color Bg = Color.FromArgb(18, 18, 18);
+    public static readonly Color Surface = Color.FromArgb(32, 32, 32);
+    public static readonly Color PillBg = Color.FromArgb(40, 40, 44);
+    public static readonly Color Text = Color.White;
+    public static readonly Color Muted = Color.FromArgb(158, 158, 158);
+    public static readonly Color Orange = Color.FromArgb(220, 20, 20); // brand red from logo
+    public static readonly Color Green = Color.FromArgb(76, 175, 80);
+    public static readonly Color Red = Color.FromArgb(229, 57, 53);
+
+    public static Image? LogoMark { get; private set; }
+
+    public static void LoadAssets(string baseDir)
+    {
+        try
+        {
+            var png = Path.Combine(baseDir, "Assets", "logo.png");
+            if (!File.Exists(png)) return;
+            using var src = Image.FromFile(png);
+            LogoMark = new Bitmap(src); // own a copy so file/stream can close
+        }
+        catch { /* ignore */ }
+    }
+}
+
+internal sealed class MainForm : Form
+{
+    private const string ApiBase = "https://api.yguard.ir";
+
+    private readonly Panel _outView = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+    private readonly Panel _inView = new() { Dock = DockStyle.Fill, BackColor = Theme.Bg };
+
+    // OUT
+    private readonly RoundedPanel _errorBanner = new() { Visible = false };
+    private readonly Label _errorLbl = new();
+    private readonly RoundedButton _loginBtn = new();
+    private readonly Label _featuresOutTitle = new();
+    private readonly FlowLayoutPanel _outPills = new();
+
+    // IN
+    private readonly PictureBox _avatar = new();
+    private readonly Label _nameLbl = new();
+    private readonly Label _memberLbl = new();
+    private readonly LinkLabel _logout = new();
+    private readonly Label _featuresInTitle = new();
+    private readonly FlowLayoutPanel _inPills = new();
+    private readonly Panel _statusBar = new();
+    private readonly Label _statusText = new();
+    private bool _statusOk;
+
+    private readonly Dictionary<string, FeaturePill> _pills = new();
+    private readonly System.Windows.Forms.Timer _heartbeat = new() { Interval = 45_000 };
+    private readonly System.Windows.Forms.Timer _cheatScan = new() { Interval = 20_000 };
+    private CancellationTokenSource? _loginCts;
+    private bool _reportedCheats;
+    private DateTime _lastCheatReport = DateTime.MinValue;
+
+    private string? _deviceToken;
+    private readonly string _tokenPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "YGuardAC", "device.token");
+
+    private static readonly (string key, string label)[] Features =
+    [
+        ("secure_boot", "Secure Boot"),
+        ("iommu", "IOMMU"),
+        ("tpm_20", "TPM 2.0"),
+        ("tpm_attestation", "TPM Attestation"),
+        ("hvci", "HVCI"),
+        ("windows_updates", "Windows Security Updates"),
+    ];
+
+    public MainForm()
+    {
+        Text = "YGuard Anti-Cheat";
+        FormBorderStyle = FormBorderStyle.FixedSingle;
+        MaximizeBox = false;
+        MinimizeBox = true;
+        StartPosition = FormStartPosition.CenterScreen;
+        ClientSize = new Size(480, 360);
+        BackColor = Theme.Bg;
+        Font = new Font("Segoe UI", 9.5f);
+        DoubleBuffered = true;
+        Theme.LoadAssets(AppContext.BaseDirectory);
+        try
+        {
+            var ico = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+            if (File.Exists(ico)) Icon = new Icon(ico);
+        }
+        catch { /* ignore */ }
+        TryDarkTitle();
+
+        BuildOut();
+        BuildIn();
+        Controls.Add(_inView);
+        Controls.Add(_outView);
+
+        _heartbeat.Tick += async (_, _) =>
+        {
+            if (!string.IsNullOrEmpty(_deviceToken))
+                await AttestAsync();
+        };
+        _cheatScan.Tick += async (_, _) =>
+        {
+            if (!string.IsNullOrEmpty(_deviceToken))
+                await ScanCheatsAsync();
+        };
+
+        Load += async (_, _) =>
+        {
+            PaintChecks();
+            TryLoadToken();
+            if (!string.IsNullOrEmpty(_deviceToken))
+            {
+                ShowIn();
+                await LoadProfileAsync();
+                await AttestAsync();
+                await ScanCheatsAsync();
+            }
+            else ShowOut();
+            _heartbeat.Start();
+            _cheatScan.Start();
+        };
+
+        FormClosed += (_, _) => _loginCts?.Cancel();
+    }
+
+    private void TryDarkTitle()
+    {
+        try
+        {
+            int on = 1;
+            DwmSetWindowAttribute(Handle, 20, ref on, sizeof(int));
+        }
+        catch { }
+    }
+
+    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr h, int a, ref int v, int s);
+
+    private void BuildOut()
+    {
+        // Error banner — FACEIT style
+        _errorBanner.Size = new Size(416, 48);
+        _errorBanner.Radius = 8;
+        _errorBanner.Fill = Theme.Surface;
+        _errorBanner.Paint += (_, e) =>
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var red = new SolidBrush(Theme.Red);
+            e.Graphics.FillEllipse(red, 14, 14, 20, 20);
+            using var pen = new Pen(Color.White, 2f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+            e.Graphics.DrawLine(pen, 20, 20, 28, 28);
+            e.Graphics.DrawLine(pen, 28, 20, 20, 28);
+        };
+        _errorLbl.AutoSize = false;
+        _errorLbl.Size = new Size(360, 24);
+        _errorLbl.Location = new Point(44, 13);
+        _errorLbl.ForeColor = Theme.Text;
+        _errorLbl.Font = new Font("Segoe UI Semibold", 10f);
+        _errorLbl.BackColor = Color.Transparent;
+        _errorLbl.Text = "Login failed: Connection refused";
+        _errorBanner.Controls.Add(_errorLbl);
+
+        // LOGIN WITH YGUARD
+        _loginBtn.Size = new Size(260, 48);
+        _loginBtn.Radius = 6;
+        _loginBtn.Fill = Theme.Orange;
+        _loginBtn.ForeColor = Color.White;
+        _loginBtn.Font = new Font("Segoe UI Semibold", 11f);
+        _loginBtn.Cursor = Cursors.Hand;
+        _loginBtn.Text = "LOGIN WITH YGUARD";
+        _loginBtn.Click += async (_, _) => await StartBrowserLoginAsync();
+
+        _featuresOutTitle.Text = "Recommended Security Features";
+        _featuresOutTitle.Font = new Font("Segoe UI Semibold", 12f);
+        _featuresOutTitle.ForeColor = Theme.Text;
+        _featuresOutTitle.AutoSize = true;
+
+        SetupPills(_outPills, "o:");
+
+        void Layout(object? s, EventArgs e)
+        {
+            int w = _outView.ClientSize.Width;
+            int top = _errorBanner.Visible ? 24 : 56;
+            _errorBanner.Left = (w - _errorBanner.Width) / 2;
+            _errorBanner.Top = 24;
+            _loginBtn.Left = (w - _loginBtn.Width) / 2;
+            _loginBtn.Top = _errorBanner.Visible ? 92 : 64;
+            _featuresOutTitle.Left = 32;
+            _featuresOutTitle.Top = _loginBtn.Bottom + 36;
+            _outPills.Left = 32;
+            _outPills.Top = _featuresOutTitle.Bottom + 14;
+            _outPills.Width = w - 64;
+            _outPills.Height = 100;
+        }
+        _outView.Resize += Layout;
+        _outView.Controls.Add(_errorBanner);
+        _outView.Controls.Add(_loginBtn);
+        _outView.Controls.Add(_featuresOutTitle);
+        _outView.Controls.Add(_outPills);
+        Layout(null, EventArgs.Empty);
+    }
+
+    private void BuildIn()
+    {
+        _avatar.Size = new Size(48, 48);
+        _avatar.Location = new Point(32, 28);
+        _avatar.SizeMode = PictureBoxSizeMode.Zoom;
+        _avatar.BackColor = Theme.Surface;
+
+        _nameLbl.Font = new Font("Segoe UI Semibold", 15f);
+        _nameLbl.ForeColor = Theme.Text;
+        _nameLbl.AutoSize = true;
+        _nameLbl.Location = new Point(92, 28);
+
+        _memberLbl.Font = new Font("Segoe UI", 9f);
+        _memberLbl.ForeColor = Theme.Muted;
+        _memberLbl.AutoSize = true;
+        _memberLbl.Location = new Point(92, 56);
+
+        _logout.Text = "LOGOUT";
+        _logout.Font = new Font("Segoe UI Semibold", 9f);
+        _logout.LinkColor = Theme.Muted;
+        _logout.ActiveLinkColor = Theme.Text;
+        _logout.VisitedLinkColor = Theme.Muted;
+        _logout.LinkBehavior = LinkBehavior.NeverUnderline;
+        _logout.AutoSize = true;
+        _logout.Cursor = Cursors.Hand;
+        _logout.Click += (_, _) => Logout();
+
+        _featuresInTitle.Text = "Recommended Security Features";
+        _featuresInTitle.Font = new Font("Segoe UI Semibold", 12f);
+        _featuresInTitle.ForeColor = Theme.Text;
+        _featuresInTitle.AutoSize = true;
+        _featuresInTitle.Location = new Point(32, 100);
+
+        SetupPills(_inPills, "i:");
+        _inPills.Location = new Point(32, 136);
+        _inPills.Size = new Size(416, 110);
+
+        _statusBar.Dock = DockStyle.Bottom;
+        _statusBar.Height = 40;
+        _statusBar.BackColor = Theme.Bg;
+        _statusBar.Paint += (_, e) =>
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var b = new SolidBrush(_statusOk ? Theme.Green : Theme.Red);
+            e.Graphics.FillEllipse(b, 32, 14, 10, 10);
+        };
+        _statusText.Location = new Point(50, 11);
+        _statusText.AutoSize = true;
+        _statusText.ForeColor = Theme.Muted;
+        _statusText.Font = new Font("Segoe UI", 9f);
+        _statusText.Text = "Disconnected";
+        _statusBar.Controls.Add(_statusText);
+
+        _inView.Resize += (_, _) =>
+        {
+            _logout.Left = _inView.ClientSize.Width - _logout.Width - 32;
+            _logout.Top = 32;
+            _inPills.Width = _inView.ClientSize.Width - 64;
+        };
+
+        _inView.Controls.Add(_avatar);
+        _inView.Controls.Add(_nameLbl);
+        _inView.Controls.Add(_memberLbl);
+        _inView.Controls.Add(_logout);
+        _inView.Controls.Add(_featuresInTitle);
+        _inView.Controls.Add(_inPills);
+        _inView.Controls.Add(_statusBar);
+    }
+
+    private void SetupPills(FlowLayoutPanel host, string prefix)
+    {
+        host.FlowDirection = FlowDirection.LeftToRight;
+        host.WrapContents = true;
+        host.BackColor = Theme.Bg;
+        host.AutoSize = false;
+        foreach (var (_, label) in Features)
+        {
+            var pill = new FeaturePill(label);
+            _pills[prefix + label] = pill;
+            host.Controls.Add(pill);
+        }
+    }
+
+    private void ShowOut()
+    {
+        _outView.Visible = true;
+        _inView.Visible = false;
+        _outView.BringToFront();
+        HideError();
+    }
+
+    private void ShowIn()
+    {
+        _inView.Visible = true;
+        _outView.Visible = false;
+        _inView.BringToFront();
+        _logout.Left = _inView.ClientSize.Width - _logout.Width - 32;
+        _logout.Top = 32;
+    }
+
+    private void ShowError(string msg)
+    {
+        _errorLbl.Text = msg;
+        _errorBanner.Visible = true;
+        _loginBtn.Top = 92;
+        _featuresOutTitle.Top = _loginBtn.Bottom + 36;
+        _outPills.Top = _featuresOutTitle.Bottom + 14;
+    }
+
+    private void HideError()
+    {
+        _errorBanner.Visible = false;
+        _loginBtn.Top = 64;
+        _featuresOutTitle.Top = _loginBtn.Bottom + 36;
+        _outPills.Top = _featuresOutTitle.Bottom + 14;
+    }
+
+    private void SetStatus(string text, bool ok)
+    {
+        _statusOk = ok;
+        _statusText.Text = text;
+        _statusBar.Invalidate();
+    }
+
+    private void PaintChecks()
+    {
+        var r = SecurityChecks.Run();
+        void Set(string p)
+        {
+            _pills[p + "Secure Boot"].SetOk(r.secure_boot);
+            _pills[p + "IOMMU"].SetOk(r.iommu);
+            _pills[p + "TPM 2.0"].SetOk(r.tpm_20);
+            _pills[p + "TPM Attestation"].SetOk(r.tpm_attestation);
+            _pills[p + "HVCI"].SetOk(r.hvci);
+            _pills[p + "Windows Security Updates"].SetOk(r.windows_updates);
+        }
+        Set("o:");
+        Set("i:");
+    }
+
+    /// <summary>
+    /// FACEIT-style: open website; Steam session there authorizes the launcher.
+    /// </summary>
+    private async Task StartBrowserLoginAsync()
+    {
+        _loginCts?.Cancel();
+        _loginCts = new CancellationTokenSource();
+        var ct = _loginCts.Token;
+        HideError();
+        _loginBtn.Enabled = false;
+        _loginBtn.Text = "WAITING…";
+
+        try
+        {
+            using var http = Http();
+            var res = await http.PostAsync("/ac/device/begin", null, ct);
+            var json = await res.Content.ReadAsStringAsync(ct);
+            if (!res.IsSuccessStatusCode)
+            {
+                ShowError("Login failed: Connection refused");
+                return;
+            }
+            using var doc = JsonDocument.Parse(json);
+            var code = doc.RootElement.GetProperty("code").GetString()!;
+            var uri = doc.RootElement.GetProperty("verification_uri").GetString()!;
+            var interval = doc.RootElement.TryGetProperty("interval", out var iv)
+                ? Math.Max(1, iv.GetInt32())
+                : 2;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            }
+            catch
+            {
+                ShowError("Login failed: Connection refused");
+                return;
+            }
+
+            // Poll until website Steam user approves
+            while (!ct.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(interval), ct);
+                var pollRes = await http.PostAsJsonAsync(
+                    "/ac/device/poll",
+                    new { code, label = Environment.MachineName },
+                    ct);
+                var pollJson = await pollRes.Content.ReadAsStringAsync(ct);
+                if (!pollRes.IsSuccessStatusCode) continue;
+
+                using var pollDoc = JsonDocument.Parse(pollJson);
+                var status = pollDoc.RootElement.GetProperty("status").GetString();
+                if (status == "pending") continue;
+                if (status == "expired")
+                {
+                    ShowError("Login failed: Connection refused");
+                    return;
+                }
+                if (status == "ready")
+                {
+                    var token = pollDoc.RootElement.GetProperty("device_token").GetString()!;
+                    SaveToken(token);
+                    ShowIn();
+                    await LoadProfileAsync();
+                    await AttestAsync();
+                    return;
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch
+        {
+            ShowError("Login failed: Connection refused");
+        }
+        finally
+        {
+            _loginBtn.Enabled = true;
+            _loginBtn.Text = "LOGIN WITH YGUARD";
+        }
+    }
+
+    private void Logout()
+    {
+        _loginCts?.Cancel();
+        try { if (File.Exists(_tokenPath)) File.Delete(_tokenPath); } catch { }
+        _deviceToken = null;
+        _avatar.Image = null;
+        _nameLbl.Text = "";
+        ShowOut();
+    }
+
+    private void TryLoadToken()
+    {
+        try
+        {
+            if (File.Exists(_tokenPath))
+                _deviceToken = File.ReadAllText(_tokenPath).Trim();
+        }
+        catch { }
+    }
+
+    private void SaveToken(string token)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_tokenPath)!);
+        File.WriteAllText(_tokenPath, token);
+        _deviceToken = token;
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken)) return;
+        try
+        {
+            using var http = Http();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            var res = await http.GetAsync("/ac/me");
+            if (!res.IsSuccessStatusCode) return;
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            var root = doc.RootElement;
+            _nameLbl.Text = root.GetProperty("name").GetString() ?? "Player";
+            if (root.TryGetProperty("member_since", out var ms)
+                && ms.ValueKind == JsonValueKind.String
+                && DateTime.TryParse(ms.GetString(), out var dt))
+                _memberLbl.Text = $"Member since {dt:dd MMMM yyyy}";
+            else
+                _memberLbl.Text = "Member";
+
+            if (root.TryGetProperty("avatar_url", out var av)
+                && av.ValueKind == JsonValueKind.String
+                && !string.IsNullOrEmpty(av.GetString()))
+            {
+                try
+                {
+                    using var imgHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+                    var bytes = await imgHttp.GetByteArrayAsync(av.GetString()!);
+                    using var msStream = new MemoryStream(bytes);
+                    _avatar.Image = Image.FromStream(msStream);
+                }
+                catch { }
+            }
+        }
+        catch { }
+    }
+
+    private async Task AttestAsync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken)) return;
+        PaintChecks();
+        try
+        {
+            using var http = Http();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            var res = await http.PostAsJsonAsync("/ac/attest", SecurityChecks.Run());
+            if (!res.IsSuccessStatusCode)
+            {
+                SetStatus("Connection refused", false);
+                return;
+            }
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            var passed = doc.RootElement.GetProperty("passed").GetBoolean();
+            if (_reportedCheats)
+            {
+                SetStatus("Banned | Cheat software detected", false);
+                return;
+            }
+            SetStatus(
+                passed ? "Connected | Waiting for match ready" : "Connected | Fix failed checks",
+                passed);
+        }
+        catch
+        {
+            SetStatus("Connection refused", false);
+        }
+    }
+
+    /// <summary>
+    /// While logged in (and especially while CS2 is running), scan for known cheat installs.
+    /// Hits are reported to the API which bans the Steam account and kicks from live matches.
+    /// </summary>
+    private async Task ScanCheatsAsync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken) || _reportedCheats) return;
+
+        // Scan more aggressively when CS2 is open (in/around match).
+        var cs2Running = Process.GetProcessesByName("cs2").Length > 0
+            || Process.GetProcessesByName("csgo").Length > 0;
+        _cheatScan.Interval = cs2Running ? 8_000 : 20_000;
+
+        List<CheatScanner.Hit> hits;
+        try { hits = CheatScanner.Scan(); }
+        catch { return; }
+        if (hits.Count == 0) return;
+
+        // Don't spam API — one report per session unless new scan after cooldown.
+        if ((DateTime.UtcNow - _lastCheatReport).TotalSeconds < 30) return;
+        _lastCheatReport = DateTime.UtcNow;
+
+        var payload = hits
+            .GroupBy(h => h.Signature + "|" + (h.Path ?? "") + "|" + (h.ProcessName ?? ""))
+            .Select(g => g.First())
+            .Take(25)
+            .Select(h => new
+            {
+                signature = h.Signature,
+                path = h.Path,
+                process_name = h.ProcessName,
+            })
+            .ToList();
+
+        try
+        {
+            using var http = Http();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            var res = await http.PostAsJsonAsync("/ac/report", new { hits = payload });
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode) return;
+
+            using var doc = JsonDocument.Parse(body);
+            var banned = doc.RootElement.TryGetProperty("banned", out var b) && b.GetBoolean();
+            if (banned)
+            {
+                _reportedCheats = true;
+                SetStatus("Banned | Cheat software detected", false);
+            }
+        }
+        catch { /* network — retry next tick */ }
+    }
+
+    private static HttpClient Http()
+    {
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri(ApiBase),
+            Timeout = TimeSpan.FromSeconds(20),
+        };
+        http.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        return http;
+    }
+}
+
+internal class RoundedPanel : Panel
+{
+    public int Radius { get; set; } = 8;
+    public Color Fill { get; set; } = Theme.Surface;
+
+    public RoundedPanel()
+    {
+        DoubleBuffered = true;
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        using var path = Round(ClientRectangle, Radius);
+        using var br = new SolidBrush(Fill);
+        e.Graphics.FillPath(br, path);
+        base.OnPaint(e);
+    }
+
+    internal static GraphicsPath Round(Rectangle r, int radius)
+    {
+        var p = new GraphicsPath();
+        int d = radius * 2;
+        var rr = new Rectangle(r.X, r.Y, r.Width - 1, r.Height - 1);
+        p.AddArc(rr.X, rr.Y, d, d, 180, 90);
+        p.AddArc(rr.Right - d, rr.Y, d, d, 270, 90);
+        p.AddArc(rr.Right - d, rr.Bottom - d, d, d, 0, 90);
+        p.AddArc(rr.X, rr.Bottom - d, d, d, 90, 90);
+        p.CloseFigure();
+        return p;
+    }
+}
+
+internal sealed class RoundedButton : Control
+{
+    public int Radius { get; set; } = 6;
+    public Color Fill { get; set; } = Theme.Orange;
+    private bool _hover;
+
+    public RoundedButton()
+    {
+        DoubleBuffered = true;
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, true);
+        Cursor = Cursors.Hand;
+        Size = new Size(260, 48);
+    }
+
+    protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
+    protected override void OnMouseLeave(EventArgs e) { _hover = false; Invalidate(); base.OnMouseLeave(e); }
+    protected override void OnMouseClick(MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Left) OnClick(e);
+        base.OnMouseClick(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+        var fill = _hover ? ControlPaint.Light(Fill) : Fill;
+        using var path = RoundedPanel.Round(ClientRectangle, Radius);
+        using var br = new SolidBrush(fill);
+        e.Graphics.FillPath(br, path);
+
+        // Brand mark — transparent Y (no black bg); white on red button for contrast
+        if (Theme.LogoMark != null)
+        {
+            var dest = new Rectangle(12, 8, 32, 32);
+            using var attrs = new System.Drawing.Imaging.ImageAttributes();
+            var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
+            {
+                new float[] {0,0,0,0,0},
+                new float[] {0,0,0,0,0},
+                new float[] {0,0,0,0,0},
+                new float[] {0,0,0,1,0},
+                new float[] {1,1,1,0,1}, // force RGB white, keep alpha
+            });
+            attrs.SetColorMatrix(cm);
+            e.Graphics.DrawImage(
+                Theme.LogoMark,
+                dest,
+                0, 0, Theme.LogoMark.Width, Theme.LogoMark.Height,
+                GraphicsUnit.Pixel,
+                attrs);
+        }
+        else
+        {
+            using var w = new SolidBrush(Color.White);
+            e.Graphics.FillPolygon(w, new[]
+            {
+                new Point(28, 16), new Point(40, 24), new Point(28, 32),
+            });
+        }
+
+        TextRenderer.DrawText(
+            e.Graphics,
+            Text,
+            Font,
+            new Rectangle(48, 0, Width - 56, Height),
+            Color.White,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.NoPadding);
+    }
+}
+
+internal sealed class FeaturePill : Control
+{
+    private readonly string _label;
+    private bool _ok = true;
+
+    public FeaturePill(string label)
+    {
+        _label = label;
+        var w = TextRenderer.MeasureText(label, new Font("Segoe UI", 9f)).Width + 42;
+        Size = new Size(Math.Max(w, 108), 30);
+        Margin = new Padding(0, 0, 8, 8);
+        DoubleBuffered = true;
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+    }
+
+    public void SetOk(bool ok) { _ok = ok; Invalidate(); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+        using (var path = RoundedPanel.Round(ClientRectangle, 15))
+        using (var br = new SolidBrush(Theme.PillBg))
+            g.FillPath(br, path);
+
+        int cx = 14, cy = Height / 2;
+        using (var c = new SolidBrush(_ok ? Theme.Green : Theme.Red))
+            g.FillEllipse(c, cx - 7, cy - 7, 14, 14);
+        using var pen = new Pen(Color.White, 1.5f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        if (_ok)
+            g.DrawLines(pen, new[] { new Point(cx - 3, cy), new Point(cx - 1, cy + 3), new Point(cx + 4, cy - 3) });
+        else
+        {
+            g.DrawLine(pen, cx - 3, cy - 3, cx + 3, cy + 3);
+            g.DrawLine(pen, cx + 3, cy - 3, cx - 3, cy + 3);
+        }
+
+        TextRenderer.DrawText(g, _label, new Font("Segoe UI", 9f),
+            new Point(26, (Height - 15) / 2), Theme.Text, TextFormatFlags.NoPadding);
+    }
+}
+
+internal sealed class CheckReport
+{
+    [JsonPropertyName("secure_boot")] public bool secure_boot { get; set; }
+    [JsonPropertyName("iommu")] public bool iommu { get; set; }
+    [JsonPropertyName("tpm_20")] public bool tpm_20 { get; set; }
+    [JsonPropertyName("tpm_attestation")] public bool tpm_attestation { get; set; }
+    [JsonPropertyName("hvci")] public bool hvci { get; set; }
+    [JsonPropertyName("windows_updates")] public bool windows_updates { get; set; }
+    [JsonPropertyName("os_version")] public string os_version { get; set; } = "";
+    [JsonPropertyName("hardware_hash")] public string hardware_hash { get; set; } = "";
+}
+
+internal static class SecurityChecks
+{
+    public static CheckReport Run()
+    {
+        var tpm = HasTpm20();
+        return new CheckReport
+        {
+            secure_boot = RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1,
+            iommu = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity") == 1,
+            tpm_20 = tpm,
+            tpm_attestation = tpm,
+            hvci = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled") == 1,
+            windows_updates = WindowsUpdated(),
+            os_version = Environment.OSVersion.ToString(),
+            hardware_hash = Convert.ToHexString(
+                System.Security.Cryptography.SHA256.HashData(
+                    Encoding.UTF8.GetBytes(Environment.MachineName + GetGuid())))[..32].ToLowerInvariant(),
+        };
+    }
+
+    private static int RegInt(string path, string name)
+    {
+        try
+        {
+            using var k = Registry.LocalMachine.OpenSubKey(path);
+            return k?.GetValue(name) is int i ? i : 0;
+        }
+        catch { return 0; }
+    }
+
+    private static bool HasTpm20()
+    {
+        try
+        {
+            using var s = new ManagementObjectSearcher(@"root\cimv2\Security\MicrosoftTpm", "SELECT * FROM Win32_Tpm");
+            foreach (ManagementObject o in s.Get())
+            {
+                var spec = o["SpecVersion"]?.ToString() ?? "";
+                if (spec.StartsWith("2.")) return true;
+                if (o["IsEnabled_InitialValue"] is bool b && b) return true;
+            }
+        }
+        catch
+        {
+            try { return Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\TPM") != null; }
+            catch { return false; }
+        }
+        return false;
+    }
+
+    private static bool WindowsUpdated()
+    {
+        try
+        {
+            using var k = Registry.LocalMachine.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install");
+            if (DateTime.TryParse(k?.GetValue("LastSuccessTime")?.ToString(), out var dt))
+                return dt > DateTime.UtcNow.AddDays(-60);
+        }
+        catch { }
+        return true;
+    }
+
+    private static string GetGuid()
+    {
+        try
+        {
+            using var k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
+            return k?.GetValue("MachineGuid")?.ToString() ?? "";
+        }
+        catch { return ""; }
+    }
+}
