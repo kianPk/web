@@ -47,6 +47,16 @@ type VipRow = {
   server?: { label: string | null; host: string; port: number } | null;
 };
 
+type PremiumRow = {
+  steam_id: string;
+  tier: string;
+  expires_at: string | null;
+  updated_at: string;
+  name: string | null;
+  avatar_url: string | null;
+  active: boolean;
+};
+
 type PlayerHit = {
   steam_id: string;
   name: string | null;
@@ -56,8 +66,10 @@ type PlayerHit = {
 
 const orders = ref<OrderRow[]>([]);
 const vipGrants = ref<VipRow[]>([]);
+const premiumSubs = ref<PremiumRow[]>([]);
 const loadingOrders = ref(false);
 const loadingVip = ref(false);
+const loadingPremium = ref(false);
 const statusFilter = ref<string>("all");
 
 const playerQuery = ref("");
@@ -69,6 +81,17 @@ const adjustNote = ref("");
 const adjusting = ref(false);
 const balances = ref<PlayerHit[]>([]);
 const loadingBalances = ref(false);
+
+const premiumPlayerQuery = ref("");
+const premiumPlayerHits = ref<PlayerHit[]>([]);
+const searchingPremiumPlayers = ref(false);
+const selectedPremiumPlayer = ref<PlayerHit | null>(null);
+const selectedPremiumSub = ref<PremiumRow | null>(null);
+const premiumTier = ref<"premium" | "premium_plus">("premium");
+const premiumDuration = ref("30d");
+const premiumMode = ref<"extend" | "set">("extend");
+const premiumNote = ref("");
+const premiumBusy = ref(false);
 
 const ORDERS_QUERY = gql`
   query AdminFinanceOrders($where: store_orders_bool_exp!, $limit: Int!) {
@@ -157,6 +180,158 @@ async function loadVip() {
     });
   } finally {
     loadingVip.value = false;
+  }
+}
+
+async function loadPremium() {
+  loadingPremium.value = true;
+  try {
+    const data = await $fetch<{ subscriptions: PremiumRow[] }>(
+      `https://${apiDomain}/challenges/admin/subscriptions`,
+      {
+        credentials: "include",
+        query: { limit: 100 },
+      },
+    );
+    premiumSubs.value = data.subscriptions ?? [];
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: t("pages.settings.application.finance.load_failed"),
+      variant: "destructive",
+    });
+  } finally {
+    loadingPremium.value = false;
+  }
+}
+
+async function searchPremiumPlayers() {
+  const q = premiumPlayerQuery.value.trim();
+  if (!q) {
+    premiumPlayerHits.value = [];
+    return;
+  }
+  searchingPremiumPlayers.value = true;
+  try {
+    const data = await $fetch<{ players: PlayerHit[] }>(
+      `https://${apiDomain}/ypoint/admin/players`,
+      {
+        credentials: "include",
+        query: { q },
+      },
+    );
+    premiumPlayerHits.value = data.players ?? [];
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: t("pages.settings.application.finance.search_failed"),
+      variant: "destructive",
+    });
+  } finally {
+    searchingPremiumPlayers.value = false;
+  }
+}
+
+async function selectPremiumPlayer(p: PlayerHit) {
+  selectedPremiumPlayer.value = p;
+  premiumPlayerHits.value = [];
+  premiumPlayerQuery.value = p.name || p.steam_id;
+  try {
+    const data = await $fetch<{ subscription: PremiumRow | null }>(
+      `https://${apiDomain}/challenges/admin/subscription`,
+      {
+        credentials: "include",
+        query: { steamId: p.steam_id },
+      },
+    );
+    selectedPremiumSub.value = data.subscription;
+    if (data.subscription?.tier === "premium_plus") {
+      premiumTier.value = "premium_plus";
+    } else if (data.subscription?.tier === "premium") {
+      premiumTier.value = "premium";
+    }
+  } catch {
+    selectedPremiumSub.value = null;
+  }
+}
+
+async function grantPremium() {
+  if (!selectedPremiumPlayer.value) {
+    toast({
+      title: t("pages.settings.application.finance.pick_player"),
+      variant: "destructive",
+    });
+    return;
+  }
+  premiumBusy.value = true;
+  try {
+    const data = await $fetch<{
+      success: boolean;
+      subscription: PremiumRow | null;
+    }>(`https://${apiDomain}/challenges/admin/grant`, {
+      method: "POST",
+      credentials: "include",
+      body: {
+        steamId: selectedPremiumPlayer.value.steam_id,
+        tier: premiumTier.value,
+        duration: premiumDuration.value.trim() || "30d",
+        mode: premiumMode.value,
+        note: premiumNote.value.trim() || undefined,
+      },
+    });
+    selectedPremiumSub.value = data.subscription;
+    toast({
+      title: t("pages.settings.application.finance.premium_grant_ok"),
+    });
+    premiumNote.value = "";
+    await loadPremium();
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title: t("pages.settings.application.finance.premium_grant_failed"),
+      description:
+        error?.data?.message || error?.statusMessage || String(error),
+    });
+  } finally {
+    premiumBusy.value = false;
+  }
+}
+
+async function revokePremium(steamId?: string) {
+  const id = steamId || selectedPremiumPlayer.value?.steam_id;
+  if (!id) {
+    toast({
+      title: t("pages.settings.application.finance.pick_player"),
+      variant: "destructive",
+    });
+    return;
+  }
+  premiumBusy.value = true;
+  try {
+    await $fetch(`https://${apiDomain}/challenges/admin/revoke`, {
+      method: "POST",
+      credentials: "include",
+      body: {
+        steamId: id,
+        note: premiumNote.value.trim() || undefined,
+      },
+    });
+    if (selectedPremiumPlayer.value?.steam_id === id) {
+      selectedPremiumSub.value = null;
+    }
+    toast({
+      title: t("pages.settings.application.finance.premium_revoke_ok"),
+    });
+    await loadPremium();
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title: t("pages.settings.application.finance.premium_revoke_failed"),
+      description:
+        error?.data?.message || error?.statusMessage || String(error),
+    });
+  } finally {
+    premiumBusy.value = false;
   }
 }
 
@@ -311,13 +486,26 @@ watch(statusFilter, () => {
 
 watch(tab, (next) => {
   if (next === "payments" && !orders.value.length) void loadOrders();
-  if (next === "subscriptions" && !vipGrants.value.length) void loadVip();
+  if (next === "subscriptions") {
+    void loadPremium();
+    if (!vipGrants.value.length) void loadVip();
+  }
   if (next === "adjust") void loadBalances();
 });
 
 onMounted(() => {
   void loadOrders();
 });
+
+const premiumActive = computed(
+  () => premiumSubs.value.filter((r) => r.active).length,
+);
+
+function tierLabel(tier: string) {
+  return tier === "premium_plus"
+    ? t("pages.challenges.tier_plus")
+    : t("pages.challenges.tier_premium");
+}
 </script>
 
 <template>
@@ -463,6 +651,272 @@ onMounted(() => {
                 </tr>
               </tbody>
             </table>
+          </div>
+        </SettingsSection>
+
+        <!-- Premium / Premium Plus (Challenges) -->
+        <SettingsSection
+          v-if="tab === 'subscriptions'"
+          id="finance-premium"
+          :title="$t('pages.settings.application.finance.premium_title')"
+          :description="
+            $t('pages.settings.application.finance.premium_description')
+          "
+        >
+          <div class="mb-4 grid gap-6 lg:grid-cols-2">
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <Label>{{
+                  $t("pages.settings.application.finance.search_player")
+                }}</Label>
+                <div class="flex gap-2">
+                  <Input
+                    v-model="premiumPlayerQuery"
+                    :placeholder="
+                      $t(
+                        'pages.settings.application.finance.search_placeholder',
+                      )
+                    "
+                    @keydown.enter.prevent="searchPremiumPlayers"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    :disabled="searchingPremiumPlayers"
+                    @click="searchPremiumPlayers"
+                  >
+                    <Search class="h-4 w-4" />
+                  </Button>
+                </div>
+                <ul
+                  v-if="premiumPlayerHits.length"
+                  class="divide-y divide-border rounded-md border border-border"
+                >
+                  <li
+                    v-for="p in premiumPlayerHits"
+                    :key="p.steam_id"
+                    class="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 hover:bg-muted/50"
+                    @click="selectPremiumPlayer(p)"
+                  >
+                    <div>
+                      <div class="font-medium">{{ p.name || p.steam_id }}</div>
+                      <div
+                        class="font-mono text-[0.65rem] text-muted-foreground"
+                      >
+                        {{ p.steam_id }}
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div
+                v-if="selectedPremiumPlayer"
+                class="rounded-md border border-border bg-muted/20 px-3 py-2 text-sm"
+              >
+                <div class="font-medium">
+                  {{
+                    selectedPremiumPlayer.name || selectedPremiumPlayer.steam_id
+                  }}
+                </div>
+                <div class="font-mono text-[0.65rem] text-muted-foreground">
+                  {{ selectedPremiumPlayer.steam_id }}
+                </div>
+                <div class="mt-1">
+                  <template v-if="selectedPremiumSub?.active">
+                    {{ tierLabel(selectedPremiumSub.tier) }} ·
+                    <span v-if="!selectedPremiumSub.expires_at">{{
+                      $t("pages.settings.application.finance.vip_permanent")
+                    }}</span>
+                    <span v-else>{{
+                      formatWhen(selectedPremiumSub.expires_at)
+                    }}</span>
+                  </template>
+                  <span v-else class="text-muted-foreground">{{
+                    $t("pages.settings.application.finance.premium_none")
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-2">
+                  <Label>{{
+                    $t("pages.settings.application.finance.premium_tier")
+                  }}</Label>
+                  <select
+                    v-model="premiumTier"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="premium">
+                      {{ $t("pages.challenges.tier_premium") }}
+                    </option>
+                    <option value="premium_plus">
+                      {{ $t("pages.challenges.tier_plus") }}
+                    </option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <Label>{{
+                    $t("pages.settings.application.finance.premium_duration")
+                  }}</Label>
+                  <Input v-model="premiumDuration" placeholder="30d" />
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <Label>{{
+                  $t("pages.settings.application.finance.premium_mode")
+                }}</Label>
+                <select
+                  v-model="premiumMode"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="extend">
+                    {{
+                      $t("pages.settings.application.finance.premium_mode_extend")
+                    }}
+                  </option>
+                  <option value="set">
+                    {{
+                      $t("pages.settings.application.finance.premium_mode_set")
+                    }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <Label>{{ $t("pages.settings.application.finance.note") }}</Label>
+                <Textarea
+                  v-model="premiumNote"
+                  rows="2"
+                  :placeholder="
+                    $t('pages.settings.application.finance.note_placeholder')
+                  "
+                />
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  class="gap-1.5"
+                  :disabled="premiumBusy || !selectedPremiumPlayer"
+                  @click="grantPremium"
+                >
+                  <Plus class="h-4 w-4" />
+                  {{ $t("pages.settings.application.finance.premium_grant") }}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  class="gap-1.5"
+                  :disabled="premiumBusy || !selectedPremiumPlayer"
+                  @click="revokePremium()"
+                >
+                  <Minus class="h-4 w-4" />
+                  {{ $t("pages.settings.application.finance.premium_revoke") }}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-3 flex items-center gap-2">
+                <Badge variant="secondary">
+                  {{
+                    $t("pages.settings.application.finance.vip_active_count", {
+                      count: premiumActive,
+                    })
+                  }}
+                </Badge>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  :disabled="loadingPremium"
+                  @click="loadPremium"
+                >
+                  {{ $t("pages.settings.application.finance.refresh") }}
+                </Button>
+              </div>
+
+              <div
+                v-if="loadingPremium"
+                class="text-sm text-muted-foreground"
+              >
+                {{ $t("pages.settings.application.finance.loading") }}
+              </div>
+              <p
+                v-else-if="premiumSubs.length === 0"
+                class="text-sm text-muted-foreground"
+              >
+                {{ $t("pages.settings.application.finance.premium_empty") }}
+              </p>
+              <div v-else class="overflow-x-auto rounded-md border">
+                <table class="w-full text-sm">
+                  <thead class="bg-muted/40 text-left text-xs uppercase">
+                    <tr>
+                      <th class="px-3 py-2">
+                        {{ $t("pages.settings.application.finance.col_player") }}
+                      </th>
+                      <th class="px-3 py-2">
+                        {{ $t("pages.settings.application.finance.premium_tier") }}
+                      </th>
+                      <th class="px-3 py-2">
+                        {{ $t("pages.settings.application.finance.col_expires") }}
+                      </th>
+                      <th class="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="row in premiumSubs"
+                      :key="row.steam_id"
+                      class="border-t border-border"
+                      :class="{ 'opacity-50': !row.active }"
+                    >
+                      <td class="px-3 py-2">
+                        <div class="font-medium">
+                          {{ row.name || row.steam_id }}
+                        </div>
+                        <div
+                          class="font-mono text-[0.65rem] text-muted-foreground"
+                        >
+                          {{ row.steam_id }}
+                        </div>
+                      </td>
+                      <td class="px-3 py-2">
+                        <Badge :variant="row.active ? 'default' : 'secondary'">
+                          {{ tierLabel(row.tier) }}
+                        </Badge>
+                      </td>
+                      <td class="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                        <span v-if="!row.expires_at">{{
+                          $t(
+                            "pages.settings.application.finance.vip_permanent",
+                          )
+                        }}</span>
+                        <span v-else>{{ formatWhen(row.expires_at) }}</span>
+                      </td>
+                      <td class="px-3 py-2 text-end">
+                        <Button
+                          v-if="row.active"
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          :disabled="premiumBusy"
+                          @click="revokePremium(row.steam_id)"
+                        >
+                          {{
+                            $t(
+                              "pages.settings.application.finance.premium_revoke",
+                            )
+                          }}
+                        </Button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </SettingsSection>
 

@@ -2754,7 +2754,7 @@
         },
         "finance": {
           "title": "مدیریت مالی",
-          "description": "پرداخت‌ها، اشتراک‌های VIP و تنظیم دستی Ypoint.",
+          "description": "پرداخت‌ها، VIP، اشتراک Premium چلنج، و تنظیم دستی Ypoint.",
           "tabs": {
             "payments": "پرداخت‌ها",
             "subscriptions": "اشتراک‌ها",
@@ -2801,7 +2801,22 @@
           "balances_title": "موجودی بازیکنان",
           "balances_description": "بازیکنانی که Ypoint دارند، از بیشترین به کمترین. روی ردیف بزن تا تنظیم کنی.",
           "balances_empty": "هنوز کسی موجودی Ypoint ندارد.",
-          "col_balance": "موجودی"
+          "col_balance": "موجودی",
+          "premium_title": "Premium / Premium Plus",
+          "premium_description": "دادن یا گرفتن اشتراک سایت برای باز شدن چلنج.",
+          "premium_empty": "هنوز اشتراک Premium ثبت نشده.",
+          "premium_none": "اشتراک Premium فعال ندارد",
+          "premium_tier": "پلن",
+          "premium_duration": "مدت",
+          "premium_mode": "حالت",
+          "premium_mode_extend": "تمدید روی انقضای فعلی",
+          "premium_mode_set": "شروع از الان (جایگزین)",
+          "premium_grant": "اضافه / تمدید",
+          "premium_revoke": "حذف",
+          "premium_grant_ok": "اشتراک Premium به‌روز شد",
+          "premium_grant_failed": "به‌روزرسانی اشتراک ناموفق بود",
+          "premium_revoke_ok": "اشتراک Premium حذف شد",
+          "premium_revoke_failed": "حذف اشتراک ناموفق بود"
         }
       },
       "language": {

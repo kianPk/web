@@ -2754,7 +2754,7 @@
         },
         "finance": {
           "title": "Finance",
-          "description": "Payments, VIP subscriptions, and manual Ypoint adjustments.",
+          "description": "Payments, VIP, Premium Challenges, and manual Ypoint adjustments.",
           "tabs": {
             "payments": "Payments",
             "subscriptions": "Subscriptions",
@@ -2801,7 +2801,22 @@
           "balances_title": "Player balances",
           "balances_description": "Players with Ypoints, highest first. Click a row to adjust.",
           "balances_empty": "No players with a Ypoint balance yet.",
-          "col_balance": "Balance"
+          "col_balance": "Balance",
+          "premium_title": "Premium / Premium Plus",
+          "premium_description": "Grant or revoke site subscriptions that unlock Challenges.",
+          "premium_empty": "No Premium subscriptions yet.",
+          "premium_none": "No active Premium subscription",
+          "premium_tier": "Plan",
+          "premium_duration": "Duration",
+          "premium_mode": "Mode",
+          "premium_mode_extend": "Extend current expiry",
+          "premium_mode_set": "Replace expiry from now",
+          "premium_grant": "Grant / extend",
+          "premium_revoke": "Revoke",
+          "premium_grant_ok": "Premium subscription updated",
+          "premium_grant_failed": "Could not update Premium subscription",
+          "premium_revoke_ok": "Premium subscription revoked",
+          "premium_revoke_failed": "Could not revoke Premium subscription"
         }
       },
       "language": {
