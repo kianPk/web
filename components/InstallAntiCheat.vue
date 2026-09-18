@@ -15,7 +15,7 @@ withDefaults(
 const { state, isMobile } = useSidebar();
 
 const downloadHref =
-  "https://github.com/kianPk/web/releases/download/client-v0.2.4/YGuardAC-0.2.4-client.zip";
+  "https://github.com/kianPk/web/releases/download/client-v0.2.5/YGuardAC-0.2.5-client.zip";
 
 function download() {
   // Direct navigation so the browser treats it as a file download.

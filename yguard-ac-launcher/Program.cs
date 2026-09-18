@@ -98,6 +98,7 @@ internal sealed class MainForm : Form
     private bool? _lastGameRunning;
     private DateTime _lastCheatReport = DateTime.MinValue;
     private bool _updatePrompted;
+    private bool _exitingForUpdate;
 
     private string? _deviceToken;
     private readonly string _tokenPath = Path.Combine(
@@ -179,6 +180,13 @@ internal sealed class MainForm : Form
             _gameWatch.Start();
         };
 
+        FormClosing += (_, _) =>
+        {
+            // Closing AC while CS2 is open must kill the game — otherwise players
+            // can drop AC mid-match and enable cheats.
+            if (!_exitingForUpdate)
+                KillGameIfRunning();
+        };
         FormClosed += async (_, _) =>
         {
             _loginCts?.Cancel();
@@ -390,6 +398,35 @@ internal sealed class MainForm : Form
         Process.GetProcessesByName("cs2").Length > 0
         || Process.GetProcessesByName("csgo").Length > 0;
 
+    /// <summary>Force-close CS2/CSGO when AC exits so cheats can't be loaded mid-match.</summary>
+    private static void KillGameIfRunning()
+    {
+        foreach (var name in new[] { "cs2", "csgo" })
+        {
+            Process[] procs;
+            try { procs = Process.GetProcessesByName(name); }
+            catch { continue; }
+
+            foreach (var p in procs)
+            {
+                try
+                {
+                    if (p.HasExited) continue;
+                    p.Kill(entireProcessTree: true);
+                    p.WaitForExit(4000);
+                }
+                catch
+                {
+                    try { p.Kill(); } catch { /* best effort */ }
+                }
+                finally
+                {
+                    try { p.Dispose(); } catch { }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// FACEIT-style footer: waiting vs game running. Only while connected &amp; clean.
     /// </summary>
@@ -518,6 +555,8 @@ internal sealed class MainForm : Form
 
     private void Logout()
     {
+        // Logout removes AC protection — close the game if it's open.
+        KillGameIfRunning();
         _ = NotifyDisconnectAsync();
         _loginCts?.Cancel();
         try { if (File.Exists(_tokenPath)) File.Delete(_tokenPath); } catch { }
@@ -617,6 +656,8 @@ internal sealed class MainForm : Form
             if (ok)
             {
                 // Let the batch replace the exe after we fully exit.
+                // Don't kill CS2 — this is an AC self-update restart, not a quit.
+                _exitingForUpdate = true;
                 BeginInvoke(() =>
                 {
                     Application.Exit();
