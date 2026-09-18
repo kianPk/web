@@ -381,11 +381,11 @@ internal sealed class MainForm : Form
         try
         {
             using var http = Http();
-            var res = await http.PostAsync("/ac/device/begin", null, ct);
+            var res = await http.PostAsync("/plugins/ac/device/begin", null, ct);
             var json = await res.Content.ReadAsStringAsync(ct);
             if (!res.IsSuccessStatusCode)
             {
-                ShowError("Login failed: Connection refused");
+                ShowError($"Login failed: API {(int)res.StatusCode}");
                 return;
             }
             using var doc = JsonDocument.Parse(json);
@@ -410,7 +410,7 @@ internal sealed class MainForm : Form
             {
                 await Task.Delay(TimeSpan.FromSeconds(interval), ct);
                 var pollRes = await http.PostAsJsonAsync(
-                    "/ac/device/poll",
+                    "/plugins/ac/device/poll",
                     new { code, label = Environment.MachineName },
                     ct);
                 var pollJson = await pollRes.Content.ReadAsStringAsync(ct);
@@ -482,7 +482,7 @@ internal sealed class MainForm : Form
             using var http = Http();
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
-            var res = await http.GetAsync("/ac/me");
+            var res = await http.GetAsync("/plugins/ac/me");
             if (!res.IsSuccessStatusCode) return;
             using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
             var root = doc.RootElement;
@@ -520,7 +520,7 @@ internal sealed class MainForm : Form
             using var http = Http();
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
-            var res = await http.PostAsJsonAsync("/ac/attest", SecurityChecks.Run());
+            var res = await http.PostAsJsonAsync("/plugins/ac/attest", SecurityChecks.Run());
             if (!res.IsSuccessStatusCode)
             {
                 SetStatus("Connection refused", false);
@@ -582,7 +582,7 @@ internal sealed class MainForm : Form
             using var http = Http();
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
-            var res = await http.PostAsJsonAsync("/ac/report", new { hits = payload });
+            var res = await http.PostAsJsonAsync("/plugins/ac/report", new { hits = payload });
             var body = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode) return;
 

@@ -25,7 +25,7 @@ async function approve() {
     return;
   }
   try {
-    await $fetch(`https://${apiDomain}/ac/device/approve`, {
+    await $fetch(`https://${apiDomain}/plugins/ac/device/approve`, {
       method: "POST",
       credentials: "include",
       body: { code: code.value },

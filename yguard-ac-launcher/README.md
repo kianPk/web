@@ -29,11 +29,13 @@ dotnet build -c Release
 
 | Method | Path | Auth |
 |--------|------|------|
-| GET | `/ac/requirements` | public |
-| POST | `/ac/pair/start` | session cookie |
-| POST | `/ac/pair/claim` | public (code) |
-| POST | `/ac/attest` | `Bearer <device_token>` |
-| GET | `/ac/status` | session cookie |
+| GET | `/plugins/ac/requirements` | public |
+| POST | `/plugins/ac/pair/start` | session cookie |
+| POST | `/plugins/ac/pair/claim` | public (code) |
+| POST | `/plugins/ac/attest` | `Bearer <device_token>` |
+| GET | `/plugins/ac/status` | session cookie |
+
+> Paths are under `/plugins/ac` because Arvan CDN only forwards known API prefixes; bare `/ac/*` returns nginx 404.
 
 ## Admin
 

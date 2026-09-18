@@ -24,7 +24,7 @@ const loading = ref(false);
 async function loadStatus() {
   if (!auth.me?.steam_id) return;
   try {
-    status.value = await $fetch(`https://${apiDomain}/ac/status`, {
+    status.value = await $fetch(`https://${apiDomain}/plugins/ac/status`, {
       credentials: "include",
     });
   } catch {
@@ -40,7 +40,7 @@ async function startPair() {
   loading.value = true;
   try {
     const data = await $fetch<{ code: string; expires_at: string }>(
-      `https://${apiDomain}/ac/pair/start`,
+      `https://${apiDomain}/plugins/ac/pair/start`,
       { method: "POST", credentials: "include" },
     );
     pairCode.value = data.code;
