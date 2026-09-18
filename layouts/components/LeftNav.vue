@@ -29,6 +29,7 @@ import {
   CalendarRange,
   ShoppingBag,
   Wallet,
+  Target,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -343,6 +344,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <ShoppingBag />
                   {{ $t("layouts.app_nav.navigation.store") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.challenges')"
+              >
+                <NuxtLink
+                  :to="{ name: 'challenges' }"
+                  :class="{
+                    'router-link-active': isRouteActive('challenges'),
+                  }"
+                >
+                  <Target />
+                  {{ $t("layouts.app_nav.navigation.challenges") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

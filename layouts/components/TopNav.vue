@@ -219,6 +219,15 @@ const loginArrowClasses =
               </NavigationMenuLink>
             </NavigationMenuItem>
 
+            <NavigationMenuItem class="hidden md:block">
+              <NavigationMenuLink as-child>
+                <NuxtLink to="/challenges" :class="navLinkClasses">
+                  <span :class="navTickClasses"></span>
+                  {{ $t("layouts.app_nav.navigation.challenges") }}
+                </NuxtLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
             <NavigationMenuItem
               v-for="plugin in plugins"
               :key="plugin.id"

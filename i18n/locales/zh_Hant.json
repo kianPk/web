@@ -5083,6 +5083,183 @@
       "price": "{amount} Toman",
       "vip_badge": "VIP {duration}",
       "bale_rial_note": "Note: Bale invoices are in Rials — e.g. 100,000 Toman = 1,000,000 Rials."
+    },
+    "challenges": {
+      "title": "Challenges",
+      "locked_subtitle": "Subscribe to Premium or Premium Plus to unlock daily challenges.",
+      "unlocked_subtitle": "{tier} · {day} · 2 challenges today",
+      "locked_title": "Subscription required",
+      "locked_body": "Buy Premium or Premium Plus in the Store. Each day you get 2 challenges from your plan and earn Ypoints when you finish them.",
+      "login_required": "Sign in to view Challenges.",
+      "refresh": "Refresh",
+      "buy": "Store",
+      "tier_premium": "Premium",
+      "tier_plus": "Premium Plus",
+      "done": "Done",
+      "claimed": "Rewarded",
+      "auto_reward_hint": "Progress updates from finished matches today (Tehran time). Ypoints are credited automatically when a challenge is completed.",
+      "catalog": {
+        "p_win_comp_1": {
+          "title": "Competitive Win",
+          "description": "Win 1 Competitive match today."
+        },
+        "p_win_wing_1": {
+          "title": "Wingman Win",
+          "description": "Win 1 Wingman match today."
+        },
+        "p_win_duel_1": {
+          "title": "Duel Win",
+          "description": "Win 1 Duel match today."
+        },
+        "p_win_trios_1": {
+          "title": "Trios Win",
+          "description": "Win 1 Trios match today."
+        },
+        "p_win_any_2": {
+          "title": "Double Win",
+          "description": "Win any 2 matches today."
+        },
+        "p_play_2": {
+          "title": "Warm-up",
+          "description": "Finish 2 matches today."
+        },
+        "p_play_3": {
+          "title": "Grind Session",
+          "description": "Finish 3 matches today."
+        },
+        "p_kills_15": {
+          "title": "15 Kills",
+          "description": "Get 15 kills in a single match."
+        },
+        "p_kills_25": {
+          "title": "25 Kills",
+          "description": "Get 25 kills in a single match."
+        },
+        "p_dmg_1500": {
+          "title": "1500 Damage",
+          "description": "Deal 1500 damage in one match."
+        },
+        "p_dmg_2000": {
+          "title": "2000 Damage",
+          "description": "Deal 2000 damage in one match."
+        },
+        "p_hs_8": {
+          "title": "Headhunter",
+          "description": "Get 8 headshot kills in one match."
+        },
+        "p_assists_10": {
+          "title": "Team Player",
+          "description": "Get 10 assists in one match."
+        },
+        "p_flash_5": {
+          "title": "Flash Support",
+          "description": "Flash 5 enemies in one match."
+        },
+        "p_3k_1": {
+          "title": "Triple Kill",
+          "description": "Get a 3-kill round in one match."
+        },
+        "p_knife_1": {
+          "title": "Cold Blood",
+          "description": "Get a knife kill in one match."
+        },
+        "p_kd_12": {
+          "title": "Positive Impact",
+          "description": "Finish a match with K/D of 1.2 or higher."
+        },
+        "p_adr_80": {
+          "title": "Solid ADR",
+          "description": "Finish a match with ADR of 80+."
+        },
+        "p_kills_day_40": {
+          "title": "40 Kills Today",
+          "description": "Get 40 kills across all matches today."
+        },
+        "p_dmg_day_3000": {
+          "title": "3000 Damage Today",
+          "description": "Deal 3000 total damage today."
+        },
+        "pp_win_comp_2": {
+          "title": "Competitive Double",
+          "description": "Win 2 Competitive matches today."
+        },
+        "pp_win_comp_3": {
+          "title": "Competitive Triple",
+          "description": "Win 3 Competitive matches today."
+        },
+        "pp_win_wing_2": {
+          "title": "Wingman Double",
+          "description": "Win 2 Wingman matches today."
+        },
+        "pp_win_duel_2": {
+          "title": "Duel Double",
+          "description": "Win 2 Duel matches today."
+        },
+        "pp_win_any_3": {
+          "title": "Hat-trick",
+          "description": "Win any 3 matches today."
+        },
+        "pp_play_5": {
+          "title": "Full Session",
+          "description": "Finish 5 matches today."
+        },
+        "pp_kills_30": {
+          "title": "30 Bomb",
+          "description": "Get 30 kills in a single match."
+        },
+        "pp_kills_35": {
+          "title": "35 Kills",
+          "description": "Get 35 kills in a single match."
+        },
+        "pp_dmg_2500": {
+          "title": "2500 Damage",
+          "description": "Deal 2500 damage in one match."
+        },
+        "pp_dmg_3000": {
+          "title": "3000 Damage",
+          "description": "Deal 3000 damage in one match."
+        },
+        "pp_hs_12": {
+          "title": "Sharpshooter",
+          "description": "Get 12 headshot kills in one match."
+        },
+        "pp_ace_1": {
+          "title": "Ace",
+          "description": "Get a 5-kill round in one match."
+        },
+        "pp_4k_2": {
+          "title": "Quad Threat",
+          "description": "Get two 4-kill rounds in one match."
+        },
+        "pp_3k_3": {
+          "title": "Multi-kill Machine",
+          "description": "Get three 3-kill rounds in one match."
+        },
+        "pp_flash_10": {
+          "title": "Blind Side",
+          "description": "Flash 10 enemies in one match."
+        },
+        "pp_trade_10": {
+          "title": "Trade Specialist",
+          "description": "Get 10 trade kills in one match."
+        },
+        "pp_kd_15": {
+          "title": "Dominant K/D",
+          "description": "Finish a match with K/D of 1.5 or higher."
+        },
+        "pp_adr_100": {
+          "title": "100 ADR",
+          "description": "Finish a match with ADR of 100+."
+        },
+        "pp_kast_80": {
+          "title": "High KAST",
+          "description": "Finish a match with 80%+ KAST."
+        },
+        "pp_kills_day_60": {
+          "title": "60 Kills Today",
+          "description": "Get 60 kills across all matches today."
+        }
+      }
     }
   },
   "ypoint": {
@@ -5178,7 +5355,8 @@
         "events": "活動",
         "utility": "道具",
         "teamspeak": "TeamSpeak",
-        "store": "Store"
+        "store": "Store",
+        "challenges": "Challenges"
       },
       "community": {
         "title": "社群"
@@ -5256,7 +5434,8 @@
         "utility": "道具點位",
         "teamspeak": "TeamSpeak",
         "store": "Store",
-        "finance": "Finance — payments, VIP, Ypoints"
+        "finance": "Finance — payments, VIP, Ypoints",
+        "challenges": "Daily Challenges"
       },
       "logout_dialog": {
         "title": "登出",

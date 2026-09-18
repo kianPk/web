@@ -24,6 +24,7 @@ type Product = {
   image_url: string | null;
   ypoint_amount: number | null;
   vip_duration: string | null;
+  subscription_tier: string | null;
 };
 
 const products = ref<Product[]>([]);
@@ -45,6 +46,7 @@ const PRODUCTS_QUERY = gql`
       image_url
       ypoint_amount
       vip_duration
+      subscription_tier
     }
   }
 `;
@@ -265,6 +267,17 @@ onMounted(() => {
                     />
                     +{{ product.ypoint_amount }}
                   </span>
+                </span>
+                <span
+                  v-if="product.subscription_tier"
+                  class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground"
+                >
+                  {{
+                    product.subscription_tier === "premium_plus"
+                      ? $t("pages.challenges.tier_plus")
+                      : $t("pages.challenges.tier_premium")
+                  }}
+                  · Challenges
                 </span>
                 <span
                   v-if="product.vip_duration"

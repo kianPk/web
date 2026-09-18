@@ -2723,7 +2723,9 @@
             "active": "فعال",
             "vip_server": "سرور VIP (فعال‌سازی خودکار)",
             "vip_server_none": "هیچ (بدون VIP)",
-            "vip_duration": "مدت VIP"
+            "vip_duration": "مدت VIP",
+            "subscription_tier": "اشتراک سایت (چلنج)",
+            "subscription_none": "بدون اشتراک چلنج"
           },
           "bale": {
             "title": "بله‌پی",
@@ -2733,7 +2735,8 @@
             "missing": "بله‌پی هنوز پیکربندی نشده — توکن‌ها را روی API ست کنید.",
             "webhook": "آدرس وب‌هوک: {url}"
           },
-          "vip_hint": "بعد از پرداخت، روی همان سرور Dedicated دستور css_addvip زده می‌شود (RCON + YGuardVIP لازم است). مثال مدت: 30d یا 1mo."
+          "vip_hint": "بعد از پرداخت، روی همان سرور Dedicated دستور css_addvip زده می‌شود (RCON + YGuardVIP لازم است). مثال مدت: 30d یا 1mo.",
+          "subscription_hint": "اگر Premium یا Premium Plus باشد، بعد از پرداخت بخش چلنج باز می‌شود. مدت از فیلد duration خوانده می‌شود (مثلاً 30d)."
         },
         "ypoints": {
           "title": "Ypoint",
@@ -5083,6 +5086,183 @@
       "price": "{amount} تومان",
       "vip_badge": "VIP {duration}",
       "bale_rial_note": "توجه: فاکتور بله به ریال است؛ مثلاً ۱۰۰٬۰۰۰ تومان = ۱٬۰۰۰٬۰۰۰ ریال."
+    },
+    "challenges": {
+      "title": "چلنج",
+      "locked_subtitle": "برای باز شدن چلنج، اشتراک Premium یا Premium Plus بخر.",
+      "unlocked_subtitle": "{tier} · {day} · ۲ چالش امروز",
+      "locked_title": "نیاز به اشتراک",
+      "locked_body": "از استور Premium یا Premium Plus بخر. هر روز ۲ چالش از پلن خودت می‌گیری و با تمام کردنش Ypoint می‌گیری.",
+      "login_required": "برای دیدن چلنج وارد شو.",
+      "refresh": "بروزرسانی",
+      "buy": "استور",
+      "tier_premium": "Premium",
+      "tier_plus": "Premium Plus",
+      "done": "انجام شد",
+      "claimed": "پاداش گرفت",
+      "auto_reward_hint": "پیشرفت از مچ‌های تمام‌شده امروز (به وقت تهران) حساب می‌شود. با تکمیل چالش، Ypoint خودکار واریز می‌شود.",
+      "catalog": {
+        "p_win_comp_1": {
+          "title": "برد Competitive",
+          "description": "امروز ۱ مچ Competitive ببر."
+        },
+        "p_win_wing_1": {
+          "title": "برد Wingman",
+          "description": "امروز ۱ مچ Wingman ببر."
+        },
+        "p_win_duel_1": {
+          "title": "برد Duel",
+          "description": "امروز ۱ مچ Duel ببر."
+        },
+        "p_win_trios_1": {
+          "title": "برد Trios",
+          "description": "امروز ۱ مچ Trios ببر."
+        },
+        "p_win_any_2": {
+          "title": "دو برد",
+          "description": "امروز ۲ مچ (هر نوعی) ببر."
+        },
+        "p_play_2": {
+          "title": "گرم‌کردن",
+          "description": "امروز ۲ مچ تمام‌شده بازی کن."
+        },
+        "p_play_3": {
+          "title": "سشن تمرینی",
+          "description": "امروز ۳ مچ تمام‌شده بازی کن."
+        },
+        "p_kills_15": {
+          "title": "۱۵ کیل",
+          "description": "در یک مچ ۱۵ کیل بگیر."
+        },
+        "p_kills_25": {
+          "title": "۲۵ کیل",
+          "description": "در یک مچ ۲۵ کیل بگیر."
+        },
+        "p_dmg_1500": {
+          "title": "۱۵۰۰ دمیج",
+          "description": "در یک مچ ۱۵۰۰ دمیج بزن."
+        },
+        "p_dmg_2000": {
+          "title": "۲۰۰۰ دمیج",
+          "description": "در یک مچ ۲۰۰۰ دمیج بزن."
+        },
+        "p_hs_8": {
+          "title": "هدشات‌زن",
+          "description": "در یک مچ ۸ کیل هدشات بگیر."
+        },
+        "p_assists_10": {
+          "title": "تیم‌پلیر",
+          "description": "در یک مچ ۱۰ اسیست بگیر."
+        },
+        "p_flash_5": {
+          "title": "فلش ساپورت",
+          "description": "در یک مچ ۵ دشمن را فلش کن."
+        },
+        "p_3k_1": {
+          "title": "تریپل کیل",
+          "description": "در یک مچ یک راند ۳کیل بگیر."
+        },
+        "p_knife_1": {
+          "title": "چاقو",
+          "description": "در یک مچ یک کیل چاقو بگیر."
+        },
+        "p_kd_12": {
+          "title": "K/D مثبت",
+          "description": "یک مچ با K/D حداقل ۱.۲ تمام کن."
+        },
+        "p_adr_80": {
+          "title": "ADR خوب",
+          "description": "یک مچ با ADR حداقل ۸۰ تمام کن."
+        },
+        "p_kills_day_40": {
+          "title": "۴۰ کیل امروز",
+          "description": "امروز در مجموع ۴۰ کیل بگیر."
+        },
+        "p_dmg_day_3000": {
+          "title": "۳۰۰۰ دمیج امروز",
+          "description": "امروز در مجموع ۳۰۰۰ دمیج بزن."
+        },
+        "pp_win_comp_2": {
+          "title": "دو برد Competitive",
+          "description": "امروز ۲ مچ Competitive ببر."
+        },
+        "pp_win_comp_3": {
+          "title": "سه برد Competitive",
+          "description": "امروز ۳ مچ Competitive ببر."
+        },
+        "pp_win_wing_2": {
+          "title": "دو برد Wingman",
+          "description": "امروز ۲ مچ Wingman ببر."
+        },
+        "pp_win_duel_2": {
+          "title": "دو برد Duel",
+          "description": "امروز ۲ مچ Duel ببر."
+        },
+        "pp_win_any_3": {
+          "title": "هت‌تریک",
+          "description": "امروز ۳ مچ ببر."
+        },
+        "pp_play_5": {
+          "title": "سشن کامل",
+          "description": "امروز ۵ مچ تمام‌شده بازی کن."
+        },
+        "pp_kills_30": {
+          "title": "۳۰ بمب",
+          "description": "در یک مچ ۳۰ کیل بگیر."
+        },
+        "pp_kills_35": {
+          "title": "۳۵ کیل",
+          "description": "در یک مچ ۳۵ کیل بگیر."
+        },
+        "pp_dmg_2500": {
+          "title": "۲۵۰۰ دمیج",
+          "description": "در یک مچ ۲۵۰۰ دمیج بزن."
+        },
+        "pp_dmg_3000": {
+          "title": "۳۰۰۰ دمیج",
+          "description": "در یک مچ ۳۰۰۰ دمیج بزن."
+        },
+        "pp_hs_12": {
+          "title": "تیرانداز",
+          "description": "در یک مچ ۱۲ کیل هدشات بگیر."
+        },
+        "pp_ace_1": {
+          "title": "ایس",
+          "description": "در یک مچ یک راند ۵کیل بگیر."
+        },
+        "pp_4k_2": {
+          "title": "دو تا ۴کیل",
+          "description": "در یک مچ دو راند ۴کیل بگیر."
+        },
+        "pp_3k_3": {
+          "title": "ماشین مالتی‌کیل",
+          "description": "در یک مچ سه راند ۳کیل بگیر."
+        },
+        "pp_flash_10": {
+          "title": "فلش سنگین",
+          "description": "در یک مچ ۱۰ دشمن را فلش کن."
+        },
+        "pp_trade_10": {
+          "title": "ترید اسپشالیست",
+          "description": "در یک مچ ۱۰ ترید کیل بگیر."
+        },
+        "pp_kd_15": {
+          "title": "K/D غالب",
+          "description": "یک مچ با K/D حداقل ۱.۵ تمام کن."
+        },
+        "pp_adr_100": {
+          "title": "ADR ۱۰۰",
+          "description": "یک مچ با ADR حداقل ۱۰۰ تمام کن."
+        },
+        "pp_kast_80": {
+          "title": "KAST بالا",
+          "description": "یک مچ با KAST حداقل ۸۰٪ تمام کن."
+        },
+        "pp_kills_day_60": {
+          "title": "۶۰ کیل امروز",
+          "description": "امروز در مجموع ۶۰ کیل بگیر."
+        }
+      }
     }
   },
   "ypoint": {
@@ -5178,7 +5358,8 @@
         "events": "رویدادها",
         "utility": "سودمند",
         "teamspeak": "TeamSpeak",
-        "store": "فروشگاه"
+        "store": "فروشگاه",
+        "challenges": "چلنج"
       },
       "community": {
         "title": "جامعه"
@@ -5256,7 +5437,8 @@
         "utility": "ترکیب‌های سودمند",
         "teamspeak": "TeamSpeak",
         "store": "فروشگاه",
-        "finance": "مدیریت مالی — پرداخت‌ها، VIP، Ypoint"
+        "finance": "مدیریت مالی — پرداخت‌ها، VIP، Ypoint",
+        "challenges": "چالش‌های روزانه"
       },
       "logout_dialog": {
         "title": "خروج",

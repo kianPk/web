@@ -61,6 +61,7 @@ type Product = {
   ypoint_amount: number | null;
   vip_server_id: string | null;
   vip_duration: string | null;
+  subscription_tier: string | null;
 };
 
 type DedicatedServer = {
@@ -93,6 +94,7 @@ const emptyForm = () => ({
   sort_order: 0,
   vip_server_id: "" as string,
   vip_duration: "30d",
+  subscription_tier: "" as string,
 });
 
 const form = reactive(emptyForm());
@@ -111,6 +113,7 @@ const LIST_QUERY = gql`
       sort_order
       vip_server_id
       vip_duration
+      subscription_tier
     }
   }
 `;
@@ -183,6 +186,7 @@ function openEdit(product: Product) {
     sort_order: product.sort_order,
     vip_server_id: product.vip_server_id || "",
     vip_duration: product.vip_duration || "30d",
+    subscription_tier: product.subscription_tier || "",
   });
   dialogOpen.value = true;
 }
@@ -237,9 +241,11 @@ async function save() {
       active: form.active,
       sort_order: Math.round(Number(form.sort_order) || 0),
       vip_server_id: form.vip_server_id.trim() || null,
-      vip_duration: form.vip_server_id.trim()
-        ? (form.vip_duration.trim() || "30d")
-        : null,
+      vip_duration:
+        form.vip_server_id.trim() || form.subscription_tier.trim()
+          ? form.vip_duration.trim() || "30d"
+          : null,
+      subscription_tier: form.subscription_tier.trim() || null,
       updated_at: new Date().toISOString(),
     };
     if (!object.title || !object.slug) {
@@ -423,6 +429,9 @@ onMounted(() => {
                   <Badge v-if="product.vip_server_id" variant="secondary">
                     VIP {{ product.vip_duration || "30d" }}
                   </Badge>
+                  <Badge v-if="product.subscription_tier" variant="outline">
+                    {{ product.subscription_tier }}
+                  </Badge>
                   <Badge :variant="product.active ? 'default' : 'secondary'">
                     {{
                       product.active
@@ -552,6 +561,28 @@ onMounted(() => {
               @removed="form.image_url = ''"
             />
           </div>
+          <div class="space-y-2">
+            <Label>{{
+              $t("pages.settings.application.store.fields.subscription_tier")
+            }}</Label>
+            <select
+              v-model="form.subscription_tier"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">
+                {{
+                  $t(
+                    "pages.settings.application.store.fields.subscription_none",
+                  )
+                }}
+              </option>
+              <option value="premium">premium</option>
+              <option value="premium_plus">premium_plus</option>
+            </select>
+            <p class="text-xs text-muted-foreground">
+              {{ $t("pages.settings.application.store.subscription_hint") }}
+            </p>
+          </div>
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
               <Label>{{
@@ -580,7 +611,7 @@ onMounted(() => {
               <Input
                 v-model="form.vip_duration"
                 placeholder="30d"
-                :disabled="!form.vip_server_id"
+                :disabled="!form.vip_server_id && !form.subscription_tier"
               />
             </div>
           </div>
