@@ -10061,6 +10061,8 @@
     "code_expires": "Enter this code in the launcher. Expires in 10 minutes.",
     "login_required": "Log in with Steam first",
     "pair_ready": "Pair code ready",
-    "pair_failed": "Could not create pair code"
+    "pair_failed": "Could not create pair code",
+    "install_button": "Install AntiCheat",
+    "install_tooltip": "Download YGuard Anti-Cheat launcher"
   }
 }

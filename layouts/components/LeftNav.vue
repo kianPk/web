@@ -34,6 +34,7 @@ import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
+import InstallAntiCheat from "~/components/InstallAntiCheat.vue";
 import ProfileMenu from "~/layouts/components/ProfileMenu.vue";
 import { $, e_player_roles_enum, e_server_types_enum } from "~/generated/zeus";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -1110,6 +1111,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <InstallAntiCheat />
           <InstallPWA />
 
           <SidebarMenuItem>

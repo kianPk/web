@@ -10061,6 +10061,8 @@
     "code_expires": "این کد را در لانچر بزن. تا ۱۰ دقیقه معتبر است.",
     "login_required": "اول با Steam وارد شو",
     "pair_ready": "کد آماده است",
-    "pair_failed": "ساخت کد ممکن نشد"
+    "pair_failed": "ساخت کد ممکن نشد",
+    "install_button": "Install AntiCheat",
+    "install_tooltip": "دانلود لانچر YGuard Anti-Cheat"
   }
 }
