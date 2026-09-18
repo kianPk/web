@@ -77,7 +77,9 @@ internal sealed class MainForm : Form
     private readonly System.Windows.Forms.Timer _cheatScan = new() { Interval = 20_000 };
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
+    private bool _platformBanned;
     private DateTime _lastCheatReport = DateTime.MinValue;
+    private bool _updatePrompted;
 
     private string? _deviceToken;
     private readonly string _tokenPath = Path.Combine(
@@ -132,7 +134,9 @@ internal sealed class MainForm : Form
 
         Load += async (_, _) =>
         {
+            Text = $"YGuard Anti-Cheat  v{AutoUpdater.CurrentVersion}";
             PaintChecks();
+            _ = CheckForUpdateAsync();
             TryLoadToken();
             if (!string.IsNullOrEmpty(_deviceToken))
             {
@@ -196,7 +200,7 @@ internal sealed class MainForm : Form
         _loginBtn.Text = "LOGIN WITH YGUARD";
         _loginBtn.Click += async (_, _) => await StartBrowserLoginAsync();
 
-        _featuresOutTitle.Text = "Recommended Security Features";
+        _featuresOutTitle.Text = "Required Security Features";
         _featuresOutTitle.Font = new Font("Segoe UI Semibold", 12f);
         _featuresOutTitle.ForeColor = Theme.Text;
         _featuresOutTitle.AutoSize = true;
@@ -253,7 +257,7 @@ internal sealed class MainForm : Form
         _logout.Cursor = Cursors.Hand;
         _logout.Click += (_, _) => Logout();
 
-        _featuresInTitle.Text = "Recommended Security Features";
+        _featuresInTitle.Text = "Required Security Features";
         _featuresInTitle.Font = new Font("Segoe UI Semibold", 12f);
         _featuresInTitle.ForeColor = Theme.Text;
         _featuresInTitle.AutoSize = true;
@@ -511,31 +515,95 @@ internal sealed class MainForm : Form
         catch { }
     }
 
+    private async Task CheckForUpdateAsync()
+    {
+        if (_updatePrompted) return;
+        try
+        {
+            var release = await AutoUpdater.FetchAsync(ApiBase);
+            if (release == null || string.IsNullOrWhiteSpace(release.Version)) return;
+            if (!AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion)) return;
+
+            _updatePrompted = true;
+            var msg =
+                $"New YGuard AC version {release.Version} is available (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?";
+            var result = MessageBox.Show(
+                this,
+                msg,
+                "YGuard Anti-Cheat Update",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information);
+            if (result != DialogResult.Yes && !release.Mandatory)
+                return;
+
+            SetStatus("Updating…", false);
+            var ok = await AutoUpdater.ApplyAsync(release, new Progress<string>(s => SetStatus(s, false)));
+            if (ok)
+            {
+                Application.Exit();
+            }
+            else
+            {
+                SetStatus("Update failed — reinstall from yguard.ir", false);
+                _updatePrompted = false;
+            }
+        }
+        catch { /* ignore */ }
+    }
+
     private async Task AttestAsync()
     {
         if (string.IsNullOrEmpty(_deviceToken)) return;
         PaintChecks();
         try
         {
+            // Fresh cheat scan so we can unban once files/security are fixed.
+            List<CheatScanner.Hit> hits;
+            try { hits = CheatScanner.Scan(); }
+            catch { hits = new List<CheatScanner.Hit>(); }
+            var cheatClean = hits.Count == 0;
+            _reportedCheats = !cheatClean;
+
+            var payload = SecurityChecks.Run();
+            var body = new Dictionary<string, object?>
+            {
+                ["secure_boot"] = payload.secure_boot,
+                ["iommu"] = payload.iommu,
+                ["tpm_20"] = payload.tpm_20,
+                ["tpm_attestation"] = payload.tpm_attestation,
+                ["hvci"] = payload.hvci,
+                ["windows_updates"] = payload.windows_updates,
+                ["os_version"] = payload.os_version,
+                ["hardware_hash"] = payload.hardware_hash,
+                ["cheat_clean"] = cheatClean,
+            };
+
             using var http = Http();
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
-            var res = await http.PostAsJsonAsync("/plugins/ac/attest", SecurityChecks.Run());
+            var res = await http.PostAsJsonAsync("/plugins/ac/attest", body);
             if (!res.IsSuccessStatusCode)
             {
                 SetStatus("Connection refused", false);
                 return;
             }
             using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
-            var passed = doc.RootElement.GetProperty("passed").GetBoolean();
-            if (_reportedCheats)
+            var root = doc.RootElement;
+            var passed = root.TryGetProperty("passed", out var p) && p.GetBoolean();
+            var banned = root.TryGetProperty("banned", out var b) && b.GetBoolean();
+            _platformBanned = banned;
+
+            if (!cheatClean)
             {
-                SetStatus("Banned | Cheat software detected", false);
+                SetStatus("Banned | Cheat software detected — remove it to play", false);
                 return;
             }
-            SetStatus(
-                passed ? "Connected | Waiting for match ready" : "Connected | Fix failed checks",
-                passed);
+            if (banned || !passed)
+            {
+                SetStatus("Banned | Enable required security features to play", false);
+                return;
+            }
+            SetStatus("Connected | Waiting for match ready", true);
         }
         catch
         {
@@ -544,14 +612,12 @@ internal sealed class MainForm : Form
     }
 
     /// <summary>
-    /// While logged in (and especially while CS2 is running), scan for known cheat installs.
-    /// Hits are reported to the API which bans the Steam account and kicks from live matches.
+    /// Scan for known cheat installs. Hits → platform ban. Clean → may unban if security OK.
     /// </summary>
     private async Task ScanCheatsAsync()
     {
-        if (string.IsNullOrEmpty(_deviceToken) || _reportedCheats) return;
+        if (string.IsNullOrEmpty(_deviceToken)) return;
 
-        // Scan more aggressively when CS2 is open (in/around match).
         var cs2Running = Process.GetProcessesByName("cs2").Length > 0
             || Process.GetProcessesByName("csgo").Length > 0;
         _cheatScan.Interval = cs2Running ? 8_000 : 20_000;
@@ -559,39 +625,63 @@ internal sealed class MainForm : Form
         List<CheatScanner.Hit> hits;
         try { hits = CheatScanner.Scan(); }
         catch { return; }
-        if (hits.Count == 0) return;
 
-        // Don't spam API — one report per session unless new scan after cooldown.
+        // Don't spam API.
         if ((DateTime.UtcNow - _lastCheatReport).TotalSeconds < 30) return;
         _lastCheatReport = DateTime.UtcNow;
 
-        var payload = hits
-            .GroupBy(h => h.Signature + "|" + (h.Path ?? "") + "|" + (h.ProcessName ?? ""))
-            .Select(g => g.First())
-            .Take(25)
-            .Select(h => new
+        _reportedCheats = hits.Count > 0;
+
+        object payload;
+        if (hits.Count == 0)
+        {
+            payload = new { clean = true, hits = Array.Empty<object>() };
+        }
+        else
+        {
+            payload = new
             {
-                signature = h.Signature,
-                path = h.Path,
-                process_name = h.ProcessName,
-            })
-            .ToList();
+                clean = false,
+                hits = hits
+                    .GroupBy(h => h.Signature + "|" + (h.Path ?? "") + "|" + (h.ProcessName ?? ""))
+                    .Select(g => g.First())
+                    .Take(25)
+                    .Select(h => new
+                    {
+                        signature = h.Signature,
+                        path = h.Path,
+                        process_name = h.ProcessName,
+                    })
+                    .ToList(),
+            };
+        }
 
         try
         {
             using var http = Http();
             http.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _deviceToken);
-            var res = await http.PostAsJsonAsync("/plugins/ac/report", new { hits = payload });
+            var res = await http.PostAsJsonAsync("/plugins/ac/report", payload);
             var body = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode) return;
 
             using var doc = JsonDocument.Parse(body);
             var banned = doc.RootElement.TryGetProperty("banned", out var b) && b.GetBoolean();
-            if (banned)
+            var unbanned = doc.RootElement.TryGetProperty("unbanned", out var u) && u.GetBoolean();
+            _platformBanned = banned;
+
+            if (hits.Count > 0 || banned)
             {
-                _reportedCheats = true;
-                SetStatus("Banned | Cheat software detected", false);
+                SetStatus(
+                    hits.Count > 0
+                        ? "Banned | Cheat software detected — remove it to play"
+                        : "Banned | Fix security features to play",
+                    false);
+            }
+            else if (unbanned)
+            {
+                // Re-attest so queue unlocks with fresh TTL.
+                await AttestAsync();
             }
         }
         catch { /* network — retry next tick */ }
