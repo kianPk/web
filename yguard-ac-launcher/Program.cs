@@ -634,16 +634,14 @@ internal sealed class MainForm : Form
     {
         try
         {
-            if (File.Exists(_tokenPath))
-                _deviceToken = File.ReadAllText(_tokenPath).Trim();
+            _deviceToken = SecureTokenStore.Load(_tokenPath);
         }
         catch { }
     }
 
     private void SaveToken(string token)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_tokenPath)!);
-        File.WriteAllText(_tokenPath, token);
+        SecureTokenStore.Save(_tokenPath, token);
         _deviceToken = token;
     }
 
@@ -692,22 +690,25 @@ internal sealed class MainForm : Form
             var release = await AutoUpdater.FetchAsync(ApiBase);
             if (release == null || string.IsNullOrWhiteSpace(release.Version)) return;
             if (!AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion)) return;
-            if (AutoUpdater.WasSkipped(release.Version)) return;
+            if (!release.Mandatory && AutoUpdater.WasSkipped(release.Version)) return;
 
             _updatePrompted = true;
-            var msg =
-                $"New YGuard AC version {release.Version} is available (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?";
+            var msg = release.Mandatory
+                ? $"YGuard AC {release.Version} is required (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now to keep playing."
+                : $"New YGuard AC version {release.Version} is available (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?";
             var result = MessageBox.Show(
                 this,
                 msg,
                 "YGuard Anti-Cheat Update",
-                MessageBoxButtons.YesNo,
+                release.Mandatory ? MessageBoxButtons.OKCancel : MessageBoxButtons.YesNo,
                 MessageBoxIcon.Information);
 
-            if (result != DialogResult.Yes)
+            if (result is DialogResult.No or DialogResult.Cancel)
             {
-                // Dismiss for this version (even if marked mandatory) — don't loop.
-                AutoUpdater.RememberSkip(release.Version);
+                if (!release.Mandatory)
+                    AutoUpdater.RememberSkip(release.Version);
+                else
+                    SetStatus("Update required — restart AC after installing", false);
                 return;
             }
 
@@ -754,6 +755,13 @@ internal sealed class MainForm : Form
         PaintChecks();
         try
         {
+            if (ClientGuard.IsTamperedEnvironment())
+            {
+                _connectedOk = false;
+                SetStatus("Security check failed — restart YGuardAC.exe", false);
+                return;
+            }
+
             // Fresh cheat scan so we can unban once files/security are fixed.
             List<CheatScanner.Hit> hits;
             try { hits = CheatScanner.Scan(); }
@@ -762,6 +770,28 @@ internal sealed class MainForm : Form
             _reportedCheats = !cheatClean;
 
             var payload = SecurityChecks.Run();
+            using var http = Http();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+
+            // One-time server challenge — blocks simple token-replay scripts.
+            var challengeRes = await http.PostAsync("/plugins/ac/challenge", null);
+            if (!challengeRes.IsSuccessStatusCode)
+            {
+                _connectedOk = false;
+                SetStatus("Connection refused", false);
+                return;
+            }
+            using var challengeDoc = JsonDocument.Parse(await challengeRes.Content.ReadAsStringAsync());
+            var challenge = challengeDoc.RootElement.GetProperty("challenge").GetString() ?? "";
+            if (string.IsNullOrEmpty(challenge))
+            {
+                _connectedOk = false;
+                SetStatus("Connection refused", false);
+                return;
+            }
+
+            var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var body = new Dictionary<string, object?>
             {
                 ["secure_boot"] = payload.secure_boot,
@@ -774,15 +804,29 @@ internal sealed class MainForm : Form
                 ["os_version"] = payload.os_version,
                 ["hardware_hash"] = payload.hardware_hash,
                 ["cheat_clean"] = cheatClean,
+                ["challenge"] = challenge,
+                ["ts"] = ts,
+                ["client_version"] = AutoUpdater.CurrentVersion,
             };
+            body["signature"] = AttestCrypto.Sign(_deviceToken, AttestCrypto.Canonical(body));
 
-            using var http = Http();
-            http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", _deviceToken);
             var res = await http.PostAsJsonAsync("/plugins/ac/attest", body);
             if (!res.IsSuccessStatusCode)
             {
                 _connectedOk = false;
+                var errBody = await res.Content.ReadAsStringAsync();
+                if (errBody.Contains("fingerprint", StringComparison.OrdinalIgnoreCase) ||
+                    errBody.Contains("pair again", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetStatus("PC changed — log in again to re-pair", false);
+                    Logout();
+                    return;
+                }
+                if (errBody.Contains("Update YGuard", StringComparison.OrdinalIgnoreCase))
+                {
+                    SetStatus("Update required — download latest from yguard.ir", false);
+                    return;
+                }
                 SetStatus("Connection refused", false);
                 return;
             }
@@ -1110,10 +1154,49 @@ internal static class SecurityChecks
             hvci = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled") == 1,
             windows_updates = WindowsUpdated(),
             os_version = Environment.OSVersion.ToString(),
-            hardware_hash = Convert.ToHexString(
-                System.Security.Cryptography.SHA256.HashData(
-                    Encoding.UTF8.GetBytes(Environment.MachineName + GetGuid())))[..32].ToLowerInvariant(),
+            hardware_hash = BuildHardwareFingerprint(),
         };
+    }
+
+    /// <summary>
+    /// Stable machine fingerprint used to bind the device token.
+    /// Moving the token to another PC revokes the device server-side.
+    /// </summary>
+    private static string BuildHardwareFingerprint()
+    {
+        var parts = new List<string>
+        {
+            GetGuid(),
+            Wmi("Win32_BaseBoard", "SerialNumber"),
+            Wmi("Win32_BIOS", "SerialNumber"),
+            Wmi("Win32_Processor", "ProcessorId"),
+            Wmi("Win32_DiskDrive", "SerialNumber"),
+            Environment.MachineName,
+        };
+        var material = string.Join("|", parts.Select(p => (p ?? "").Trim()));
+        return Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(
+                Encoding.UTF8.GetBytes(material))).ToLowerInvariant();
+    }
+
+    private static string Wmi(string cls, string prop)
+    {
+        try
+        {
+            using var s = new ManagementObjectSearcher($"SELECT {prop} FROM {cls}");
+            foreach (ManagementObject o in s.Get())
+            {
+                var v = o[prop]?.ToString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(v) &&
+                    !v.Equals("None", StringComparison.OrdinalIgnoreCase) &&
+                    !v.Equals("To Be Filled By O.E.M.", StringComparison.OrdinalIgnoreCase))
+                {
+                    return v;
+                }
+            }
+        }
+        catch { /* ignore */ }
+        return "";
     }
 
     private static int RegInt(string path, string name)
