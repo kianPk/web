@@ -542,6 +542,7 @@ internal sealed class MainForm : Form
             var release = await AutoUpdater.FetchAsync(ApiBase);
             if (release == null || string.IsNullOrWhiteSpace(release.Version)) return;
             if (!AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion)) return;
+            if (AutoUpdater.WasSkipped(release.Version)) return;
 
             _updatePrompted = true;
             var msg =
@@ -552,22 +553,48 @@ internal sealed class MainForm : Form
                 "YGuard Anti-Cheat Update",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Information);
-            if (result != DialogResult.Yes && !release.Mandatory)
+
+            if (result != DialogResult.Yes)
+            {
+                // Dismiss for this version (even if marked mandatory) — don't loop.
+                AutoUpdater.RememberSkip(release.Version);
                 return;
+            }
 
             SetStatus("Updating…", false);
-            var ok = await AutoUpdater.ApplyAsync(release, new Progress<string>(s => SetStatus(s, false)));
+            var (ok, error) = await AutoUpdater.ApplyAsync(
+                release,
+                new Progress<string>(s => SetStatus(s, false)));
             if (ok)
             {
-                Application.Exit();
+                // Let the batch replace the exe after we fully exit.
+                BeginInvoke(() =>
+                {
+                    Application.Exit();
+                    Environment.Exit(0);
+                });
             }
             else
             {
-                SetStatus("Update failed — reinstall from yguard.ir", false);
-                _updatePrompted = false;
+                SetStatus(
+                    string.IsNullOrWhiteSpace(error)
+                        ? "Update failed — download again from yguard.ir"
+                        : $"Update failed: {error}",
+                    false);
+                MessageBox.Show(
+                    this,
+                    "Automatic update failed.\n\nPlease download YGuardAC again from the site (Install AntiCheat).\n\n" + error,
+                    "YGuard Anti-Cheat",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                // Don't re-prompt this session / this version.
+                AutoUpdater.RememberSkip(release.Version);
             }
         }
-        catch { /* ignore */ }
+        catch
+        {
+            _updatePrompted = true;
+        }
     }
 
     private async Task AttestAsync()
