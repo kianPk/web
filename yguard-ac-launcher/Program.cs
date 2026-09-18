@@ -636,8 +636,7 @@ internal sealed class MainForm : Form
                     "YGuard Anti-Cheat",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
-                // Don't re-prompt this session / this version.
-                AutoUpdater.RememberSkip(release.Version);
+                // Allow retry next launch — do NOT remember skip on failure.
             }
         }
         catch
