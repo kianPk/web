@@ -4,9 +4,12 @@ import federation from "@originjs/vite-plugin-federation";
 
 const sw = process.env.SW === "true";
 
-const title = "YGuard — Counter-Strike Management System";
+const title =
+  "وای گارد | مچ‌میکینگ و رنک CS2 | پلتفرم کانتر استرایک ایران";
 const description =
-  "YGuard — Counter-Strike Management System for servers, matches, and tournaments.";
+  "وای گارد (YGuard) پلتفرم رقابتی کانتر استرایک ۲ در ایران: مچ‌میکینگ رنک، سرور پابلیک CS2، تورنمنت، اسکرم، آنتی‌چیت اختصاصی و سیستم Elo. همین حالا بازی کن.";
+const keywords =
+  "وای گارد, وایگارد, YGuard, سی اس, سی اس ۲, کانتر استرایک, CS2, مچمیکینگ, رنک سی اس, سرور CS2, آنتی چیت سی اس, تورنمنت سی اس, Elo";
 
 // TODO - i tired to get SSO to work but it wont
 const url = `https://yguard.ir`;
@@ -32,28 +35,50 @@ export default defineNuxtConfig({
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
       title,
       titleTemplate: (pageTitle?: string) =>
-        pageTitle && pageTitle !== title ? `${pageTitle} | YGuard` : title,
+        pageTitle && pageTitle !== title ? `${pageTitle} | وای گارد` : title,
       meta: [
         { name: "color-scheme", content: "dark" },
         { name: "theme-color", content: "#0a0a0b" },
-        { name: "robots", content: "index, follow" },
+        { name: "robots", content: "index, follow, max-image-preview:large" },
         { name: "title", content: title },
         { name: "description", content: description },
-        { name: "site_name", content: "YGuard" },
+        { name: "keywords", content: keywords },
+        { name: "author", content: "YGuard | وای گارد" },
+        { name: "site_name", content: "وای گارد | YGuard" },
+        { name: "language", content: "fa" },
+        {
+          name: "googlebot",
+          content: "index, follow, max-snippet:-1, max-image-preview:large",
+        },
 
-        { property: "og:locale", content: "en" },
+        { property: "og:locale", content: "fa_IR" },
+        { property: "og:locale:alternate", content: "en_US" },
         { property: "og:type", content: "website" },
-
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:site_name", content: "YGuard" },
-
+        { property: "og:site_name", content: "وای گارد | YGuard" },
         { property: "og:url", content: url },
-        { property: "og:image", content: `${url}/_ipx/_/favicon/512.png` },
+        { property: "og:image", content: `${url}/favicon/512.png` },
+        {
+          property: "og:image:alt",
+          content: "وای گارد — پلتفرم کانتر استرایک ۲",
+        },
+
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: `${url}/favicon/512.png` },
+      ],
+      link: [
+        { rel: "canonical", href: url },
+        { rel: "alternate", hreflang: "fa-IR", href: url },
+        { rel: "alternate", hreflang: "en", href: url },
+        { rel: "alternate", hreflang: "x-default", href: url },
       ],
       // The app is dark-only. shadcn's light palette still lives under :root,
       // but <html> is permanently in the .dark scope so it is never used.
       htmlAttrs: {
+        lang: "fa",
         class: "dark",
         style: "background-color: hsl(240 10% 3.9%)",
       },
@@ -163,7 +188,7 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: "i18n_redirected",
       redirectOn: "root",
-      fallbackLocale: "en",
+      fallbackLocale: "fa",
     },
     locales: [
       { code: "en", name: "English", file: "en.json", flag: "🇬🇧" },
@@ -201,7 +226,7 @@ export default defineNuxtConfig({
       }, // Traditional Chinese
     ],
     lazy: true,
-    defaultLocale: "en",
+    defaultLocale: "fa",
   },
 
   runtimeConfig: {

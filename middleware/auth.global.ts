@@ -9,10 +9,14 @@ let checkedMe = false;
 let verifyingMe: Promise<boolean> | null = null;
 
 function isGuestShellRoute(path: string): boolean {
-  // Guests only see the marketing landing + auth. Everything else (leaderboard,
-  // watch, apps…) used to render behind TopNav; bounce them to login so after
-  // Steam they land in the LeftNav shell instead.
-  if (path === "/" || path === "/login") {
+  // Guests only see the marketing landing + auth + public SEO pages.
+  if (
+    path === "/" ||
+    path === "/login" ||
+    path === "/cs2" ||
+    path === "/anticheat" ||
+    path === "/servers"
+  ) {
     return true;
   }
   if (path.startsWith("/auth")) {

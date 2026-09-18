@@ -17,6 +17,8 @@ useHead({
   ],
 });
 
+const { copy: seoPage } = useSiteSeo("home");
+
 const { locale } = useI18n();
 const { brandName, logoUrl } = useBranding();
 const { client: apolloClient } = useApolloClient();
@@ -30,47 +32,57 @@ const copy = computed(() => {
   if (isFa.value) {
     return {
       challengeYour: "چالش بده",
-      subtitle: `بازیکن‌ها برای بهترین تجربه رقابتی کانتر به ${displayBrand.value} می‌آیند. مچ‌میکینگ، Elo و پیشرفت بدون سقف.`,
-      cta: "Play now",
+      subtitle: `بازیکن‌ها برای بهترین تجربه رقابتی کانتر استرایک ۲ به ${displayBrand.value} (وای گارد) می‌آیند. مچ‌میکینگ رنک، سرور پابلیک CS2، تورنمنت و آنتی‌چیت اختصاصی.`,
+      cta: "همین حالا بازی کن",
       onlineSuffix: "بازیکن آنلاین الان",
       words: ["بازی", "ایم", "مهارت", "رنک", "محدودیت", "ذهن", "تیم"],
       elo: "Elo",
-      featuresHeading: "More than matchmaking.",
-      featuresSub: `${displayBrand.value} is a home for every ambition — competitive queues, live matches, inventory, and community tools.`,
+      featuresHeading: "بیش از یک مچ‌میکینگ.",
+      featuresSub: `${displayBrand.value} خانه رقابت CS2 است — صف رنک، مچ زنده، سرور پابلیک، اینونتوری و ابزارهای کامیونیتی.`,
       features: [
         {
-          title: "Matchmaking",
-          body: "Solo or stack. Grind Elo in Competitive, Wingman, or Duel.",
-          cta: "Play now",
+          title: "مچ‌میکینگ رنک",
+          body: "سولو یا با تیم. Elo بگیر در Competitive، Wingman و Duel.",
+          cta: "ورود به صف",
           redirect: "/play",
         },
         {
-          title: "Watch",
-          body: "Follow live matches, streams, and highlights as they happen.",
-          cta: "Watch live",
+          title: "تماشا و هایلایت",
+          body: "مچ‌های زنده، استریم و کلیپ‌های CS2 را دنبال کن.",
+          cta: "تماشا",
           redirect: "/watch",
         },
         {
-          title: "Inventory",
-          body: "Build your loadout, try skins, and take your setup into servers.",
-          cta: "Open inventory",
+          title: "اینونتوری",
+          body: "لوداوت بساز، اسکین امتحان کن و وارد سرور شو.",
+          cta: "اینونتوری",
           redirect: "/apps/inventory",
         },
         {
-          title: "Leaderboard",
-          body: "Climb the rankings and see where you stand against everyone else.",
-          cta: "View rankings",
+          title: "لیدربورد",
+          body: "رنک بگیر و جایگاهت را بین بازیکن‌های وای گارد ببین.",
+          cta: "رتبه‌بندی",
           redirect: "/leaderboard",
         },
       ],
-      closingTitle: "Ready to challenge your game on",
-      closingCta: "Play now",
+      seoHeading: "وای گارد چیست؟",
+      seoBody: [
+        `${displayBrand.value} (وای گارد / وایگارد) پلتفرم رقابتی کانتر استرایک ۲ برای بازیکن‌های فارسی‌زبان است: مچ‌میکینگ با سیستم Elo، سرورهای پابلیک و اختصاصی CS2، اسکرم، تورنمنت و آنتی‌چیت اختصاصی YGuard AC.`,
+        "اگر دنبال رنک سی اس، سرور سی اس ۲ ایران، صف Competitive شبیه فیس‌ایت یا تجربه تمیز بدون تقلب هستی، وای گارد همان جاست.",
+      ],
+      seoLinks: [
+        { to: "/cs2", label: "مچ‌میکینگ و رنک CS2" },
+        { to: "/anticheat", label: "آنتی‌چیت وای گارد" },
+        { to: "/servers", label: "سرور پابلیک CS2" },
+      ],
+      closingTitle: "آماده چالش روی",
+      closingCta: "ورود با استیم",
     };
   }
 
   return {
     challengeYour: "Challenge your",
-    subtitle: `Players come to ${displayBrand.value} for competitive Counter-Strike at its best. Grind matchmaking, climb Elo, and prove yourself with no ceiling on how far you can go.`,
+    subtitle: `Players come to ${displayBrand.value} for competitive Counter-Strike 2 at its best. Grind matchmaking, climb Elo, and prove yourself with no ceiling on how far you can go.`,
     cta: "Play now",
     onlineSuffix: "players online right now",
     words: ["game", "aim", "skill", "rank", "limits", "mind", "team"],
@@ -102,6 +114,16 @@ const copy = computed(() => {
         cta: "View rankings",
         redirect: "/leaderboard",
       },
+    ],
+    seoHeading: "What is YGuard?",
+    seoBody: [
+      `${displayBrand.value} is a competitive Counter-Strike 2 platform: ranked matchmaking with Elo, public and dedicated CS2 servers, scrims, tournaments, and YGuard Anti-Cheat.`,
+      "Looking for CS2 ranked queues, Iran-friendly servers, or a clean Faceit-style grind? Start on YGuard.",
+    ],
+    seoLinks: [
+      { to: "/cs2", label: "CS2 matchmaking & ranked" },
+      { to: "/anticheat", label: "YGuard Anti-Cheat" },
+      { to: "/servers", label: "CS2 public servers" },
     ],
     closingTitle: "Ready to challenge your game on",
     closingCta: "Play now",
@@ -459,6 +481,38 @@ function avatarFallback(name: string) {
     </section>
 
     <LandingRankings />
+
+    <!-- Crawlable keyword section for Persian CS / YGuard SEO -->
+    <section class="border-t border-white/10 bg-[#0e0e0e] text-white">
+      <div class="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+        <h2
+          class="m-0 max-w-3xl font-sans text-[clamp(1.4rem,3vw,2rem)] font-black leading-snug tracking-[-0.02em]"
+        >
+          {{ copy.seoHeading }}
+        </h2>
+        <p
+          v-for="(para, i) in copy.seoBody"
+          :key="i"
+          class="mt-4 max-w-3xl text-[1rem] leading-relaxed text-white/60"
+        >
+          {{ para }}
+        </p>
+        <nav
+          class="mt-8 flex flex-wrap gap-3"
+          :aria-label="isFa ? 'لینک‌های وای گارد' : 'YGuard topics'"
+        >
+          <NuxtLink
+            v-for="link in copy.seoLinks"
+            :key="link.to"
+            :to="link.to"
+            class="rounded-[4px] border border-white/15 px-4 py-2 text-[0.8rem] font-bold text-white/80 transition-colors hover:border-[#aa0e19] hover:text-[#aa0e19]"
+          >
+            {{ link.label }}
+          </NuxtLink>
+        </nav>
+        <p class="sr-only">{{ seoPage.h1 }}</p>
+      </div>
+    </section>
 
     <section class="border-t border-white/10 bg-[#121212] text-white">
       <div

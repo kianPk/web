@@ -1,2 +1,15 @@
 User-agent: *
 Allow: /
+Allow: /cs2
+Allow: /anticheat
+Allow: /servers
+Allow: /login
+
+Disallow: /settings
+Disallow: /admin
+Disallow: /game-server-nodes
+Disallow: /dedicated-servers
+Disallow: /match-popout
+Disallow: /embed/
+
+Sitemap: https://yguard.ir/sitemap.xml
