@@ -10063,6 +10063,11 @@
     "pair_ready": "Pair code ready",
     "pair_failed": "Could not create pair code",
     "install_button": "Install AntiCheat",
-    "install_tooltip": "Download YGuard Anti-Cheat launcher"
+    "install_tooltip": "Download YGuard Anti-Cheat launcher",
+    "connect_prompt": "Open YGuard Anti-Cheat and keep it running to queue.",
+    "connect_link": "Open Anti-Cheat page",
+    "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
+    "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
+    "open_launcher": "Open Anti-Cheat"
   }
 }
