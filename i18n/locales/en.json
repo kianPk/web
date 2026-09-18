@@ -4044,11 +4044,11 @@
         "title": "Load without a game mode",
         "description": "Pick which matches load this plugin on their own. A game mode that selects it loads it either way.",
         "ranked": "Ranked Matches",
-        "ranked_hint": "Anything that counts toward ranking — the queue or a draft lobby alike.",
+        "ranked_hint": "Ranked queue and drafts — also loads on custom matches and public dedicated servers.",
         "tournaments": "Tournament Matches",
         "tournaments_hint": "Matches played as part of a tournament bracket, ranked or not.",
         "custom": "Custom Matches",
-        "custom_hint": "Everything else: matches that count toward nothing."
+        "custom_hint": "Custom lobbies only (ranked load already covers these and public servers)."
       }
     },
     "awards": {
@@ -10042,9 +10042,9 @@
   },
   "ac": {
     "title": "YGuard Anti-Cheat",
-    "description": "Install the launcher, pass hardware checks (Secure Boot, TPM, …), then Find Match on ranked. Server-side TBAC still runs in-game.",
+    "description": "Install the launcher, pass hardware checks (Secure Boot, TPM, …), then keep it open for ranked, custom, and public servers. Server-side TBAC still runs in-game.",
     "status_title": "Your AC status",
-    "status_valid": "Ready for ranked",
+    "status_valid": "Ready to play",
     "status_invalid": "Anti-Cheat not connected — open the launcher",
     "required_on": "Keep YGuard Anti-Cheat open while you queue and play.",
     "required_off": "Launcher is optional right now (admin can turn it on).",
@@ -10052,6 +10052,7 @@
     "connect_link": "Open Anti-Cheat page",
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
+    "open_launcher": "Open Anti-Cheat",
     "refresh": "Refresh status",
     "download_title": "Get the launcher",
     "download_desc": "One Windows .exe. After login it reports Secure Boot, TPM, and related checks. Keep it open while you play.",
