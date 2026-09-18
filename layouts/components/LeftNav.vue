@@ -31,7 +31,6 @@ import {
   Wallet,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
-import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
 import InstallAntiCheat from "~/components/InstallAntiCheat.vue";
@@ -245,23 +244,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem :tooltip="$t('layouts.app_nav.tooltips.utility')">
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.utility')"
-              >
-                <NuxtLink
-                  :to="{ name: 'utility' }"
-                  :class="{
-                    'router-link-active': isRouteActive('utility'),
-                  }"
-                >
-                  <HeGrenadeIcon class="size-4" />
-                  {{ $t("layouts.app_nav.navigation.utility") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
             <SidebarMenuItem>
               <SidebarMenuButton
                 as-child
@@ -341,24 +323,66 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </SidebarMenu>
         </SidebarGroup>
 
-        <template v-if="pluginGroups.length > 0">
-          <Separator v-if="showSeparators" class="mx-4 w-auto" />
+        <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
+        <SidebarGroup>
+          <SidebarGroupLabel>{{
+            $t("layouts.app_nav.plugins.title")
+          }}</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.store')"
+              >
+                <NuxtLink
+                  :to="{ name: 'store' }"
+                  :class="{
+                    'router-link-active': isRouteActive('store'),
+                  }"
+                >
+                  <ShoppingBag />
+                  {{ $t("layouts.app_nav.navigation.store") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem
+              v-for="plugin in ungroupedPlugins"
+              :key="plugin.id"
+            >
+              <SidebarMenuButton as-child :tooltip="plugin.title">
+                <NuxtLink
+                  :to="`/apps/${plugin.slug}`"
+                  :class="{
+                    'router-link-active':
+                      $route.path === `/apps/${plugin.slug}` ||
+                      $route.path.startsWith(`/apps/${plugin.slug}/`),
+                  }"
+                >
+                  <PluginIcon :name="plugin.icon" class="size-4" />
+                  {{ plugin.title }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <template v-if="namedPluginGroups.length > 0">
           <SidebarGroup
-            v-for="group in pluginGroups"
-            :key="group.name ?? 'apps'"
+            v-for="group in namedPluginGroups"
+            :key="group.name ?? 'apps-named'"
           >
-            <SidebarGroupLabel>{{
-              group.name || $t("layouts.app_nav.plugins.title")
-            }}</SidebarGroupLabel>
+            <SidebarGroupLabel>{{ group.name }}</SidebarGroupLabel>
             <SidebarMenu>
-              <SidebarMenuItem v-for="plugin in group.plugins" :key="plugin.id">
+              <SidebarMenuItem
+                v-for="plugin in group.plugins"
+                :key="plugin.id"
+              >
                 <SidebarMenuButton as-child :tooltip="plugin.title">
                   <NuxtLink
                     :to="`/apps/${plugin.slug}`"
                     :class="{
-                      // Prefix match: a plugin owns every route under its slug,
-                      // so its own sub-routes keep the nav entry lit.
                       'router-link-active':
                         $route.path === `/apps/${plugin.slug}` ||
                         $route.path.startsWith(`/apps/${plugin.slug}/`),
@@ -474,23 +498,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Newspaper />
                   {{ newsLabel || $t("layouts.app_nav.navigation.news") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.store')"
-              >
-                <NuxtLink
-                  :to="{ name: 'store' }"
-                  :class="{
-                    'router-link-active': isRouteActive('store'),
-                  }"
-                >
-                  <ShoppingBag />
-                  {{ $t("layouts.app_nav.navigation.store") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1339,6 +1346,14 @@ export default {
         group.plugins.push(plugin);
       }
       return groups;
+    },
+    ungroupedPlugins() {
+      return (
+        this.pluginGroups.find((group) => group.name === null)?.plugins ?? []
+      );
+    },
+    namedPluginGroups() {
+      return this.pluginGroups.filter((group) => group.name !== null);
     },
     seasonsEnabled() {
       return useApplicationSettingsStore().seasonsEnabled;

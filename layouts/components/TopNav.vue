@@ -210,6 +210,15 @@ const loginArrowClasses =
               </NavigationMenuLink>
             </NavigationMenuItem>
 
+            <NavigationMenuItem class="hidden md:block">
+              <NavigationMenuLink as-child>
+                <NuxtLink to="/store" :class="navLinkClasses">
+                  <span :class="navTickClasses"></span>
+                  {{ $t("layouts.app_nav.navigation.store") }}
+                </NuxtLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
             <NavigationMenuItem
               v-for="plugin in plugins"
               :key="plugin.id"
@@ -508,26 +517,6 @@ const loginArrowClasses =
                       {{ $t("layouts.top_nav.community.library.title") }}
                     </div>
                     <ul class="flex flex-col gap-1">
-                      <li>
-                        <NavigationMenuLink as-child>
-                          <NuxtLink
-                            to="/utility"
-                            :class="[navItemClasses, navItemStackedClasses]"
-                          >
-                            <span :class="navItemChevronClasses">◢</span>
-                            <span :class="navItemContentClasses">
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.community.utility.title") }}
-                              </span>
-                              <span :class="navItemSubClasses">
-                                {{
-                                  $t("layouts.top_nav.community.utility.subtitle")
-                                }}
-                              </span>
-                            </span>
-                          </NuxtLink>
-                        </NavigationMenuLink>
-                      </li>
                       <li>
                         <NavigationMenuLink as-child>
                           <NuxtLink
