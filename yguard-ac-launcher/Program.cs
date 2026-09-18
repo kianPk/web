@@ -90,9 +90,12 @@ internal sealed class MainForm : Form
     private readonly Dictionary<string, FeaturePill> _pills = new();
     private readonly System.Windows.Forms.Timer _heartbeat = new() { Interval = 30_000 };
     private readonly System.Windows.Forms.Timer _cheatScan = new() { Interval = 20_000 };
+    private readonly System.Windows.Forms.Timer _gameWatch = new() { Interval = 2_000 };
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
     private bool _platformBanned;
+    private bool _connectedOk;
+    private bool? _lastGameRunning;
     private DateTime _lastCheatReport = DateTime.MinValue;
     private bool _updatePrompted;
 
@@ -117,8 +120,8 @@ internal sealed class MainForm : Form
         MaximizeBox = false;
         MinimizeBox = true;
         StartPosition = FormStartPosition.CenterScreen;
-        // FACEIT-like compact window (wide + short).
-        ClientSize = new Size(560, 292);
+        // FACEIT-like compact window (wide + short); leave room for status bar.
+        ClientSize = new Size(560, 310);
         BackColor = Theme.Bg;
         Font = new Font("Segoe UI", 9.5f);
         DoubleBuffered = true;
@@ -155,6 +158,7 @@ internal sealed class MainForm : Form
             if (!string.IsNullOrEmpty(_deviceToken))
                 await ScanCheatsAsync();
         };
+        _gameWatch.Tick += (_, _) => RefreshConnectedStatus(force: false);
 
         Load += async (_, _) =>
         {
@@ -172,6 +176,7 @@ internal sealed class MainForm : Form
             else ShowOut();
             _heartbeat.Start();
             _cheatScan.Start();
+            _gameWatch.Start();
         };
 
         FormClosed += async (_, _) =>
@@ -381,6 +386,26 @@ internal sealed class MainForm : Form
         _statusBar.Invalidate();
     }
 
+    private static bool IsGameRunning() =>
+        Process.GetProcessesByName("cs2").Length > 0
+        || Process.GetProcessesByName("csgo").Length > 0;
+
+    /// <summary>
+    /// FACEIT-style footer: waiting vs game running. Only while connected &amp; clean.
+    /// </summary>
+    private void RefreshConnectedStatus(bool force)
+    {
+        if (!_connectedOk || _platformBanned || _reportedCheats) return;
+        var running = IsGameRunning();
+        if (!force && _lastGameRunning == running) return;
+        _lastGameRunning = running;
+        SetStatus(
+            running
+                ? "Connected | Counter-Strike 2 is running"
+                : "Connected | Waiting for game to launch",
+            true);
+    }
+
     private void PaintChecks()
     {
         var r = SecurityChecks.Run();
@@ -497,6 +522,8 @@ internal sealed class MainForm : Form
         _loginCts?.Cancel();
         try { if (File.Exists(_tokenPath)) File.Delete(_tokenPath); } catch { }
         _deviceToken = null;
+        _connectedOk = false;
+        _lastGameRunning = null;
         _avatar.Image = null;
         _nameLbl.Text = "";
         ShowOut();
@@ -653,6 +680,7 @@ internal sealed class MainForm : Form
             var res = await http.PostAsJsonAsync("/plugins/ac/attest", body);
             if (!res.IsSuccessStatusCode)
             {
+                _connectedOk = false;
                 SetStatus("Connection refused", false);
                 return;
             }
@@ -664,23 +692,28 @@ internal sealed class MainForm : Form
 
             if (!cheatClean)
             {
+                _connectedOk = false;
                 SetStatus("Banned | Cheat software detected — remove it to play", false);
                 return;
             }
             if (banned)
             {
+                _connectedOk = false;
                 SetStatus("Banned on site | Contact support or remove cheats", false);
                 return;
             }
             if (!passed)
             {
+                _connectedOk = false;
                 SetStatus("Fix required security features, then wait", false);
                 return;
             }
-            SetStatus("Connected | Waiting for game to launch", true);
+            _connectedOk = true;
+            RefreshConnectedStatus(force: true);
         }
         catch
         {
+            _connectedOk = false;
             SetStatus("Connection refused", false);
         }
     }
@@ -692,9 +725,9 @@ internal sealed class MainForm : Form
     {
         if (string.IsNullOrEmpty(_deviceToken)) return;
 
-        var cs2Running = Process.GetProcessesByName("cs2").Length > 0
-            || Process.GetProcessesByName("csgo").Length > 0;
+        var cs2Running = IsGameRunning();
         _cheatScan.Interval = cs2Running ? 8_000 : 20_000;
+        RefreshConnectedStatus(force: false);
 
         List<CheatScanner.Hit> hits;
         try { hits = CheatScanner.Scan(); }
@@ -746,6 +779,7 @@ internal sealed class MainForm : Form
 
             if (hits.Count > 0 || banned)
             {
+                _connectedOk = false;
                 SetStatus(
                     hits.Count > 0
                         ? "Banned | Cheat software detected — remove it to play"
