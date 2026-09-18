@@ -10,6 +10,7 @@ internal sealed class LauncherRelease
     [JsonPropertyName("version")] public string Version { get; set; } = "";
     [JsonPropertyName("download_url")] public string DownloadUrl { get; set; } = "";
     [JsonPropertyName("mandatory")] public bool Mandatory { get; set; }
+    [JsonPropertyName("min_version")] public string? MinVersion { get; set; }
 }
 
 internal static class AutoUpdater

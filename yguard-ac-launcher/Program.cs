@@ -99,6 +99,8 @@ internal sealed class MainForm : Form
     private DateTime _lastCheatReport = DateTime.MinValue;
     private bool _updatePrompted;
     private bool _exitingForUpdate;
+    /// <summary>Mandatory update pending — do not attest until installed.</summary>
+    private bool _updateRequired;
 
     private string? _deviceToken;
     private readonly string _tokenPath = Path.Combine(
@@ -689,27 +691,44 @@ internal sealed class MainForm : Form
         {
             var release = await AutoUpdater.FetchAsync(ApiBase);
             if (release == null || string.IsNullOrWhiteSpace(release.Version)) return;
-            if (!AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion)) return;
-            if (!release.Mandatory && AutoUpdater.WasSkipped(release.Version)) return;
+
+            var behindLatest = AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion);
+            var belowMin = !string.IsNullOrWhiteSpace(release.MinVersion) &&
+                AutoUpdater.IsNewer(release.MinVersion!, AutoUpdater.CurrentVersion);
+            if (!behindLatest && !belowMin) return;
+
+            var mandatory = release.Mandatory || belowMin;
+            if (!mandatory && AutoUpdater.WasSkipped(release.Version)) return;
 
             _updatePrompted = true;
-            var msg = release.Mandatory
-                ? $"YGuard AC {release.Version} is required (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now to keep playing."
+            var target = behindLatest ? release.Version : release.MinVersion!;
+            var msg = mandatory
+                ? $"YGuard AC {target} is required (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now to keep playing."
                 : $"New YGuard AC version {release.Version} is available (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?";
             var result = MessageBox.Show(
                 this,
                 msg,
                 "YGuard Anti-Cheat Update",
-                release.Mandatory ? MessageBoxButtons.OKCancel : MessageBoxButtons.YesNo,
+                mandatory ? MessageBoxButtons.OKCancel : MessageBoxButtons.YesNo,
                 MessageBoxIcon.Information);
 
             if (result is DialogResult.No or DialogResult.Cancel)
             {
-                if (!release.Mandatory)
+                if (!mandatory)
                     AutoUpdater.RememberSkip(release.Version);
                 else
-                    SetStatus("Update required — restart AC after installing", false);
+                {
+                    _updateRequired = true;
+                    SetStatus("Update required — download 0.3.3+ from yguard.ir", false);
+                }
                 return;
+            }
+
+            // Ensure download points at latest even when only min_version forced us.
+            if (string.IsNullOrWhiteSpace(release.DownloadUrl) || !behindLatest)
+            {
+                var latest = await AutoUpdater.FetchAsync(ApiBase);
+                if (latest != null) release = latest;
             }
 
             SetStatus("Updating…", false);
@@ -729,6 +748,7 @@ internal sealed class MainForm : Form
             }
             else
             {
+                _updateRequired = mandatory;
                 SetStatus(
                     string.IsNullOrWhiteSpace(error)
                         ? "Update failed — download again from yguard.ir"
@@ -755,6 +775,12 @@ internal sealed class MainForm : Form
     {
         if (string.IsNullOrEmpty(_deviceToken)) return;
         if (_attestInFlight) return;
+        if (_updateRequired)
+        {
+            _connectedOk = false;
+            SetStatus("Update required — download latest YGuard AC from yguard.ir", false);
+            return;
+        }
         _attestInFlight = true;
         PaintChecks();
         try
@@ -785,20 +811,38 @@ internal sealed class MainForm : Form
             if (!challengeRes.IsSuccessStatusCode)
             {
                 _connectedOk = false;
+                if ((int)challengeRes.StatusCode == 401 &&
+                    (challengeRaw.Contains("Invalid or revoked", StringComparison.OrdinalIgnoreCase) ||
+                     challengeRaw.Contains("Device token", StringComparison.OrdinalIgnoreCase)))
+                {
+                    ClearLocalSession("Session expired — log in again");
+                    return;
+                }
                 SetStatus(DescribeAcHttpError("challenge", (int)challengeRes.StatusCode, challengeRaw), false);
                 return;
             }
 
             string challenge;
+            string? challengeMin = null;
             try
             {
                 using var challengeDoc = JsonDocument.Parse(challengeRaw);
                 challenge = challengeDoc.RootElement.GetProperty("challenge").GetString() ?? "";
+                if (challengeDoc.RootElement.TryGetProperty("min_version", out var mv))
+                    challengeMin = mv.GetString();
             }
             catch
             {
                 _connectedOk = false;
                 SetStatus("AC challenge invalid — update API / migrate DB", false);
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(challengeMin) &&
+                AutoUpdater.IsNewer(challengeMin!, AutoUpdater.CurrentVersion))
+            {
+                _updateRequired = true;
+                _connectedOk = false;
+                SetStatus($"Update required — install YGuard AC {challengeMin}+", false);
                 return;
             }
             if (string.IsNullOrEmpty(challenge))
@@ -845,7 +889,14 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.2+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.3+", false);
+                    return;
+                }
+                if ((int)res.StatusCode == 401 &&
+                    (errBody.Contains("Invalid or revoked", StringComparison.OrdinalIgnoreCase) ||
+                     errBody.Contains("Device token", StringComparison.OrdinalIgnoreCase)))
+                {
+                    ClearLocalSession("Session expired — log in again");
                     return;
                 }
                 if (errBody.Contains("challenge", StringComparison.OrdinalIgnoreCase))
@@ -894,26 +945,42 @@ internal sealed class MainForm : Form
         }
     }
 
+    private void ClearLocalSession(string status)
+    {
+        try { if (File.Exists(_tokenPath)) File.Delete(_tokenPath); } catch { }
+        _deviceToken = null;
+        _connectedOk = false;
+        _lastGameRunning = null;
+        _avatar.Image = null;
+        _nameLbl.Text = "";
+        ShowOut();
+        SetStatus(status, false);
+    }
+
     private static string DescribeAcHttpError(string step, int status, string body)
     {
         if (status == 401)
         {
-            // Most 401s after the HW-revoke fix are expired challenge or bad
-            // signature — ask for a soft retry, not a full re-pair, unless the
-            // token itself is gone.
             if (body.Contains("revoked", StringComparison.OrdinalIgnoreCase) ||
                 body.Contains("Invalid or revoked", StringComparison.OrdinalIgnoreCase) ||
                 body.Contains("Device token", StringComparison.OrdinalIgnoreCase))
             {
-                return $"AC {step}: session expired — log out and login again";
+                return $"AC {step}: session expired — log in again";
             }
             if (body.Contains("challenge", StringComparison.OrdinalIgnoreCase))
                 return $"AC {step}: challenge expired — retry";
             if (body.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 return $"AC {step}: signature rejected — update client";
+            if (body.Contains("timestamp", StringComparison.OrdinalIgnoreCase))
+                return $"AC {step}: clock skew — sync Windows time";
             return $"AC {step}: unauthorized — retry in a moment";
         }
-        if (status == 403) return $"AC {step}: forbidden — update client";
+        if (status == 403)
+        {
+            if (body.Contains("Update YGuard", StringComparison.OrdinalIgnoreCase))
+                return "Update required — download latest from yguard.ir";
+            return $"AC {step}: forbidden — update client";
+        }
         if (status >= 500)
             return $"AC {step}: server error {status} — apply DB migrate / restart API";
         var shortBody = string.IsNullOrWhiteSpace(body)
