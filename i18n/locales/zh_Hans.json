@@ -10039,5 +10039,28 @@
       "open_plugin": "在新标签页中打开该插件的页面",
       "archived_instead": "已经有比赛使用过这个模式，因此它被隐藏而不是删除。您可以随时恢复它。"
     }
+  },
+  "ac": {
+    "title": "YGuard Anti-Cheat",
+    "description": "Install the launcher, pass hardware checks (Secure Boot, TPM, …), then Find Match on ranked. Server-side TBAC still runs in-game.",
+    "status_title": "Your AC status",
+    "status_valid": "Ready for ranked",
+    "status_invalid": "Not attested",
+    "required_on": "Launcher is required for ranked queue.",
+    "required_off": "Launcher is optional right now (admin can turn it on).",
+    "refresh": "Refresh status",
+    "download_title": "Get the launcher",
+    "download_desc": "Windows app. After pairing it reports Secure Boot, IOMMU, TPM 2.0, HVCI, and update status to the panel.",
+    "step_download": "Build or install YGuardAC on your PC (yguard-ac-launcher).",
+    "step_pair": "Generate a pair code here and enter it in the launcher.",
+    "step_checks": "Run checks — enable anything that fails in BIOS/Windows.",
+    "step_queue": "Submit attestation, then Find Match on the site.",
+    "pair_title": "Pair this PC",
+    "pair_desc": "You must be logged in. The code works for 10 minutes.",
+    "generate_code": "Generate pair code",
+    "code_expires": "Enter this code in the launcher. Expires in 10 minutes.",
+    "login_required": "Log in with Steam first",
+    "pair_ready": "Pair code ready",
+    "pair_failed": "Could not create pair code"
   }
 }
