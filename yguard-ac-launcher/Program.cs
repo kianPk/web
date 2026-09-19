@@ -777,7 +777,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.6+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.7+ from yguard.ir", false);
                 }
                 return;
             }
@@ -853,14 +853,10 @@ internal sealed class MainForm : Form
             List<CheatScanner.Hit> hits;
             try { hits = CheatScanner.Scan(); }
             catch { hits = new List<CheatScanner.Hit>(); }
+            // Overlay close is soft-only and must never affect cheat_clean / bans.
             if (IsGameRunning())
             {
-                try
-                {
-                    foreach (var o in OverlayGuard.ScanAndClose())
-                        hits.Add(new CheatScanner.Hit(o.Signature, o.Path, o.ProcessName));
-                }
-                catch { /* ignore */ }
+                try { OverlayGuard.ScanAndClose(); } catch { /* ignore */ }
             }
             if (hits.Count > 0)
             {
@@ -960,7 +956,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.6+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.7+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1076,15 +1072,10 @@ internal sealed class MainForm : Form
         try { hits = CheatScanner.Scan(); }
         catch { return; }
 
-        // When CS2 is up, also hunt layered/topmost overlays sized like the game.
+        // Soft overlay close only — never feeds the ban report.
         if (cs2Running)
         {
-            try
-            {
-                foreach (var o in OverlayGuard.ScanAndClose())
-                    hits.Add(new CheatScanner.Hit(o.Signature, o.Path, o.ProcessName));
-            }
-            catch { /* ignore overlay scan errors */ }
+            try { OverlayGuard.ScanAndClose(); } catch { /* ignore */ }
         }
 
         if (hits.Count > 0)
@@ -1362,7 +1353,7 @@ internal static class SecurityChecks
         var tpm = HasTpm20();
         return new CheckReport
         {
-            secure_boot = RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1,
+            secure_boot = SecureBootOk(),
             iommu = HasIommu(),
             tpm_20 = tpm,
             tpm_attestation = tpm,
@@ -1371,6 +1362,41 @@ internal static class SecurityChecks
             os_version = Environment.OSVersion.ToString(),
             hardware_hash = BuildHardwareFingerprint(),
         };
+    }
+
+    /// <summary>
+    /// Pass when Secure Boot is on, OR when the board/firmware cannot do it
+    /// (legacy BIOS / no SecureBoot state — e.g. P8H61 and similar).
+    /// Only fail when SB is supported but disabled.
+    /// </summary>
+    private static bool SecureBootOk()
+    {
+        try
+        {
+            // FirmwareTypeBios = 2 → classic BIOS, no Secure Boot possible.
+            if (GetFirmwareType(out var ft) && ft == 2)
+                return true;
+        }
+        catch { /* fall through */ }
+
+        // Missing SecureBoot\State key → firmware does not expose SB → pass.
+        if (!RegKeyExists(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State"))
+            return true;
+
+        return RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1;
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern bool GetFirmwareType(out uint firmwareType);
+
+    private static bool RegKeyExists(string path)
+    {
+        try
+        {
+            using var k = Registry.LocalMachine.OpenSubKey(path);
+            return k != null;
+        }
+        catch { return false; }
     }
 
     /// <summary>Best-effort: VBS / Device Guard / Hyper-V DMA protection.</summary>

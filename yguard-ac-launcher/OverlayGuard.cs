@@ -5,8 +5,9 @@ using System.Text;
 namespace YGuardAC;
 
 /// <summary>
-/// Detects external wallhack-style overlays: layered / click-through topmost
-/// windows that match the CS2 client size, then closes them.
+/// Closes click-through layered overlays that sit on top of CS2.
+/// Conservative: never reports hits for bans — only closes the window.
+/// Requires layered + transparent + topmost and near-exact game size.
 /// </summary>
 internal static class OverlayGuard
 {
@@ -15,35 +16,56 @@ internal static class OverlayGuard
     private const int WsExTransparent = 0x00000020;
     private const int WsExTopmost = 0x00000008;
     private const uint WmClose = 0x0010;
-    private const int SizeTolerancePx = 8;
+    private const int SizeTolerancePx = 4;
 
     private static readonly HashSet<string> Allowlist = new(StringComparer.OrdinalIgnoreCase)
     {
         "cs2", "csgo", "steam", "steamwebhelper", "steamservice", "gameoverlayui",
         "discord", "discordptb", "discordcanary",
         "nvcontainer", "nvidia share", "nvidia overlay", "nvsphelper64", "nvcplui",
-        "rtss", "rivatuner", "msi afterburner", "encoder server",
-        "obs64", "obs32", "obs", "streamlabs obs",
+        "nvapp", "nvidiaapp", "nvidia broadcast",
+        "amdow", "radeonsoftware", "amdrsserv", "amdow",
+        "rtss", "rivatuner", "msi afterburner", "encoder server", "hwinfo", "hwinfo64",
+        "obs64", "obs32", "obs", "streamlabs obs", "streamlabs",
         "gamebar", "gamebarpresencewriter", "gamingservices", "xboxappservices",
         "explorer", "dwm", "shellexperiencehost", "searchhost", "textinputhost",
-        "applicationframehost", "systemsettings", "taskmgr",
+        "applicationframehost", "systemsettings", "taskmgr", "conhost", "sihost",
         "yguardac", "yguard",
-        "chrome", "msedge", "firefox", "opera", "brave",
-        "wallpaperengine", "rainmeter",
+        "chrome", "msedge", "firefox", "opera", "brave", "vivaldi",
+        "wallpaperengine", "rainmeter", "powertoys", "sharex", "lightshot",
+        "medal", "overwolf", "curseforge", "lghub", "icue", "armourycrate",
+        "asus", "steelseries", "razor", "synapse", "corsair",
+        "teams", "zoom", "skype", "telegram", "whatsapp",
     };
 
-    public sealed record Hit(string Signature, string? Path, string? ProcessName);
+    private static readonly string[] AllowedPathMarkers =
+    [
+        @"\windows\system32\",
+        @"\windows\syswow64\",
+        @"\windowsapps\",
+        @"\microsoft\",
+        @"\steam\",
+        @"\discord\",
+        @"\obs-studio\",
+        @"\nvidia\",
+        @"\amd\",
+    ];
 
-    public static List<Hit> ScanAndClose()
+    /// <summary>
+    /// Close suspicious overlays. Does <b>not</b> return ban-worthy hits —
+    /// callers must not feed this into the cheat report.
+    /// </summary>
+    public static int ScanAndClose()
     {
-        var hits = new List<Hit>();
+        var closed = 0;
         if (!TryGetGameBounds(out var gameRect, out var gamePid))
-            return hits;
+            return 0;
 
         var gameW = gameRect.Right - gameRect.Left;
         var gameH = gameRect.Bottom - gameRect.Top;
-        if (gameW < 320 || gameH < 240)
-            return hits;
+        // Borderless/fullscreen overlays only — ignore tiny tool windows.
+        if (gameW < 800 || gameH < 600)
+            return 0;
 
         EnumWindows((hWnd, _) =>
         {
@@ -56,19 +78,24 @@ internal static class OverlayGuard
                 var h = rect.Bottom - rect.Top;
                 if (Math.Abs(w - gameW) > SizeTolerancePx || Math.Abs(h - gameH) > SizeTolerancePx)
                     return true;
+                // Must also cover the same screen region (not just same size elsewhere).
+                if (Math.Abs(rect.Left - gameRect.Left) > SizeTolerancePx ||
+                    Math.Abs(rect.Top - gameRect.Top) > SizeTolerancePx)
+                    return true;
 
                 var ex = GetWindowLong(hWnd, GwlExStyle);
                 var layered = (ex & WsExLayered) != 0;
                 var transparent = (ex & WsExTransparent) != 0;
                 var topmost = (ex & WsExTopmost) != 0;
-                // External WH overlays are almost always layered + (transparent and/or topmost).
-                if (!layered || (!transparent && !topmost))
+                // Real external WH overlays are click-through + layered + topmost.
+                // Requiring all three avoids Discord/NVIDIA false positives.
+                if (!layered || !transparent || !topmost)
                     return true;
 
                 GetWindowThreadProcessId(hWnd, out var pid);
                 if (pid == 0 || pid == gamePid) return true;
 
-                string? procName = null;
+                string? procName;
                 string? path = null;
                 try
                 {
@@ -79,47 +106,36 @@ internal static class OverlayGuard
                 catch { return true; }
 
                 if (string.IsNullOrWhiteSpace(procName)) return true;
-                if (IsAllowlisted(procName)) return true;
+                if (IsAllowlisted(procName, path)) return true;
 
-                // Empty / junk titles are common for injector overlays; titled
-                // system apps are usually allowlisted already.
+                // Named windows are usually legitimate UI; WH overlays are blank.
                 var title = GetWindowTitle(hWnd);
-                if (!string.IsNullOrEmpty(title) && title.Length > 64)
+                if (!string.IsNullOrEmpty(title))
                     return true;
 
-                hits.Add(new Hit("external_overlay", path, procName));
-                CloseOverlay(hWnd, (int)pid);
+                // Soft close only — never Kill (avoids nuking innocent apps).
+                try { PostMessage(hWnd, WmClose, IntPtr.Zero, IntPtr.Zero); } catch { }
+                closed++;
             }
             catch { /* keep enumerating */ }
             return true;
         }, IntPtr.Zero);
 
-        return hits
-            .GroupBy(h => (h.Signature, h.Path ?? "", h.ProcessName ?? ""))
-            .Select(g => g.First())
-            .ToList();
+        return closed;
     }
 
-    private static bool IsAllowlisted(string processName)
+    private static bool IsAllowlisted(string processName, string? path)
     {
         var n = processName.Trim().ToLowerInvariant();
         if (Allowlist.Contains(n)) return true;
-        return Allowlist.Any(a => n.Contains(a));
-    }
-
-    private static void CloseOverlay(IntPtr hWnd, int pid)
-    {
-        try { PostMessage(hWnd, WmClose, IntPtr.Zero, IntPtr.Zero); } catch { }
-        try
+        if (Allowlist.Any(a => n.Contains(a))) return true;
+        if (!string.IsNullOrWhiteSpace(path))
         {
-            // Force-close if it ignores WM_CLOSE (many overlays do).
-            using var p = Process.GetProcessById(pid);
-            if (!p.HasExited)
-            {
-                try { p.Kill(entireProcessTree: true); } catch { try { p.Kill(); } catch { } }
-            }
+            var p = path.Replace('/', '\\').ToLowerInvariant();
+            if (AllowedPathMarkers.Any(m => p.Contains(m)))
+                return true;
         }
-        catch { }
+        return false;
     }
 
     private static bool TryGetGameBounds(out Rect rect, out uint gamePid)
@@ -152,9 +168,8 @@ internal static class OverlayGuard
                 if (!GetWindowRect(hWnd, out var r)) return true;
                 var w = r.Right - r.Left;
                 var h = r.Bottom - r.Top;
-                if (w < 320 || h < 240) return true;
+                if (w < 800 || h < 600) return true;
 
-                // Prefer the largest visible game window (main client).
                 var curArea = (foundRect.Right - foundRect.Left) * (foundRect.Bottom - foundRect.Top);
                 var newArea = w * h;
                 if (found == IntPtr.Zero || newArea > curArea)
