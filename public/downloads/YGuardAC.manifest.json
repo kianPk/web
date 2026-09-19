@@ -1,6 +1,6 @@
 ﻿{
-  "version": "0.3.5",
-  "download_url": "https://github.com/kianPk/web/releases/download/client-v0.3.5/YGuardAC-0.3.5-client.zip",
+  "version": "0.3.6",
+  "download_url": "https://github.com/kianPk/web/releases/download/client-v0.3.6/YGuardAC-0.3.6-client.zip",
   "mandatory": false,
   "min_version": "0.3.2"
 }

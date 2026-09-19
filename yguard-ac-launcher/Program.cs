@@ -77,12 +77,13 @@ internal static class Program
 internal static class Theme
 {
     public static readonly Color Bg = Color.FromArgb(18, 18, 18);
-    public static readonly Color Surface = Color.FromArgb(32, 32, 32);
-    public static readonly Color PillBg = Color.FromArgb(40, 40, 44);
+    public static readonly Color Surface = Color.FromArgb(30, 30, 30);
+    public static readonly Color PillBg = Color.FromArgb(38, 38, 42);
     public static readonly Color Text = Color.White;
-    public static readonly Color Muted = Color.FromArgb(158, 158, 158);
-    public static readonly Color Orange = Color.FromArgb(220, 20, 20); // brand red from logo
-    public static readonly Color Green = Color.FromArgb(76, 175, 80);
+    public static readonly Color Muted = Color.FromArgb(160, 160, 160);
+    public static readonly Color Orange = Color.FromArgb(255, 85, 0); // FACEIT-like accent
+    public static readonly Color Brand = Color.FromArgb(220, 20, 20); // YGuard red CTA
+    public static readonly Color Green = Color.FromArgb(46, 180, 80);
     public static readonly Color Red = Color.FromArgb(229, 57, 53);
 
     public static Image? LogoMark { get; private set; }
@@ -161,6 +162,7 @@ internal sealed class MainForm : Form
     private static readonly (string key, string label)[] Features =
     [
         ("secure_boot", "Secure Boot"),
+        ("iommu", "IOMMU"),
         ("tpm_20", "TPM 2.0"),
         ("tpm_attestation", "TPM Attestation"),
         ("hvci", "HVCI"),
@@ -174,10 +176,10 @@ internal sealed class MainForm : Form
         MaximizeBox = false;
         MinimizeBox = true;
         StartPosition = FormStartPosition.CenterScreen;
-        // Compact FACEIT-like window (no empty middle band on login).
-        ClientSize = new Size(420, 268);
+        // Match FACEIT Anti-cheat frame (screenshot ~450×237 outer).
+        ClientSize = new Size(452, 210);
         BackColor = Theme.Bg;
-        Font = new Font("Segoe UI", 9.5f);
+        Font = new Font("Segoe UI", 9f);
         DoubleBuffered = true;
         Theme.LoadAssets(AppContext.BaseDirectory);
         try
@@ -216,7 +218,7 @@ internal sealed class MainForm : Form
 
         Load += async (_, _) =>
         {
-            Text = $"YGuard Anti-Cheat  v{AutoUpdater.CurrentVersion}";
+            Text = "YGuard Anti-Cheat";
             PaintChecks(animate: true);
             _ = CheckForUpdateAsync();
             TryLoadToken();
@@ -291,7 +293,7 @@ internal sealed class MainForm : Form
         // LOGIN WITH YGUARD
         _loginBtn.Size = new Size(260, 48);
         _loginBtn.Radius = 6;
-        _loginBtn.Fill = Theme.Orange;
+        _loginBtn.Fill = Theme.Brand;
         _loginBtn.ForeColor = Color.White;
         _loginBtn.Font = new Font("Segoe UI Semibold", 11f);
         _loginBtn.Cursor = Cursors.Hand;
@@ -318,20 +320,23 @@ internal sealed class MainForm : Form
 
     private void BuildIn()
     {
-        _avatar.Size = new Size(44, 44);
-        _avatar.Location = new Point(20, 18);
+        // FACEIT layout (tight padding, no empty middle band).
+        const int pad = 24;
+
+        _avatar.Size = new Size(48, 48);
+        _avatar.Location = new Point(pad, 18);
         _avatar.SizeMode = PictureBoxSizeMode.Zoom;
         _avatar.BackColor = Theme.Surface;
 
-        _nameLbl.Font = new Font("Segoe UI Semibold", 14f);
+        _nameLbl.Font = new Font("Segoe UI Semibold", 15f);
         _nameLbl.ForeColor = Theme.Text;
         _nameLbl.AutoSize = true;
-        _nameLbl.Location = new Point(76, 18);
+        _nameLbl.Location = new Point(pad + 60, 18);
 
-        _memberLbl.Font = new Font("Segoe UI", 8.5f);
+        _memberLbl.Font = new Font("Segoe UI", 9f);
         _memberLbl.ForeColor = Theme.Muted;
         _memberLbl.AutoSize = true;
-        _memberLbl.Location = new Point(76, 44);
+        _memberLbl.Location = new Point(pad + 60, 46);
 
         _logout.Text = "LOGOUT";
         _logout.Font = new Font("Segoe UI Semibold", 9f);
@@ -343,38 +348,42 @@ internal sealed class MainForm : Form
         _logout.Cursor = Cursors.Hand;
         _logout.Click += (_, _) => Logout();
 
-        _featuresInTitle.Text = "Security Features";
-        _featuresInTitle.Font = new Font("Segoe UI Semibold", 11f);
+        _featuresInTitle.Text = "Recommended Security Features";
+        _featuresInTitle.Font = new Font("Segoe UI Semibold", 12f);
         _featuresInTitle.ForeColor = Theme.Text;
         _featuresInTitle.AutoSize = true;
-        _featuresInTitle.Location = new Point(20, 78);
+        _featuresInTitle.Location = new Point(pad, 82);
 
         SetupPills(_inPills, "i:");
-        _inPills.Location = new Point(20, 106);
-        _inPills.Size = new Size(380, 100);
+        _inPills.Location = new Point(pad, 110);
+        _inPills.Size = new Size(ClientSize.Width - pad * 2, 64);
+        _inPills.Margin = Padding.Empty;
+        _inPills.Padding = Padding.Empty;
 
         _statusBar.Dock = DockStyle.Bottom;
-        _statusBar.Height = 34;
+        _statusBar.Height = 32;
         _statusBar.BackColor = Theme.Bg;
         _statusBar.Paint += (_, e) =>
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using var b = new SolidBrush(_statusOk ? Theme.Green : Theme.Red);
-            e.Graphics.FillEllipse(b, 20, 12, 10, 10);
+            e.Graphics.FillEllipse(b, pad, 11, 9, 9);
         };
-        _statusText.Location = new Point(38, 8);
+        _statusText.Location = new Point(pad + 16, 7);
         _statusText.AutoSize = true;
         _statusText.ForeColor = Theme.Muted;
         _statusText.Font = new Font("Segoe UI", 9f);
         _statusText.Text = "Disconnected";
         _statusBar.Controls.Add(_statusText);
 
-        _inView.Resize += (_, _) =>
+        void LayoutIn(object? s, EventArgs e)
         {
-            _logout.Left = _inView.ClientSize.Width - _logout.Width - 20;
-            _logout.Top = 22;
-            _inPills.Width = _inView.ClientSize.Width - 40;
-        };
+            _logout.Left = _inView.ClientSize.Width - _logout.Width - pad;
+            _logout.Top = 26;
+            _inPills.Width = Math.Max(200, _inView.ClientSize.Width - pad * 2);
+        }
+        _inView.Resize += LayoutIn;
+        LayoutIn(null, EventArgs.Empty);
 
         _inView.Controls.Add(_avatar);
         _inView.Controls.Add(_nameLbl);
@@ -412,8 +421,8 @@ internal sealed class MainForm : Form
         _inView.Visible = true;
         _outView.Visible = false;
         _inView.BringToFront();
-        _logout.Left = _inView.ClientSize.Width - _logout.Width - 20;
-        _logout.Top = 22;
+        _logout.Left = _inView.ClientSize.Width - _logout.Width - 24;
+        _logout.Top = 26;
     }
 
     private void ShowError(string msg)
@@ -513,6 +522,7 @@ internal sealed class MainForm : Form
         {
             if (!_pills.ContainsKey(p + "Secure Boot")) return;
             _pills[p + "Secure Boot"].SetOk(r.secure_boot);
+            _pills[p + "IOMMU"].SetOk(r.iommu);
             _pills[p + "TPM 2.0"].SetOk(r.tpm_20);
             _pills[p + "TPM Attestation"].SetOk(r.tpm_attestation);
             _pills[p + "HVCI"].SetOk(r.hvci);
@@ -528,6 +538,7 @@ internal sealed class MainForm : Form
         {
             if (!_pills.ContainsKey(p + "Secure Boot")) return;
             _pills[p + "Secure Boot"].SetChecking();
+            _pills[p + "IOMMU"].SetChecking();
             _pills[p + "TPM 2.0"].SetChecking();
             _pills[p + "TPM Attestation"].SetChecking();
             _pills[p + "HVCI"].SetChecking();
@@ -538,6 +549,7 @@ internal sealed class MainForm : Form
         var results = new (string label, bool ok)[]
         {
             ("Secure Boot", r.secure_boot),
+            ("IOMMU", r.iommu),
             ("TPM 2.0", r.tpm_20),
             ("TPM Attestation", r.tpm_attestation),
             ("HVCI", r.hvci),
@@ -709,9 +721,9 @@ internal sealed class MainForm : Form
             if (root.TryGetProperty("member_since", out var ms)
                 && ms.ValueKind == JsonValueKind.String
                 && DateTime.TryParse(ms.GetString(), out var dt))
-                _memberLbl.Text = $"Member since {dt:dd MMMM yyyy}";
+                _memberLbl.Text = $"🇮🇷  Member since {dt.Day} {dt.ToString("MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-US"))}";
             else
-                _memberLbl.Text = "Member";
+                _memberLbl.Text = "🇮🇷  Member";
 
             if (root.TryGetProperty("avatar_url", out var av)
                 && av.ValueKind == JsonValueKind.String
@@ -765,7 +777,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.5+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.6+ from yguard.ir", false);
                 }
                 return;
             }
@@ -915,7 +927,7 @@ internal sealed class MainForm : Form
             var body = new Dictionary<string, object?>
             {
                 ["secure_boot"] = payload.secure_boot,
-                ["iommu"] = true,
+                ["iommu"] = payload.iommu,
                 ["tpm_20"] = payload.tpm_20,
                 ["tpm_attestation"] = payload.tpm_attestation,
                 ["hvci"] = payload.hvci,
@@ -948,7 +960,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.5+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.6+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1256,9 +1268,9 @@ internal sealed class FeaturePill : Control
     public FeaturePill(string label)
     {
         _label = label;
-        var w = TextRenderer.MeasureText(label, new Font("Segoe UI", 9f)).Width + 42;
-        Size = new Size(Math.Max(w, 108), 30);
-        Margin = new Padding(0, 0, 8, 8);
+        var w = TextRenderer.MeasureText(label, new Font("Segoe UI", 9f)).Width + 36;
+        Size = new Size(Math.Max(w, 72), 28);
+        Margin = new Padding(0, 0, 6, 6);
         DoubleBuffered = true;
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
         _spinTimer.Tick += (_, _) =>
@@ -1296,27 +1308,27 @@ internal sealed class FeaturePill : Control
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-        using (var path = RoundedPanel.Round(ClientRectangle, 15))
+        using (var path = RoundedPanel.Round(ClientRectangle, 14))
         using (var br = new SolidBrush(Theme.PillBg))
             g.FillPath(br, path);
 
-        int cx = 14, cy = Height / 2;
+        int cx = 13, cy = Height / 2;
         if (_checking)
         {
             using var track = new Pen(Color.FromArgb(70, 70, 74), 2f);
-            g.DrawEllipse(track, cx - 7, cy - 7, 14, 14);
+            g.DrawEllipse(track, cx - 6, cy - 6, 12, 12);
             using var arc = new Pen(Theme.Orange, 2f)
             {
                 StartCap = LineCap.Round,
                 EndCap = LineCap.Round,
             };
-            g.DrawArc(arc, cx - 7, cy - 7, 14, 14, _spinAngle, 110f);
+            g.DrawArc(arc, cx - 6, cy - 6, 12, 12, _spinAngle, 110f);
         }
         else
         {
             using (var c = new SolidBrush(_ok ? Theme.Green : Theme.Red))
-                g.FillEllipse(c, cx - 7, cy - 7, 14, 14);
-            using var pen = new Pen(Color.White, 1.5f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+                g.FillEllipse(c, cx - 6, cy - 6, 12, 12);
+            using var pen = new Pen(Color.White, 1.4f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
             if (_ok)
                 g.DrawLines(pen, new[] { new Point(cx - 3, cy), new Point(cx - 1, cy + 3), new Point(cx + 4, cy - 3) });
             else
@@ -1327,13 +1339,14 @@ internal sealed class FeaturePill : Control
         }
 
         TextRenderer.DrawText(g, _label, new Font("Segoe UI", 9f),
-            new Point(26, (Height - 15) / 2), Theme.Text, TextFormatFlags.NoPadding);
+            new Point(24, (Height - 15) / 2), Theme.Text, TextFormatFlags.NoPadding);
     }
 }
 
 internal sealed class CheckReport
 {
     [JsonPropertyName("secure_boot")] public bool secure_boot { get; set; }
+    [JsonPropertyName("iommu")] public bool iommu { get; set; }
     [JsonPropertyName("tpm_20")] public bool tpm_20 { get; set; }
     [JsonPropertyName("tpm_attestation")] public bool tpm_attestation { get; set; }
     [JsonPropertyName("hvci")] public bool hvci { get; set; }
@@ -1350,6 +1363,7 @@ internal static class SecurityChecks
         return new CheckReport
         {
             secure_boot = RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1,
+            iommu = HasIommu(),
             tpm_20 = tpm,
             tpm_attestation = tpm,
             hvci = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled") == 1,
@@ -1357,6 +1371,35 @@ internal static class SecurityChecks
             os_version = Environment.OSVersion.ToString(),
             hardware_hash = BuildHardwareFingerprint(),
         };
+    }
+
+    /// <summary>Best-effort: VBS / Device Guard / Hyper-V DMA protection.</summary>
+    private static bool HasIommu()
+    {
+        try
+        {
+            if (RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity") == 1)
+                return true;
+            using var s = new ManagementObjectSearcher(
+                @"root\Microsoft\Windows\DeviceGuard",
+                "SELECT VirtualizationBasedSecurityStatus, SecurityServicesRunning FROM Win32_DeviceGuard");
+            foreach (ManagementObject o in s.Get())
+            {
+                var status = Convert.ToInt32(o["VirtualizationBasedSecurityStatus"] ?? 0);
+                if (status == 2) return true; // Running
+                if (o["SecurityServicesRunning"] is Array arr)
+                {
+                    foreach (var v in arr)
+                    {
+                        // 3 = DMA Protection / System Guard Secure Launch related bits vary;
+                        // treat any running security service as IOMMU-capable signal.
+                        if (Convert.ToInt32(v) > 0) return true;
+                    }
+                }
+            }
+        }
+        catch { /* ignore */ }
+        return false;
     }
 
     /// <summary>
