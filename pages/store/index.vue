@@ -353,65 +353,91 @@ onMounted(() => {
     <!-- Sticky cart bar -->
     <div
       v-if="cartCount > 0"
-      class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.45)] backdrop-blur supports-[backdrop-filter]:bg-background/85"
     >
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="m-0 font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+          <p
+            class="m-0 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground"
+          >
             {{ $t("pages.store.cart_summary", { count: cartCount }) }}
           </p>
           <p class="m-0 font-mono text-sm font-semibold tabular-nums">
             {{ formatPrice(cartTotalIrr) }}
           </p>
         </div>
-        <Button type="button" @click="openCheckout">
+        <Button type="button" class="shrink-0" @click="openCheckout">
           {{ $t("pages.store.checkout") }}
         </Button>
       </div>
     </div>
 
     <Dialog v-model:open="checkoutOpen">
-      <DialogScrollContent class="max-w-lg max-h-[min(90vh,880px)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{{ $t("pages.store.checkout_title") }}</DialogTitle>
-          <DialogDescription>
-            {{ $t("pages.store.checkout_subtitle") }}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogScrollContent
+        class="max-w-md gap-0 overflow-hidden p-0 sm:rounded-xl"
+      >
+        <div class="border-b border-border px-5 py-4">
+          <DialogHeader class="space-y-1 text-left">
+            <DialogTitle class="font-sans text-lg">
+              {{ $t("pages.store.checkout_title") }}
+            </DialogTitle>
+            <DialogDescription class="text-xs">
+              {{ $t("pages.store.checkout_subtitle") }}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div class="space-y-4">
-          <ul class="m-0 list-none space-y-3 p-0">
+        <div class="max-h-[min(70vh,560px)] space-y-5 overflow-y-auto px-5 py-4">
+          <!-- Cart lines -->
+          <ul class="m-0 list-none space-y-2 p-0">
             <li
               v-for="line in cart"
               :key="line.product.id"
-              class="flex items-start justify-between gap-3 border-b border-border pb-3"
+              class="flex items-center gap-3 rounded-lg border border-border/80 bg-card/50 p-2.5"
             >
+              <div
+                class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted"
+              >
+                <img
+                  v-if="line.product.image_url"
+                  :src="line.product.image_url"
+                  :alt="line.product.title"
+                  class="h-full w-full object-cover"
+                />
+                <ShoppingBag v-else class="h-5 w-5 opacity-40" />
+              </div>
               <div class="min-w-0 flex-1">
-                <p class="m-0 truncate text-sm font-medium">
+                <p class="m-0 truncate text-sm font-medium leading-tight">
                   {{ line.product.title }}
                 </p>
-                <p class="m-0 font-mono text-xs text-muted-foreground">
+                <p class="m-0 mt-0.5 font-mono text-xs text-muted-foreground">
                   {{ formatPrice(line.product.price_irr) }}
+                  <span v-if="line.qty > 1">
+                    × {{ line.qty }} =
+                    {{ formatPrice(line.product.price_irr * line.qty) }}
+                  </span>
                 </p>
               </div>
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-0.5">
                 <Button
                   type="button"
                   size="icon"
-                  variant="outline"
-                  class="h-8 w-8"
+                  variant="ghost"
+                  class="h-7 w-7"
                   @click="setQty(line.product.id, line.qty - 1)"
                 >
                   <Minus class="h-3.5 w-3.5" />
                 </Button>
-                <span class="w-6 text-center font-mono text-sm tabular-nums">
+                <span
+                  class="w-5 text-center font-mono text-sm tabular-nums"
+                >
                   {{ line.qty }}
                 </span>
                 <Button
                   type="button"
                   size="icon"
-                  variant="outline"
-                  class="h-8 w-8"
+                  variant="ghost"
+                  class="h-7 w-7"
                   @click="setQty(line.product.id, line.qty + 1)"
                 >
                   <Plus class="h-3.5 w-3.5" />
@@ -420,7 +446,7 @@ onMounted(() => {
                   type="button"
                   size="icon"
                   variant="ghost"
-                  class="h-8 w-8 text-destructive"
+                  class="h-7 w-7 text-muted-foreground hover:text-destructive"
                   @click="removeFromCart(line.product.id)"
                 >
                   <Trash2 class="h-3.5 w-3.5" />
@@ -429,42 +455,65 @@ onMounted(() => {
             </li>
           </ul>
 
-          <div class="flex items-center justify-between font-mono text-sm font-semibold">
-            <span>{{ $t("pages.store.total") }}</span>
-            <span class="tabular-nums">{{ formatPrice(cartTotalIrr) }}</span>
-          </div>
-
-          <div class="rounded-md border border-border bg-muted/30 p-3">
-            <p class="m-0 mb-2 text-sm font-semibold">
-              {{ $t("pages.store.terms_title") }}
-            </p>
-            <div
-              class="max-h-40 space-y-2 overflow-y-auto text-xs leading-relaxed text-muted-foreground"
+          <div
+            class="flex items-center justify-between rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] px-3.5 py-2.5"
+          >
+            <span
+              class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
             >
-              <p class="m-0">{{ $t("pages.store.terms_1") }}</p>
-              <p class="m-0">{{ $t("pages.store.terms_2") }}</p>
-              <p class="m-0">{{ $t("pages.store.terms_3") }}</p>
-              <p class="m-0">{{ $t("pages.store.terms_4") }}</p>
-              <p class="m-0">{{ $t("pages.store.terms_5") }}</p>
-            </div>
+              {{ $t("pages.store.total") }}
+            </span>
+            <span class="font-mono text-base font-semibold tabular-nums">
+              {{ formatPrice(cartTotalIrr) }}
+            </span>
           </div>
 
-          <label class="flex cursor-pointer items-start gap-3 text-sm">
-            <Checkbox
-              :checked="termsAccepted"
-              class="mt-0.5"
-              @update:checked="(v) => (termsAccepted = v === true)"
-            />
-            <span>{{ $t("pages.store.terms_accept") }}</span>
-          </label>
+          <!-- Terms -->
+          <section class="space-y-2.5">
+            <h3
+              class="m-0 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              {{ $t("pages.store.terms_title") }}
+            </h3>
+            <ol
+              class="m-0 max-h-36 list-decimal space-y-1.5 overflow-y-auto rounded-lg border border-border bg-muted/20 py-2.5 pe-3 ps-7 text-[0.75rem] leading-relaxed text-muted-foreground"
+            >
+              <li>{{ $t("pages.store.terms_1") }}</li>
+              <li>{{ $t("pages.store.terms_2") }}</li>
+              <li>{{ $t("pages.store.terms_3") }}</li>
+              <li>{{ $t("pages.store.terms_4") }}</li>
+              <li>{{ $t("pages.store.terms_5") }}</li>
+            </ol>
+
+            <button
+              type="button"
+              class="flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start transition-colors"
+              :class="
+                termsAccepted
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+                  : 'border-border bg-card/40 hover:bg-muted/30'
+              "
+              @click="termsAccepted = !termsAccepted"
+            >
+              <Checkbox
+                :model-value="termsAccepted"
+                class="mt-0.5 pointer-events-none"
+                tabindex="-1"
+              />
+              <span class="text-sm leading-snug text-foreground">
+                {{ $t("pages.store.terms_accept") }}
+              </span>
+            </button>
+          </section>
         </div>
 
         <DialogFooter
-          class="sticky bottom-0 z-10 -mx-6 -mb-6 border-t bg-background px-6 py-4 sm:rounded-b-lg"
+          class="flex-row gap-2 border-t border-border bg-background px-5 py-3.5 sm:justify-between"
         >
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
+            class="px-3"
             :disabled="paying"
             @click="checkoutOpen = false"
           >
@@ -472,6 +521,7 @@ onMounted(() => {
           </Button>
           <Button
             type="button"
+            class="min-w-[10rem]"
             :disabled="paying || !termsAccepted || cartCount === 0"
             @click="payWithBale"
           >
