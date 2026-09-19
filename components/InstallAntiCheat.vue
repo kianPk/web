@@ -15,11 +15,33 @@ withDefaults(
 
 const { state, isMobile } = useSidebar();
 
+const FALLBACK_VERSION = "0.3.4";
 const FALLBACK_HREF =
   "https://github.com/kianPk/web/releases/download/client-v0.3.4/YGuardAC-0.3.4-client.zip";
 
 const downloadHref = ref(FALLBACK_HREF);
-const advertisedVersion = ref("0.3.4");
+const advertisedVersion = ref(FALLBACK_VERSION);
+
+function versionParts(v: string): number[] {
+  return v
+    .trim()
+    .split(/[^\d]+/)
+    .filter(Boolean)
+    .map((n) => Number(n) || 0);
+}
+
+function isNewerOrEqual(a: string, b: string): boolean {
+  const ap = versionParts(a);
+  const bp = versionParts(b);
+  const len = Math.max(ap.length, bp.length);
+  for (let i = 0; i < len; i++) {
+    const x = ap[i] ?? 0;
+    const y = bp[i] ?? 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return true;
+}
 
 onMounted(async () => {
   try {
@@ -32,11 +54,13 @@ onMounted(async () => {
       // Bust CDN / browser cache — this endpoint used to stick on 0.2.6.
       query: { _: Date.now() },
     });
-    if (release?.download_url?.trim()) {
-      downloadHref.value = release.download_url.trim();
-    }
-    if (release?.version?.trim()) {
-      advertisedVersion.value = release.version.trim();
+    const apiVersion = release?.version?.trim() || "";
+    const apiUrl = release?.download_url?.trim() || "";
+    // Don't let a stale API response downgrade the button below the
+    // embedded fallback (happens when API deploy lags behind web).
+    if (apiVersion && isNewerOrEqual(apiVersion, FALLBACK_VERSION)) {
+      advertisedVersion.value = apiVersion;
+      if (apiUrl) downloadHref.value = apiUrl;
     }
   } catch {
     /* keep fallback */
