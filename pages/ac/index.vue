@@ -20,10 +20,33 @@ const status = ref<{
   latest: Record<string, unknown> | null;
 } | null>(null);
 const loading = ref(false);
-const launcherVersion = ref("0.3.8");
-const launcherUrl = ref(
-  "https://github.com/kianPk/web/releases/download/client-v0.3.8/YGuardAC-0.3.8-client.zip",
-);
+const FALLBACK_VERSION = "0.3.8";
+const FALLBACK_URL =
+  "https://github.com/kianPk/web/releases/download/client-v0.3.8/YGuardAC-0.3.8-client.zip";
+
+const launcherVersion = ref(FALLBACK_VERSION);
+const launcherUrl = ref(FALLBACK_URL);
+
+function versionParts(v: string): number[] {
+  return v
+    .trim()
+    .split(/[^\d]+/)
+    .filter(Boolean)
+    .map((n) => Number(n) || 0);
+}
+
+function isNewerOrEqual(a: string, b: string): boolean {
+  const ap = versionParts(a);
+  const bp = versionParts(b);
+  const len = Math.max(ap.length, bp.length);
+  for (let i = 0; i < len; i++) {
+    const x = ap[i] ?? 0;
+    const y = bp[i] ?? 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return true;
+}
 
 async function loadLauncher() {
   try {
@@ -31,10 +54,16 @@ async function loadLauncher() {
       `https://${apiDomain}/plugins/ac/launcher`,
       { query: { _: Date.now() } },
     );
-    if (release?.version) launcherVersion.value = release.version;
-    if (release?.download_url) launcherUrl.value = release.download_url;
+    const apiVersion = release?.version?.trim() || "";
+    const apiUrl = release?.download_url?.trim() || "";
+    // Don't let a stale API env (e.g. 0.3.7) downgrade the UI below the
+    // shipped fallback while API CI/deploy lags.
+    if (apiVersion && isNewerOrEqual(apiVersion, FALLBACK_VERSION)) {
+      launcherVersion.value = apiVersion;
+      if (apiUrl) launcherUrl.value = apiUrl;
+    }
   } catch {
-    /* keep fallback 0.3.8 */
+    /* keep fallback */
   }
 }
 
