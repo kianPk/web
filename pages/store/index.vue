@@ -82,7 +82,9 @@ async function refresh() {
       query: PRODUCTS_QUERY,
       fetchPolicy: "network-only",
     });
-    products.value = data?.store_products ?? [];
+    products.value = [...(data?.store_products ?? [])].sort(
+      (a, b) => Number(b.price_irr) - Number(a.price_irr),
+    );
   } catch (error) {
     console.error(error);
     products.value = [];
