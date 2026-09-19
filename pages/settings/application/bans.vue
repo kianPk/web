@@ -81,59 +81,67 @@ function expiryLabel(row: BanRow) {
 async function loadBans() {
   loading.value = true;
   try {
+    // Query sanctions directly (guest/admin inherit filter deleted_at IS NULL).
+    // Avoid filtering players by computed is_banned — that fails on some roles.
     const { data } = await apollo.query({
       query: gql`
         query AdminBannedPlayers {
-          players(
-            where: { is_banned: { _eq: true } }
-            order_by: { name: asc }
-            limit: 500
+          player_sanctions(
+            where: { type: { _eq: ban } }
+            order_by: { created_at: desc }
+            limit: 1000
           ) {
-            steam_id
-            name
-            avatar_url
-            is_banned
-            banned_until
-            sanctions(
-              where: {
-                type: { _eq: ban }
-                deleted_at: { _is_null: true }
-              }
-              order_by: { created_at: desc }
-              limit: 3
-            ) {
-              reason
-              created_at
-              remove_sanction_date
+            reason
+            created_at
+            remove_sanction_date
+            player_steam_id
+            player {
+              steam_id
+              name
+              avatar_url
+              is_banned
+              banned_until
             }
           }
         }
       `,
       fetchPolicy: "network-only",
+      errorPolicy: "none",
     });
 
-    rows.value = (data?.players || []).map((p: any) => {
-      const now = Date.now();
-      const active = (p.sanctions || []).find((s: any) => {
-        if (!s.remove_sanction_date) return true;
-        return new Date(s.remove_sanction_date).getTime() > now;
+    const now = Date.now();
+    const bySteam = new Map<string, BanRow>();
+    for (const s of data?.player_sanctions || []) {
+      const steam = String(s.player_steam_id || s.player?.steam_id || "");
+      if (!steam) continue;
+      const until = s.remove_sanction_date
+        ? new Date(s.remove_sanction_date).getTime()
+        : null;
+      if (until !== null && until <= now) continue;
+      if (bySteam.has(steam)) continue;
+      bySteam.set(steam, {
+        steam_id: steam,
+        name: s.player?.name ?? null,
+        avatar_url: s.player?.avatar_url ?? null,
+        is_banned: s.player?.is_banned ?? true,
+        banned_until: s.player?.banned_until ?? s.remove_sanction_date ?? null,
+        reason: s.reason ?? null,
+        created_at: s.created_at ?? null,
+        remove_sanction_date: s.remove_sanction_date ?? null,
       });
-      return {
-        steam_id: String(p.steam_id),
-        name: p.name,
-        avatar_url: p.avatar_url,
-        is_banned: !!p.is_banned,
-        banned_until: p.banned_until,
-        reason: active?.reason ?? p.sanctions?.[0]?.reason ?? null,
-        created_at: active?.created_at ?? p.sanctions?.[0]?.created_at ?? null,
-        remove_sanction_date:
-          active?.remove_sanction_date ?? p.banned_until ?? null,
-      } as BanRow;
-    });
-  } catch (err) {
+    }
+    rows.value = [...bySteam.values()].sort((a, b) =>
+      (a.name || a.steam_id).localeCompare(b.name || b.steam_id),
+    );
+  } catch (err: any) {
     console.error(err);
+    const detail =
+      err?.graphQLErrors?.[0]?.message ||
+      err?.networkError?.result?.errors?.[0]?.message ||
+      err?.message;
     toast({
       title: t("pages.settings.application.bans.load_failed"),
+      description: detail ? String(detail).slice(0, 180) : undefined,
       variant: "destructive",
     });
   } finally {

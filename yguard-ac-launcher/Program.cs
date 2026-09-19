@@ -777,7 +777,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.7+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.8+ from yguard.ir", false);
                 }
                 return;
             }
@@ -956,7 +956,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.7+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.8+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1350,14 +1350,13 @@ internal static class SecurityChecks
 {
     public static CheckReport Run()
     {
-        var tpm = HasTpm20();
         return new CheckReport
         {
             secure_boot = SecureBootOk(),
-            iommu = HasIommu(),
-            tpm_20 = tpm,
-            tpm_attestation = tpm,
-            hvci = RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled") == 1,
+            iommu = IommuOk(),
+            tpm_20 = TpmOk(),
+            tpm_attestation = TpmOk(),
+            hvci = HvciOk(),
             windows_updates = WindowsUpdated(),
             os_version = Environment.OSVersion.ToString(),
             hardware_hash = BuildHardwareFingerprint(),
@@ -1384,6 +1383,101 @@ internal static class SecurityChecks
             return true;
 
         return RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1;
+    }
+
+    /// <summary>TPM 2.0 present & usable, or no TPM hardware at all → pass.</summary>
+    private static bool TpmOk()
+    {
+        if (HasTpm20()) return true;
+        // No TPM chip (or only inaccessible) → board doesn't support the check.
+        return !TpmHardwarePresent();
+    }
+
+    private static bool TpmHardwarePresent()
+    {
+        try
+        {
+            using var s = new ManagementObjectSearcher(
+                @"root\cimv2\Security\MicrosoftTpm", "SELECT * FROM Win32_Tpm");
+            foreach (ManagementObject _ in s.Get())
+                return true;
+        }
+        catch { /* namespace missing */ }
+        try
+        {
+            return Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Services\TPM") != null;
+        }
+        catch { return false; }
+    }
+
+    /// <summary>HVCI on, or CPU/OS cannot run HVCI → pass.</summary>
+    private static bool HvciOk()
+    {
+        if (RegInt(
+                @"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity",
+                "Enabled") == 1)
+            return true;
+        return !HvciSupported();
+    }
+
+    private static bool HvciSupported()
+    {
+        // Scenario key missing → feature not exposed on this build/CPU.
+        if (!RegKeyExists(
+                @"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"))
+            return false;
+        try
+        {
+            using var s = new ManagementObjectSearcher(
+                @"root\Microsoft\Windows\DeviceGuard",
+                "SELECT AvailableSecurityProperties FROM Win32_DeviceGuard");
+            foreach (ManagementObject o in s.Get())
+            {
+                if (o["AvailableSecurityProperties"] is Array arr)
+                {
+                    foreach (var v in arr)
+                    {
+                        // 2 = Hypervisor-enforced Code Integrity capability bit (typical).
+                        if (Convert.ToInt32(v) == 2) return true;
+                    }
+                }
+                return true; // DeviceGuard present → treat as capable
+            }
+        }
+        catch { /* no DeviceGuard WMI */ }
+        return false;
+    }
+
+    /// <summary>IOMMU/VBS running, or platform cannot do VBS/IOMMU → pass.</summary>
+    private static bool IommuOk()
+    {
+        if (HasIommu()) return true;
+        return !IommuSupported();
+    }
+
+    private static bool IommuSupported()
+    {
+        try
+        {
+            using var s = new ManagementObjectSearcher(
+                @"root\Microsoft\Windows\DeviceGuard",
+                "SELECT VirtualizationBasedSecurityStatus, AvailableSecurityProperties FROM Win32_DeviceGuard");
+            var found = false;
+            foreach (ManagementObject o in s.Get())
+            {
+                found = true;
+                var status = Convert.ToInt32(o["VirtualizationBasedSecurityStatus"] ?? 0);
+                // 0 = VBS not enabled / not available on this SKU.
+                if (status == 0 && o["AvailableSecurityProperties"] is not Array)
+                    return false;
+            }
+            return found;
+        }
+        catch
+        {
+            return false; // cannot query → unsupported
+        }
     }
 
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]

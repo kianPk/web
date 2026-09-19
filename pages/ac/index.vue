@@ -20,9 +20,9 @@ const status = ref<{
   latest: Record<string, unknown> | null;
 } | null>(null);
 const loading = ref(false);
-const launcherVersion = ref("0.3.7");
+const launcherVersion = ref("0.3.8");
 const launcherUrl = ref(
-  "https://github.com/kianPk/web/releases/download/client-v0.3.7/YGuardAC-0.3.7-client.zip",
+  "https://github.com/kianPk/web/releases/download/client-v0.3.8/YGuardAC-0.3.8-client.zip",
 );
 
 async function loadLauncher() {
@@ -34,7 +34,7 @@ async function loadLauncher() {
     if (release?.version) launcherVersion.value = release.version;
     if (release?.download_url) launcherUrl.value = release.download_url;
   } catch {
-    /* keep fallback 0.3.7 */
+    /* keep fallback 0.3.8 */
   }
 }
 
