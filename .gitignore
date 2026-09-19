@@ -49,3 +49,8 @@ cs2-plugins/YGuardVIP/bin/
 cs2-plugins/YGuardVIP/obj/
 cs2-plugins/YGuardNoFF/bin/
 cs2-plugins/YGuardNoFF/obj/
+
+# AC client zip lives on GitHub releases only (keeps web image small)
+public/downloads/YGuardAC.zip
+public/downloads/YGuardAC-*-client.zip
+

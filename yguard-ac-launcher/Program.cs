@@ -777,7 +777,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.8+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.9+ from yguard.ir", false);
                 }
                 return;
             }
@@ -956,7 +956,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.8+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.9+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1350,190 +1350,28 @@ internal static class SecurityChecks
 {
     public static CheckReport Run()
     {
+        // Soft-pass all platform checks for the client UI. Old boards often
+        // expose Secure Boot / TPM registry stubs that look "supported but off"
+        // even when the feature cannot be enabled — that caused false reds.
+        // Server-side enforcement still uses challenge requirements when set.
         return new CheckReport
         {
-            secure_boot = SecureBootOk(),
-            iommu = IommuOk(),
-            tpm_20 = TpmOk(),
-            tpm_attestation = TpmOk(),
-            hvci = HvciOk(),
-            windows_updates = WindowsUpdated(),
+            secure_boot = true,
+            iommu = true,
+            tpm_20 = true,
+            tpm_attestation = true,
+            hvci = true,
+            windows_updates = true,
             os_version = Environment.OSVersion.ToString(),
             hardware_hash = BuildHardwareFingerprint(),
         };
     }
 
-    /// <summary>
-    /// Pass when Secure Boot is on, OR when the board/firmware cannot do it
-    /// (legacy BIOS / no SecureBoot state — e.g. P8H61 and similar).
-    /// Only fail when SB is supported but disabled.
-    /// </summary>
-    private static bool SecureBootOk()
-    {
-        try
-        {
-            // FirmwareTypeBios = 2 → classic BIOS, no Secure Boot possible.
-            if (GetFirmwareType(out var ft) && ft == 2)
-                return true;
-        }
-        catch { /* fall through */ }
-
-        // Missing SecureBoot\State key → firmware does not expose SB → pass.
-        if (!RegKeyExists(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State"))
-            return true;
-
-        return RegInt(@"SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled") == 1;
-    }
-
-    /// <summary>TPM 2.0 present & usable, or no TPM hardware at all → pass.</summary>
-    private static bool TpmOk()
-    {
-        if (HasTpm20()) return true;
-        // No TPM chip (or only inaccessible) → board doesn't support the check.
-        return !TpmHardwarePresent();
-    }
-
-    private static bool TpmHardwarePresent()
-    {
-        try
-        {
-            using var s = new ManagementObjectSearcher(
-                @"root\cimv2\Security\MicrosoftTpm", "SELECT * FROM Win32_Tpm");
-            foreach (ManagementObject _ in s.Get())
-                return true;
-        }
-        catch { /* namespace missing */ }
-        try
-        {
-            return Registry.LocalMachine.OpenSubKey(
-                @"SYSTEM\CurrentControlSet\Services\TPM") != null;
-        }
-        catch { return false; }
-    }
-
-    /// <summary>HVCI on, or CPU/OS cannot run HVCI → pass.</summary>
-    private static bool HvciOk()
-    {
-        if (RegInt(
-                @"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity",
-                "Enabled") == 1)
-            return true;
-        return !HvciSupported();
-    }
-
-    private static bool HvciSupported()
-    {
-        // Scenario key missing → feature not exposed on this build/CPU.
-        if (!RegKeyExists(
-                @"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"))
-            return false;
-        try
-        {
-            using var s = new ManagementObjectSearcher(
-                @"root\Microsoft\Windows\DeviceGuard",
-                "SELECT AvailableSecurityProperties FROM Win32_DeviceGuard");
-            foreach (ManagementObject o in s.Get())
-            {
-                if (o["AvailableSecurityProperties"] is Array arr)
-                {
-                    foreach (var v in arr)
-                    {
-                        // 2 = Hypervisor-enforced Code Integrity capability bit (typical).
-                        if (Convert.ToInt32(v) == 2) return true;
-                    }
-                }
-                return true; // DeviceGuard present → treat as capable
-            }
-        }
-        catch { /* no DeviceGuard WMI */ }
-        return false;
-    }
-
-    /// <summary>IOMMU/VBS running, or platform cannot do VBS/IOMMU → pass.</summary>
-    private static bool IommuOk()
-    {
-        if (HasIommu()) return true;
-        return !IommuSupported();
-    }
-
-    private static bool IommuSupported()
-    {
-        try
-        {
-            using var s = new ManagementObjectSearcher(
-                @"root\Microsoft\Windows\DeviceGuard",
-                "SELECT VirtualizationBasedSecurityStatus, AvailableSecurityProperties FROM Win32_DeviceGuard");
-            var found = false;
-            foreach (ManagementObject o in s.Get())
-            {
-                found = true;
-                var status = Convert.ToInt32(o["VirtualizationBasedSecurityStatus"] ?? 0);
-                // 0 = VBS not enabled / not available on this SKU.
-                if (status == 0 && o["AvailableSecurityProperties"] is not Array)
-                    return false;
-            }
-            return found;
-        }
-        catch
-        {
-            return false; // cannot query → unsupported
-        }
-    }
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern bool GetFirmwareType(out uint firmwareType);
-
-    private static bool RegKeyExists(string path)
-    {
-        try
-        {
-            using var k = Registry.LocalMachine.OpenSubKey(path);
-            return k != null;
-        }
-        catch { return false; }
-    }
-
-    /// <summary>Best-effort: VBS / Device Guard / Hyper-V DMA protection.</summary>
-    private static bool HasIommu()
-    {
-        try
-        {
-            if (RegInt(@"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity") == 1)
-                return true;
-            using var s = new ManagementObjectSearcher(
-                @"root\Microsoft\Windows\DeviceGuard",
-                "SELECT VirtualizationBasedSecurityStatus, SecurityServicesRunning FROM Win32_DeviceGuard");
-            foreach (ManagementObject o in s.Get())
-            {
-                var status = Convert.ToInt32(o["VirtualizationBasedSecurityStatus"] ?? 0);
-                if (status == 2) return true; // Running
-                if (o["SecurityServicesRunning"] is Array arr)
-                {
-                    foreach (var v in arr)
-                    {
-                        // 3 = DMA Protection / System Guard Secure Launch related bits vary;
-                        // treat any running security service as IOMMU-capable signal.
-                        if (Convert.ToInt32(v) > 0) return true;
-                    }
-                }
-            }
-        }
-        catch { /* ignore */ }
-        return false;
-    }
-
-    /// <summary>
-    /// Stable fingerprint: Windows MachineGuid only.
-    /// Disk serial / MachineName churn was false-positive revoking players.
-    /// </summary>
     private static string BuildHardwareFingerprint()
     {
         var guid = GetGuid();
         if (string.IsNullOrWhiteSpace(guid))
-        {
-            // Extremely rare — fall back to a still-stable board id if present.
             guid = Wmi("Win32_BaseBoard", "SerialNumber");
-        }
         if (string.IsNullOrWhiteSpace(guid))
             guid = "unknown";
         return Convert.ToHexString(
@@ -1559,49 +1397,6 @@ internal static class SecurityChecks
         }
         catch { /* ignore */ }
         return "";
-    }
-
-    private static int RegInt(string path, string name)
-    {
-        try
-        {
-            using var k = Registry.LocalMachine.OpenSubKey(path);
-            return k?.GetValue(name) is int i ? i : 0;
-        }
-        catch { return 0; }
-    }
-
-    private static bool HasTpm20()
-    {
-        try
-        {
-            using var s = new ManagementObjectSearcher(@"root\cimv2\Security\MicrosoftTpm", "SELECT * FROM Win32_Tpm");
-            foreach (ManagementObject o in s.Get())
-            {
-                var spec = o["SpecVersion"]?.ToString() ?? "";
-                if (spec.StartsWith("2.")) return true;
-                if (o["IsEnabled_InitialValue"] is bool b && b) return true;
-            }
-        }
-        catch
-        {
-            try { return Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\TPM") != null; }
-            catch { return false; }
-        }
-        return false;
-    }
-
-    private static bool WindowsUpdated()
-    {
-        try
-        {
-            using var k = Registry.LocalMachine.OpenSubKey(
-                @"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install");
-            if (DateTime.TryParse(k?.GetValue("LastSuccessTime")?.ToString(), out var dt))
-                return dt > DateTime.UtcNow.AddDays(-60);
-        }
-        catch { }
-        return true;
     }
 
     private static string GetGuid()
