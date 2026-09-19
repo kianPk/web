@@ -281,7 +281,7 @@ import {
         <DropdownMenuSeparator
           v-if="
             match.can_start ||
-            match.can_cancel ||
+            canCancelMatch ||
             canDeleteMatch ||
             canReparseDemos
           "
@@ -311,7 +311,7 @@ import {
           </DropdownMenuItem>
         </template>
 
-        <template v-if="match.can_cancel">
+        <template v-if="canCancelMatch">
           <DropdownMenuItem class="text-destructive" @click="cancelMatch">
             <XCircle />
             {{ $t("match.actions.cancel") }}
@@ -432,7 +432,7 @@ export default {
   },
   methods: {
     async cancelMatch() {
-      if (this.cancellingMatch) {
+      if (this.cancellingMatch || !this.canCancelMatch) {
         return;
       }
       this.cancellingMatch = true;
@@ -930,6 +930,25 @@ export default {
         this.match.status !== e_match_status_enum.Live &&
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
+    },
+    /**
+     * Ranked queue types (Competitive / Wingman / Trios / Duel / Premier):
+     * only site administrators. Other match types keep organizer can_cancel.
+     */
+    canCancelMatch() {
+      if (!this.match?.can_cancel) return false;
+      const type = this.match?.options?.type as string | undefined;
+      const ranked = [
+        "Competitive",
+        "Wingman",
+        "Trios",
+        "Duel",
+        "Premier",
+      ];
+      if (type && ranked.includes(type)) {
+        return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
+      }
+      return true;
     },
     // One shared rule, mirroring CameraService.watchScope. This used to be a
     // second hand-rolled copy and it had already drifted from the one in
