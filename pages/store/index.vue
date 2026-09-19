@@ -23,7 +23,6 @@ import { formatTomanAmount } from "~/utilities/irrToman";
 
 const { t, locale } = useI18n();
 const { client: apollo } = useApolloClient();
-const apiDomain = useRuntimeConfig().public.apiDomain as string;
 
 type Product = {
   id: string;
@@ -157,15 +156,11 @@ function openCheckout() {
   checkoutOpen.value = true;
 }
 
-/** Expand qty into repeated product IDs for the API cart checkout. */
-function cartProductIds(): string[] {
-  const ids: string[] = [];
-  for (const line of cart.value) {
-    for (let i = 0; i < line.qty; i++) ids.push(line.product.id);
-  }
-  return ids;
-}
-
+/**
+ * Same path that worked before: Hasura insert_store_orders_one → ble.ir deep link.
+ * One product per Bale invoice (schema is single product_id). If the cart has
+ * more than one unit, pay the first and leave the rest in the cart.
+ */
 async function payWithBale() {
   if (paying.value) return;
   if (!termsAccepted.value) {
@@ -184,35 +179,96 @@ async function payWithBale() {
     });
     return;
   }
+  if (!cart.value.length) {
+    toast({
+      variant: "destructive",
+      title: t("pages.store.cart_empty"),
+    });
+    return;
+  }
 
+  const line = cart.value[0];
+  const product = line.product;
   paying.value = true;
   try {
-    const productIds = cartProductIds();
-    if (!productIds.length) throw new Error("Cart empty");
+    const { data: liveData } = await apollo.query({
+      query: gql`
+        query StoreProductPrice($id: uuid!) {
+          store_products_by_pk(id: $id) {
+            id
+            price_irr
+            active
+          }
+        }
+      `,
+      variables: { id: product.id },
+      fetchPolicy: "network-only",
+    });
+    const live = liveData?.store_products_by_pk;
+    if (!live?.active) {
+      throw new Error("Product unavailable");
+    }
 
-    const result = await $fetch<{
-      orderId: string;
-      deepLink: string;
-      amountIrr: number;
-    }>(`https://${apiDomain}/store/checkout`, {
-      method: "POST",
-      credentials: "include",
-      body: {
-        productIds,
-        termsAccepted: true,
+    const orderId = crypto.randomUUID();
+    const payload = `store:${orderId}`;
+    await apollo.mutate({
+      mutation: gql`
+        mutation CreateStoreOrder(
+          $id: uuid!
+          $productId: uuid!
+          $buyerSteamId: bigint!
+          $amountIrr: Int!
+          $payload: String!
+        ) {
+          insert_store_orders_one(
+            object: {
+              id: $id
+              product_id: $productId
+              buyer_steam_id: $buyerSteamId
+              amount_irr: $amountIrr
+              bale_payload: $payload
+            }
+          ) {
+            id
+          }
+        }
+      `,
+      variables: {
+        id: orderId,
+        productId: product.id,
+        buyerSteamId: steamId,
+        amountIrr: live.price_irr,
+        payload,
       },
     });
+
+    void $fetch("/api/store/cancel-pending", {
+      method: "POST",
+      body: { exceptOrderId: orderId, steamId },
+      credentials: "include",
+    }).catch(() => undefined);
+
+    const status = await $fetch<{ botUsername: string | null }>(
+      "/api/store/status",
+    );
+    const start = `pay_${orderId.replace(/-/g, "")}`;
+    const username = (status.botUsername || "yguardbot").replace(/^@/, "");
+    const deepLink = `https://ble.ir/${username}?start=${start}`;
+
+    // Consume one unit from cart; leave the rest for the next checkout.
+    setQty(product.id, line.qty - 1);
+    checkoutOpen.value = false;
+    termsAccepted.value = false;
 
     toast({
       title: t("pages.store.checkout_started"),
       description: t("pages.store.checkout_hint"),
     });
 
-    checkoutOpen.value = false;
-    cart.value = [];
-    window.open(result.deepLink, "_blank", "noopener,noreferrer");
+    window.open(deepLink, "_blank", "noopener,noreferrer");
   } catch (error: any) {
     const message =
+      error?.graphQLErrors?.[0]?.message ||
       error?.data?.message ||
       error?.data?.statusMessage ||
       error?.statusMessage ||

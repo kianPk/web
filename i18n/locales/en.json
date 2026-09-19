@@ -5102,7 +5102,7 @@
       "cart_limit": "Max quantity for this product is 10",
       "checkout": "Checkout",
       "checkout_title": "Checkout",
-      "checkout_subtitle": "Review your cart, accept the terms, then pay with Bale.",
+      "checkout_subtitle": "Review your cart, accept the terms, then pay with Bale. Each Pay covers one item; remaining items stay in the cart.",
       "total": "Total",
       "pay_with_bale": "Pay with Bale",
       "terms_title": "Store terms",
