@@ -4,6 +4,16 @@ type BaleSettings = {
   botUsername: string;
 };
 
+type CartItemSnapshot = {
+  product_id: string;
+  title: string;
+  price_irr: number;
+  ypoint_amount: number | null;
+  vip_server_id: string | null;
+  vip_duration: string | null;
+  subscription_tier: string | null;
+};
+
 async function hasura<T>(
   query: string,
   variables?: Record<string, unknown>,
@@ -88,6 +98,32 @@ function expandOrderId(compact: string): string | null {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+function normalizeCartItems(raw: unknown): CartItemSnapshot[] {
+  if (!raw) return [];
+  const list = Array.isArray(raw)
+    ? raw
+    : typeof raw === "string"
+      ? (JSON.parse(raw) as unknown)
+      : raw;
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((row) => {
+      const r = row as Partial<CartItemSnapshot>;
+      return {
+        product_id: String(r.product_id || ""),
+        title: String(r.title || "Item"),
+        price_irr: Number(r.price_irr || 0),
+        ypoint_amount: r.ypoint_amount == null ? null : Number(r.ypoint_amount),
+        vip_server_id: r.vip_server_id ? String(r.vip_server_id) : null,
+        vip_duration: r.vip_duration ? String(r.vip_duration) : null,
+        subscription_tier: r.subscription_tier
+          ? String(r.subscription_tier)
+          : null,
+      };
+    })
+    .filter((i) => i.product_id && i.price_irr >= 0);
+}
+
 /** Forward paid events to the API for VIP RCON + in-app notifications. */
 async function tryFulfillViaApi(payload: string, chargeId: string) {
   const apiDomain = process.env.NUXT_PUBLIC_API_DOMAIN;
@@ -106,6 +142,69 @@ async function tryFulfillViaApi(payload: string, chargeId: string) {
   } catch {
     // Best-effort when API /store is unreachable.
   }
+}
+
+async function creditYpoints(args: {
+  steamId: string;
+  amount: number;
+  refId: string;
+}) {
+  if (args.amount <= 0) return;
+  const existing = await hasura<{
+    ypoint_ledger: Array<{ id: string }>;
+  }>(
+    `query ($steamId: bigint!, $refId: String!) {
+      ypoint_ledger(
+        where: {
+          steam_id: { _eq: $steamId }
+          ref_type: { _eq: "store_order" }
+          ref_id: { _eq: $refId }
+          delta: { _gt: 0 }
+        }
+        limit: 1
+      ) { id }
+    }`,
+    { steamId: args.steamId, refId: args.refId },
+  );
+  if (existing.ypoint_ledger?.length) return;
+
+  const updated = await hasura<{
+    update_players_by_pk: { ypoint_balance: number } | null;
+  }>(
+    `mutation ($steamId: bigint!, $amount: Int!) {
+      update_players_by_pk(
+        pk_columns: { steam_id: $steamId }
+        _inc: { ypoint_balance: $amount }
+      ) { ypoint_balance }
+    }`,
+    { steamId: args.steamId, amount: args.amount },
+  );
+  const balanceAfter = Number(
+    updated.update_players_by_pk?.ypoint_balance ?? 0,
+  );
+  await hasura(
+    `mutation (
+      $steamId: bigint!
+      $delta: Int!
+      $balanceAfter: Int!
+      $refId: String!
+    ) {
+      insert_ypoint_ledger_one(object: {
+        steam_id: $steamId
+        delta: $delta
+        balance_after: $balanceAfter
+        reason: "store_purchase"
+        ref_type: "store_order"
+        ref_id: $refId
+      }) { id }
+    }`,
+    {
+      steamId: args.steamId,
+      delta: args.amount,
+      balanceAfter,
+      refId: args.refId,
+    },
+  );
 }
 
 export default defineEventHandler(async (event) => {
@@ -128,30 +227,50 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: "Invalid order" });
       }
 
-      // Always invoice the live product price (admin edits apply to unpaid orders).
-      const live = await hasura<{
-        store_orders_by_pk: {
-          id: string;
-          status: string;
-          amount_irr: number;
-          bale_payload: string;
-          product: {
-            title: string;
-            description: string;
-            price_irr: number;
-            active: boolean;
-          };
-        } | null;
-      }>(
-        `query ($id: uuid!) {
-          store_orders_by_pk(id: $id) {
-            id status amount_irr bale_payload
-            product { title description price_irr active }
-          }
-        }`,
-        { id: orderId },
-      );
-      const order = live.store_orders_by_pk;
+      let order: {
+        id: string;
+        status: string;
+        amount_irr: number;
+        bale_payload: string;
+        cart_items: CartItemSnapshot[] | null;
+        product: {
+          title: string;
+          description: string;
+          price_irr: number;
+          active: boolean;
+        };
+      } | null = null;
+
+      try {
+        const live = await hasura<{
+          store_orders_by_pk: typeof order;
+        }>(
+          `query ($id: uuid!) {
+            store_orders_by_pk(id: $id) {
+              id status amount_irr bale_payload cart_items
+              product { title description price_irr active }
+            }
+          }`,
+          { id: orderId },
+        );
+        order = live.store_orders_by_pk;
+      } catch {
+        // cart_items may not be tracked in Hasura yet — fall back.
+        const live = await hasura<{
+          store_orders_by_pk: typeof order;
+        }>(
+          `query ($id: uuid!) {
+            store_orders_by_pk(id: $id) {
+              id status amount_irr bale_payload
+              product { title description price_irr active }
+            }
+          }`,
+          { id: orderId },
+        );
+        order = live.store_orders_by_pk
+          ? { ...live.store_orders_by_pk, cart_items: null }
+          : null;
+      }
       if (!order) {
         throw createError({ statusCode: 404, statusMessage: "Order not found" });
       }
@@ -159,8 +278,57 @@ export default defineEventHandler(async (event) => {
         return { ok: true, status: order.status };
       }
 
-      const amountIrr = Number(order.product.price_irr);
-      if (amountIrr !== Number(order.amount_irr)) {
+      const cart = normalizeCartItems(order.cart_items);
+      let prices: Array<{ label: string; amount: number }>;
+      let amountIrr: number;
+      let title: string;
+      let description: string;
+
+      if (cart.length > 0) {
+        prices = cart.map((i) => ({
+          label: i.title.slice(0, 32),
+          amount: Number(i.price_irr),
+        }));
+        amountIrr = prices.reduce((s, p) => s + p.amount, 0);
+        title =
+          cart.length === 1
+            ? cart[0].title
+            : `YGuard Store (${cart.length} items)`;
+        const toman = Math.round(amountIrr / 10);
+        description =
+          `${cart.map((i) => i.title).join(" · ").slice(0, 180)} · ${toman.toLocaleString("en-US")} تومان`.slice(
+            0,
+            255,
+          );
+      } else {
+        amountIrr = Number(order.product.price_irr);
+        if (amountIrr !== Number(order.amount_irr)) {
+          await hasura(
+            `mutation ($id: uuid!, $amount: Int!) {
+              update_store_orders_by_pk(
+                pk_columns: { id: $id }
+                _set: { amount_irr: $amount }
+              ) { id }
+            }`,
+            { id: order.id, amount: amountIrr },
+          );
+        }
+        title = order.product.title;
+        const toman = Math.round(amountIrr / 10);
+        description =
+          `${(order.product.description || order.product.title).slice(0, 200)} · ${toman.toLocaleString("en-US")} تومان`.slice(
+            0,
+            255,
+          );
+        prices = [
+          {
+            label: order.product.title.slice(0, 32),
+            amount: amountIrr,
+          },
+        ];
+      }
+
+      if (amountIrr !== Number(order.amount_irr) && cart.length > 0) {
         await hasura(
           `mutation ($id: uuid!, $amount: Int!) {
             update_store_orders_by_pk(
@@ -172,26 +340,14 @@ export default defineEventHandler(async (event) => {
         );
       }
 
-      const toman = Math.round(amountIrr / 10);
-      const description =
-        `${(order.product.description || order.product.title).slice(0, 200)} · ${toman.toLocaleString("en-US")} تومان`.slice(
-          0,
-          255,
-        );
-
       await baleApi(bale.botToken, "sendInvoice", {
         chat_id: chatId,
-        title: order.product.title.slice(0, 32),
+        title: title.slice(0, 32),
         description,
         payload: order.bale_payload,
         provider_token: bale.providerToken,
         currency: "IRR",
-        prices: [
-          {
-            label: order.product.title.slice(0, 32),
-            amount: amountIrr,
-          },
-        ],
+        prices,
       });
       return { ok: true };
     }
@@ -215,103 +371,98 @@ export default defineEventHandler(async (event) => {
         "",
     );
     if (payload.startsWith("store:")) {
-      const paid = await hasura<{
-        update_store_orders: {
-          returning: Array<{
-            id: string;
-            buyer_steam_id: string;
-            product: {
-              ypoint_amount: number | null;
-              vip_server_id: string | null;
-              vip_duration: string | null;
-            };
-          }>;
+      let order: {
+        id: string;
+        buyer_steam_id: string;
+        cart_items: CartItemSnapshot[] | null;
+        product: {
+          ypoint_amount: number | null;
+          vip_server_id: string | null;
+          vip_duration: string | null;
         };
-      }>(
-        `mutation ($payload: String!, $chargeId: String, $paidAt: timestamptz!) {
-          update_store_orders(
-            where: { bale_payload: { _eq: $payload }, status: { _eq: "pending" } }
-            _set: {
-              status: "paid"
-              paid_at: $paidAt
-              bale_payment_charge_id: $chargeId
-            }
-          ) {
-            returning {
-              id
-              buyer_steam_id
-              product { ypoint_amount vip_server_id vip_duration }
-            }
-          }
-        }`,
-        {
-          payload,
-          chargeId: chargeId || null,
-          paidAt: new Date().toISOString(),
-        },
-      );
+      } | null = null;
 
-      const order = paid.update_store_orders?.returning?.[0];
-      const ypoints = Number(order?.product?.ypoint_amount || 0);
-      if (order && ypoints > 0) {
-        const existing = await hasura<{
-          ypoint_ledger: Array<{ id: string }>;
+      try {
+        const paid = await hasura<{
+          update_store_orders: {
+            returning: Array<NonNullable<typeof order>>;
+          };
         }>(
-          `query ($steamId: bigint!, $refId: String!) {
-            ypoint_ledger(
-              where: {
-                steam_id: { _eq: $steamId }
-                ref_type: { _eq: "store_order" }
-                ref_id: { _eq: $refId }
-                delta: { _gt: 0 }
+          `mutation ($payload: String!, $chargeId: String, $paidAt: timestamptz!) {
+            update_store_orders(
+              where: { bale_payload: { _eq: $payload }, status: { _eq: "pending" } }
+              _set: {
+                status: "paid"
+                paid_at: $paidAt
+                bale_payment_charge_id: $chargeId
               }
-              limit: 1
-            ) { id }
-          }`,
-          { steamId: order.buyer_steam_id, refId: order.id },
-        );
-        if (!existing.ypoint_ledger?.length) {
-          const updated = await hasura<{
-            update_players_by_pk: { ypoint_balance: number } | null;
-          }>(
-            `mutation ($steamId: bigint!, $amount: Int!) {
-              update_players_by_pk(
-                pk_columns: { steam_id: $steamId }
-                _inc: { ypoint_balance: $amount }
-              ) { ypoint_balance }
-            }`,
-            { steamId: order.buyer_steam_id, amount: ypoints },
-          );
-          const balanceAfter = Number(
-            updated.update_players_by_pk?.ypoint_balance ?? 0,
-          );
-          await hasura(
-            `mutation (
-              $steamId: bigint!
-              $delta: Int!
-              $balanceAfter: Int!
-              $refId: String!
             ) {
-              insert_ypoint_ledger_one(object: {
-                steam_id: $steamId
-                delta: $delta
-                balance_after: $balanceAfter
-                reason: "store_purchase"
-                ref_type: "store_order"
-                ref_id: $refId
-              }) { id }
-            }`,
-            {
-              steamId: order.buyer_steam_id,
-              delta: ypoints,
-              balanceAfter,
-              refId: order.id,
-            },
-          );
-        }
+              returning {
+                id
+                buyer_steam_id
+                cart_items
+                product { ypoint_amount vip_server_id vip_duration }
+              }
+            }
+          }`,
+          {
+            payload,
+            chargeId: chargeId || null,
+            paidAt: new Date().toISOString(),
+          },
+        );
+        order = paid.update_store_orders?.returning?.[0] ?? null;
+      } catch {
+        const paid = await hasura<{
+          update_store_orders: {
+            returning: Array<Omit<NonNullable<typeof order>, "cart_items">>;
+          };
+        }>(
+          `mutation ($payload: String!, $chargeId: String, $paidAt: timestamptz!) {
+            update_store_orders(
+              where: { bale_payload: { _eq: $payload }, status: { _eq: "pending" } }
+              _set: {
+                status: "paid"
+                paid_at: $paidAt
+                bale_payment_charge_id: $chargeId
+              }
+            ) {
+              returning {
+                id
+                buyer_steam_id
+                product { ypoint_amount vip_server_id vip_duration }
+              }
+            }
+          }`,
+          {
+            payload,
+            chargeId: chargeId || null,
+            paidAt: new Date().toISOString(),
+          },
+        );
+        const row = paid.update_store_orders?.returning?.[0];
+        order = row ? { ...row, cart_items: null } : null;
       }
 
       if (order) {
+        const cart = normalizeCartItems(order.cart_items);
+        if (cart.length > 0) {
+          let idx = 0;
+          for (const line of cart) {
+            await creditYpoints({
+              steamId: order.buyer_steam_id,
+              amount: Number(line.ypoint_amount || 0),
+              refId: idx === 0 ? order.id : `${order.id}:${idx}`,
+            });
+            idx += 1;
+          }
+        } else {
+          await creditYpoints({
+            steamId: order.buyer_steam_id,
+            amount: Number(order.product?.ypoint_amount || 0),
+            refId: order.id,
+          });
+        }
         await tryFulfillViaApi(payload, chargeId);
       }
     }
