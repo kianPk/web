@@ -40,7 +40,7 @@ const tacticalTabs = {
       <div class="flex min-w-0 flex-col gap-[0.35rem]">
         <span
           v-if="$slots.description"
-          class="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground"
+          class="tac-section-label inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground"
         >
           <span
             class="translate-y-[-1px] text-[0.7rem] text-[hsl(var(--tac-amber))]"
@@ -50,11 +50,11 @@ const tacticalTabs = {
         </span>
 
         <h1
-          class="relative m-0 font-sans text-[clamp(1.75rem,4.2vw,3rem)] font-bold uppercase leading-[0.9] tracking-[0.02em] [font-stretch:80%]"
+          class="tac-page-title relative m-0 font-sans text-[clamp(1.75rem,4.2vw,3rem)] font-bold uppercase leading-[0.9] tracking-[0.02em] [font-stretch:80%]"
         >
           <span
             aria-hidden="true"
-            class="pointer-events-none absolute left-[6px] right-[-6px] top-[6px] select-none overflow-hidden whitespace-nowrap text-transparent [-webkit-text-stroke:1px_hsl(var(--tac-amber)/0.35)]"
+            class="tac-page-title-ghost pointer-events-none absolute left-[6px] right-[-6px] top-[6px] select-none overflow-hidden whitespace-nowrap text-transparent [-webkit-text-stroke:1px_hsl(var(--tac-amber)/0.35)]"
           >
             <slot name="title"></slot>
           </span>
@@ -67,7 +67,7 @@ const tacticalTabs = {
 
         <p
           v-if="$slots.subtitle"
-          class="m-0 max-w-2xl text-sm text-muted-foreground"
+          class="tac-section-desc m-0 max-w-2xl text-sm text-muted-foreground"
         >
           <slot name="subtitle"></slot>
         </p>

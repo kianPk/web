@@ -338,6 +338,104 @@ mark {
   padding-top: 2rem;
 }
 
+/* Section labels (MATCHMAKING, OPEN MATCHES, …) and page titles
+   (Public Servers, Play, …): shared entrance + soft amber tick pulse. */
+@keyframes tac-section-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+    letter-spacing: 0.34em;
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    letter-spacing: 0.24em;
+  }
+}
+@keyframes tac-section-tick-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+@keyframes tac-section-tick-glow {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 hsl(var(--tac-amber) / 0);
+  }
+  50% {
+    opacity: 0.78;
+    box-shadow: 0 0 10px 1px hsl(var(--tac-amber) / 0.45);
+  }
+}
+@keyframes tac-section-desc-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes tac-page-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes tac-page-title-ghost-in {
+  from {
+    opacity: 0;
+    transform: translate(10px, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+.tac-section-label {
+  animation: tac-section-label-in 580ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tac-section-tick {
+  transform-origin: left center;
+  animation:
+    tac-section-tick-in 440ms cubic-bezier(0.16, 1, 0.3, 1) both,
+    tac-section-tick-glow 2.6s ease-in-out 520ms infinite;
+}
+.tac-section-desc {
+  animation: tac-section-desc-in 520ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+}
+.tac-page-title {
+  animation: tac-page-title-in 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tac-page-title-ghost {
+  animation: tac-page-title-ghost-in 820ms cubic-bezier(0.16, 1, 0.3, 1) 80ms
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tac-section-label,
+  .tac-section-tick,
+  .tac-section-desc,
+  .tac-page-title,
+  .tac-page-title-ghost {
+    animation: none;
+  }
+}
+
 /* Settings content is overwhelmingly label-left / control-right rows and prose.
    Unbounded on a wide monitor, a row stretches until the switch is half a screen
    from the label it belongs to, and a paragraph runs past a comfortable measure.

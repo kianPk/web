@@ -17,13 +17,13 @@ export const tacticalTabIndicatorFinishedClasses =
   "group-data-[state=active]:bg-success";
 
 export const tacticalSectionLabelClasses =
-  "mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
+  "tac-section-label mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
 
 export const tacticalSectionTickClasses =
-  "inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
+  "tac-section-tick inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
 
 export const tacticalSectionDescriptionClasses =
-  "mb-3 text-[0.85rem] text-muted-foreground";
+  "tac-section-desc mb-3 text-[0.85rem] text-muted-foreground";
 
 // Sections are separated by a hairline rule rather than individual card frames,
 // so a stack of them reads as one page. Applies to every section but the first.
