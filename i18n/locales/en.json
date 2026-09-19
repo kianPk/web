@@ -2626,6 +2626,25 @@
           "invalid_number": "Enter a whole number of 0 or more.",
           "updated": "Utility settings updated"
         },
+        "bans": {
+          "title": "Player Bans",
+          "ban_section": "Ban or unban a player",
+          "ban_section_desc": "Search any player, then issue a ban (or other sanction) or lift an active ban.",
+          "search_player": "Search player…",
+          "list_section": "Currently banned",
+          "list_section_desc": "Platform bans that block matchmaking and servers. AC auto-bans are tagged.",
+          "filter_placeholder": "Filter by name, Steam ID, or reason…",
+          "empty": "No active bans right now.",
+          "load_failed": "Could not load banned players",
+          "unban": "Unban",
+          "unbanned": "Unbanned {name}",
+          "unban_failed": "Could not unban this player",
+          "unban_confirm_title": "Unban this player?",
+          "unban_confirm_desc": "Lift all active platform bans for {name}. They can queue and join servers again.",
+          "permanent": "Permanent",
+          "expired": "Expired",
+          "profile": "Profile"
+        },
         "sanctions": {
           "title": "Sanctions",
           "section": "Automatic Sanctions",
