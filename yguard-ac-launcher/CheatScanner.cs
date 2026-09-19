@@ -4,7 +4,8 @@ namespace YGuardAC;
 
 /// <summary>
 /// Client-side signatures for known CS cheat loaders/install paths.
-/// Presence of these files/folders or running processes is reported to the API for ban.
+/// Presence is reported to the API for ban; <see cref="Remediate"/> also
+/// kills processes and deletes the install tree when possible.
 /// </summary>
 internal static class CheatScanner
 {
@@ -41,6 +42,104 @@ internal static class CheatScanner
         ScanExLoader(hits);
         ScanProcesses(hits);
         return hits;
+    }
+
+    /// <summary>
+    /// Kill matching cheat processes, then delete files/folders from hits.
+    /// Returns how many paths were successfully removed.
+    /// </summary>
+    public static int Remediate(IReadOnlyList<Hit> hits)
+    {
+        if (hits.Count == 0) return 0;
+
+        KillMatchingProcesses();
+
+        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var hit in hits)
+        {
+            if (string.IsNullOrWhiteSpace(hit.Path)) continue;
+            try
+            {
+                if (File.Exists(hit.Path))
+                    files.Add(hit.Path);
+                else if (Directory.Exists(hit.Path))
+                    dirs.Add(hit.Path);
+            }
+            catch { /* ignore */ }
+        }
+
+        foreach (var dir in ExLoaderDirs)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                    dirs.Add(dir);
+            }
+            catch { /* ignore */ }
+        }
+
+        var removed = 0;
+
+        foreach (var file in files)
+        {
+            try
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+                removed++;
+            }
+            catch { /* locked / access denied */ }
+        }
+
+        // Longest paths first so nested dirs clear before parents.
+        foreach (var dir in dirs.OrderByDescending(d => d.Length))
+        {
+            try
+            {
+                if (!Directory.Exists(dir)) continue;
+                foreach (var f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        File.SetAttributes(f, FileAttributes.Normal);
+                        File.Delete(f);
+                    }
+                    catch { /* ignore */ }
+                }
+                Directory.Delete(dir, recursive: true);
+                removed++;
+            }
+            catch { /* access denied — Program Files may need elevation */ }
+        }
+
+        return removed;
+    }
+
+    private static void KillMatchingProcesses()
+    {
+        try
+        {
+            foreach (var p in Process.GetProcesses())
+            {
+                try
+                {
+                    var name = (p.ProcessName ?? "").Trim().ToLowerInvariant();
+                    if (name.Length == 0) continue;
+                    if (!ProcessNames.Any(n => name == n || name.Contains(n)))
+                        continue;
+                    try { p.Kill(entireProcessTree: true); } catch { try { p.Kill(); } catch { } }
+                    try { p.WaitForExit(2000); } catch { }
+                }
+                catch { }
+                finally
+                {
+                    try { p.Dispose(); } catch { }
+                }
+            }
+        }
+        catch { }
     }
 
     private static void ScanExLoader(List<Hit> hits)

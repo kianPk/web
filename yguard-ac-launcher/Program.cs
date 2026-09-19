@@ -719,7 +719,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.3+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.4+ from yguard.ir", false);
                 }
                 return;
             }
@@ -795,6 +795,19 @@ internal sealed class MainForm : Form
             List<CheatScanner.Hit> hits;
             try { hits = CheatScanner.Scan(); }
             catch { hits = new List<CheatScanner.Hit>(); }
+            if (IsGameRunning())
+            {
+                try
+                {
+                    foreach (var o in OverlayGuard.ScanAndClose())
+                        hits.Add(new CheatScanner.Hit(o.Signature, o.Path, o.ProcessName));
+                }
+                catch { /* ignore */ }
+            }
+            if (hits.Count > 0)
+            {
+                try { CheatScanner.Remediate(hits); } catch { /* best-effort */ }
+            }
             var cheatClean = hits.Count == 0;
             _reportedCheats = !cheatClean;
 
@@ -889,7 +902,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.3+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.4+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1004,6 +1017,22 @@ internal sealed class MainForm : Form
         List<CheatScanner.Hit> hits;
         try { hits = CheatScanner.Scan(); }
         catch { return; }
+
+        // When CS2 is up, also hunt layered/topmost overlays sized like the game.
+        if (cs2Running)
+        {
+            try
+            {
+                foreach (var o in OverlayGuard.ScanAndClose())
+                    hits.Add(new CheatScanner.Hit(o.Signature, o.Path, o.ProcessName));
+            }
+            catch { /* ignore overlay scan errors */ }
+        }
+
+        if (hits.Count > 0)
+        {
+            try { CheatScanner.Remediate(hits); } catch { /* best-effort delete */ }
+        }
 
         // Don't spam API.
         if ((DateTime.UtcNow - _lastCheatReport).TotalSeconds < 30) return;
