@@ -214,13 +214,14 @@ async function payWithBale() {
   } catch (error: any) {
     const message =
       error?.data?.message ||
+      error?.data?.statusMessage ||
       error?.statusMessage ||
       error?.message ||
       String(error);
     toast({
       variant: "destructive",
       title: t("pages.store.checkout_failed"),
-      description: message,
+      description: Array.isArray(message) ? message.join(", ") : message,
     });
   } finally {
     paying.value = false;
