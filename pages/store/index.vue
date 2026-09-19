@@ -53,7 +53,7 @@ const PRODUCTS_QUERY = gql`
   query StoreProducts {
     store_products(
       where: { active: { _eq: true } }
-      order_by: [{ sort_order: asc }, { created_at: desc }]
+      order_by: [{ price_irr: desc }, { sort_order: asc }]
     ) {
       id
       title
