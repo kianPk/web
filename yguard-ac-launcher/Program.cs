@@ -3,6 +3,7 @@ using System.Drawing.Drawing2D;
 using System.Management;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,7 +18,59 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+
+        if (!IsRunningAsAdministrator())
+        {
+            var choice = MessageBox.Show(
+                "YGuard Anti-Cheat must be run as Administrator so it can remove cheat files and close overlays.\n\n" +
+                "Click Yes to restart as Administrator, or No to exit.",
+                "Administrator required",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Error,
+                MessageBoxDefaultButton.Button1);
+            if (choice == DialogResult.Yes)
+                TryRelaunchElevated();
+            return;
+        }
+
         Application.Run(new MainForm());
+    }
+
+    private static bool IsRunningAsAdministrator()
+    {
+        try
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static void TryRelaunchElevated()
+    {
+        try
+        {
+            var path = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(path)) return;
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "runas",
+            });
+        }
+        catch
+        {
+            MessageBox.Show(
+                "Could not elevate. Right-click YGuardAC.exe → Run as administrator.",
+                "Administrator required",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
     }
 }
 
@@ -73,8 +126,6 @@ internal sealed class MainForm : Form
     private readonly RoundedPanel _errorBanner = new() { Visible = false };
     private readonly Label _errorLbl = new();
     private readonly RoundedButton _loginBtn = new();
-    private readonly Label _featuresOutTitle = new();
-    private readonly FlowLayoutPanel _outPills = new();
 
     // IN
     private readonly PictureBox _avatar = new();
@@ -123,8 +174,8 @@ internal sealed class MainForm : Form
         MaximizeBox = false;
         MinimizeBox = true;
         StartPosition = FormStartPosition.CenterScreen;
-        // FACEIT-like compact window (wide + short); leave room for status bar.
-        ClientSize = new Size(560, 310);
+        // Compact FACEIT-like window (no empty middle band on login).
+        ClientSize = new Size(420, 268);
         BackColor = Theme.Bg;
         Font = new Font("Segoe UI", 9.5f);
         DoubleBuffered = true;
@@ -216,7 +267,7 @@ internal sealed class MainForm : Form
     private void BuildOut()
     {
         // Error banner — FACEIT style
-        _errorBanner.Size = new Size(496, 44);
+        _errorBanner.Size = new Size(364, 44);
         _errorBanner.Radius = 8;
         _errorBanner.Fill = Theme.Surface;
         _errorBanner.Paint += (_, e) =>
@@ -229,10 +280,10 @@ internal sealed class MainForm : Form
             e.Graphics.DrawLine(pen, 28, 20, 20, 28);
         };
         _errorLbl.AutoSize = false;
-        _errorLbl.Size = new Size(360, 24);
+        _errorLbl.Size = new Size(300, 24);
         _errorLbl.Location = new Point(44, 13);
         _errorLbl.ForeColor = Theme.Text;
-        _errorLbl.Font = new Font("Segoe UI Semibold", 10f);
+        _errorLbl.Font = new Font("Segoe UI Semibold", 9.5f);
         _errorLbl.BackColor = Color.Transparent;
         _errorLbl.Text = "Login failed: Connection refused";
         _errorBanner.Controls.Add(_errorLbl);
@@ -247,51 +298,40 @@ internal sealed class MainForm : Form
         _loginBtn.Text = "LOGIN WITH YGUARD";
         _loginBtn.Click += async (_, _) => await StartBrowserLoginAsync();
 
-        _featuresOutTitle.Text = "Recommended Security Features";
-        _featuresOutTitle.Font = new Font("Segoe UI Semibold", 12f);
-        _featuresOutTitle.ForeColor = Theme.Text;
-        _featuresOutTitle.AutoSize = true;
-
-        SetupPills(_outPills, "o:");
-
         void Layout(object? s, EventArgs e)
         {
             int w = _outView.ClientSize.Width;
+            int h = _outView.ClientSize.Height;
             _errorBanner.Left = (w - _errorBanner.Width) / 2;
-            _errorBanner.Top = 18;
+            _errorBanner.Top = 28;
             _loginBtn.Left = (w - _loginBtn.Width) / 2;
-            _loginBtn.Top = _errorBanner.Visible ? 78 : 48;
-            _featuresOutTitle.Left = 28;
-            _featuresOutTitle.Top = _loginBtn.Bottom + 28;
-            _outPills.Left = 28;
-            _outPills.Top = _featuresOutTitle.Bottom + 12;
-            _outPills.Width = w - 56;
-            _outPills.Height = 80;
+            // Center the login button in the free space (no empty feature band).
+            var top = _errorBanner.Visible ? _errorBanner.Bottom + 28 : 0;
+            var avail = Math.Max(0, h - top);
+            _loginBtn.Top = top + Math.Max(0, (avail - _loginBtn.Height) / 2);
         }
         _outView.Resize += Layout;
         _outView.Controls.Add(_errorBanner);
         _outView.Controls.Add(_loginBtn);
-        _outView.Controls.Add(_featuresOutTitle);
-        _outView.Controls.Add(_outPills);
         Layout(null, EventArgs.Empty);
     }
 
     private void BuildIn()
     {
-        _avatar.Size = new Size(48, 48);
-        _avatar.Location = new Point(28, 22);
+        _avatar.Size = new Size(44, 44);
+        _avatar.Location = new Point(20, 18);
         _avatar.SizeMode = PictureBoxSizeMode.Zoom;
         _avatar.BackColor = Theme.Surface;
 
-        _nameLbl.Font = new Font("Segoe UI Semibold", 15f);
+        _nameLbl.Font = new Font("Segoe UI Semibold", 14f);
         _nameLbl.ForeColor = Theme.Text;
         _nameLbl.AutoSize = true;
-        _nameLbl.Location = new Point(88, 22);
+        _nameLbl.Location = new Point(76, 18);
 
-        _memberLbl.Font = new Font("Segoe UI", 9f);
+        _memberLbl.Font = new Font("Segoe UI", 8.5f);
         _memberLbl.ForeColor = Theme.Muted;
         _memberLbl.AutoSize = true;
-        _memberLbl.Location = new Point(88, 50);
+        _memberLbl.Location = new Point(76, 44);
 
         _logout.Text = "LOGOUT";
         _logout.Font = new Font("Segoe UI Semibold", 9f);
@@ -303,26 +343,26 @@ internal sealed class MainForm : Form
         _logout.Cursor = Cursors.Hand;
         _logout.Click += (_, _) => Logout();
 
-        _featuresInTitle.Text = "Recommended Security Features";
-        _featuresInTitle.Font = new Font("Segoe UI Semibold", 12f);
+        _featuresInTitle.Text = "Security Features";
+        _featuresInTitle.Font = new Font("Segoe UI Semibold", 11f);
         _featuresInTitle.ForeColor = Theme.Text;
         _featuresInTitle.AutoSize = true;
-        _featuresInTitle.Location = new Point(28, 92);
+        _featuresInTitle.Location = new Point(20, 78);
 
         SetupPills(_inPills, "i:");
-        _inPills.Location = new Point(28, 124);
-        _inPills.Size = new Size(504, 90);
+        _inPills.Location = new Point(20, 106);
+        _inPills.Size = new Size(380, 100);
 
         _statusBar.Dock = DockStyle.Bottom;
-        _statusBar.Height = 36;
+        _statusBar.Height = 34;
         _statusBar.BackColor = Theme.Bg;
         _statusBar.Paint += (_, e) =>
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using var b = new SolidBrush(_statusOk ? Theme.Green : Theme.Red);
-            e.Graphics.FillEllipse(b, 28, 13, 10, 10);
+            e.Graphics.FillEllipse(b, 20, 12, 10, 10);
         };
-        _statusText.Location = new Point(46, 9);
+        _statusText.Location = new Point(38, 8);
         _statusText.AutoSize = true;
         _statusText.ForeColor = Theme.Muted;
         _statusText.Font = new Font("Segoe UI", 9f);
@@ -331,9 +371,9 @@ internal sealed class MainForm : Form
 
         _inView.Resize += (_, _) =>
         {
-            _logout.Left = _inView.ClientSize.Width - _logout.Width - 28;
-            _logout.Top = 26;
-            _inPills.Width = _inView.ClientSize.Width - 56;
+            _logout.Left = _inView.ClientSize.Width - _logout.Width - 20;
+            _logout.Top = 22;
+            _inPills.Width = _inView.ClientSize.Width - 40;
         };
 
         _inView.Controls.Add(_avatar);
@@ -372,25 +412,33 @@ internal sealed class MainForm : Form
         _inView.Visible = true;
         _outView.Visible = false;
         _inView.BringToFront();
-        _logout.Left = _inView.ClientSize.Width - _logout.Width - 28;
-        _logout.Top = 26;
+        _logout.Left = _inView.ClientSize.Width - _logout.Width - 20;
+        _logout.Top = 22;
     }
 
     private void ShowError(string msg)
     {
         _errorLbl.Text = msg;
         _errorBanner.Visible = true;
-        _loginBtn.Top = 78;
-        _featuresOutTitle.Top = _loginBtn.Bottom + 28;
-        _outPills.Top = _featuresOutTitle.Bottom + 12;
+        RelayoutOut();
     }
 
     private void HideError()
     {
         _errorBanner.Visible = false;
-        _loginBtn.Top = 48;
-        _featuresOutTitle.Top = _loginBtn.Bottom + 28;
-        _outPills.Top = _featuresOutTitle.Bottom + 12;
+        RelayoutOut();
+    }
+
+    private void RelayoutOut()
+    {
+        int w = _outView.ClientSize.Width;
+        int h = _outView.ClientSize.Height;
+        _errorBanner.Left = (w - _errorBanner.Width) / 2;
+        _errorBanner.Top = 28;
+        _loginBtn.Left = (w - _loginBtn.Width) / 2;
+        var top = _errorBanner.Visible ? _errorBanner.Bottom + 28 : 0;
+        var avail = Math.Max(0, h - top);
+        _loginBtn.Top = top + Math.Max(0, (avail - _loginBtn.Height) / 2);
     }
 
     private void SetStatus(string text, bool ok)
@@ -463,13 +511,13 @@ internal sealed class MainForm : Form
     {
         void Set(string p)
         {
+            if (!_pills.ContainsKey(p + "Secure Boot")) return;
             _pills[p + "Secure Boot"].SetOk(r.secure_boot);
             _pills[p + "TPM 2.0"].SetOk(r.tpm_20);
             _pills[p + "TPM Attestation"].SetOk(r.tpm_attestation);
             _pills[p + "HVCI"].SetOk(r.hvci);
             _pills[p + "Windows Security Updates"].SetOk(r.windows_updates);
         }
-        Set("o:");
         Set("i:");
     }
 
@@ -478,13 +526,13 @@ internal sealed class MainForm : Form
         var r = SecurityChecks.Run();
         void SetChecking(string p)
         {
+            if (!_pills.ContainsKey(p + "Secure Boot")) return;
             _pills[p + "Secure Boot"].SetChecking();
             _pills[p + "TPM 2.0"].SetChecking();
             _pills[p + "TPM Attestation"].SetChecking();
             _pills[p + "HVCI"].SetChecking();
             _pills[p + "Windows Security Updates"].SetChecking();
         }
-        SetChecking("o:");
         SetChecking("i:");
 
         var results = new (string label, bool ok)[]
@@ -501,8 +549,6 @@ internal sealed class MainForm : Form
             await Task.Delay(180);
             if (IsDisposed) return;
             var (label, ok) = results[i];
-            if (_pills.TryGetValue("o:" + label, out var outPill))
-                outPill.SetOk(ok);
             if (_pills.TryGetValue("i:" + label, out var inPill))
                 inPill.SetOk(ok);
         }
@@ -719,7 +765,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.3.4+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.3.5+ from yguard.ir", false);
                 }
                 return;
             }
@@ -902,7 +948,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.3.4+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.3.5+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
