@@ -16,7 +16,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
 import {
   Dialog,
-  DialogContent,
+  DialogScrollContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -486,7 +486,7 @@ onMounted(() => {
     </PageTransition>
 
     <Dialog v-model:open="dialogOpen">
-      <DialogContent class="max-w-lg">
+      <DialogScrollContent class="max-w-lg max-h-[min(90vh,880px)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {{
@@ -548,6 +548,7 @@ onMounted(() => {
             <ImageUploadTile
               aspect="square"
               fit="contain"
+              class="max-w-[220px]"
               :crop="true"
               :crop-output="{ w: 512, h: 512 }"
               :accept="storeImageAccept"
@@ -623,7 +624,7 @@ onMounted(() => {
             <Switch v-model="form.active" />
           </div>
 
-          <DialogFooter>
+          <DialogFooter class="sticky bottom-0 z-10 -mx-6 -mb-6 border-t bg-background px-6 py-4 sm:rounded-b-lg">
             <Button type="button" variant="outline" @click="dialogOpen = false">
               {{ $t("common.cancel") }}
             </Button>
@@ -632,7 +633,7 @@ onMounted(() => {
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
+      </DialogScrollContent>
     </Dialog>
   </SettingsPage>
 </template>
