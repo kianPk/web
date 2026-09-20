@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import gql from "graphql-tag";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -7,6 +6,7 @@ import { useBranding } from "~/composables/useBranding";
 import { loginLinks } from "~/utilities/loginLinks";
 import LandingRankings from "~/components/landing/LandingRankings.vue";
 import { eloTierColor } from "~/utils/eloTier";
+import { fetchTopPlayersByBestElo } from "~/utils/landingBestElo";
 
 useHead({
   link: [
@@ -135,6 +135,7 @@ type HeroPlayer = {
   name: string;
   avatar: string | null;
   elo: number;
+  matchType: string;
 };
 
 const wordIndex = ref(0);
@@ -146,41 +147,6 @@ const onlineCount = ref(
 const heroPlayers = ref<HeroPlayer[]>([]);
 let wordTimer: ReturnType<typeof setInterval> | undefined;
 let onlineTimer: ReturnType<typeof setInterval> | undefined;
-
-const TOP_PLAYERS_QUERY = gql`
-  query LandingHeroPlayers(
-    $category: String!
-    $window_days: Int!
-    $match_type: String
-    $exclude_tournaments: Boolean!
-    $role: String
-    $season_id: uuid
-    $source: String
-    $limit: Int
-    $offset: Int
-    $order_by: [leaderboard_entries_order_by!]
-  ) {
-    get_leaderboard(
-      args: {
-        _category: $category
-        _window_days: $window_days
-        _match_type: $match_type
-        _exclude_tournaments: $exclude_tournaments
-        _role: $role
-        _season_id: $season_id
-        _source: $source
-      }
-      limit: $limit
-      offset: $offset
-      order_by: $order_by
-    ) {
-      player_name
-      player_avatar_url
-      player_custom_avatar_url
-      value
-    }
-  }
-`;
 
 function tickOnlineCount() {
   // Soft drift ±1–5 within 100–200 so the counter feels live.
@@ -194,29 +160,16 @@ function tickOnlineCount() {
 
 async function fetchHeroPlayers() {
   try {
-    const { data } = await apolloClient.query({
-      query: TOP_PLAYERS_QUERY,
-      variables: {
-        category: "elo",
-        window_days: 0,
-        match_type: "Competitive",
-        exclude_tournaments: false,
-        role: null,
-        season_id: null,
-        source: "overall",
-        limit: 3,
-        offset: 0,
-        order_by: [{ value: "desc" }],
-      },
-      fetchPolicy: "network-only",
-    });
-    const rows = data?.get_leaderboard ?? [];
-    heroPlayers.value = rows.map((row: any, index: number): HeroPlayer => ({
-      rank: index + 1,
-      name: row.player_name || "Player",
-      avatar: row.player_custom_avatar_url || row.player_avatar_url || null,
-      elo: Number(row.value) || 0,
-    }));
+    const rows = await fetchTopPlayersByBestElo(apolloClient as any, 3);
+    heroPlayers.value = rows.map(
+      (row, index): HeroPlayer => ({
+        rank: index + 1,
+        name: row.player_name || "Player",
+        avatar: row.player_custom_avatar_url || row.player_avatar_url || null,
+        elo: row.value,
+        matchType: row.match_type,
+      }),
+    );
   } catch (error) {
     console.error("landing hero players fetch failed", error);
     heroPlayers.value = [];
@@ -267,24 +220,24 @@ function avatarFallback(name: string) {
     <!-- Faceit hero: #ccc + official light pattern cover -->
     <section class="landing-hero relative isolate overflow-hidden text-[#060606]">
       <div
-        class="relative z-10 mx-auto grid min-h-[min(100svh,920px)] max-w-7xl items-center gap-16 px-6 py-16 lg:grid-cols-[1fr_1fr] lg:gap-24 lg:px-10 lg:py-20"
+        class="relative z-10 mx-auto grid min-h-[min(100svh,920px)] max-w-7xl items-center gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1fr] lg:gap-24 lg:px-10 lg:py-20"
       >
-        <div class="flex flex-col items-start gap-7">
+        <div class="flex flex-col items-start gap-5 sm:gap-7">
           <div class="flex items-center gap-3">
             <img
               v-if="logoUrl"
               :src="logoUrl"
               :alt="displayBrand"
-              class="h-9 w-9 object-contain"
+              class="h-8 w-8 object-contain sm:h-9 sm:w-9"
             />
             <NuxtImg
               v-else
               src="/favicon/64.png"
               :alt="displayBrand"
-              class="h-9 w-9 object-contain"
+              class="h-8 w-8 object-contain sm:h-9 sm:w-9"
             />
             <span
-              class="font-sans text-[1.2rem] font-black uppercase tracking-[0.12em] text-[#060606]"
+              class="font-sans text-[1rem] font-black uppercase tracking-[0.12em] text-[#060606] sm:text-[1.2rem]"
             >
               {{ displayBrand }}
             </span>
@@ -293,9 +246,9 @@ function avatarFallback(name: string) {
           <h1
             class="landing-hero-title m-0 font-black uppercase leading-[0.92] tracking-[-0.03em] text-[#060606]"
           >
-            <span class="block whitespace-nowrap">{{ copy.challengeYour }}</span>
+            <span class="block">{{ copy.challengeYour }}</span>
             <span
-              class="relative block min-h-[1.05em] whitespace-nowrap text-[#aa0e19]"
+              class="relative mt-1 block min-h-[1.05em] text-[#aa0e19]"
               :key="activeWord"
             >
               {{ activeWord }}
@@ -303,15 +256,17 @@ function avatarFallback(name: string) {
           </h1>
 
           <p
-            class="m-0 max-w-xl text-[1.05rem] leading-[1.45] text-[#4a4a4a] sm:text-[1.125rem]"
+            class="m-0 max-w-xl text-[0.95rem] leading-[1.5] text-[#4a4a4a] sm:text-[1.125rem] sm:leading-[1.45]"
           >
             {{ copy.subtitle }}
           </p>
 
-          <div class="flex flex-wrap items-center gap-4 pt-1">
+          <div
+            class="flex w-full flex-col items-stretch gap-3 pt-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+          >
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-[4px] bg-[#aa0e19] px-6 py-4 font-sans text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px"
+              class="inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#aa0e19] px-5 py-3.5 font-sans text-[0.85rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px sm:px-6 sm:py-4 sm:text-[0.9rem]"
               @click="loginWithSteam('/play')"
             >
               <span
@@ -323,7 +278,7 @@ function avatarFallback(name: string) {
 
             <!-- Faceit OnlineTextContainer: 9px #05ff00 dot + bold count + regular label -->
             <div
-              class="landing-online inline-flex items-center"
+              class="landing-online inline-flex flex-wrap items-center justify-center sm:justify-start"
               aria-live="polite"
             >
               <span aria-hidden="true" class="landing-online__dot"></span>
@@ -339,18 +294,18 @@ function avatarFallback(name: string) {
         </div>
 
         <div
-          class="relative mx-auto flex w-full max-w-md items-end justify-center gap-3 sm:max-w-lg lg:max-w-none lg:justify-end"
+          class="landing-podium relative mx-auto flex w-full max-w-[22rem] items-end justify-center gap-2 sm:max-w-lg sm:gap-3 lg:mx-0 lg:max-w-none lg:justify-end"
         >
           <div
             v-for="card in heroCards"
             :key="card.slot"
-            class="landing-card flex flex-col items-center justify-center gap-3 rounded-2xl"
+            class="landing-card flex flex-col items-center justify-center gap-2 rounded-2xl sm:gap-3"
             :class="{
-              'landing-card--left h-[280px] w-[32%] max-w-[160px] bg-[#1a2332] sm:h-[340px]':
+              'landing-card--left h-[200px] w-[30%] max-w-[120px] bg-[#1a2332] sm:h-[340px] sm:max-w-[160px]':
                 card.slot === 'left',
-              'landing-card--you relative z-10 h-[320px] w-[38%] max-w-[190px] gap-4 border border-[#aa0e19]/35 bg-[#1a1a1a] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-[400px]':
+              'landing-card--you relative z-10 h-[240px] w-[36%] max-w-[140px] gap-3 border border-[#aa0e19]/35 bg-[#1a1a1a] shadow-[0_18px_40px_rgba(0,0,0,0.28)] sm:h-[400px] sm:max-w-[190px] sm:gap-4':
                 card.slot === 'you',
-              'landing-card--right h-[280px] w-[32%] max-w-[160px] bg-[#1f1a12] sm:h-[340px]':
+              'landing-card--right h-[200px] w-[30%] max-w-[120px] bg-[#1f1a12] sm:h-[340px] sm:max-w-[160px]':
                 card.slot === 'right',
             }"
           >
@@ -359,8 +314,8 @@ function avatarFallback(name: string) {
                 class="relative"
                 :class="
                   card.slot === 'you'
-                    ? 'h-20 w-20 sm:h-24 sm:w-24'
-                    : 'h-16 w-16 sm:h-20 sm:w-20'
+                    ? 'h-14 w-14 sm:h-24 sm:w-24'
+                    : 'h-12 w-12 sm:h-20 sm:w-20'
                 "
               >
                 <img
@@ -376,7 +331,7 @@ function avatarFallback(name: string) {
                 />
                 <div
                   v-else
-                  class="flex h-full w-full items-center justify-center rounded-full bg-white/10 font-sans text-xl font-black text-[#aa0e19]"
+                  class="flex h-full w-full items-center justify-center rounded-full bg-white/10 font-sans text-lg font-black text-[#aa0e19] sm:text-xl"
                   :class="
                     card.slot === 'you' ? 'border-2 border-[#aa0e19]/55' : ''
                   "
@@ -384,25 +339,25 @@ function avatarFallback(name: string) {
                   {{ avatarFallback(card.player.name) }}
                 </div>
                 <span
-                  class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#aa0e19] font-sans text-[0.65rem] font-black text-[#060606]"
+                  class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#aa0e19] font-sans text-[0.6rem] font-black text-[#060606] sm:h-6 sm:w-6 sm:text-[0.65rem]"
                 >
                   {{ card.player.rank }}
                 </span>
               </div>
               <span
-                class="max-w-[90%] truncate px-2 text-center font-sans text-[0.75rem] font-bold tracking-[0.04em] text-white"
-                :class="card.slot === 'you' ? 'text-[0.85rem]' : ''"
+                class="max-w-[90%] truncate px-1.5 text-center font-sans text-[0.65rem] font-bold tracking-[0.04em] text-white sm:px-2 sm:text-[0.75rem]"
+                :class="card.slot === 'you' ? 'sm:text-[0.85rem]' : ''"
               >
                 {{ card.player.name }}
               </span>
               <span
-                class="font-mono text-[0.8rem] font-semibold tabular-nums"
+                class="font-mono text-[0.7rem] font-semibold tabular-nums sm:text-[0.8rem]"
                 :style="{
                   color: eloTierColor(card.player.elo) || '#aa0e19',
                 }"
               >
                 {{ Math.round(card.player.elo).toLocaleString() }}
-                <span class="ms-1 text-[0.65rem] uppercase text-white/45">{{
+                <span class="ms-0.5 text-[0.55rem] uppercase text-white/45 sm:ms-1 sm:text-[0.65rem]">{{
                   copy.elo
                 }}</span>
               </span>
@@ -412,25 +367,25 @@ function avatarFallback(name: string) {
                 class="flex items-center justify-center rounded-full bg-white/10"
                 :class="
                   card.slot === 'you'
-                    ? 'h-20 w-20 sm:h-24 sm:w-24'
-                    : 'h-16 w-16 sm:h-20 sm:w-20'
+                    ? 'h-14 w-14 sm:h-24 sm:w-24'
+                    : 'h-12 w-12 sm:h-20 sm:w-20'
                 "
               >
                 <img
                   v-if="logoUrl"
                   :src="logoUrl"
                   alt=""
-                  class="h-10 w-10 object-contain opacity-70"
+                  class="h-8 w-8 object-contain opacity-70 sm:h-10 sm:w-10"
                 />
                 <NuxtImg
                   v-else
                   src="/favicon/64.png"
                   alt=""
-                  class="h-10 w-10 object-contain opacity-70"
+                  class="h-8 w-8 object-contain opacity-70 sm:h-10 sm:w-10"
                 />
               </div>
               <span
-                class="px-2 text-center font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/50"
+                class="px-2 text-center font-sans text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white/50 sm:text-[0.7rem]"
               >
                 {{ displayBrand }}
               </span>
@@ -442,23 +397,23 @@ function avatarFallback(name: string) {
 
     <!-- Dark sections below (Faceit page body) -->
     <section class="border-t border-white/10 bg-[#121212] text-white">
-      <div class="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+      <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
         <h2
-          class="m-0 max-w-3xl font-sans text-[clamp(1.75rem,4vw,2.75rem)] font-black uppercase leading-[1.05] tracking-[-0.02em]"
+          class="m-0 max-w-3xl font-sans text-[clamp(1.5rem,5vw,2.75rem)] font-black uppercase leading-[1.05] tracking-[-0.02em]"
         >
           {{ copy.featuresHeading }}
         </h2>
-        <p class="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-white/55">
+        <p class="mt-4 max-w-2xl text-[0.95rem] leading-relaxed text-white/55 sm:text-[1.05rem]">
           {{ copy.featuresSub }}
         </p>
 
         <div
-          class="mt-12 grid gap-px overflow-hidden rounded-xl bg-white/10 sm:grid-cols-2"
+          class="mt-10 grid gap-px overflow-hidden rounded-xl bg-white/10 sm:mt-12 sm:grid-cols-2"
         >
           <div
             v-for="feature in copy.features"
             :key="feature.title"
-            class="flex flex-col gap-4 bg-[#161616] p-7 sm:p-8"
+            class="flex flex-col gap-4 bg-[#161616] p-5 sm:p-8"
           >
             <h3
               class="m-0 font-sans text-[1.05rem] font-black uppercase tracking-[0.08em]"
@@ -484,9 +439,9 @@ function avatarFallback(name: string) {
 
     <!-- Crawlable keyword section for Persian CS / YGuard SEO -->
     <section class="border-t border-white/10 bg-[#0e0e0e] text-white">
-      <div class="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+      <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-10">
         <h2
-          class="m-0 max-w-3xl font-sans text-[clamp(1.4rem,3vw,2rem)] font-black leading-snug tracking-[-0.02em]"
+          class="m-0 max-w-3xl font-sans text-[clamp(1.25rem,4vw,2rem)] font-black leading-snug tracking-[-0.02em]"
         >
           {{ copy.seoHeading }}
         </h2>
@@ -516,10 +471,10 @@ function avatarFallback(name: string) {
 
     <section class="border-t border-white/10 bg-[#121212] text-white">
       <div
-        class="mx-auto flex max-w-7xl flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-10"
+        class="mx-auto flex max-w-7xl flex-col items-stretch gap-6 px-4 py-14 sm:items-start sm:px-6 sm:py-20 lg:flex-row lg:items-center lg:justify-between lg:px-10"
       >
         <h2
-          class="m-0 max-w-xl font-sans text-[clamp(1.75rem,4vw,2.75rem)] font-black uppercase leading-[1.05] tracking-[-0.02em]"
+          class="m-0 max-w-xl font-sans text-[clamp(1.5rem,5vw,2.75rem)] font-black uppercase leading-[1.05] tracking-[-0.02em]"
         >
           {{ copy.closingTitle }}
           <span class="text-[#aa0e19]">{{ displayBrand }}</span
@@ -527,7 +482,7 @@ function avatarFallback(name: string) {
         </h2>
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-[4px] bg-[#aa0e19] px-7 py-4 font-sans text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-[4px] bg-[#aa0e19] px-7 py-4 font-sans text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px sm:w-auto"
           @click="loginWithSteam('/play')"
         >
           <span
@@ -553,12 +508,19 @@ function avatarFallback(name: string) {
   background-repeat: no-repeat;
   background-position: 50% 50%;
   background-size: cover;
-  min-height: 600px;
+  min-height: min(100svh, 720px);
+}
+
+@media (min-width: 640px) {
+  .landing-hero {
+    min-height: 600px;
+  }
 }
 
 .landing-hero-title {
   font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2.75rem, 7.2vw, 4.85rem);
+  font-size: clamp(2.15rem, 9vw, 4.85rem);
+  word-break: break-word;
 }
 
 .landing-online {
