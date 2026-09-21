@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <!-- YGuard mark — red shield facets (Y negative space), no black plate -->
+  <path fill="#c4121a" d="M64 10 L98 28 L80 48 L64 38 L48 48 L30 28 Z"/>
+  <path fill="#c4121a" d="M30 32 L48 52 L48 78 L64 110 L30 78 Z"/>
+  <path fill="#c4121a" d="M98 32 L98 78 L64 110 L80 78 L80 52 Z"/>
+</svg>
