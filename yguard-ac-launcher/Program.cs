@@ -154,6 +154,11 @@ internal sealed class MainForm : Form
     private readonly System.Windows.Forms.Timer _heartbeat = new() { Interval = 30_000 };
     private readonly System.Windows.Forms.Timer _cheatScan = new() { Interval = 20_000 };
     private readonly System.Windows.Forms.Timer _gameWatch = new() { Interval = 2_000 };
+    /// <summary>
+    /// Local-only: terminate newly started unsigned processes. Never reports
+    /// to the API and must never cause a platform ban.
+    /// </summary>
+    private UnsignedProcessGuard? _unsignedGuard;
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
     private bool _platformBanned;
@@ -245,13 +250,16 @@ internal sealed class MainForm : Form
             _cheatScan.Start();
             _gameWatch.Start();
 
-            // Unsigned-process killer disabled: too many false kills on normal
-            // unsigned apps (Electron, game launchers, indie tools). Re-enable
-            // only behind a tighter allowlist + opt-in flag later.
+            // Close unsigned new processes locally only — never feeds /report or bans.
+            _unsignedGuard ??= new UnsignedProcessGuard();
+            _unsignedGuard.Start();
         };
 
         FormClosing += (_, _) =>
         {
+            try { _unsignedGuard?.Dispose(); } catch { }
+            _unsignedGuard = null;
+
             // Closing AC while CS2 is open must kill the game — otherwise players
             // can drop AC mid-match and enable cheats.
             if (!_exitingForUpdate)
@@ -792,7 +800,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.2+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.3+ from yguard.ir", false);
                 }
                 return;
             }
@@ -971,7 +979,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.2+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.3+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&

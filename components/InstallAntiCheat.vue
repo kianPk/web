@@ -15,9 +15,9 @@ withDefaults(
 
 const { state, isMobile } = useSidebar();
 
-const FALLBACK_VERSION = "0.4.2";
+const FALLBACK_VERSION = "0.4.3";
 const FALLBACK_HREF =
-  "https://github.com/kianPk/web/releases/download/client-v0.4.2/YGuardAC-0.4.2-client.zip";
+  "https://github.com/kianPk/web/releases/download/client-v0.4.3/YGuardAC-0.4.3-client.zip";
 
 const downloadHref = ref(FALLBACK_HREF);
 const advertisedVersion = ref(FALLBACK_VERSION);

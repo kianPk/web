@@ -7,8 +7,9 @@ namespace YGuardAC;
 /// <summary>
 /// Watches for newly created processes (WMI Win32_ProcessStartTrace).
 /// Unsigned images are terminated via PROCESS_TERMINATE + TerminateProcess.
-/// Existing processes at start are left alone. Critical OS / Steam / self paths
-/// are allowlisted so the machine stays usable.
+/// This is local soft enforcement only — it never reports to the API and
+/// must never cause a platform ban. Existing processes at start are left alone.
+/// Critical OS / Steam / Program Files / common launcher paths are allowlisted.
 /// </summary>
 internal sealed class UnsignedProcessGuard : IDisposable
 {
@@ -236,24 +237,51 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 full.StartsWith(win.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // Program Files\WindowsApps / SystemApps
+            // Installed software under Program Files — leave alone even if
+            // Authenticode is missing/broken (drivers, OEM tools, etc.).
             var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             foreach (var root in new[] { pf, pf86 })
             {
                 if (string.IsNullOrWhiteSpace(root)) continue;
-                var apps = Path.Combine(root, "WindowsApps");
-                if (full.StartsWith(apps + "\\", StringComparison.OrdinalIgnoreCase))
+                if (full.StartsWith(root.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
                     return true;
+            }
+
+            // Per-user "Programs" installs (Discord portable builds, etc.)
+            var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(local))
+            {
+                var programs = Path.Combine(local, "Programs");
+                if (full.StartsWith(programs + "\\", StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                foreach (var vendor in new[]
+                         {
+                             "Discord", "Microsoft", "Google", "Mozilla", "Packages",
+                             "NVIDIA", "AMD", "Intel", "Steam", "EpicGamesLauncher",
+                             "Riot Games", "Battle.net", "Ubisoft Game Launcher", "EADesktop",
+                             "JetBrains", "cursor", "GitHubDesktop",
+                         })
+                {
+                    var v = Path.Combine(local, vendor);
+                    if (full.StartsWith(v + "\\", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
 
             // Steam + CS2 stack (often mixed signing; never kill mid-match tooling)
             if (name is "steam" or "steamwebhelper" or "steamservice" or "gameoverlayui"
-                or "cs2" or "csgo" or "steamerrorreporter")
+                or "cs2" or "csgo" or "steamerrorreporter" or "discord" or "discordptb"
+                or "discordcanary" or "epicgameslauncher" or "origin" or "eadesktop"
+                or "battle.net" or "agent" or "riotclientservices" or "vgtray")
                 return true;
 
             if (full.Contains("\\Steam\\", StringComparison.OrdinalIgnoreCase) ||
-                full.Contains("\\steamapps\\", StringComparison.OrdinalIgnoreCase))
+                full.Contains("\\steamapps\\", StringComparison.OrdinalIgnoreCase) ||
+                full.Contains("\\Epic Games\\", StringComparison.OrdinalIgnoreCase) ||
+                full.Contains("\\Riot Games\\", StringComparison.OrdinalIgnoreCase) ||
+                full.Contains("\\Battle.net\\", StringComparison.OrdinalIgnoreCase))
                 return true;
 
             // NVIDIA / AMD overlays commonly used while gaming
