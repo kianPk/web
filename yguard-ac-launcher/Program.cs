@@ -159,6 +159,11 @@ internal sealed class MainForm : Form
     /// to the API and must never cause a platform ban.
     /// </summary>
     private UnsignedProcessGuard? _unsignedGuard;
+    /// <summary>
+    /// Local-only: watch CS2 loaded modules and close foreign unsigned DLLs.
+    /// Never reports to the API / never bans.
+    /// </summary>
+    private GameModuleGuard? _moduleGuard;
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
     private bool _platformBanned;
@@ -253,12 +258,17 @@ internal sealed class MainForm : Form
             // Close unsigned new processes locally only — never feeds /report or bans.
             _unsignedGuard ??= new UnsignedProcessGuard();
             _unsignedGuard.Start();
+
+            // Monitor DLLs inside CS2; unload/close foreign unsigned modules only.
+            _moduleGuard ??= new GameModuleGuard();
         };
 
         FormClosing += (_, _) =>
         {
             try { _unsignedGuard?.Dispose(); } catch { }
             _unsignedGuard = null;
+            try { _moduleGuard?.Dispose(); } catch { }
+            _moduleGuard = null;
 
             // Closing AC while CS2 is open must kill the game — otherwise players
             // can drop AC mid-match and enable cheats.
@@ -800,7 +810,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.3+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.4+ from yguard.ir", false);
                 }
                 return;
             }
@@ -979,7 +989,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.3+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.4+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1099,6 +1109,13 @@ internal sealed class MainForm : Form
         if (cs2Running)
         {
             try { OverlayGuard.ScanAndClose(); } catch { /* ignore */ }
+        }
+
+        // Module guard runs on its own timer; surface a soft status if it acted.
+        if (_moduleGuard is { ClosedCount: > 0 } mg && !_platformBanned)
+        {
+            // Local only — do not treat as cheat_clean=false / ban.
+            SetStatus("Protected | Closed unauthorized game module", true);
         }
 
         if (hits.Count > 0)
