@@ -200,16 +200,19 @@ const handleLocaleChange = (newLocale: string) => {
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { useForm } from "vee-validate";
 import * as z from "zod";
-import { getAllCountries } from "countries-and-timezones";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
+import {
+  getSelectableCountries,
+  isBlockedProfileCountry,
+} from "~/utils/selectableCountries";
 
 export default {
   data() {
     return {
       open: false,
-      countries: getAllCountries(),
+      countries: getSelectableCountries(),
       isLanguagePopoverOpen: false,
       submitting: false,
       baseline: null as string | null,
@@ -247,11 +250,14 @@ export default {
   },
   methods: {
     populateForm() {
+      const country = isBlockedProfileCountry(this.me.country)
+        ? ""
+        : this.me.country;
       this.form.setValues({
         steam_id: this.me.steam_id,
         name: this.me.name,
         avatar_url: this.me.avatar_url,
-        country: this.me.country,
+        country,
       });
       this.takeSnapshot();
     },
@@ -272,6 +278,10 @@ export default {
       const { valid } = await this.form.validate();
 
       if (!valid) {
+        return;
+      }
+
+      if (isBlockedProfileCountry(this.form.values.country)) {
         return;
       }
 

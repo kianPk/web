@@ -46,7 +46,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import StatChevron from "~/components/StatChevron.vue";
 import { KD_TIER } from "~/utils/statTiers";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import { getAllCountries } from "countries-and-timezones";
+import { getSelectableCountries } from "~/utils/selectableCountries";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import {
@@ -511,7 +511,7 @@ export default {
       countryPopoverOpen: false,
       rolePopoverOpen: false,
       filtersPopoverOpen: false,
-      countries: getAllCountries(),
+      countries: getSelectableCountries(),
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({

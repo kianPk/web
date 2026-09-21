@@ -72,8 +72,11 @@ import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { e_player_roles_enum } from "~/generated/zeus";
-import { getAllCountries } from "countries-and-timezones";
 import { toast } from "@/components/ui/toast";
+import {
+  getSelectableCountries,
+  isBlockedProfileCountry,
+} from "~/utils/selectableCountries";
 
 export default {
   inheritAttrs: false,
@@ -89,14 +92,17 @@ export default {
       open: false,
       saving: false,
       selected: undefined as string | undefined,
-      countries: getAllCountries(),
+      countries: getSelectableCountries(),
     };
   },
   watch: {
     player: {
       immediate: true,
       handler(player) {
-        if (player) this.selected = player.country ?? undefined;
+        if (!player) return;
+        const code = player.country ?? undefined;
+        // Drop blocked flags from the picker selection.
+        this.selected = isBlockedProfileCountry(code) ? undefined : code;
       },
     },
   },
@@ -120,6 +126,7 @@ export default {
   methods: {
     async save() {
       if (!this.selected || this.selected === this.player.country) return;
+      if (isBlockedProfileCountry(this.selected)) return;
       this.saving = true;
       try {
         await this.$apollo.mutate({
