@@ -5,16 +5,19 @@ using System.Runtime.InteropServices;
 namespace YGuardAC;
 
 /// <summary>
-/// Watches for newly created processes (WMI Win32_ProcessStartTrace).
-/// Unsigned images are terminated via PROCESS_TERMINATE + TerminateProcess.
-/// This is local soft enforcement only — it never reports to the API and
-/// must never cause a platform ban. Existing processes at start are left alone.
-/// Critical OS / Steam / Program Files / common launcher paths are allowlisted.
+/// Continuously finds processes whose main image is not trusted Authenticode
+/// and not under a critical OS/Steam/GPU path, then TerminateProcess them.
+///
+/// Local soft enforcement only — never reports to the API / never bans.
+/// Scans ALL processes on a timer (not only newly started), so cheats that
+/// were already open before AC started are still closed.
 /// </summary>
 internal sealed class UnsignedProcessGuard : IDisposable
 {
     private ManagementEventWatcher? _watcher;
-    private readonly HashSet<int> _recentHandled = new();
+    private System.Threading.Timer? _sweepTimer;
+    private readonly HashSet<int> _killedOrSafe = new();
+    private readonly Dictionary<string, bool> _sigCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
     private bool _started;
     private int _terminated;
@@ -26,9 +29,17 @@ internal sealed class UnsignedProcessGuard : IDisposable
         if (_started) return;
         _started = true;
 
+        // Immediate full sweep — catches cheats already running (DH, etc.).
+        ThreadPool.QueueUserWorkItem(_ => SweepAll());
+
+        _sweepTimer = new System.Threading.Timer(
+            _ => SweepAll(),
+            null,
+            TimeSpan.FromSeconds(1.5),
+            TimeSpan.FromSeconds(1.5));
+
         try
         {
-            // Process start events (requires admin). Fallback to polling if WMI fails.
             var query = new WqlEventQuery("SELECT * FROM Win32_ProcessStartTrace");
             _watcher = new ManagementEventWatcher(query);
             _watcher.EventArrived += OnProcessStarted;
@@ -38,7 +49,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
         {
             try { _watcher?.Dispose(); } catch { }
             _watcher = null;
-            StartPollingFallback();
         }
     }
 
@@ -56,56 +66,8 @@ internal sealed class UnsignedProcessGuard : IDisposable
         }
         catch { }
 
-        try { _pollTimer?.Dispose(); } catch { }
-        _pollTimer = null;
-    }
-
-    private System.Threading.Timer? _pollTimer;
-    private HashSet<int>? _seenPids;
-
-    private void StartPollingFallback()
-    {
-        try
-        {
-            _seenPids = Process.GetProcesses().Select(p =>
-            {
-                try { return p.Id; }
-                finally { try { p.Dispose(); } catch { } }
-            }).ToHashSet();
-        }
-        catch
-        {
-            _seenPids = new HashSet<int>();
-        }
-
-        _pollTimer = new System.Threading.Timer(
-            _ => PollOnce(),
-            null,
-            TimeSpan.FromSeconds(2),
-            TimeSpan.FromSeconds(2));
-    }
-
-    private void PollOnce()
-    {
-        if (_seenPids == null) return;
-        try
-        {
-            foreach (var p in Process.GetProcesses())
-            {
-                try
-                {
-                    var id = p.Id;
-                    if (!_seenPids.Add(id)) continue;
-                    EvaluateNewProcess(id, p.ProcessName);
-                }
-                catch { }
-                finally
-                {
-                    try { p.Dispose(); } catch { }
-                }
-            }
-        }
-        catch { }
+        try { _sweepTimer?.Dispose(); } catch { }
+        _sweepTimer = null;
     }
 
     private void OnProcessStarted(object sender, EventArrivedEventArgs e)
@@ -117,39 +79,51 @@ internal sealed class UnsignedProcessGuard : IDisposable
             if (pidObj is null) return;
             var pid = Convert.ToInt32(pidObj);
             var name = nameObj?.ToString() ?? "";
-            EvaluateNewProcess(pid, name);
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    Thread.Sleep(120);
+                    EvaluateProcess(pid, name);
+                }
+                catch { }
+            });
         }
         catch { }
     }
 
-    private void EvaluateNewProcess(int pid, string processName)
+    private void SweepAll()
     {
-        if (pid <= 4) return; // System / Idle
+        try
+        {
+            foreach (var p in Process.GetProcesses())
+            {
+                try
+                {
+                    EvaluateProcess(p.Id, p.ProcessName ?? "");
+                }
+                catch { }
+                finally
+                {
+                    try { p.Dispose(); } catch { }
+                }
+            }
+        }
+        catch { }
+    }
+
+    private void EvaluateProcess(int pid, string processName)
+    {
+        if (pid <= 4) return;
         if (pid == Environment.ProcessId) return;
 
         lock (_gate)
         {
-            if (!_recentHandled.Add(pid)) return;
-            // Cap set size so we don't grow forever.
-            if (_recentHandled.Count > 4000)
-                _recentHandled.Clear();
+            if (_killedOrSafe.Contains(pid))
+                return;
         }
 
-        // Give the image path a moment to become queryable.
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try
-            {
-                Thread.Sleep(150);
-                HandleNewProcess(pid, processName);
-            }
-            catch { }
-        });
-    }
-
-    private void HandleNewProcess(int pid, string processName)
-    {
-        string? path = TryGetProcessPath(pid);
+        var path = TryGetProcessPath(pid);
         if (string.IsNullOrWhiteSpace(processName))
         {
             try
@@ -163,18 +137,60 @@ internal sealed class UnsignedProcessGuard : IDisposable
             }
         }
 
-        // No path → do not kill blindly (system / protected / short-lived).
+        // No path yet — try again on next sweep (do NOT mark safe).
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return;
 
-        if (IsAllowlisted(path, processName))
+        if (IsCriticalAllowlisted(path, processName))
+        {
+            MarkSafe(pid);
             return;
+        }
 
-        if (CodeSignVerifier.HasValidSignature(path))
+        if (HasTrustedSignatureCached(path))
+        {
+            MarkSafe(pid);
             return;
+        }
 
+        // Unsigned / invalid signature + not critical → close only (no ban).
         if (TryTerminate(pid))
+        {
             Interlocked.Increment(ref _terminated);
+            MarkSafe(pid); // don't thrash if PID reused slowly
+        }
+    }
+
+    private void MarkSafe(int pid)
+    {
+        lock (_gate)
+        {
+            _killedOrSafe.Add(pid);
+            if (_killedOrSafe.Count > 8000)
+                _killedOrSafe.Clear();
+        }
+    }
+
+    private bool HasTrustedSignatureCached(string path)
+    {
+        lock (_gate)
+        {
+            if (_sigCache.TryGetValue(path, out var cached))
+                return cached;
+        }
+
+        var ok = false;
+        try { ok = CodeSignVerifier.HasValidSignature(path); }
+        catch { ok = false; }
+
+        lock (_gate)
+        {
+            if (_sigCache.Count > 3000)
+                _sigCache.Clear();
+            _sigCache[path] = ok;
+        }
+
+        return ok;
     }
 
     private static string? TryGetProcessPath(int pid)
@@ -188,14 +204,13 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 if (!string.IsNullOrWhiteSpace(fromModule))
                     return fromModule;
             }
-            catch { /* access denied — fall through */ }
+            catch { /* access denied */ }
         }
         catch
         {
             return null;
         }
 
-        // SeDebugPrivilege + QUERY_LIMITED often works when MainModule does not.
         const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
         var h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, (uint)pid);
         if (h == IntPtr.Zero)
@@ -214,15 +229,19 @@ internal sealed class UnsignedProcessGuard : IDisposable
         return null;
     }
 
-    private static bool IsAllowlisted(string path, string processName)
+    /// <summary>
+    /// Narrow allowlist: OS / Steam / GPU only. Do NOT blanket Program Files —
+    /// unsigned cheats routinely live there. Signed apps pass via Authenticode.
+    /// </summary>
+    private static bool IsCriticalAllowlisted(string path, string processName)
     {
         try
         {
             var full = Path.GetFullPath(path);
             var name = (processName ?? "").Trim().ToLowerInvariant();
             var file = Path.GetFileName(full);
+            var lower = full.ToLowerInvariant();
 
-            // Ourselves
             var self = Environment.ProcessPath;
             if (!string.IsNullOrWhiteSpace(self) &&
                 full.Equals(Path.GetFullPath(self), StringComparison.OrdinalIgnoreCase))
@@ -231,61 +250,27 @@ internal sealed class UnsignedProcessGuard : IDisposable
             if (file.Equals("YGuardAC.exe", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // Windows OS trees
             var win = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             if (!string.IsNullOrWhiteSpace(win) &&
                 full.StartsWith(win.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // Installed software under Program Files — leave alone even if
-            // Authenticode is missing/broken (drivers, OEM tools, etc.).
-            var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            foreach (var root in new[] { pf, pf86 })
-            {
-                if (string.IsNullOrWhiteSpace(root)) continue;
-                if (full.StartsWith(root.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            // Per-user "Programs" installs (Discord portable builds, etc.)
-            var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (!string.IsNullOrWhiteSpace(local))
-            {
-                var programs = Path.Combine(local, "Programs");
-                if (full.StartsWith(programs + "\\", StringComparison.OrdinalIgnoreCase))
-                    return true;
-
-                foreach (var vendor in new[]
-                         {
-                             "Discord", "Microsoft", "Google", "Mozilla", "Packages",
-                             "NVIDIA", "AMD", "Intel", "Steam", "EpicGamesLauncher",
-                             "Riot Games", "Battle.net", "Ubisoft Game Launcher", "EADesktop",
-                             "JetBrains", "cursor", "GitHubDesktop",
-                         })
-                {
-                    var v = Path.Combine(local, vendor);
-                    if (full.StartsWith(v + "\\", StringComparison.OrdinalIgnoreCase))
-                        return true;
-                }
-            }
-
-            // Steam + CS2 stack (often mixed signing; never kill mid-match tooling)
+            // Steam + CS2 (Valve shipping mixes; never kill mid-match)
             if (name is "steam" or "steamwebhelper" or "steamservice" or "gameoverlayui"
-                or "cs2" or "csgo" or "steamerrorreporter" or "discord" or "discordptb"
-                or "discordcanary" or "epicgameslauncher" or "origin" or "eadesktop"
-                or "battle.net" or "agent" or "riotclientservices" or "vgtray")
+                or "cs2" or "csgo" or "steamerrorreporter")
                 return true;
 
-            if (full.Contains("\\Steam\\", StringComparison.OrdinalIgnoreCase) ||
-                full.Contains("\\steamapps\\", StringComparison.OrdinalIgnoreCase) ||
-                full.Contains("\\Epic Games\\", StringComparison.OrdinalIgnoreCase) ||
-                full.Contains("\\Riot Games\\", StringComparison.OrdinalIgnoreCase) ||
-                full.Contains("\\Battle.net\\", StringComparison.OrdinalIgnoreCase))
+            if (lower.Contains("\\steam\\") ||
+                lower.Contains("\\steamapps\\") ||
+                lower.Contains("\\counter-strike"))
                 return true;
 
-            // NVIDIA / AMD overlays commonly used while gaming
-            if (name.StartsWith("nv", StringComparison.Ordinal) ||
+            // Official GPU stacks
+            if (lower.Contains("\\nvidia\\") ||
+                lower.Contains("\\amd\\") ||
+                lower.Contains("\\ati technologies\\") ||
+                lower.Contains("\\intel\\") ||
+                name.StartsWith("nv", StringComparison.Ordinal) ||
                 name.Contains("nvidia", StringComparison.Ordinal) ||
                 name.Contains("radeon", StringComparison.Ordinal) ||
                 name.Contains("amddvr", StringComparison.Ordinal))

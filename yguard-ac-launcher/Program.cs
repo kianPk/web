@@ -235,7 +235,14 @@ internal sealed class MainForm : Form
             if (!string.IsNullOrEmpty(_deviceToken))
                 await ScanCheatsAsync();
         };
-        _gameWatch.Tick += (_, _) => RefreshConnectedStatus(force: false);
+        _gameWatch.Tick += (_, _) =>
+        {
+            RefreshConnectedStatus(force: false);
+            if (IsGameRunning())
+            {
+                try { CheatUiGuard.ScanAndClose(); } catch { }
+            }
+        };
 
         Load += async (_, _) =>
         {
@@ -810,7 +817,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.4+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.5+ from yguard.ir", false);
                 }
                 return;
             }
@@ -989,7 +996,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.4+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.5+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1109,6 +1116,7 @@ internal sealed class MainForm : Form
         if (cs2Running)
         {
             try { OverlayGuard.ScanAndClose(); } catch { /* ignore */ }
+            try { CheatUiGuard.ScanAndClose(); } catch { /* ignore */ }
         }
 
         // Module guard runs on its own timer; surface a soft status if it acted.

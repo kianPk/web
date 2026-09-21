@@ -40,7 +40,7 @@ internal static class CodeSignVerifier
                 dwStateAction = WTD_STATEACTION_IGNORE,
                 hWVTStateData = IntPtr.Zero,
                 pwszURLReference = IntPtr.Zero,
-                dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL | WTD_SAFER_FLAG,
+                dwProvFlags = WTD_SAFER_FLAG,
                 dwUIContext = 0,
             };
 
@@ -81,7 +81,6 @@ internal static class CodeSignVerifier
     private const uint WTD_REVOKE_NONE = 0;
     private const uint WTD_CHOICE_FILE = 1;
     private const uint WTD_STATEACTION_IGNORE = 0;
-    private const uint WTD_CACHE_ONLY_URL_RETRIEVAL = 0x00001000;
     private const uint WTD_SAFER_FLAG = 0x00000100;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
