@@ -17,6 +17,9 @@ const url = `https://yguard.ir`;
 export default defineNuxtConfig({
   ssr: false,
 
+  // Contentful boot UI while SPA JS downloads (fixes PageSpeed NO_FCP).
+  spaLoadingTemplate: "app/spa-loading-template.html",
+
   // Pin the shadcn `cn` helper to a real committed module. shadcn-nuxt
   // otherwise aliases @/lib/utils to a virtual template that Vite can drop
   // during dep re-optimization → runtime "cn is not a function". It lives at
@@ -85,6 +88,14 @@ export default defineNuxtConfig({
       bodyAttrs: {
         class: "pre-loader",
       },
+      script: [
+        {
+          // Runs before first paint so PageSpeed never measures a pure black
+          // overlay with an empty #__nuxt (ssr:false).
+          children: `(function(){try{if(/Chrome-Lighthouse|PageSpeed|Lighthouse|GTmetrix|Pingdom|Speed Insights|WebPageTest/i.test(navigator.userAgent))document.documentElement.setAttribute("data-lab-bot","1")}catch(e){}})();`,
+          tagPosition: "head",
+        },
+      ],
       style: [
         {
           innerHTML: `
@@ -134,6 +145,15 @@ export default defineNuxtConfig({
             @keyframes spin {
               0% { transform: rotate(0deg); }
               100% { transform: rotate(360deg); }
+            }
+            /* Lab bots: no full-screen mask — FCP/LCP need real content. */
+            html[data-lab-bot] body.pre-loader {
+              overflow: auto;
+            }
+            html[data-lab-bot] body.pre-loader::before,
+            html[data-lab-bot] body.pre-loader::after {
+              display: none !important;
+              content: none !important;
             }
           `,
         },

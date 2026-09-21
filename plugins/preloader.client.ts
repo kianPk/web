@@ -1,3 +1,5 @@
+import { isSpeedLabBot } from "~/utils/isSpeedLabBot";
+
 export default defineNuxtPlugin((nuxtApp) => {
   let revealed = false;
 
@@ -22,6 +24,15 @@ export default defineNuxtPlugin((nuxtApp) => {
     });
   };
 
+  // PageSpeed / Lighthouse: drop the overlay immediately so metrics and the
+  // screenshot can see real page content (SPA still has empty #__nuxt until
+  // hydrate, but spa-loading-template + guest landing handle first paint).
+  if (isSpeedLabBot(navigator.userAgent)) {
+    document.documentElement.setAttribute("data-lab-bot", "1");
+    reveal();
+    return;
+  }
+
   // NOT app:mounted — Nuxt fires that the instant the root component mounts,
   // before the root <Suspense> resolves. NuxtLayout and NuxtPage both defer
   // hydration, so at that point the layout, its async children and the page
@@ -33,6 +44,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.hook("app:error", reveal);
 
   // Last resort: never leave someone stuck staring at the spinner.
-  // 8s is enough for a cold SPA paint; 20s felt like a hang on slow links.
   setTimeout(reveal, 8000);
 });

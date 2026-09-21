@@ -39,9 +39,13 @@ onBeforeUnmount(() => {
   }
 });
 
-const showGuestLanding = computed(
-  () => authStore.hasCheckedSession && !authStore.me?.steam_id,
-);
+const showGuestLanding = computed(() => {
+  // Unknown session → treat as guest so the landing paints immediately.
+  if (!authStore.hasCheckedSession) {
+    return true;
+  }
+  return !authStore.me?.steam_id;
+});
 
 // Logged-in: default plugin or /me. Guests stay here — never Inventory.
 watch(
@@ -78,6 +82,8 @@ watch(
 </script>
 
 <template>
+  <!-- Optimistic guest landing: don't wait on getMe() or lab tools see only a
+       spinner forever (ssr:false + session gate caused PageSpeed NO_FCP). -->
   <GuestLandingPage v-if="showGuestLanding" />
   <LoadingScreen v-else class="min-h-screen" />
 </template>
