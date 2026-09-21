@@ -1,5 +1,4 @@
-<!-- Shown while the SPA JS boots (ssr:false). Must include real text/img so
-     lab tools (PageSpeed) can record FCP before Vue mounts. -->
+<!-- Mimic the guest hero so Speed Index / LCP see real layout before Vue boots. -->
 <div
   id="yguard-boot"
   style="
@@ -8,26 +7,41 @@
     z-index: 10001;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    gap: 14px;
-    background-color: hsl(240 10% 3.9%);
-    background-image: url('/topo-preloader.svg');
+    gap: 12px;
+    padding: 2.5rem 1.25rem;
+    box-sizing: border-box;
+    background-color: #cccccc;
+    background-image: url('/img/landing-hero-bg.avif');
     background-size: cover;
     background-position: center;
-    color: #fafafa;
-    font-family: Tahoma, 'Segoe UI', sans-serif;
+    color: #060606;
+    font-family: ui-sans-serif, system-ui, Tahoma, sans-serif;
   "
 >
   <img
     src="/favicon/64.png"
-    width="64"
-    height="64"
+    width="36"
+    height="36"
     alt="YGuard"
     style="display: block"
+    fetchpriority="high"
   />
-  <p style="margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.02em">
+  <p
+    style="
+      margin: 0;
+      font-size: clamp(2rem, 9vw, 3.5rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      max-width: 16ch;
+    "
+  >
     وای گارد
   </p>
-  <p style="margin: 0; font-size: 0.85rem; opacity: 0.7">YGuard · CS2</p>
+  <p style="margin: 0; font-size: 1rem; font-weight: 700; opacity: 0.75">
+    CS2 · Matchmaking
+  </p>
 </div>

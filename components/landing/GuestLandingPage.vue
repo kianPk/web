@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
 import { useBranding } from "~/composables/useBranding";
 import { loginLinks } from "~/utilities/loginLinks";
-import LandingRankings from "~/components/landing/LandingRankings.vue";
 import { eloTierColor } from "~/utils/eloTier";
-import { fetchTopPlayersByBestElo } from "~/utils/landingBestElo";
+
+// Below-fold: keep out of the landing critical chunk (TBT / Speed Index).
+const LandingRankings = defineAsyncComponent(() =>
+  import("~/components/landing/LandingRankings.vue"),
+);
 
 useHead({
   link: [
     {
-      rel: "stylesheet",
-      href: "https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css",
+      rel: "preload",
+      as: "image",
+      href: "/img/landing-hero-bg.avif",
+      type: "image/avif",
+      fetchpriority: "high",
     },
   ],
 });
@@ -145,8 +157,12 @@ const onlineCount = ref(
   ONLINE_MIN + Math.floor(Math.random() * (ONLINE_MAX - ONLINE_MIN + 1)),
 );
 const heroPlayers = ref<HeroPlayer[]>([]);
+const motionReady = ref(false);
+const geistReady = ref(false);
+const showRankings = ref(false);
 let wordTimer: ReturnType<typeof setInterval> | undefined;
 let onlineTimer: ReturnType<typeof setInterval> | undefined;
+let rankingsObserver: IntersectionObserver | undefined;
 
 function tickOnlineCount() {
   // Soft drift ±1–5 within 100–200 so the counter feels live.
@@ -158,8 +174,36 @@ function tickOnlineCount() {
   onlineCount.value = next;
 }
 
+function whenIdle(run: () => void, timeout = 2500) {
+  if (typeof window === "undefined") return;
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(run, { timeout });
+    return;
+  }
+  setTimeout(run, Math.min(timeout, 800));
+}
+
+function loadGeistFont() {
+  const href =
+    "https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css";
+  if (document.querySelector(`link[href="${href}"]`)) {
+    geistReady.value = true;
+    return;
+  }
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.media = "print";
+  link.onload = () => {
+    link.media = "all";
+    geistReady.value = true;
+  };
+  document.head.appendChild(link);
+}
+
 async function fetchHeroPlayers() {
   try {
+    const { fetchTopPlayersByBestElo } = await import("~/utils/landingBestElo");
     const rows = await fetchTopPlayersByBestElo(apolloClient as any, 3);
     heroPlayers.value = rows.map(
       (row, index): HeroPlayer => ({
@@ -177,16 +221,40 @@ async function fetchHeroPlayers() {
 }
 
 onMounted(() => {
-  wordTimer = setInterval(() => {
-    wordIndex.value = (wordIndex.value + 1) % copy.value.words.length;
-  }, 2200);
-  void fetchHeroPlayers();
-  onlineTimer = setInterval(tickOnlineCount, 2800);
+  // First paint stays on system fonts + static hero; defer extras.
+  whenIdle(() => {
+    loadGeistFont();
+    motionReady.value = true;
+    void fetchHeroPlayers();
+    wordTimer = setInterval(() => {
+      wordIndex.value = (wordIndex.value + 1) % copy.value.words.length;
+    }, 2200);
+    onlineTimer = setInterval(tickOnlineCount, 2800);
+  }, 2000);
+
+  const sentinel = document.getElementById("landing-rankings-sentinel");
+  if (sentinel && "IntersectionObserver" in window) {
+    rankingsObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          showRankings.value = true;
+          rankingsObserver?.disconnect();
+        }
+      },
+      { rootMargin: "240px 0px" },
+    );
+    rankingsObserver.observe(sentinel);
+  } else {
+    whenIdle(() => {
+      showRankings.value = true;
+    }, 4000);
+  }
 });
 
 onBeforeUnmount(() => {
   if (wordTimer) clearInterval(wordTimer);
   if (onlineTimer) clearInterval(onlineTimer);
+  rankingsObserver?.disconnect();
 });
 
 const activeWord = computed(
@@ -216,9 +284,25 @@ function avatarFallback(name: string) {
 </script>
 
 <template>
-  <div class="landing-root overflow-x-hidden" :dir="isFa ? 'rtl' : 'ltr'">
+  <div
+    class="landing-root overflow-x-hidden"
+    :class="{
+      'landing-root--motion': motionReady,
+      'landing-root--geist': geistReady,
+    }"
+    :dir="isFa ? 'rtl' : 'ltr'"
+  >
     <!-- Faceit hero: #ccc + official light pattern cover -->
     <section class="landing-hero relative isolate overflow-hidden text-[#060606]">
+      <img
+        class="landing-hero__bg"
+        src="/img/landing-hero-bg.avif"
+        alt=""
+        width="1920"
+        height="1080"
+        decoding="async"
+        fetchpriority="high"
+      />
       <div
         class="relative z-10 mx-auto grid min-h-[min(100svh,920px)] max-w-7xl items-center gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1fr] lg:gap-24 lg:px-10 lg:py-20"
       >
@@ -435,7 +519,8 @@ function avatarFallback(name: string) {
       </div>
     </section>
 
-    <LandingRankings />
+    <div id="landing-rankings-sentinel" class="h-px w-full" aria-hidden="true" />
+    <LandingRankings v-if="showRankings" />
 
     <!-- Crawlable keyword section for Persian CS / YGuard SEO -->
     <section class="border-t border-white/10 bg-[#0e0e0e] text-white">
@@ -499,16 +584,28 @@ function avatarFallback(name: string) {
 <style scoped>
 .landing-root {
   --landing-accent: #aa0e19;
+  font-family: ui-sans-serif, system-ui, Tahoma, "Segoe UI", sans-serif;
+}
+
+.landing-root--geist {
   font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
 }
 
 .landing-hero {
+  position: relative;
   background-color: #cccccc;
-  background-image: url("/img/landing-hero-bg.avif");
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  background-size: cover;
   min-height: min(100svh, 720px);
+}
+
+.landing-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  pointer-events: none;
 }
 
 @media (min-width: 640px) {
@@ -518,13 +615,13 @@ function avatarFallback(name: string) {
 }
 
 .landing-hero-title {
-  font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
+  font-family: inherit;
   font-size: clamp(2.15rem, 9vw, 4.85rem);
   word-break: break-word;
 }
 
 .landing-online {
-  font-family: "Geist Sans", geistSans, ui-sans-serif, system-ui, sans-serif;
+  font-family: inherit;
 }
 
 .landing-online__dot {
@@ -545,6 +642,9 @@ function avatarFallback(name: string) {
   line-height: 20px;
   letter-spacing: 0.28px;
   color: #060606;
+}
+
+.landing-root--motion .landing-online__count {
   animation: landing-online-tick 0.35s ease;
 }
 
@@ -568,16 +668,16 @@ function avatarFallback(name: string) {
   }
 }
 
-.landing-card {
+.landing-root--motion .landing-card {
   animation: landing-float 5.5s ease-in-out infinite;
 }
-.landing-card--left {
+.landing-root--motion .landing-card--left {
   animation-delay: 0s;
 }
-.landing-card--you {
+.landing-root--motion .landing-card--you {
   animation-delay: 0.4s;
 }
-.landing-card--right {
+.landing-root--motion .landing-card--right {
   animation-delay: 0.8s;
 }
 
@@ -592,10 +692,10 @@ function avatarFallback(name: string) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-card {
+  .landing-root--motion .landing-card {
     animation: none;
   }
-  .landing-online__count {
+  .landing-root--motion .landing-online__count {
     animation: none;
   }
 }

@@ -77,6 +77,12 @@ export default defineNuxtConfig({
         { rel: "alternate", hreflang: "fa-IR", href: url },
         { rel: "alternate", hreflang: "en", href: url },
         { rel: "alternate", hreflang: "x-default", href: url },
+        {
+          rel: "preload",
+          as: "image",
+          href: "/img/landing-hero-bg.avif",
+          type: "image/avif",
+        },
       ],
       // The app is dark-only. shadcn's light palette still lives under :root,
       // but <html> is permanently in the .dark scope so it is never used.
