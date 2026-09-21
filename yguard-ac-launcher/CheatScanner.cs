@@ -7,6 +7,10 @@ namespace YGuardAC;
 /// Hits are reported to the API (ban path). <see cref="Remediate"/> only
 /// kills matching processes and deletes paths under known cheat roots —
 /// never random user/system files.
+///
+/// Folder-name-only hits are limited to high-confidence unique names.
+/// Generic words (Midnight, Nemesis, Osiris, skeet, …) need a known
+/// cheat binary inside — otherwise innocent folders cause mass bans.
 /// </summary>
 internal static class CheatScanner
 {
@@ -19,60 +23,63 @@ internal static class CheatScanner
     private static readonly Dictionary<string, string> ExactProcesses =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            // ExLoader
             ["exloader"] = "exloader",
             ["exloaderui"] = "exloader",
             ["ex-loader"] = "exloader",
-            // Neverlose
             ["neverlose"] = "neverlose",
             ["neverlose_loader"] = "neverlose",
             ["nl_loader"] = "neverlose",
-            // Fatality
             ["fatality"] = "fatality",
             ["fatality_loader"] = "fatality",
-            // Nixware
             ["nixware"] = "nixware",
             ["nixware_loader"] = "nixware",
-            // Primordial
             ["primordial"] = "primordial",
             ["primordial_loader"] = "primordial",
-            // Gamesense / skeet family
             ["gamesense"] = "gamesense",
             ["skeet"] = "gamesense",
-            // Onetap
             ["onetap"] = "onetap",
             ["onetapv4"] = "onetap",
             ["otc3"] = "onetap",
-            // Aimjunkies / AJ
             ["aimjunkies"] = "aimjunkies",
             ["ajloader"] = "aimjunkies",
-            // Spirt / spiral
             ["spirt"] = "spirt",
             ["spirthack"] = "spirt",
-            // Interium
             ["interium"] = "interium",
             ["interiumloader"] = "interium",
-            // Midnight
             ["midnight"] = "midnight",
             ["midnight_loader"] = "midnight",
-            // Nemesis
             ["nemesis"] = "nemesis",
             ["nemesisloader"] = "nemesis",
-            // Rawetrip
             ["rawetrip"] = "rawetrip",
-            // Osiris (known cheat build names)
             ["osiris"] = "osiris",
-            // Cheat Engine — exact image names only (no substring match)
             ["cheatengine-x86_64"] = "cheatengine",
             ["cheatengine-i386"] = "cheatengine",
             ["cheatengine"] = "cheatengine",
         };
 
     /// <summary>
-    /// Install-tree markers: folder name under common roots → signature.
-    /// Folder existence alone is enough (same model as ExLoader today).
+    /// Process names that are also common for non-cheat software. Require a
+    /// path under a known cheat root or a known cheat filename — never ban
+    /// on the bare process name alone.
     /// </summary>
-    private static readonly (string Folder, string Signature)[] InstallFolderNames =
+    private static readonly HashSet<string> AmbiguousProcessNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "midnight",
+            "nemesis",
+            "skeet",
+            "osiris",
+            "gamesense",
+            "spirt",
+            "interium",
+            "primordial",
+        };
+
+    /// <summary>
+    /// High-confidence install folders — unique enough that existence alone
+    /// is a hit (typical cheat product directories).
+    /// </summary>
+    private static readonly (string Folder, string Signature)[] UniqueInstallFolders =
     [
         ("ExLoader", "exloader"),
         ("Neverlose", "neverlose"),
@@ -82,28 +89,39 @@ internal static class CheatScanner
         ("Nixware", "nixware"),
         ("nixware", "nixware"),
         ("Primordial", "primordial"),
-        ("primordial", "primordial"),
-        ("gamesense", "gamesense"),
-        ("Gamesense", "gamesense"),
-        ("skeet", "gamesense"),
         ("OneTap", "onetap"),
         ("onetap", "onetap"),
         ("Onetap", "onetap"),
         ("Aimjunkies", "aimjunkies"),
         ("aimjunkies", "aimjunkies"),
-        ("Spirt", "spirt"),
         ("Interium", "interium"),
-        ("Midnight", "midnight"),
-        ("NemesisCS", "nemesis"),
-        ("Nemesis", "nemesis"),
         ("Rawetrip", "rawetrip"),
-        ("Osiris", "osiris"),
+        ("NemesisCS", "nemesis"),
+        ("spirthack", "spirt"),
+        ("SpirtHack", "spirt"),
+        ("neverlose_loader", "neverlose"),
+        ("fatality_loader", "fatality"),
     ];
 
     /// <summary>
-    /// Filenames that only count when found *inside* a known cheat install root
-    /// (never as a bare match under Program Files / System32).
+    /// Ambiguous folder names — only hit when a known cheat binary is inside.
     /// </summary>
+    private static readonly (string Folder, string Signature)[] AmbiguousInstallFolders =
+    [
+        ("Nemesis", "nemesis"),
+        ("nemesis", "nemesis"),
+        ("Midnight", "midnight"),
+        ("midnight", "midnight"),
+        ("Osiris", "osiris"),
+        ("osiris", "osiris"),
+        ("skeet", "gamesense"),
+        ("Skeet", "gamesense"),
+        ("Spirt", "spirt"),
+        ("gamesense", "gamesense"),
+        ("Gamesense", "gamesense"),
+        ("primordial", "primordial"),
+    ];
+
     private static readonly string[] CheatFilesInsideRoots =
     [
         "ExLoader.exe",
@@ -111,16 +129,31 @@ internal static class CheatScanner
         "ExLoader.dll",
         "neverlose.exe",
         "neverlose_loader.exe",
+        "nl_loader.exe",
         "fatality.exe",
         "fatality_loader.exe",
         "nixware.exe",
+        "nixware_loader.exe",
         "primordial.exe",
+        "primordial_loader.exe",
         "gamesense.exe",
+        "skeet.exe",
         "onetap.exe",
-        "injector.exe",
-        "loader.exe",
-        "cheat.dll",
-        "hack.dll",
+        "onetapv4.exe",
+        "otc3.exe",
+        "aimjunkies.exe",
+        "ajloader.exe",
+        "spirthack.exe",
+        "interium.exe",
+        "interiumloader.exe",
+        "midnight.exe",
+        "midnight_loader.exe",
+        "nemesis.exe",
+        "nemesisloader.exe",
+        "rawetrip.exe",
+        "osiris.exe",
+        "cheatengine-x86_64.exe",
+        "cheatengine.exe",
     ];
 
     private static readonly string[] SearchRoots = BuildSearchRoots();
@@ -143,9 +176,6 @@ internal static class CheatScanner
         return hits;
     }
 
-    /// <summary>
-    /// Kill matching cheat processes, then delete only under known cheat roots.
-    /// </summary>
     public static int Remediate(IReadOnlyList<Hit> hits)
     {
         if (hits.Count == 0) return 0;
@@ -170,7 +200,6 @@ internal static class CheatScanner
             catch { /* ignore */ }
         }
 
-        // Always try to wipe full known install trees when any hit for that sig.
         foreach (var root in allowedRoots)
         {
             try
@@ -227,41 +256,91 @@ internal static class CheatScanner
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
                 continue;
 
-            foreach (var (folder, signature) in InstallFolderNames)
+            foreach (var (folder, signature) in UniqueInstallFolders)
+                TryHitFolder(root, folder, signature, requireBinary: false, add);
+
+            foreach (var (folder, signature) in AmbiguousInstallFolders)
+                TryHitFolder(root, folder, signature, requireBinary: true, add);
+        }
+    }
+
+    private static void TryHitFolder(
+        string root,
+        string folder,
+        string signature,
+        bool requireBinary,
+        Action<Hit> add)
+    {
+        string full;
+        try { full = Path.Combine(root, folder); }
+        catch { return; }
+
+        try
+        {
+            if (!Directory.Exists(full)) return;
+
+            var hasBinary = FolderContainsKnownCheatBinary(full);
+            if (requireBinary && !hasBinary)
+                return;
+
+            // Unique folders: existence is enough. Still prefer reporting a
+            // concrete binary path when present (cleaner remediations).
+            if (hasBinary)
             {
-                string full;
-                try { full = Path.Combine(root, folder); }
-                catch { continue; }
+                foreach (var name in CheatFilesInsideRoots)
+                {
+                    try
+                    {
+                        var file = Path.Combine(full, name);
+                        if (File.Exists(file))
+                            add(new Hit(signature, file, null));
+                    }
+                    catch { /* ignore */ }
+                }
 
                 try
                 {
-                    if (!Directory.Exists(full)) continue;
-
-                    add(new Hit(signature, full, null));
-
-                    foreach (var name in CheatFilesInsideRoots)
+                    foreach (var f in Directory.EnumerateFiles(full, "*.exe", SearchOption.AllDirectories)
+                                 .Take(20))
                     {
-                        try
-                        {
-                            var file = Path.Combine(full, name);
-                            if (File.Exists(file))
-                                add(new Hit(signature, file, null));
-                        }
-                        catch { /* ignore */ }
-                    }
-
-                    // Cap enumeration — huge trees must not hang the UI thread.
-                    try
-                    {
-                        foreach (var f in Directory.EnumerateFiles(full, "*.exe", SearchOption.AllDirectories)
-                                     .Take(30))
+                        if (IsKnownCheatFileName(f))
                             add(new Hit(signature, f, null));
                     }
-                    catch { /* partial ACL */ }
+                }
+                catch { /* partial ACL */ }
+            }
+            else
+            {
+                add(new Hit(signature, full, null));
+            }
+        }
+        catch { /* ignore */ }
+    }
+
+    private static bool FolderContainsKnownCheatBinary(string folder)
+    {
+        try
+        {
+            foreach (var name in CheatFilesInsideRoots)
+            {
+                try
+                {
+                    if (File.Exists(Path.Combine(folder, name)))
+                        return true;
                 }
                 catch { /* ignore */ }
             }
+
+            foreach (var f in Directory.EnumerateFiles(folder, "*.exe", SearchOption.AllDirectories)
+                         .Take(40))
+            {
+                if (IsKnownCheatFileName(f))
+                    return true;
+            }
         }
+        catch { /* ignore */ }
+
+        return false;
     }
 
     private static void ScanProcesses(Action<Hit> add)
@@ -285,15 +364,22 @@ internal static class CheatScanner
                 string? path = null;
                 try { path = p.MainModule?.FileName; } catch { /* access denied */ }
 
-                // If we got a path, only keep it when it sits under a cheat root
-                // or the filename itself is a known cheat binary name.
-                if (!string.IsNullOrWhiteSpace(path))
+                var ambiguous = AmbiguousProcessNames.Contains(name);
+
+                if (ambiguous)
                 {
-                    if (!IsUnderAllowedRoot(path, allowedRoots) &&
-                        !IsKnownCheatFileName(path))
+                    // No path / unknown path → do not ban (too many false positives).
+                    if (string.IsNullOrWhiteSpace(path))
+                        continue;
+                    if (!IsUnderAllowedRoot(path, allowedRoots) && !IsKnownCheatFileName(path))
+                        continue;
+                }
+                else if (!string.IsNullOrWhiteSpace(path))
+                {
+                    if (!IsUnderAllowedRoot(path, allowedRoots) && !IsKnownCheatFileName(path))
                     {
-                        // Still report the running process (ban signal) but
-                        // leave Path null so Remediate will not delete it.
+                        // High-confidence process name (exloader, neverlose, …)
+                        // still counts even outside known roots.
                         add(new Hit(signature, null, p.ProcessName));
                         continue;
                     }
@@ -315,6 +401,8 @@ internal static class CheatScanner
         try { procs = Process.GetProcesses(); }
         catch { return; }
 
+        var allowedRoots = CollectKnownCheatRoots();
+
         foreach (var p in procs)
         {
             try
@@ -322,6 +410,15 @@ internal static class CheatScanner
                 var name = (p.ProcessName ?? "").Trim();
                 if (name.Length == 0) continue;
                 if (!ExactProcesses.ContainsKey(name)) continue;
+
+                if (AmbiguousProcessNames.Contains(name))
+                {
+                    string? path = null;
+                    try { path = p.MainModule?.FileName; } catch { }
+                    if (string.IsNullOrWhiteSpace(path)) continue;
+                    if (!IsUnderAllowedRoot(path, allowedRoots) && !IsKnownCheatFileName(path))
+                        continue;
+                }
 
                 try { p.Kill(entireProcessTree: true); }
                 catch
@@ -345,16 +442,23 @@ internal static class CheatScanner
         {
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
                 continue;
-            foreach (var (folder, _) in InstallFolderNames)
+
+            void Consider((string Folder, string Signature) entry, bool requireBinary)
             {
                 try
                 {
-                    var full = Path.Combine(root, folder);
-                    if (Directory.Exists(full))
-                        set.Add(Path.GetFullPath(full));
+                    var full = Path.Combine(root, entry.Folder);
+                    if (!Directory.Exists(full)) return;
+                    if (requireBinary && !FolderContainsKnownCheatBinary(full)) return;
+                    set.Add(Path.GetFullPath(full));
                 }
                 catch { /* ignore */ }
             }
+
+            foreach (var e in UniqueInstallFolders)
+                Consider(e, requireBinary: false);
+            foreach (var e in AmbiguousInstallFolders)
+                Consider(e, requireBinary: true);
         }
         return set;
     }
@@ -410,14 +514,13 @@ internal static class CheatScanner
             catch { /* ignore */ }
         }
 
+        // Prefer cheat-typical trees — not the entire user profile (too noisy).
         AddSpecial(Environment.SpecialFolder.LocalApplicationData);
         AddSpecial(Environment.SpecialFolder.ApplicationData);
         AddSpecial(Environment.SpecialFolder.CommonApplicationData);
-        AddSpecial(Environment.SpecialFolder.UserProfile);
         AddSpecial(Environment.SpecialFolder.DesktopDirectory);
         AddSpecial(Environment.SpecialFolder.MyDocuments);
 
-        // One level of Desktop/Documents subfolders is enough — deep walks hang.
         try
         {
             var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
