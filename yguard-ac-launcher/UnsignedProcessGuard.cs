@@ -5,21 +5,21 @@ using System.Runtime.InteropServices;
 namespace YGuardAC;
 
 /// <summary>
-/// While CS2 is running, finds processes whose main image is not trusted
-/// Authenticode and not under a critical OS/Steam/GPU path, then terminates them.
+/// While CS2 is running, terminates processes whose main image is not trusted
+/// Authenticode and not under a critical OS/Steam/GPU path.
 ///
 /// Local soft enforcement only — never reports to the API / never bans.
-/// Inactive when CS2 is closed so VPN/proxy tools (often unsigned) stay up
-/// for login and attestation.
+/// Sweeps ALL processes (including ones opened before AC), not only new ones.
 /// </summary>
 internal sealed class UnsignedProcessGuard : IDisposable
 {
     private ManagementEventWatcher? _watcher;
     private System.Threading.Timer? _sweepTimer;
-    private readonly HashSet<int> _killedOrSafe = new();
+    private readonly HashSet<int> _terminatedPids = new();
     private readonly Dictionary<string, bool> _sigCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
     private bool _started;
+    private bool _wasCs2Running;
     private int _terminated;
 
     public int TerminatedCount => _terminated;
@@ -29,15 +29,12 @@ internal sealed class UnsignedProcessGuard : IDisposable
         if (_started) return;
         _started = true;
 
+        // Fast cadence so a cheat opened before AC dies quickly once CS2 is up.
         _sweepTimer = new System.Threading.Timer(
-            _ =>
-            {
-                if (!IsCs2Running()) return;
-                SweepAll();
-            },
+            _ => TimerTick(),
             null,
-            TimeSpan.FromSeconds(1.5),
-            TimeSpan.FromSeconds(1.5));
+            TimeSpan.FromMilliseconds(400),
+            TimeSpan.FromMilliseconds(800));
 
         try
         {
@@ -51,6 +48,17 @@ internal sealed class UnsignedProcessGuard : IDisposable
             try { _watcher?.Dispose(); } catch { }
             _watcher = null;
         }
+
+        // If game is already open with a cheat, don't wait for the first timer.
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try
+            {
+                if (IsCs2Running())
+                    SweepAll(force: true);
+            }
+            catch { }
+        });
     }
 
     public void Dispose()
@@ -69,6 +77,31 @@ internal sealed class UnsignedProcessGuard : IDisposable
 
         try { _sweepTimer?.Dispose(); } catch { }
         _sweepTimer = null;
+    }
+
+    /// <summary>Called from UI when CS2 is detected running.</summary>
+    public void NotifyGameRunning()
+    {
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try { SweepAll(force: true); }
+            catch { }
+        });
+    }
+
+    private void TimerTick()
+    {
+        var cs2 = IsCs2Running();
+        if (!cs2)
+        {
+            _wasCs2Running = false;
+            return;
+        }
+
+        // Rising edge: cheat may have been open before AC — full rescan now.
+        var force = !_wasCs2Running;
+        _wasCs2Running = true;
+        SweepAll(force: force);
     }
 
     private static bool IsCs2Running()
@@ -98,7 +131,7 @@ internal sealed class UnsignedProcessGuard : IDisposable
             {
                 try
                 {
-                    Thread.Sleep(120);
+                    Thread.Sleep(100);
                     if (!IsCs2Running()) return;
                     EvaluateProcess(pid, name);
                 }
@@ -108,8 +141,20 @@ internal sealed class UnsignedProcessGuard : IDisposable
         catch { }
     }
 
-    private void SweepAll()
+    private void SweepAll(bool force)
     {
+        if (!IsCs2Running()) return;
+
+        if (force)
+        {
+            // Re-evaluate everything including PIDs we previously skipped as "safe".
+            // Keep only successfully terminated PIDs so we don't thrash.
+            lock (_gate)
+            {
+                // terminated set stays; signature cache stays.
+            }
+        }
+
         try
         {
             foreach (var p in Process.GetProcesses())
@@ -135,7 +180,7 @@ internal sealed class UnsignedProcessGuard : IDisposable
 
         lock (_gate)
         {
-            if (_killedOrSafe.Contains(pid))
+            if (_terminatedPids.Contains(pid))
                 return;
         }
 
@@ -154,43 +199,37 @@ internal sealed class UnsignedProcessGuard : IDisposable
         }
 
         if (IsNetworkHelper(processName, path))
-        {
-            MarkSafe(pid);
             return;
-        }
 
+        // Path not ready yet — try again next tick (do NOT remember as safe).
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return;
 
         if (IsCriticalAllowlisted(path, processName))
-        {
-            MarkSafe(pid);
             return;
-        }
 
         if (HasTrustedSignatureCached(path))
-        {
-            MarkSafe(pid);
             return;
-        }
 
         if (TryTerminate(pid))
         {
             Interlocked.Increment(ref _terminated);
-            MarkSafe(pid);
+            lock (_gate)
+            {
+                _terminatedPids.Add(pid);
+                if (_terminatedPids.Count > 4000)
+                    _terminatedPids.Clear();
+            }
         }
     }
 
-    /// <summary>
-    /// Never kill VPN / proxy / tunnel tools — needed for API reachability in IR.
-    /// </summary>
     private static bool IsNetworkHelper(string processName, string? path)
     {
         var name = (processName ?? "").Trim().ToLowerInvariant();
         if (name is "v2rayn" or "v2ray" or "xray" or "sing-box" or "singbox"
             or "nekoray" or "nekobox" or "clash" or "clashy" or "clashverge"
             or "hiddify" or "hiddifynext" or "psiphon" or "psiphon3"
-            or "warp-cli" or "cloudflare WARP" or "cloudflarewarp" or "warp"
+            or "warp-cli" or "cloudflarewarp" or "warp"
             or "outline" or "shadowsocks" or "ss-local" or "proxifier"
             or "nv2ray" or "qv2ray" or "tor" or "openvpn" or "wireguard"
             or "tailscale" or "wintun" or "tun2socks")
@@ -208,16 +247,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
                lower.Contains("\\nekoray") ||
                lower.Contains("\\openvpn") ||
                lower.Contains("\\wireguard");
-    }
-
-    private void MarkSafe(int pid)
-    {
-        lock (_gate)
-        {
-            _killedOrSafe.Add(pid);
-            if (_killedOrSafe.Count > 8000)
-                _killedOrSafe.Clear();
-        }
     }
 
     private bool HasTrustedSignatureCached(string path)
@@ -261,7 +290,10 @@ internal sealed class UnsignedProcessGuard : IDisposable
         }
 
         const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
-        var h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, (uint)pid);
+        // Also try PROCESS_QUERY_INFORMATION for older images.
+        var h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | 0x0400, false, (uint)pid);
+        if (h == IntPtr.Zero)
+            h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, (uint)pid);
         if (h == IntPtr.Zero)
             return null;
         try
@@ -326,6 +358,20 @@ internal sealed class UnsignedProcessGuard : IDisposable
 
     private static bool TryTerminate(int pid)
     {
+        // Prefer Process.Kill — works well with SeDebugPrivilege for foreign PIDs.
+        try
+        {
+            using var p = Process.GetProcessById(pid);
+            try { p.Kill(entireProcessTree: true); }
+            catch { p.Kill(); }
+            try { p.WaitForExit(1500); } catch { }
+            return true;
+        }
+        catch
+        {
+            // Fallback Win32 terminate
+        }
+
         const uint PROCESS_TERMINATE = 0x0001;
         var handle = OpenProcess(PROCESS_TERMINATE, false, (uint)pid);
         if (handle == IntPtr.Zero)

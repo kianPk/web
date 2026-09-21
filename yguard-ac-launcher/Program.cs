@@ -170,6 +170,7 @@ internal sealed class MainForm : Form
     private bool _platformBanned;
     private bool _connectedOk;
     private bool? _lastGameRunning;
+    private bool _gameRunningNotified;
     private DateTime _lastCheatReport = DateTime.MinValue;
     private bool _updatePrompted;
     private bool _exitingForUpdate;
@@ -236,12 +237,23 @@ internal sealed class MainForm : Form
             if (!string.IsNullOrEmpty(_deviceToken))
                 await ScanCheatsAsync();
         };
+
         _gameWatch.Tick += (_, _) =>
         {
+            var running = IsGameRunning();
             RefreshConnectedStatus(force: false);
-            if (IsGameRunning())
+            if (running)
             {
+                if (!_gameRunningNotified)
+                {
+                    _gameRunningNotified = true;
+                    try { _unsignedGuard?.NotifyGameRunning(); } catch { }
+                }
                 try { CheatUiGuard.ScanAndClose(); } catch { }
+            }
+            else
+            {
+                _gameRunningNotified = false;
             }
         };
 
@@ -818,7 +830,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.6+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.7+ from yguard.ir", false);
                 }
                 return;
             }
@@ -997,7 +1009,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.6+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.7+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
