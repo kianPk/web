@@ -18,17 +18,36 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
   };
 
-  const schedule = () => {
-    if (typeof window === "undefined") return;
+  const idleBoot = () => {
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(() => void boot(), { timeout: 5000 });
+      window.requestIdleCallback(() => void boot(), { timeout: 8000 });
       return;
     }
-    setTimeout(() => void boot(), 2000);
+    setTimeout(() => void boot(), 3000);
   };
 
-  // Guest landing never needs this; wait until the preloader is gone so we
-  // don't compete with entry JS / first paint (helps mobile TBT).
+  const isGuestLanding = () => {
+    const path = window.location.pathname || "/";
+    return path === "/" || path === "";
+  };
+
+  const schedule = () => {
+    if (typeof window === "undefined") return;
+    // Guest marketing page never mounts OverlayScrollbars — skip until leave.
+    if (isGuestLanding()) {
+      const stop = nuxtApp.hook("page:finish", () => {
+        if (!isGuestLanding()) {
+          stop();
+          idleBoot();
+        }
+      });
+      setTimeout(idleBoot, 15000);
+      return;
+    }
+    idleBoot();
+  };
+
+  // Wait until the preloader is gone so we don't compete with entry JS / first paint.
   if (document.body.classList.contains("pre-loader")) {
     const observer = new MutationObserver(() => {
       if (!document.body.classList.contains("pre-loader")) {

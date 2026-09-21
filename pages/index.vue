@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { watch, ref, onMounted, onBeforeUnmount, computed } from "vue";
+import { watch, ref, onMounted, onBeforeUnmount, computed, defineAsyncComponent } from "vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import { usePluginsStore } from "~/stores/Plugins";
 import LoadingScreen from "~/components/LoadingScreen.vue";
-import GuestLandingPage from "~/components/landing/GuestLandingPage.vue";
+import { afterReveal } from "~/utils/afterReveal";
+
+// Keep the landing chunk off the critical path — cuts TBT on cold guest load.
+const GuestLandingPage = defineAsyncComponent(
+  () => import("~/components/landing/GuestLandingPage.vue"),
+);
 
 definePageMeta({
   layout: "landing",
@@ -14,14 +19,17 @@ const pluginsStore = usePluginsStore();
 const pluginsDeadlinePassed = ref(pluginsStore.initialized);
 let pluginsDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
 
-if (!authStore.hasCheckedSession) {
-  void authStore.getMe();
-}
-
 onMounted(() => {
   pluginsDeadlineTimer = setTimeout(() => {
     pluginsDeadlinePassed.value = true;
   }, 2000);
+
+  // Session check after first paint — guest landing already shows.
+  afterReveal(() => {
+    if (!authStore.hasCheckedSession) {
+      void authStore.getMe();
+    }
+  });
 });
 
 watch(

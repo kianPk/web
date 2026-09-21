@@ -128,6 +128,9 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const wsClient = createClient({
     url: `wss://${config.public.apiDomain}/v1/graphql`,
+    lazy: true,
+    lazyCloseTimeout: 10_000,
+    retryAttempts: 5,
     connectionParams: {
       credentials: "include",
     },

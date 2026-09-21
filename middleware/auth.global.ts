@@ -29,6 +29,21 @@ function isGuestShellRoute(path: string): boolean {
   return false;
 }
 
+function isColdGuestLanding(path: string): boolean {
+  return path === "/" || path === "";
+}
+
+function startGetMe(authStore: ReturnType<typeof useAuthStore>) {
+  const verifying = authStore.getMe();
+  verifyingMe = verifying;
+  void verifying.finally(() => {
+    if (verifyingMe === verifying) {
+      verifyingMe = null;
+    }
+  });
+  return verifying;
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   if (process.server) return;
 
@@ -58,29 +73,32 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   let hasMe: boolean = authStore.me?.steam_id ? true : false;
 
-  // Guest shell + /login always need the real session answer so we don't flash
-  // TopNav on a public page, then yank the user after getMe lands.
+  // Protected routes + /login need the real session before continuing.
+  // Guest landing (`/`) paints first — index.vue starts getMe after reveal.
   const needsRealAnswer =
-    !isGuestShellRoute(to.path) ||
-    to.path === "/login" ||
-    to.path === "/";
+    !isGuestShellRoute(to.path) || to.path === "/login";
 
   if (!checkedMe) {
     checkedMe = true;
 
-    const verifying = authStore.getMe();
-    verifyingMe = verifying;
-    void verifying.finally(() => {
-      if (verifyingMe === verifying) {
-        verifyingMe = null;
+    if (isColdGuestLanding(to.path)) {
+      // Skip: pages/index.vue kicks getMe after the preloader reveal so TBT
+      // isn't inflated by GraphQL + auth store fan-out during boot.
+    } else {
+      const verifying = startGetMe(authStore);
+      if (needsRealAnswer) {
+        hasMe = await verifying;
       }
-    });
-
-    if (needsRealAnswer) {
-      hasMe = await verifying;
     }
-  } else if (!hasMe && needsRealAnswer && verifyingMe) {
-    hasMe = await verifyingMe;
+  } else if (!hasMe && needsRealAnswer) {
+    if (!authStore.hasCheckedSession && !verifyingMe) {
+      startGetMe(authStore);
+    }
+    if (verifyingMe) {
+      hasMe = await verifyingMe;
+    } else {
+      hasMe = !!authStore.me?.steam_id;
+    }
   }
 
   if (!hasMe && !isGuestShellRoute(to.path)) {

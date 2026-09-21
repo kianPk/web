@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 import { useBranding } from "~/composables/useBranding";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
+import { afterReveal } from "~/utils/afterReveal";
 
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
@@ -22,7 +22,14 @@ const StreamGlobal = defineAsyncComponent(
   () => import("~/components/StreamGlobal.vue"),
 );
 
-polyfillCountryFlagEmojis();
+// Flag emoji polyfill is ~hundreds of ms of main-thread work — after paint.
+onMounted(() => {
+  afterReveal(() => {
+    void import("country-flag-emoji-polyfill").then((m) => {
+      m.polyfillCountryFlagEmojis();
+    });
+  });
+});
 
 const { brandName } = useBranding();
 const { t } = useI18n();
