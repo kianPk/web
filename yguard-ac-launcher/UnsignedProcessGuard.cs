@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 namespace YGuardAC;
 
 /// <summary>
-/// Continuously finds processes whose main image is not trusted Authenticode
-/// and not under a critical OS/Steam/GPU path, then TerminateProcess them.
+/// While CS2 is running, finds processes whose main image is not trusted
+/// Authenticode and not under a critical OS/Steam/GPU path, then terminates them.
 ///
 /// Local soft enforcement only — never reports to the API / never bans.
-/// Scans ALL processes on a timer (not only newly started), so cheats that
-/// were already open before AC started are still closed.
+/// Inactive when CS2 is closed so VPN/proxy tools (often unsigned) stay up
+/// for login and attestation.
 /// </summary>
 internal sealed class UnsignedProcessGuard : IDisposable
 {
@@ -29,11 +29,12 @@ internal sealed class UnsignedProcessGuard : IDisposable
         if (_started) return;
         _started = true;
 
-        // Immediate full sweep — catches cheats already running (DH, etc.).
-        ThreadPool.QueueUserWorkItem(_ => SweepAll());
-
         _sweepTimer = new System.Threading.Timer(
-            _ => SweepAll(),
+            _ =>
+            {
+                if (!IsCs2Running()) return;
+                SweepAll();
+            },
             null,
             TimeSpan.FromSeconds(1.5),
             TimeSpan.FromSeconds(1.5));
@@ -70,8 +71,22 @@ internal sealed class UnsignedProcessGuard : IDisposable
         _sweepTimer = null;
     }
 
+    private static bool IsCs2Running()
+    {
+        try
+        {
+            return Process.GetProcessesByName("cs2").Length > 0
+                || Process.GetProcessesByName("csgo").Length > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private void OnProcessStarted(object sender, EventArrivedEventArgs e)
     {
+        if (!IsCs2Running()) return;
         try
         {
             var pidObj = e.NewEvent["ProcessID"];
@@ -84,6 +99,7 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 try
                 {
                     Thread.Sleep(120);
+                    if (!IsCs2Running()) return;
                     EvaluateProcess(pid, name);
                 }
                 catch { }
@@ -137,7 +153,12 @@ internal sealed class UnsignedProcessGuard : IDisposable
             }
         }
 
-        // No path yet — try again on next sweep (do NOT mark safe).
+        if (IsNetworkHelper(processName, path))
+        {
+            MarkSafe(pid);
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return;
 
@@ -153,12 +174,40 @@ internal sealed class UnsignedProcessGuard : IDisposable
             return;
         }
 
-        // Unsigned / invalid signature + not critical → close only (no ban).
         if (TryTerminate(pid))
         {
             Interlocked.Increment(ref _terminated);
-            MarkSafe(pid); // don't thrash if PID reused slowly
+            MarkSafe(pid);
         }
+    }
+
+    /// <summary>
+    /// Never kill VPN / proxy / tunnel tools — needed for API reachability in IR.
+    /// </summary>
+    private static bool IsNetworkHelper(string processName, string? path)
+    {
+        var name = (processName ?? "").Trim().ToLowerInvariant();
+        if (name is "v2rayn" or "v2ray" or "xray" or "sing-box" or "singbox"
+            or "nekoray" or "nekobox" or "clash" or "clashy" or "clashverge"
+            or "hiddify" or "hiddifynext" or "psiphon" or "psiphon3"
+            or "warp-cli" or "cloudflare WARP" or "cloudflarewarp" or "warp"
+            or "outline" or "shadowsocks" or "ss-local" or "proxifier"
+            or "nv2ray" or "qv2ray" or "tor" or "openvpn" or "wireguard"
+            or "tailscale" or "wintun" or "tun2socks")
+            return true;
+
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        var lower = path.ToLowerInvariant();
+        return lower.Contains("\\v2ray") ||
+               lower.Contains("\\xray") ||
+               lower.Contains("\\clash") ||
+               lower.Contains("\\hiddify") ||
+               lower.Contains("\\psiphon") ||
+               lower.Contains("\\warp") ||
+               lower.Contains("\\sing-box") ||
+               lower.Contains("\\nekoray") ||
+               lower.Contains("\\openvpn") ||
+               lower.Contains("\\wireguard");
     }
 
     private void MarkSafe(int pid)
@@ -204,7 +253,7 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 if (!string.IsNullOrWhiteSpace(fromModule))
                     return fromModule;
             }
-            catch { /* access denied */ }
+            catch { }
         }
         catch
         {
@@ -229,10 +278,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
         return null;
     }
 
-    /// <summary>
-    /// Narrow allowlist: OS / Steam / GPU only. Do NOT blanket Program Files —
-    /// unsigned cheats routinely live there. Signed apps pass via Authenticode.
-    /// </summary>
     private static bool IsCriticalAllowlisted(string path, string processName)
     {
         try
@@ -255,7 +300,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 full.StartsWith(win.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // Steam + CS2 (Valve shipping mixes; never kill mid-match)
             if (name is "steam" or "steamwebhelper" or "steamservice" or "gameoverlayui"
                 or "cs2" or "csgo" or "steamerrorreporter")
                 return true;
@@ -265,7 +309,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 lower.Contains("\\counter-strike"))
                 return true;
 
-            // Official GPU stacks
             if (lower.Contains("\\nvidia\\") ||
                 lower.Contains("\\amd\\") ||
                 lower.Contains("\\ati technologies\\") ||
@@ -276,7 +319,7 @@ internal sealed class UnsignedProcessGuard : IDisposable
                 name.Contains("amddvr", StringComparison.Ordinal))
                 return true;
         }
-        catch { /* fall through */ }
+        catch { }
 
         return false;
     }

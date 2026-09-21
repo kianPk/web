@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Management;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Principal;
@@ -817,7 +818,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.5+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.6+ from yguard.ir", false);
                 }
                 return;
             }
@@ -996,7 +997,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.5+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.6+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
@@ -1044,12 +1045,26 @@ internal sealed class MainForm : Form
         catch (Exception ex)
         {
             _connectedOk = false;
-            SetStatus($"Connection error: {ex.GetType().Name}", false);
+            SetStatus($"Connection error: {DescribeNetError(ex)}", false);
         }
         finally
         {
             _attestInFlight = false;
         }
+    }
+
+    private static string DescribeNetError(Exception ex)
+    {
+        var inner = ex;
+        while (inner.InnerException != null)
+            inner = inner.InnerException;
+        var msg = (inner.Message ?? ex.Message ?? "").Trim();
+        if (msg.Length > 90)
+            msg = msg[..90] + "…";
+        if (string.IsNullOrWhiteSpace(msg))
+            return ex.GetType().Name;
+        // Keep status bar readable.
+        return msg.Replace("\r", " ").Replace("\n", " ");
     }
 
     private void ClearLocalSession(string status)
@@ -1195,13 +1210,28 @@ internal sealed class MainForm : Form
 
     private static HttpClient Http()
     {
-        var http = new HttpClient
+        var handler = new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            ConnectTimeout = TimeSpan.FromSeconds(10),
+            SslOptions =
+            {
+                EnabledSslProtocols =
+                    System.Security.Authentication.SslProtocols.Tls12 |
+                    System.Security.Authentication.SslProtocols.Tls13,
+            },
+        };
+        var http = new HttpClient(handler)
         {
             BaseAddress = new Uri(ApiBase),
-            Timeout = TimeSpan.FromSeconds(20),
+            Timeout = TimeSpan.FromSeconds(25),
         };
         http.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
+        http.DefaultRequestHeaders.TryAddWithoutValidation(
+            "User-Agent",
+            $"YGuardAC/{AutoUpdater.CurrentVersion}");
         return http;
     }
 }
