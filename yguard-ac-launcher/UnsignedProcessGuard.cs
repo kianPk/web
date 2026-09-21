@@ -98,10 +98,10 @@ internal sealed class UnsignedProcessGuard : IDisposable
             return;
         }
 
-        // Rising edge: cheat may have been open before AC — full rescan now.
         var force = !_wasCs2Running;
         _wasCs2Running = true;
         SweepAll(force: force);
+        try { CheatUiGuard.ScanAndClose(); } catch { }
     }
 
     private static bool IsCs2Running()
@@ -273,6 +273,15 @@ internal sealed class UnsignedProcessGuard : IDisposable
 
     private static string? TryGetProcessPath(int pid)
     {
+        // Toolhelp often works when MainModule throws (cheats / protected).
+        try
+        {
+            var viaSnap = TryGetPathViaModuleSnapshot(pid);
+            if (!string.IsNullOrWhiteSpace(viaSnap))
+                return viaSnap;
+        }
+        catch { }
+
         try
         {
             using var p = Process.GetProcessById(pid);
@@ -290,7 +299,6 @@ internal sealed class UnsignedProcessGuard : IDisposable
         }
 
         const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
-        // Also try PROCESS_QUERY_INFORMATION for older images.
         var h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | 0x0400, false, (uint)pid);
         if (h == IntPtr.Zero)
             h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, (uint)pid);
@@ -308,6 +316,28 @@ internal sealed class UnsignedProcessGuard : IDisposable
             CloseHandle(h);
         }
         return null;
+    }
+
+    private static string? TryGetPathViaModuleSnapshot(int pid)
+    {
+        var snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, (uint)pid);
+        if (snap == INVALID_HANDLE_VALUE || snap == IntPtr.Zero)
+            return null;
+        try
+        {
+            var me = new MODULEENTRY32
+            {
+                dwSize = (uint)Marshal.SizeOf<MODULEENTRY32>(),
+            };
+            if (!Module32First(snap, ref me))
+                return null;
+            var path = (me.szExePath ?? "").Trim();
+            return string.IsNullOrWhiteSpace(path) ? null : path;
+        }
+        finally
+        {
+            CloseHandle(snap);
+        }
     }
 
     private static bool IsCriticalAllowlisted(string path, string processName)
@@ -404,4 +434,34 @@ internal sealed class UnsignedProcessGuard : IDisposable
         uint dwFlags,
         System.Text.StringBuilder lpExeName,
         ref uint lpdwSize);
+
+    private const uint TH32CS_SNAPMODULE = 0x00000008;
+    private const uint TH32CS_SNAPMODULE32 = 0x00000010;
+    private static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MODULEENTRY32
+    {
+        public uint dwSize;
+        public uint th32ModuleID;
+        public uint th32ProcessID;
+        public uint GlblcntUsage;
+        public uint ProccntUsage;
+        public IntPtr modBaseAddr;
+        public uint modBaseSize;
+        public IntPtr hModule;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+        public string szModule;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szExePath;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr CreateToolhelp32Snapshot(uint dwFlags, uint th32ProcessID);
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool Module32First(IntPtr hSnapshot, ref MODULEENTRY32 lpme);
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool Module32Next(IntPtr hSnapshot, ref MODULEENTRY32 lpme);
 }

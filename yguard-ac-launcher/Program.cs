@@ -830,7 +830,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.7+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.8+ from yguard.ir", false);
                 }
                 return;
             }
@@ -1009,7 +1009,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.7+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.8+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&

@@ -20,9 +20,9 @@ const status = ref<{
   latest: Record<string, unknown> | null;
 } | null>(null);
 const loading = ref(false);
-const FALLBACK_VERSION = "0.4.7";
+const FALLBACK_VERSION = "0.4.8";
 const FALLBACK_URL =
-  "https://github.com/kianPk/web/releases/download/client-v0.4.7/YGuardAC-0.4.7-client.zip";
+  "https://github.com/kianPk/web/releases/download/client-v0.4.8/YGuardAC-0.4.8-client.zip";
 
 const launcherVersion = ref(FALLBACK_VERSION);
 const launcherUrl = ref(FALLBACK_URL);
