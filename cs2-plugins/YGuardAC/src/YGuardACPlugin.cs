@@ -10,7 +10,7 @@ namespace YGuardAC;
 public sealed class YGuardACPlugin : BasePlugin, IPluginConfig<YGuardACConfig>
 {
     public override string ModuleName => "YGuardAC";
-    public override string ModuleVersion => "1.2.4";
+    public override string ModuleVersion => "1.2.5";
     public override string ModuleAuthor => "yguard";
     public override string ModuleDescription => "Suspicion-score anti-cheat with kick/ban thresholds + live AC launcher gate";
 
@@ -66,6 +66,16 @@ public sealed class YGuardACPlugin : BasePlugin, IPluginConfig<YGuardACConfig>
         c.Wallbang.BanAfterMatchKills = 5;
         c.Wallbang.KillsThreshold = 5;
         c.Wallbang.Score = 8f;
+
+        // High-DPI freelook / spinning was hitting the old 2200°/s gate and
+        // kicking → CancelMatchOnCheat. Force off + safer thresholds if re-enabled.
+        c.Spinbot.Enabled = false;
+        if (c.Spinbot.MinDegPerSecond < 5000f)
+            c.Spinbot.MinDegPerSecond = 7200f;
+        if (c.Spinbot.ConsecutiveTicks < 40)
+            c.Spinbot.ConsecutiveTicks = 48;
+        if (c.Spinbot.Score > 10f)
+            c.Spinbot.Score = 8f;
     }
 
     public override void Load(bool hotReload)
@@ -87,7 +97,7 @@ public sealed class YGuardACPlugin : BasePlugin, IPluginConfig<YGuardACConfig>
         AddCommand("css_ygac_reset", "Reset a player score by userid", OnResetScore);
         AddCommand("css_ygac_debug", "Debug smoke/wallbang counters", OnDebug);
 
-        Console.WriteLine("[YGuardAC] Loaded v1.2.4 — AC launcher gate on connect + score kick.");
+        Console.WriteLine("[YGuardAC] Loaded v1.2.5 — AC gate + score kick (Spinbot off: DPI FP).");
 
         // Warm match-id cache so cancel still works after kick.
         _ = Task.Run(async () =>
