@@ -55,6 +55,8 @@ internal static class CheatScanner
             ["cheatengine-x86_64"] = "cheatengine",
             ["cheatengine-i386"] = "cheatengine",
             ["cheatengine"] = "cheatengine",
+            ["undetek-v10.47"] = "undetek",
+            ["undetek"] = "undetek",
         };
 
     /// <summary>
@@ -154,9 +156,28 @@ internal static class CheatScanner
         "osiris.exe",
         "cheatengine-x86_64.exe",
         "cheatengine.exe",
+        "undetek-v10.47.exe",
+        "undetek.exe",
+    ];
+
+    /// <summary>
+    /// Exact / glob filenames that are a hit anywhere on fixed disks
+    /// (not only under known cheat install roots).
+    /// </summary>
+    private static readonly string[] GlobalBannedFileGlobs =
+    [
+        "undetek-v10.47.exe",
+        "undetek*.exe",
     ];
 
     private static readonly string[] SearchRoots = BuildSearchRoots();
+
+    private static readonly object GlobalScanGate = new();
+    private static List<Hit> GlobalBannedCache = new();
+    private static DateTime GlobalScanStartedUtc = DateTime.MinValue;
+    private static DateTime GlobalScanFinishedUtc = DateTime.MinValue;
+    private static Task? GlobalScanTask;
+    private static readonly TimeSpan GlobalScanInterval = TimeSpan.FromMinutes(5);
 
     public static List<Hit> Scan()
     {
@@ -172,8 +193,18 @@ internal static class CheatScanner
 
         try { ScanInstallTrees(Add); } catch { /* never throw out of Scan */ }
         try { ScanProcesses(Add); } catch { /* ignore */ }
+        try { ScanGlobalBannedFiles(Add); } catch { /* ignore */ }
 
         return hits;
+    }
+
+    /// <summary>
+    /// Kick a full-disk banned-file walk early (e.g. on launcher start) so the
+    /// first attest is less likely to race an empty cache.
+    /// </summary>
+    public static void WarmGlobalScan()
+    {
+        try { EnsureGlobalBannedScan(force: false); } catch { /* ignore */ }
     }
 
     public static int Remediate(IReadOnlyList<Hit> hits)
@@ -189,12 +220,16 @@ internal static class CheatScanner
         foreach (var hit in hits)
         {
             if (string.IsNullOrWhiteSpace(hit.Path)) continue;
-            if (!IsUnderAllowedRoot(hit.Path, allowedRoots)) continue;
+            // Global banned filenames (undetek-*.exe, …) may sit anywhere —
+            // still safe to delete that exact file, not arbitrary trees.
+            var allowAnywhere = IsGlobalBannedFileName(hit.Path);
+            if (!allowAnywhere && !IsUnderAllowedRoot(hit.Path, allowedRoots))
+                continue;
             try
             {
                 if (File.Exists(hit.Path))
                     files.Add(hit.Path);
-                else if (Directory.Exists(hit.Path))
+                else if (!allowAnywhere && Directory.Exists(hit.Path))
                     dirs.Add(hit.Path);
             }
             catch { /* ignore */ }
@@ -491,8 +526,200 @@ internal static class CheatScanner
         string name;
         try { name = Path.GetFileName(path); }
         catch { return false; }
-        return CheatFilesInsideRoots.Any(f =>
-            f.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (CheatFilesInsideRoots.Any(f =>
+                f.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            return true;
+        return IsGlobalBannedFileName(path);
+    }
+
+    private static bool IsGlobalBannedFileName(string path)
+    {
+        string name;
+        try { name = Path.GetFileName(path); }
+        catch { return false; }
+        if (string.IsNullOrWhiteSpace(name)) return false;
+
+        foreach (var glob in GlobalBannedFileGlobs)
+        {
+            if (glob.Contains('*') || glob.Contains('?'))
+            {
+                if (MatchesSimpleGlob(name, glob))
+                    return true;
+            }
+            else if (name.Equals(glob, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool MatchesSimpleGlob(string name, string glob)
+    {
+        // Only supports a single '*' (e.g. undetek*.exe).
+        var star = glob.IndexOf('*');
+        if (star < 0)
+            return name.Equals(glob, StringComparison.OrdinalIgnoreCase);
+        var prefix = glob[..star];
+        var suffix = glob[(star + 1)..];
+        return name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+               && name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
+               && name.Length >= prefix.Length + suffix.Length;
+    }
+
+    private static void ScanGlobalBannedFiles(Action<Hit> add)
+    {
+        EnsureGlobalBannedScan(force: false);
+
+        List<Hit> snapshot;
+        lock (GlobalScanGate)
+            snapshot = GlobalBannedCache.ToList();
+
+        foreach (var hit in snapshot)
+        {
+            if (string.IsNullOrWhiteSpace(hit.Path)) continue;
+            try
+            {
+                if (File.Exists(hit.Path))
+                    add(hit);
+            }
+            catch { /* ignore */ }
+        }
+    }
+
+    private static void EnsureGlobalBannedScan(bool force)
+    {
+        lock (GlobalScanGate)
+        {
+            if (GlobalScanTask is { IsCompleted: false })
+                return;
+
+            var now = DateTime.UtcNow;
+            if (!force
+                && GlobalScanFinishedUtc != DateTime.MinValue
+                && now - GlobalScanFinishedUtc < GlobalScanInterval)
+                return;
+
+            GlobalScanStartedUtc = now;
+            GlobalScanTask = Task.Run(RunGlobalBannedFileScan);
+        }
+    }
+
+    /// <summary>
+    /// Block until the first full-disk banned-file walk finishes (or timeout).
+    /// Used before attest so a late hit cannot slip a clean unlock.
+    /// </summary>
+    public static void WaitForInitialGlobalScan(TimeSpan timeout)
+    {
+        EnsureGlobalBannedScan(force: false);
+        Task? task;
+        lock (GlobalScanGate)
+        {
+            if (GlobalScanFinishedUtc != DateTime.MinValue)
+                return;
+            task = GlobalScanTask;
+        }
+        if (task == null) return;
+        try { task.Wait(timeout); } catch { /* ignore */ }
+    }
+
+    private static void RunGlobalBannedFileScan()
+    {
+        var found = new List<Hit>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            DriveInfo[] drives;
+            try { drives = DriveInfo.GetDrives(); }
+            catch { drives = Array.Empty<DriveInfo>(); }
+
+            foreach (var drive in drives)
+            {
+                try
+                {
+                    if (!drive.IsReady) continue;
+                    if (drive.DriveType is not (DriveType.Fixed or DriveType.Removable))
+                        continue;
+                    WalkForBannedFiles(drive.RootDirectory.FullName, found, seen);
+                }
+                catch { /* ignore drive */ }
+            }
+        }
+        catch { /* never throw */ }
+
+        lock (GlobalScanGate)
+        {
+            GlobalBannedCache = found;
+            GlobalScanFinishedUtc = DateTime.UtcNow;
+        }
+    }
+
+    private static readonly HashSet<string> SkipDirNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "$Recycle.Bin",
+            "System Volume Information",
+            "Windows",
+            "WinSxS",
+            "Windows.old",
+            "Recovery",
+            "PerfLogs",
+            "node_modules",
+            ".git",
+            "CSC", // offline files cache
+        };
+
+    private static void WalkForBannedFiles(
+        string root,
+        List<Hit> found,
+        HashSet<string> seen)
+    {
+        var stack = new Stack<string>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            var dir = stack.Pop();
+            try
+            {
+                var di = new DirectoryInfo(dir);
+                if ((di.Attributes & FileAttributes.ReparsePoint) != 0)
+                    continue;
+
+                foreach (var glob in GlobalBannedFileGlobs)
+                {
+                    try
+                    {
+                        foreach (var file in Directory.EnumerateFiles(dir, glob))
+                        {
+                            if (!seen.Add(file)) continue;
+                            found.Add(new Hit("undetek", file, null));
+                        }
+                    }
+                    catch { /* ACL */ }
+                }
+
+                foreach (var sub in Directory.EnumerateDirectories(dir))
+                {
+                    try
+                    {
+                        var name = Path.GetFileName(sub);
+                        if (string.IsNullOrEmpty(name)) continue;
+                        if (SkipDirNames.Contains(name)) continue;
+                        // Still walk Users / Program Files — only skip heavy OS trees.
+                        if (name.Equals("Windows", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        var subInfo = new DirectoryInfo(sub);
+                        if ((subInfo.Attributes & FileAttributes.ReparsePoint) != 0)
+                            continue;
+                        stack.Push(sub);
+                    }
+                    catch { /* ignore */ }
+                }
+            }
+            catch { /* access denied */ }
+        }
     }
 
     private static string[] BuildSearchRoots()

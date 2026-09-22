@@ -45,6 +45,9 @@ internal static class Program
                 MessageBoxIcon.Warning);
         }
 
+        // Start full-disk banned-file walk ASAP (undetek-*.exe, …).
+        CheatScanner.WarmGlobalScan();
+
         Application.Run(new MainForm());
     }
 
@@ -830,7 +833,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.8+ from yguard.ir", false);
+                    SetStatus("Update required — download 0.4.9+ from yguard.ir", false);
                 }
                 return;
             }
@@ -904,7 +907,12 @@ internal sealed class MainForm : Form
             }
 
             List<CheatScanner.Hit> hits;
-            try { hits = CheatScanner.Scan(); }
+            try
+            {
+                // Wait for first full-disk walk so undetek anywhere cannot slip a clean attest.
+                CheatScanner.WaitForInitialGlobalScan(TimeSpan.FromSeconds(45));
+                hits = CheatScanner.Scan();
+            }
             catch { hits = new List<CheatScanner.Hit>(); }
             // Overlay close is soft-only and must never affect cheat_clean / bans.
             if (IsGameRunning())
@@ -1009,7 +1017,7 @@ internal sealed class MainForm : Form
                 }
                 if (errBody.Contains("signature", StringComparison.OrdinalIgnoreCase))
                 {
-                    SetStatus("AC signature rejected — reinstall client 0.4.8+", false);
+                    SetStatus("AC signature rejected — reinstall client 0.4.9+", false);
                     return;
                 }
                 if ((int)res.StatusCode == 401 &&
