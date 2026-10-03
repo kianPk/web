@@ -6,7 +6,6 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
 import { toast } from "~/components/ui/toast";
 import {
   formatHostedDate,
@@ -29,8 +28,6 @@ const form = ref({
   max_active: 3,
   reserve_match_slots: 2,
   grace_days: 3,
-  gslt_pool: "",
-  steam_api_key: "",
 });
 const busy = ref(false);
 
@@ -55,8 +52,6 @@ function applySettings(current: HostedAdminSettings) {
     max_active: current.max_active,
     reserve_match_slots: current.reserve_match_slots,
     grace_days: current.grace_days,
-    gslt_pool: "",
-    steam_api_key: "",
   };
 }
 
@@ -82,10 +77,6 @@ function saveSettings() {
       reserve_match_slots: Number(form.value.reserve_match_slots),
       grace_days: Number(form.value.grace_days),
     };
-    if (form.value.gslt_pool.trim()) body.gslt_pool = form.value.gslt_pool;
-    if (form.value.steam_api_key.trim()) {
-      body.steam_api_key = form.value.steam_api_key;
-    }
     applySettings(
       await hostedApi<HostedAdminSettings>("/hosted-servers/admin/settings", {
         method: "POST",
@@ -175,37 +166,6 @@ onMounted(() => {
       <div class="space-y-1">
         <Label>{{ $t("pages.hosting.admin.grace_days") }}</Label>
         <Input v-model="form.grace_days" type="number" min="0" />
-      </div>
-      <div class="space-y-1 sm:col-span-2">
-        <Label>
-          {{
-            $t("pages.hosting.admin.gslt_pool", {
-              n: settings.gslt_pool_size,
-            })
-          }}
-        </Label>
-        <Textarea
-          v-model="form.gslt_pool"
-          rows="2"
-          dir="ltr"
-          class="font-mono text-xs"
-          :placeholder="$t('pages.hosting.admin.gslt_pool_placeholder')"
-        />
-      </div>
-      <div class="space-y-1 sm:col-span-2">
-        <Label>
-          {{
-            settings.steam_api_key_set
-              ? $t("pages.hosting.admin.steam_api_key_set")
-              : $t("pages.hosting.admin.steam_api_key_unset")
-          }}
-        </Label>
-        <Input
-          v-model="form.steam_api_key"
-          dir="ltr"
-          class="font-mono text-xs"
-          :placeholder="$t('pages.hosting.admin.steam_api_key_placeholder')"
-        />
       </div>
     </div>
     <Button size="sm" :disabled="busy" @click="saveSettings">
