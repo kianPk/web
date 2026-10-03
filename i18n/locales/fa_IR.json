@@ -3614,7 +3614,26 @@
       "vip_permanent": "دائمی",
       "vip_remaining_days": "{days}ر {hours}س",
       "vip_remaining_hours": "{hours}س {mins}د",
-      "vip_remaining_mins": "{mins}د"
+      "vip_remaining_mins": "{mins}د",
+      "vip_admin": {
+        "placeholder": "SteamID64 یا لینک پروفایل",
+        "add": "افزودن VIP",
+        "added": "VIP داده شد",
+        "added_unlisted": "VIP روی سرور داده شد. این بازیکن هنوز در سایت ثبت‌نام نکرده، برای همین در لیست دیده نمی‌شود.",
+        "remove": "حذف VIP",
+        "remove_confirm": "VIP این بازیکن روی این سرور حذف شود؟",
+        "removed": "VIP حذف شد",
+        "sync": "همگام‌سازی با سرور",
+        "synced": "همگام شد: {imported} نفر روی سرور، {removed} نفر از لیست حذف شد، {unregistered} نفر در سایت ثبت‌نام نکرده‌اند",
+        "hint": "تغییرات با RCON به سرور فرستاده می‌شود، پس سرور باید روشن باشد. اگر بازیکن از قبل VIP باشد، زمانش اضافه می‌شود.",
+        "durations": {
+          "1d": "۱ روز",
+          "7d": "۷ روز",
+          "30d": "۳۰ روز",
+          "90d": "۹۰ روز",
+          "perm": "دائمی"
+        }
+      }
     },
     "map_pools": {
       "title": "استخرهای نقشه",

@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Settings2 } from "lucide-vue-next";
+import { Crown, RefreshCw, Settings2, Trash2, UserPlus } from "lucide-vue-next";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +39,7 @@ import { computed } from "vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 
+const isAdmin = computed(() => useAuthStore().isAdmin);
 const canManage = computed(() =>
   useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
 );
@@ -326,11 +335,75 @@ const canManage = computed(() =>
           >
             {{ formatVipRemaining(vip.expires_at) }}
           </span>
+          <Button
+            v-if="isAdmin"
+            size="icon"
+            variant="ghost"
+            class="h-7 w-7 shrink-0"
+            :disabled="vipBusy"
+            :title="$t('pages.public_servers.vip_admin.remove')"
+            @click="revokeVip(vip.steam_id)"
+          >
+            <Trash2 class="h-3.5 w-3.5" />
+          </Button>
         </li>
       </ul>
       <p v-else class="py-6 text-center text-sm text-muted-foreground">
         {{ $t("pages.public_servers.vip_none") }}
       </p>
+
+      <div
+        v-if="isAdmin && vipDialogServer"
+        class="space-y-2 border-t border-border/60 pt-3"
+      >
+        <form class="flex gap-2" @submit.prevent="grantVip">
+          <Input
+            v-model="vipForm.steam_id"
+            dir="ltr"
+            class="min-w-0 flex-1 font-mono"
+            maxlength="120"
+            :placeholder="$t('pages.public_servers.vip_admin.placeholder')"
+          />
+          <Select v-model="vipForm.duration">
+            <SelectTrigger class="w-28 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="duration in VIP_DURATIONS"
+                :key="duration"
+                :value="duration"
+              >
+                {{ $t(`pages.public_servers.vip_admin.durations.${duration}`) }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            type="submit"
+            size="sm"
+            class="shrink-0"
+            :disabled="vipBusy || !vipForm.steam_id.trim()"
+          >
+            <UserPlus class="me-1.5 h-3.5 w-3.5" />
+            {{ $t("pages.public_servers.vip_admin.add") }}
+          </Button>
+        </form>
+        <div class="flex items-center justify-between gap-2">
+          <p class="m-0 text-xs text-muted-foreground">
+            {{ $t("pages.public_servers.vip_admin.hint") }}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            class="shrink-0"
+            :disabled="vipBusy"
+            @click="syncVips"
+          >
+            <RefreshCw class="me-1.5 h-3.5 w-3.5" />
+            {{ $t("pages.public_servers.vip_admin.sync") }}
+          </Button>
+        </div>
+      </div>
     </DialogContent>
   </Dialog>
 
@@ -445,9 +518,17 @@ const canManage = computed(() =>
 </template>
 
 <script lang="ts">
+import { toast } from "@/components/ui/toast";
+import { hostedApi, hostedErrorMessage } from "~/composables/useHostedServers";
+
+const VIP_DURATIONS = ["1d", "7d", "30d", "90d", "perm"] as const;
+
 export default {
   data() {
     return {
+      VIP_DURATIONS,
+      vipForm: { steam_id: "", duration: "30d" },
+      vipBusy: false,
       servers: undefined as any[] | undefined,
       serversByGame: {} as Record<string, Record<string, any[]>>,
       modeFilter: "all",
@@ -619,6 +700,76 @@ export default {
     },
     openVipDialog(server: { id: string; label: string }) {
       this.vipDialogServer = { id: server.id, label: server.label };
+    },
+    async runVipAction(
+      action: (serverId: string) => Promise<string | null>,
+    ): Promise<void> {
+      const serverId = this.vipDialogServer?.id;
+      if (!serverId || this.vipBusy) return;
+      this.vipBusy = true;
+      try {
+        const title = await action(serverId);
+        await this.refreshVipGrants();
+        if (title) toast({ title });
+      } catch (error) {
+        toast({ variant: "destructive", title: hostedErrorMessage(error) });
+      } finally {
+        this.vipBusy = false;
+      }
+    },
+    grantVip() {
+      return this.runVipAction(async (serverId) => {
+        const result = await hostedApi<{ listed: boolean }>(
+          `/hosted-servers/vip/${serverId}/grant`,
+          {
+            method: "POST",
+            body: {
+              steam_id: this.vipForm.steam_id.trim(),
+              duration: this.vipForm.duration,
+            },
+          },
+        );
+        this.vipForm.steam_id = "";
+        return String(
+          this.$t(
+            result.listed
+              ? "pages.public_servers.vip_admin.added"
+              : "pages.public_servers.vip_admin.added_unlisted",
+          ),
+        );
+      });
+    },
+    revokeVip(steamId: string) {
+      if (
+        !window.confirm(
+          String(this.$t("pages.public_servers.vip_admin.remove_confirm")),
+        )
+      ) {
+        return;
+      }
+      return this.runVipAction(async (serverId) => {
+        await hostedApi(`/hosted-servers/vip/${serverId}/revoke`, {
+          method: "POST",
+          body: { steam_id: steamId },
+        });
+        return String(this.$t("pages.public_servers.vip_admin.removed"));
+      });
+    },
+    syncVips() {
+      return this.runVipAction(async (serverId) => {
+        const result = await hostedApi<{
+          imported: number;
+          removed: number;
+          unregistered: number;
+        }>(`/hosted-servers/vip/${serverId}/sync`, { method: "POST" });
+        return String(
+          this.$t("pages.public_servers.vip_admin.synced", {
+            imported: result.imported,
+            removed: result.removed,
+            unregistered: result.unregistered,
+          }),
+        );
+      });
     },
     matchingMode(servers: Array<Record<string, any>>) {
       if (this.modeFilter === "all") {

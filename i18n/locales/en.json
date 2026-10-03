@@ -3614,7 +3614,26 @@
       "vip_permanent": "Permanent",
       "vip_remaining_days": "{days}d {hours}h",
       "vip_remaining_hours": "{hours}h {mins}m",
-      "vip_remaining_mins": "{mins}m"
+      "vip_remaining_mins": "{mins}m",
+      "vip_admin": {
+        "placeholder": "SteamID64 or profile link",
+        "add": "Add VIP",
+        "added": "VIP granted",
+        "added_unlisted": "VIP granted on the server. This player has never signed in to the site, so they are not shown in the list.",
+        "remove": "Remove VIP",
+        "remove_confirm": "Remove this player's VIP on this server?",
+        "removed": "VIP removed",
+        "sync": "Sync from server",
+        "synced": "Synced: {imported} on the server, {removed} removed from the list, {unregistered} not signed up on the site",
+        "hint": "Changes go to the server over RCON, so it must be online. Adding time to an existing VIP extends it.",
+        "durations": {
+          "1d": "1 day",
+          "7d": "7 days",
+          "30d": "30 days",
+          "90d": "90 days",
+          "perm": "Permanent"
+        }
+      }
     },
     "map_pools": {
       "title": "Map Pools",
