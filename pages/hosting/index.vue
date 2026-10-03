@@ -37,6 +37,7 @@ import {
 import {
   hostedApi,
   hostedErrorMessage,
+  type HostedCheckoutResult,
   type HostedOverview,
   type HostedPlan,
   type HostedServer,
@@ -45,6 +46,8 @@ import { useAuthStore } from "~/stores/AuthStore";
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();
+const router = useRouter();
+const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 const overview = ref<HostedOverview | null>(null);
 const myServers = ref<HostedServer[]>([]);
@@ -102,7 +105,12 @@ function openBuy(plan: HostedPlan) {
   buyOpen.value = true;
 }
 
-async function pay() {
+const canAffordPlan = computed(() => {
+  const price = Number(buyPlan.value?.price_ypoint || 0);
+  return price > 0 && (ypointBalance.value ?? 0) >= price;
+});
+
+async function pay(payWith: "bale" | "ypoint" = "bale") {
   if (!buyPlan.value || paying.value) return;
   if (!termsAccepted.value) {
     toast({ variant: "destructive", title: t("pages.store.terms_required") });
@@ -110,7 +118,7 @@ async function pay() {
   }
   paying.value = true;
   try {
-    const result = await hostedApi<{ deepLink: string }>(
+    const result = await hostedApi<HostedCheckoutResult>(
       "/hosted-servers/checkout",
       {
         method: "POST",
@@ -119,10 +127,21 @@ async function pay() {
           type: buyType.value,
           label: buyLabel.value,
           termsAccepted: true,
+          payWith,
         },
       },
     );
     buyOpen.value = false;
+    if (result.paid) {
+      toast({ title: t("pages.hosting.ypoint_paid") });
+      void refreshYpoints();
+      if (result.hostedServerId) {
+        await router.push(`/hosting/${result.hostedServerId}`);
+      } else {
+        await refresh();
+      }
+      return;
+    }
     toast({
       title: t("pages.store.checkout_started"),
       description: t("pages.hosting.checkout_hint"),
@@ -141,6 +160,7 @@ async function pay() {
 
 onMounted(() => {
   void refresh();
+  void refreshYpoints();
 });
 </script>
 
@@ -218,9 +238,22 @@ onMounted(() => {
                 {{ plan.description }}
               </p>
               <div class="mt-auto flex items-center justify-between gap-3">
-                <span class="font-mono text-sm font-semibold tabular-nums">
-                  {{ formatPrice(plan.price_irr) }}
-                </span>
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-mono text-sm font-semibold tabular-nums">
+                    {{ formatPrice(plan.price_irr) }}
+                  </span>
+                  <span
+                    v-if="plan.price_ypoint"
+                    class="inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
+                  >
+                    <img
+                      src="/img/ypoint-logo.png"
+                      alt="Ypoint"
+                      class="h-3.5 w-3.5 object-contain"
+                    />
+                    {{ plan.price_ypoint }}
+                  </span>
+                </div>
                 <Button
                   type="button"
                   size="sm"
@@ -351,9 +384,26 @@ onMounted(() => {
             {{ $t("common.cancel") }}
           </Button>
           <Button
+            v-if="buyPlan?.price_ypoint"
+            type="button"
+            variant="outline"
+            :disabled="paying || !termsAccepted || !canAffordPlan"
+            :title="
+              canAffordPlan ? undefined : $t('pages.store.ypoint_not_enough')
+            "
+            @click="pay('ypoint')"
+          >
+            <img
+              src="/img/ypoint-logo.png"
+              alt=""
+              class="h-4 w-4 object-contain"
+            />
+            {{ $t("pages.store.pay_with_ypoint", { n: buyPlan.price_ypoint }) }}
+          </Button>
+          <Button
             type="button"
             :disabled="paying || !termsAccepted"
-            @click="pay"
+            @click="pay('bale')"
           >
             {{
               paying
@@ -362,6 +412,12 @@ onMounted(() => {
             }}
           </Button>
         </DialogFooter>
+        <p
+          v-if="buyPlan?.price_ypoint && ypointBalance !== null"
+          class="m-0 text-end text-xs text-muted-foreground"
+        >
+          {{ $t("pages.store.ypoint_balance_hint", { n: ypointBalance }) }}
+        </p>
       </DialogScrollContent>
     </Dialog>
   </div>

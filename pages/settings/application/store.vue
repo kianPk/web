@@ -63,6 +63,7 @@ type Product = {
   vip_duration: string | null;
   subscription_tier: string | null;
   hosted_slots: number | null;
+  price_ypoint: number | null;
 };
 
 type DedicatedServer = {
@@ -97,6 +98,7 @@ const emptyForm = () => ({
   vip_duration: "30d",
   subscription_tier: "" as string,
   hosted_slots: null as number | null,
+  price_ypoint: null as number | null,
 });
 
 const form = reactive(emptyForm());
@@ -117,6 +119,7 @@ const LIST_QUERY = gql`
       vip_duration
       subscription_tier
       hosted_slots
+      price_ypoint
     }
   }
 `;
@@ -191,6 +194,7 @@ function openEdit(product: Product) {
     vip_duration: product.vip_duration || "30d",
     subscription_tier: product.subscription_tier || "",
     hosted_slots: product.hosted_slots,
+    price_ypoint: product.price_ypoint,
   });
   dialogOpen.value = true;
 }
@@ -255,6 +259,10 @@ async function save() {
         ? null
         : form.subscription_tier.trim() || null,
       hosted_slots: hostedSlots,
+      price_ypoint:
+        Number(form.ypoint_amount) > 0
+          ? null
+          : Math.max(0, Math.round(Number(form.price_ypoint) || 0)) || null,
       updated_at: new Date().toISOString(),
     };
     if (!object.title || !object.slug) {
@@ -427,6 +435,18 @@ onMounted(() => {
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="truncate font-medium">{{ product.title }}</span>
                   <Badge variant="outline">{{ formatPrice(product.price_irr) }}</Badge>
+                  <Badge
+                    v-if="product.price_ypoint"
+                    variant="outline"
+                    class="inline-flex items-center gap-1"
+                  >
+                    <img
+                      src="/img/ypoint-logo.png"
+                      alt=""
+                      class="h-3.5 w-3.5 object-contain"
+                    />
+                    {{ product.price_ypoint }}
+                  </Badge>
                   <Badge v-if="product.ypoint_amount" variant="secondary" class="inline-flex items-center gap-1">
                     <img
                       src="/img/ypoint-logo.png"
@@ -547,6 +567,23 @@ onMounted(() => {
                 placeholder="0"
               />
             </div>
+          </div>
+          <div class="space-y-2">
+            <Label>{{
+              $t("pages.settings.application.store.fields.price_ypoint")
+            }}</Label>
+            <Input
+              v-model.number="form.price_ypoint"
+              type="number"
+              min="0"
+              :disabled="Number(form.ypoint_amount) > 0"
+              :placeholder="
+                $t('pages.settings.application.store.fields.price_ypoint_placeholder')
+              "
+            />
+            <p class="m-0 text-xs text-muted-foreground">
+              {{ $t("pages.settings.application.store.fields.price_ypoint_hint") }}
+            </p>
           </div>
           <div class="space-y-2">
             <Label>{{

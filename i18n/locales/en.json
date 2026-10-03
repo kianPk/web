@@ -2744,7 +2744,10 @@
             "vip_server_none": "None (no VIP grant)",
             "vip_duration": "VIP duration",
             "subscription_tier": "Site subscription (Challenges)",
-            "subscription_none": "No Challenges subscription"
+            "subscription_none": "No Challenges subscription",
+            "price_ypoint": "Price in Ypoint (optional)",
+            "price_ypoint_placeholder": "Empty = Bale only",
+            "price_ypoint_hint": "If set, players can also buy this product with Ypoints. Ypoint packs cannot be bought with Ypoints."
           },
           "bale": {
             "title": "Bale Pay",
@@ -5139,7 +5142,12 @@
       "checkout_failed": "Checkout failed",
       "price": "{amount} Toman",
       "vip_badge": "VIP {duration}",
-      "bale_rial_note": "Note: Bale invoices are in Rials — e.g. 100,000 Toman = 1,000,000 Rials."
+      "bale_rial_note": "Note: Bale invoices are in Rials — e.g. 100,000 Toman = 1,000,000 Rials.",
+      "pay_with_ypoint": "Pay {n} Ypoint",
+      "or_ypoint": "or {n} Ypoint",
+      "ypoint_balance_hint": "Your balance: {n} Ypoint",
+      "ypoint_not_enough": "Not enough Ypoints",
+      "ypoint_paid": "Purchase complete, paid with Ypoints"
     },
     "challenges": {
       "title": "Challenges",
@@ -5416,7 +5424,9 @@
         "plan_delete_confirm": "Delete this plan?",
         "plan_deleted": "Plan deleted",
         "plan_archived": "This plan has orders, so it was hidden instead of deleted"
-      }
+      },
+      "ypoint_paid": "Paid with Ypoints, your server is being created",
+      "ypoint_renewed": "Renewed with Ypoints"
     }
   },
   "ypoint": {

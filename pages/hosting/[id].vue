@@ -44,6 +44,7 @@ import {
   hostedApi,
   hostedConnectCommand,
   hostedErrorMessage,
+  type HostedCheckoutResult,
   type HostedOverview,
   type HostedServer,
 } from "~/composables/useHostedServers";
@@ -80,6 +81,7 @@ const mapToLoad = ref("de_mirage");
 const renewOpen = ref(false);
 const renewPlanId = ref("");
 const renewTerms = ref(false);
+const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 const isActive = computed(() => server.value?.status === "active");
 const connectCommand = computed(() =>
@@ -90,6 +92,13 @@ const renewPlans = computed(() =>
     (plan) => plan.hosted_slots === server.value?.slots,
   ),
 );
+const renewPlan = computed(
+  () => renewPlans.value.find((plan) => plan.id === renewPlanId.value) || null,
+);
+const canAffordRenew = computed(() => {
+  const price = Number(renewPlan.value?.price_ypoint || 0);
+  return price > 0 && (ypointBalance.value ?? 0) >= price;
+});
 const canRenew = computed(
   () =>
     !!server.value &&
@@ -213,9 +222,9 @@ function openRenew() {
   renewOpen.value = true;
 }
 
-function renew() {
+function renew(payWith: "bale" | "ypoint" = "bale") {
   return run("renew", async () => {
-    const result = await hostedApi<{ deepLink: string }>(
+    const result = await hostedApi<HostedCheckoutResult>(
       "/hosted-servers/checkout",
       {
         method: "POST",
@@ -223,10 +232,17 @@ function renew() {
           productId: renewPlanId.value,
           hostedServerId: hostedId.value,
           termsAccepted: true,
+          payWith,
         },
       },
     );
     renewOpen.value = false;
+    if (result.paid) {
+      toast({ title: t("pages.hosting.ypoint_renewed") });
+      void refreshYpoints();
+      await load(true);
+      return;
+    }
     toast({
       title: t("pages.store.checkout_started"),
       description: t("pages.hosting.checkout_hint"),
@@ -244,6 +260,7 @@ function formatPrice(irr: number) {
 
 let poll: number | undefined;
 onMounted(async () => {
+  void refreshYpoints();
   await load();
   try {
     overview.value = await hostedApi<HostedOverview>(
@@ -545,8 +562,21 @@ onUnmounted(() => window.clearInterval(poll));
             <span class="text-sm font-medium">
               {{ plan.title }} · {{ formatHostedDuration(plan.duration, t) }}
             </span>
-            <span class="font-mono text-sm tabular-nums">
+            <span
+              class="flex flex-col items-end font-mono text-sm tabular-nums"
+            >
               {{ formatPrice(plan.price_irr) }}
+              <span
+                v-if="plan.price_ypoint"
+                class="inline-flex items-center gap-1 text-xs text-[hsl(var(--tac-amber))]"
+              >
+                <img
+                  src="/img/ypoint-logo.png"
+                  alt="Ypoint"
+                  class="h-3.5 w-3.5 object-contain"
+                />
+                {{ plan.price_ypoint }}
+              </span>
             </span>
           </button>
           <button
@@ -569,12 +599,36 @@ onUnmounted(() => window.clearInterval(poll));
             {{ $t("common.cancel") }}
           </Button>
           <Button
+            v-if="renewPlan?.price_ypoint"
+            variant="outline"
+            :disabled="!!busy || !renewTerms || !canAffordRenew"
+            :title="
+              canAffordRenew ? undefined : $t('pages.store.ypoint_not_enough')
+            "
+            @click="renew('ypoint')"
+          >
+            <img
+              src="/img/ypoint-logo.png"
+              alt=""
+              class="h-4 w-4 object-contain"
+            />
+            {{
+              $t("pages.store.pay_with_ypoint", { n: renewPlan.price_ypoint })
+            }}
+          </Button>
+          <Button
             :disabled="!!busy || !renewTerms || !renewPlanId"
-            @click="renew"
+            @click="renew('bale')"
           >
             {{ $t("pages.store.pay_with_bale") }}
           </Button>
         </DialogFooter>
+        <p
+          v-if="renewPlan?.price_ypoint && ypointBalance !== null"
+          class="m-0 text-end text-xs text-muted-foreground"
+        >
+          {{ $t("pages.store.ypoint_balance_hint", { n: ypointBalance }) }}
+        </p>
       </DialogScrollContent>
     </Dialog>
   </div>

@@ -30,6 +30,7 @@ type Product = {
   slug: string;
   description: string;
   price_irr: number;
+  price_ypoint: number | null;
   image_url: string | null;
   ypoint_amount: number | null;
   vip_duration: string | null;
@@ -60,6 +61,7 @@ const PRODUCTS_QUERY = gql`
       slug
       description
       price_irr
+      price_ypoint
       image_url
       ypoint_amount
       vip_duration
@@ -73,6 +75,25 @@ const cartCount = computed(() =>
 );
 const cartTotalIrr = computed(() =>
   cart.value.reduce((sum, line) => sum + line.product.price_irr * line.qty, 0),
+);
+// Ypoint packs are never sold for Ypoints, so a cart holding one is Bale-only.
+const cartPayableWithYpoint = computed(
+  () =>
+    cart.value.length > 0 &&
+    cart.value.every(
+      (line) =>
+        Number(line.product.price_ypoint) > 0 &&
+        !Number(line.product.ypoint_amount),
+    ),
+);
+const cartTotalYpoint = computed(() =>
+  cart.value.reduce(
+    (sum, line) => sum + Number(line.product.price_ypoint || 0) * line.qty,
+    0,
+  ),
+);
+const canAffordCart = computed(
+  () => (ypointBalance.value ?? 0) >= cartTotalYpoint.value,
 );
 
 async function refresh() {
@@ -286,6 +307,47 @@ async function payWithBale() {
   }
 }
 
+async function payWithYpoint() {
+  if (paying.value) return;
+  if (!termsAccepted.value) {
+    toast({
+      variant: "destructive",
+      title: t("pages.store.terms_required"),
+    });
+    return;
+  }
+  const productIds = cart.value.flatMap((line) =>
+    Array.from({ length: line.qty }, () => line.product.id),
+  );
+  if (!productIds.length) return;
+  paying.value = true;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    await $fetch(`https://${apiDomain}/store/ypoint-checkout`, {
+      method: "POST",
+      credentials: "include",
+      body: { productIds, termsAccepted: true },
+    });
+    cart.value = [];
+    checkoutOpen.value = false;
+    termsAccepted.value = false;
+    toast({ title: t("pages.store.ypoint_paid") });
+    void refreshYpoints();
+  } catch (error: any) {
+    const message =
+      error?.data?.message || error?.statusMessage || error?.message || error;
+    toast({
+      variant: "destructive",
+      title: t("pages.store.checkout_failed"),
+      description: Array.isArray(message)
+        ? message.join(", ")
+        : String(message),
+    });
+  } finally {
+    paying.value = false;
+  }
+}
+
 onMounted(() => {
   void refresh();
   void refreshYpoints();
@@ -322,7 +384,9 @@ onMounted(() => {
       </div>
 
       <Empty v-else-if="products.length === 0">
-        <h2 class="m-0 text-lg font-semibold">{{ $t("pages.store.empty_title") }}</h2>
+        <h2 class="m-0 text-lg font-semibold">
+          {{ $t("pages.store.empty_title") }}
+        </h2>
         <p class="m-0 text-sm text-muted-foreground">
           {{ $t("pages.store.empty_body") }}
         </p>
@@ -366,6 +430,17 @@ onMounted(() => {
                   {{ formatPrice(product.price_irr) }}
                 </span>
                 <span
+                  v-if="product.price_ypoint && !product.ypoint_amount"
+                  class="inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
+                >
+                  <img
+                    src="/img/ypoint-logo.png"
+                    alt="Ypoint"
+                    class="h-3.5 w-3.5 object-contain"
+                  />
+                  {{ $t("pages.store.or_ypoint", { n: product.price_ypoint }) }}
+                </span>
+                <span
                   v-if="product.ypoint_amount"
                   class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
                 >
@@ -393,7 +468,11 @@ onMounted(() => {
                   v-if="product.vip_duration"
                   class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground"
                 >
-                  {{ $t("pages.store.vip_badge", { duration: product.vip_duration }) }}
+                  {{
+                    $t("pages.store.vip_badge", {
+                      duration: product.vip_duration,
+                    })
+                  }}
                 </span>
               </div>
               <Button type="button" size="sm" @click="addToCart(product)">
@@ -446,7 +525,9 @@ onMounted(() => {
           </DialogHeader>
         </div>
 
-        <div class="max-h-[min(70vh,560px)] space-y-5 overflow-y-auto px-5 py-4">
+        <div
+          class="max-h-[min(70vh,560px)] space-y-5 overflow-y-auto px-5 py-4"
+        >
           <!-- Cart lines -->
           <ul class="m-0 list-none space-y-2 p-0">
             <li
@@ -487,9 +568,7 @@ onMounted(() => {
                 >
                   <Minus class="h-3.5 w-3.5" />
                 </Button>
-                <span
-                  class="w-5 text-center font-mono text-sm tabular-nums"
-                >
+                <span class="w-5 text-center font-mono text-sm tabular-nums">
                   {{ line.qty }}
                 </span>
                 <Button
@@ -522,10 +601,29 @@ onMounted(() => {
             >
               {{ $t("pages.store.total") }}
             </span>
-            <span class="font-mono text-base font-semibold tabular-nums">
-              {{ formatPrice(cartTotalIrr) }}
+            <span class="flex flex-col items-end">
+              <span class="font-mono text-base font-semibold tabular-nums">
+                {{ formatPrice(cartTotalIrr) }}
+              </span>
+              <span
+                v-if="cartPayableWithYpoint"
+                class="inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
+              >
+                <img
+                  src="/img/ypoint-logo.png"
+                  alt="Ypoint"
+                  class="h-3.5 w-3.5 object-contain"
+                />
+                {{ $t("pages.store.or_ypoint", { n: cartTotalYpoint }) }}
+              </span>
             </span>
           </div>
+          <p
+            v-if="cartPayableWithYpoint && ypointBalance !== null"
+            class="m-0 text-end text-xs text-muted-foreground"
+          >
+            {{ $t("pages.store.ypoint_balance_hint", { n: ypointBalance }) }}
+          </p>
 
           <!-- Terms -->
           <section class="space-y-2.5">
@@ -567,7 +665,7 @@ onMounted(() => {
         </div>
 
         <DialogFooter
-          class="flex-row gap-2 border-t border-border bg-background px-5 py-3.5 sm:justify-between"
+          class="flex-row flex-wrap gap-2 border-t border-border bg-background px-5 py-3.5 sm:justify-between"
         >
           <Button
             type="button"
@@ -577,6 +675,23 @@ onMounted(() => {
             @click="checkoutOpen = false"
           >
             {{ $t("common.cancel") }}
+          </Button>
+          <Button
+            v-if="cartPayableWithYpoint"
+            type="button"
+            variant="outline"
+            :disabled="paying || !termsAccepted || !canAffordCart"
+            :title="
+              canAffordCart ? undefined : $t('pages.store.ypoint_not_enough')
+            "
+            @click="payWithYpoint"
+          >
+            <img
+              src="/img/ypoint-logo.png"
+              alt=""
+              class="h-4 w-4 object-contain"
+            />
+            {{ $t("pages.store.pay_with_ypoint", { n: cartTotalYpoint }) }}
           </Button>
           <Button
             type="button"

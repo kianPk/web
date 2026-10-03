@@ -3,6 +3,7 @@ export type HostedPlan = {
   title: string;
   description: string;
   price_irr: number;
+  price_ypoint: number | null;
   image_url: string | null;
   hosted_slots: number;
   duration: string;
@@ -12,11 +13,16 @@ export type HostedAdminPlan = {
   id: string;
   title: string;
   price_irr: number;
+  price_ypoint: number | null;
   hosted_slots: number;
   duration: string;
   active: boolean;
   servers: number;
 };
+
+export type HostedCheckoutResult =
+  | { paid: false; deepLink: string }
+  | { paid: true; hostedServerId: string | null; balance: number };
 
 export type HostedOverview = {
   enabled: boolean;

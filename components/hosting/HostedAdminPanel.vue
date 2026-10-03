@@ -237,6 +237,9 @@ onMounted(() => {
                   {{ $t("pages.hosting.slots", { n: plan.hosted_slots }) }}
                   · {{ formatHostedDuration(plan.duration, t) }} ·
                   {{ formatPrice(plan.price_irr) }}
+                  <span v-if="plan.price_ypoint">
+                    · {{ plan.price_ypoint }} Ypoint
+                  </span>
                 </div>
               </td>
               <td class="p-2">
