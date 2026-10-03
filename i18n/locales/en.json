@@ -5450,7 +5450,7 @@
       "admins": {
         "title": "In-game admins",
         "description": "Admins can use these commands in chat (with ! or /) on your server. You are always an admin. Changes apply within a few seconds. The YGuardAdmin plugin must be installed on the server.",
-        "placeholder": "SteamID64 or steamcommunity.com/profiles/… link",
+        "placeholder": "SteamID64 or Steam profile link (custom /id/ links work too)",
         "add": "Add admin",
         "added": "Admin added",
         "removed": "Admin removed",
