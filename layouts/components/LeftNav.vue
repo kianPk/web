@@ -30,6 +30,7 @@ import {
   ShoppingBag,
   Wallet,
   Target,
+  Headset,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -55,6 +56,8 @@ const {
 const hasLeagueSeason = computed(() => !!currentLeagueSeason.value);
 const { pendingImports: pendingMatchImports } = usePendingImports();
 const matchContext = useMatchContext();
+const teamspeakAddress = "tsww.ir:6857";
+const teamspeakUrl = "ts3server://tsww.ir?port=6857";
 const logoPath = computed(() => (authStore.me ? "/me" : "/watch"));
 const isLogoRouteActive = computed(() => {
   if (logoPath.value === "/me") {
@@ -319,6 +322,26 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Server />
                   {{ $t("layouts.app_nav.navigation.public_servers") }}
                 </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                tooltip="TeamSpeak"
+                class="bg-blue-600 font-semibold text-white shadow-sm shadow-blue-600/40 hover:bg-blue-500 hover:text-white active:bg-blue-700 active:text-white"
+              >
+                <a :href="teamspeakUrl" @click="setOpenMobile(false)">
+                  <Headset />
+                  <span>TeamSpeak</span>
+                  <span
+                    v-if="isMobile || sideBarOpen"
+                    class="ml-auto text-xs font-normal text-blue-100"
+                    dir="ltr"
+                  >
+                    {{ teamspeakAddress }}
+                  </span>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
