@@ -2721,10 +2721,8 @@
           "active": "Active",
           "inactive": "Inactive",
           "delete_title": "Delete product?",
-          "delete_body": "Remove \"{title}\" from the store catalog. If it already has orders, it will be deactivated instead so order history stays intact.",
+          "delete_body": "Remove \"{title}\" from the store permanently. Past orders stay in the payment history.",
           "deleted": "Product deleted",
-          "archived_title": "Product deactivated",
-          "archived_body": "This product has past orders, so it was hidden from the store instead of deleted.",
           "errors": {
             "required": "Title and slug are required."
           },
@@ -5422,8 +5420,7 @@
         "plan_disable": "Hide",
         "plan_servers": "{n} servers sold",
         "plan_delete_confirm": "Delete this plan?",
-        "plan_deleted": "Plan deleted",
-        "plan_archived": "This plan has orders, so it was hidden instead of deleted"
+        "plan_deleted": "Plan deleted"
       },
       "ypoint_paid": "Paid with Ypoints, your server is being created",
       "ypoint_renewed": "Renewed with Ypoints"

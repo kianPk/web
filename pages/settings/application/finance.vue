@@ -33,6 +33,7 @@ type OrderRow = {
   created_at: string;
   paid_at: string | null;
   buyer_steam_id: string;
+  product_title: string | null;
   buyer?: { name: string | null; avatar_url: string | null } | null;
   product?: { title: string; ypoint_amount: number | null } | null;
 };
@@ -106,6 +107,7 @@ const ORDERS_QUERY = gql`
       created_at
       paid_at
       buyer_steam_id
+      product_title
       buyer {
         name
         avatar_url
@@ -627,7 +629,7 @@ function tierLabel(tier: string) {
                     </div>
                   </td>
                   <td class="px-3 py-2">
-                    {{ row.product?.title || "—" }}
+                    {{ row.product?.title || row.product_title || "—" }}
                     <Badge
                       v-if="row.product?.ypoint_amount"
                       variant="secondary"

@@ -156,15 +156,10 @@ function setPlanActive(plan: HostedAdminPlan, active: boolean) {
 function removePlan(plan: HostedAdminPlan) {
   if (!window.confirm(t("pages.hosting.admin.plan_delete_confirm"))) return;
   return act(async () => {
-    const result = await hostedApi<{ archived: boolean }>(
-      `/hosted-servers/admin/plans/${plan.id}/delete`,
-      { method: "POST" },
-    );
-    toast({
-      title: result.archived
-        ? t("pages.hosting.admin.plan_archived")
-        : t("pages.hosting.admin.plan_deleted"),
+    await hostedApi(`/hosted-servers/admin/plans/${plan.id}/delete`, {
+      method: "POST",
     });
+    toast({ title: t("pages.hosting.admin.plan_deleted") });
   });
 }
 
