@@ -5407,7 +5407,7 @@
         "unsuspend": "Unsuspend",
         "retry": "Retry",
         "delete": "Delete",
-        "delete_confirm": "Delete this server permanently?",
+        "delete_confirm": "Delete this server completely? The game server and its record are removed.",
         "gslt_prompt": "GSLT for this server (empty to clear)",
         "hosted_slots": "Hosted server slots",
         "hosted_slots_hint": "Set 2–64 to sell this product as a rented server; the duration field is the rental period. Hosted plans only show on the Buy a server page.",
@@ -5420,7 +5420,11 @@
         "plan_disable": "Hide",
         "plan_servers": "{n} servers sold",
         "plan_delete_confirm": "Delete this plan?",
-        "plan_deleted": "Plan deleted"
+        "plan_deleted": "Plan deleted",
+        "servers_title": "Hosted servers ({n})",
+        "show_deleted": "Show deleted ({n})",
+        "hide_deleted": "Hide deleted",
+        "server_deleted": "Server deleted"
       },
       "ypoint_paid": "Paid with Ypoints, your server is being created",
       "ypoint_renewed": "Renewed with Ypoints"

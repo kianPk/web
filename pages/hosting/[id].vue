@@ -9,7 +9,9 @@ import {
   RotateCcw,
   Send,
   Terminal,
+  Trash2,
 } from "lucide-vue-next";
+import { useAuthStore } from "~/stores/AuthStore";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
@@ -65,6 +67,8 @@ const MAPS = [
 
 const { t, locale } = useI18n();
 const route = useRoute();
+const router = useRouter();
+const isAdmin = computed(() => useAuthStore().isAdmin);
 const hostedId = computed(() => String(route.params.id));
 
 const server = ref<HostedServer | null>(null);
@@ -214,6 +218,17 @@ async function copyConnect() {
   if (!connectCommand.value) return;
   await navigator.clipboard.writeText(connectCommand.value);
   toast({ title: t("pages.hosting.panel.copied") });
+}
+
+function adminDelete() {
+  if (!window.confirm(t("pages.hosting.admin.delete_confirm"))) return;
+  return run("delete", async () => {
+    await hostedApi(`/hosted-servers/admin/${hostedId.value}/purge`, {
+      method: "POST",
+    });
+    toast({ title: t("pages.hosting.admin.server_deleted") });
+    await router.push("/hosting");
+  });
 }
 
 function openRenew() {
@@ -409,6 +424,16 @@ onUnmounted(() => window.clearInterval(poll));
             >
               <RefreshCw class="me-1.5 h-3.5 w-3.5" />
               {{ $t("pages.hosting.panel.renew") }}
+            </Button>
+            <Button
+              v-if="isAdmin"
+              size="sm"
+              variant="destructive"
+              :disabled="!!busy"
+              @click="adminDelete"
+            >
+              <Trash2 class="me-1.5 h-3.5 w-3.5" />
+              {{ $t("pages.hosting.admin.delete") }}
             </Button>
           </div>
         </section>

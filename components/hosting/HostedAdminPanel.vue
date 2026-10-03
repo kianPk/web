@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -26,6 +26,15 @@ const { t, locale } = useI18n();
 
 const plans = ref<HostedAdminPlan[]>([]);
 const servers = ref<HostedServer[]>([]);
+const showDeleted = ref(false);
+const deletedCount = computed(
+  () => servers.value.filter((s) => s.status === "deleted").length,
+);
+const visibleServers = computed(() =>
+  showDeleted.value
+    ? servers.value
+    : servers.value.filter((s) => s.status !== "deleted"),
+);
 const settings = ref<HostedAdminSettings | null>(null);
 const form = ref({
   enabled: true,
@@ -121,9 +130,12 @@ function retry(server: HostedServer) {
 
 function remove(server: HostedServer) {
   if (!window.confirm(t("pages.hosting.admin.delete_confirm"))) return;
-  return act(() =>
-    hostedApi(`/hosted-servers/admin/${server.id}/delete`, { method: "POST" }),
-  );
+  return act(async () => {
+    await hostedApi(`/hosted-servers/admin/${server.id}/purge`, {
+      method: "POST",
+    });
+    toast({ title: t("pages.hosting.admin.server_deleted") });
+  });
 }
 
 function setGslt(server: HostedServer) {
@@ -281,6 +293,28 @@ onMounted(() => {
       </div>
     </div>
 
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h3 class="m-0 text-base font-semibold">
+        {{
+          $t("pages.hosting.admin.servers_title", {
+            n: servers.length - deletedCount,
+          })
+        }}
+      </h3>
+      <Button
+        v-if="deletedCount"
+        size="sm"
+        variant="ghost"
+        @click="showDeleted = !showDeleted"
+      >
+        {{
+          showDeleted
+            ? $t("pages.hosting.admin.hide_deleted")
+            : $t("pages.hosting.admin.show_deleted", { n: deletedCount })
+        }}
+      </Button>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="text-xs text-muted-foreground">
@@ -303,7 +337,7 @@ onMounted(() => {
         </thead>
         <tbody>
           <tr
-            v-for="server in servers"
+            v-for="server in visibleServers"
             :key="server.id"
             class="border-b border-border/60"
           >
@@ -391,7 +425,6 @@ onMounted(() => {
                   {{ $t("pages.hosting.admin.retry") }}
                 </Button>
                 <Button
-                  v-if="server.status !== 'deleted'"
                   size="sm"
                   variant="destructive"
                   :disabled="busy"
@@ -405,7 +438,7 @@ onMounted(() => {
         </tbody>
       </table>
       <p
-        v-if="!servers.length"
+        v-if="!visibleServers.length"
         class="m-0 py-4 text-center text-sm text-muted-foreground"
       >
         {{ $t("pages.hosting.no_servers") }}
