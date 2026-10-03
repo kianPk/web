@@ -62,6 +62,7 @@ type Product = {
   vip_server_id: string | null;
   vip_duration: string | null;
   subscription_tier: string | null;
+  hosted_slots: number | null;
 };
 
 type DedicatedServer = {
@@ -95,6 +96,7 @@ const emptyForm = () => ({
   vip_server_id: "" as string,
   vip_duration: "30d",
   subscription_tier: "" as string,
+  hosted_slots: null as number | null,
 });
 
 const form = reactive(emptyForm());
@@ -114,6 +116,7 @@ const LIST_QUERY = gql`
       vip_server_id
       vip_duration
       subscription_tier
+      hosted_slots
     }
   }
 `;
@@ -187,6 +190,7 @@ function openEdit(product: Product) {
     vip_server_id: product.vip_server_id || "",
     vip_duration: product.vip_duration || "30d",
     subscription_tier: product.subscription_tier || "",
+    hosted_slots: product.hosted_slots,
   });
   dialogOpen.value = true;
 }
@@ -228,6 +232,8 @@ async function save() {
   if (submitting.value) return;
   submitting.value = true;
   try {
+    const rawSlots = Math.round(Number(form.hosted_slots) || 0);
+    const hostedSlots = rawSlots >= 2 && rawSlots <= 64 ? rawSlots : null;
     const object = {
       title: form.title.trim(),
       slug: (form.slug || slugify(form.title)).trim(),
@@ -240,12 +246,15 @@ async function save() {
       image_url: form.image_url.trim() || null,
       active: form.active,
       sort_order: Math.round(Number(form.sort_order) || 0),
-      vip_server_id: form.vip_server_id.trim() || null,
+      vip_server_id: hostedSlots ? null : form.vip_server_id.trim() || null,
       vip_duration:
-        form.vip_server_id.trim() || form.subscription_tier.trim()
+        hostedSlots || form.vip_server_id.trim() || form.subscription_tier.trim()
           ? form.vip_duration.trim() || "30d"
           : null,
-      subscription_tier: form.subscription_tier.trim() || null,
+      subscription_tier: hostedSlots
+        ? null
+        : form.subscription_tier.trim() || null,
+      hosted_slots: hostedSlots,
       updated_at: new Date().toISOString(),
     };
     if (!object.title || !object.slug) {
@@ -432,6 +441,10 @@ onMounted(() => {
                   <Badge v-if="product.subscription_tier" variant="outline">
                     {{ product.subscription_tier }}
                   </Badge>
+                  <Badge v-if="product.hosted_slots" variant="secondary">
+                    {{ $t("pages.hosting.slots", { n: product.hosted_slots }) }}
+                    · {{ product.vip_duration || "30d" }}
+                  </Badge>
                   <Badge :variant="product.active ? 'default' : 'secondary'">
                     {{
                       product.active
@@ -609,16 +622,33 @@ onMounted(() => {
               <Label>{{
                 $t("pages.settings.application.store.fields.vip_duration")
               }}</Label>
-              <Input
+                <Input
                 v-model="form.vip_duration"
                 placeholder="30d"
-                :disabled="!form.vip_server_id && !form.subscription_tier"
+                :disabled="
+                  !form.vip_server_id &&
+                  !form.subscription_tier &&
+                  !form.hosted_slots
+                "
               />
             </div>
           </div>
           <p class="text-xs text-muted-foreground">
             {{ $t("pages.settings.application.store.vip_hint") }}
           </p>
+          <div class="space-y-2">
+            <Label>{{ $t("pages.hosting.admin.hosted_slots") }}</Label>
+            <Input
+              v-model.number="form.hosted_slots"
+              type="number"
+              min="2"
+              max="64"
+              placeholder="—"
+            />
+            <p class="text-xs text-muted-foreground">
+              {{ $t("pages.hosting.admin.hosted_slots_hint") }}
+            </p>
+          </div>
           <div class="flex items-center justify-between rounded-md border px-3 py-2">
             <Label>{{ $t("pages.settings.application.store.fields.active") }}</Label>
             <Switch v-model="form.active" />

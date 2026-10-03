@@ -5317,6 +5317,100 @@
           "description": "Get 60 kills across all matches today."
         }
       }
+    },
+    "hosting": {
+      "title": "Rent a CS2 server",
+      "description": "Your own CS2 server, delivered automatically after payment and managed right here.",
+      "sales_closed": "Server sales are closed right now.",
+      "capacity_full": "All server slots are taken right now. Please check back later.",
+      "remaining": "{n} server(s) available right now.",
+      "no_plans": "No server plans are available yet.",
+      "slots": "{n} slots",
+      "buy": "Buy server",
+      "my_servers": "My servers",
+      "no_servers": "No servers yet.",
+      "expires_at": "Expires {date}",
+      "server_name": "Server name",
+      "server_name_placeholder": "My CS2 server",
+      "mode": "Game mode",
+      "checkout_hint": "Finish the payment in Bale. Your server is created automatically a minute or two after payment.",
+      "terms_1": "The server is created automatically after payment and runs until the end of the rental period.",
+      "terms_2": "Expired servers are stopped and deleted after a short grace period unless renewed.",
+      "terms_3": "Cheating, illegal content, or abusing the service ends the rental without refund.",
+      "duration": {
+        "hours": "{n} hours",
+        "days": "{n} days",
+        "weeks": "{n} weeks",
+        "months": "{n} months"
+      },
+      "status": {
+        "provisioning": "Setting up",
+        "active": "Active",
+        "expired": "Expired",
+        "suspended": "Suspended",
+        "failed": "Failed",
+        "deleted": "Deleted"
+      },
+      "modes": {
+        "Casual": "Casual",
+        "Competitive": "Competitive",
+        "Wingman": "Wingman",
+        "Deathmatch": "Deathmatch",
+        "ArmsRace": "Arms Race",
+        "Retake": "Retake",
+        "Practice": "Practice",
+        "Custom": "Custom",
+        "Ranked": "Ranked"
+      },
+      "panel": {
+        "subtitle": "Manage your server",
+        "not_found": "Server not found.",
+        "online": "Online",
+        "starting": "Starting…",
+        "stopped": "Stopped",
+        "address": "Address",
+        "expires": "Expires",
+        "players": "Players",
+        "copied": "Connect command copied",
+        "restart": "Restart",
+        "restarting": "Server is restarting",
+        "stop": "Stop",
+        "start": "Start",
+        "renew": "Renew",
+        "settings": "Server settings",
+        "password": "Join password",
+        "password_placeholder": "Empty = no password",
+        "settings_restart_note": "Saving restarts the server.",
+        "save": "Save",
+        "saved": "Saved",
+        "console": "Console (RCON)",
+        "change_map": "Change map",
+        "restart_game": "Restart match"
+      },
+      "admin": {
+        "title": "Hosted servers (admin)",
+        "sales_enabled": "Sales enabled",
+        "max_active": "Max servers",
+        "reserve_match_slots": "Keep free for matches",
+        "grace_days": "Grace days before delete",
+        "gslt_pool": "GSLT pool ({n} tokens) — replaces the list",
+        "gslt_pool_placeholder": "One token per line",
+        "steam_api_key_set": "Steam API key for auto GSLT (set) — enter to replace",
+        "steam_api_key_unset": "Steam API key for auto GSLT (not set)",
+        "steam_api_key_placeholder": "Steam Web API key of the GSLT account",
+        "owner": "Owner",
+        "status": "Status",
+        "extend": "Extend",
+        "extend_prompt": "Days to add (negative to reduce)",
+        "suspend": "Suspend",
+        "unsuspend": "Unsuspend",
+        "retry": "Retry",
+        "delete": "Delete",
+        "delete_confirm": "Delete this server permanently?",
+        "gslt_prompt": "GSLT for this server (empty to clear)",
+        "hosted_slots": "Hosted server slots",
+        "hosted_slots_hint": "Set 2–64 to sell this product as a rented server; the duration field is the rental period. Hosted plans only show on the Buy a server page."
+      }
     }
   },
   "ypoint": {
@@ -5413,7 +5507,8 @@
         "utility": "Utility",
         "teamspeak": "TeamSpeak",
         "store": "Store",
-        "challenges": "Challenges"
+        "challenges": "Challenges",
+        "hosting": "Buy a server"
       },
       "community": {
         "title": "Community"

@@ -31,6 +31,7 @@ import {
   Wallet,
   Target,
   Headset,
+  ServerCog,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -321,6 +322,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Server />
                   {{ $t("layouts.app_nav.navigation.public_servers") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.navigation.hosting')"
+              >
+                <NuxtLink
+                  :to="{ name: 'hosting' }"
+                  :class="{
+                    'router-link-active': isRouteActive('hosting'),
+                  }"
+                >
+                  <ServerCog />
+                  {{ $t("layouts.app_nav.navigation.hosting") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -52,7 +52,7 @@ const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 const PRODUCTS_QUERY = gql`
   query StoreProducts {
     store_products(
-      where: { active: { _eq: true } }
+      where: { active: { _eq: true }, hosted_slots: { _is_null: true } }
       order_by: [{ price_irr: desc }, { sort_order: asc }]
     ) {
       id
