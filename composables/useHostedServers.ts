@@ -30,6 +30,9 @@ export type HostedOverview = {
   remaining: number;
   plans: HostedPlan[];
   types: string[];
+  slot_price_irr: number;
+  slot_price_ypoint: number;
+  max_slots: number;
 };
 
 export type HostedServer = {
@@ -39,6 +42,7 @@ export type HostedServer = {
   owner_name: string | null;
   label: string;
   slots: number;
+  extra_slots: number;
   status:
     "provisioning" | "active" | "expired" | "suspended" | "failed" | "deleted";
   status_detail: string | null;
@@ -64,6 +68,17 @@ export type HostedAdminSettings = {
   grace_days: number;
   gslt_pool_size: number;
   steam_api_key_set: boolean;
+  slot_price_irr: number;
+  slot_price_ypoint: number;
+  max_slots: number;
+};
+
+export type HostedSlotsQuote = {
+  count: number;
+  days: number;
+  slots_after: number;
+  price_irr: number;
+  price_ypoint: number;
 };
 
 export function hostedErrorMessage(error: any): string {

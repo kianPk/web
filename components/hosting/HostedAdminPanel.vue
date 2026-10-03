@@ -41,6 +41,9 @@ const form = ref({
   max_active: 3,
   reserve_match_slots: 2,
   grace_days: 3,
+  slot_price_toman: 0,
+  slot_price_ypoint: 0,
+  max_slots: 32,
 });
 const busy = ref(false);
 
@@ -67,6 +70,9 @@ function applySettings(current: HostedAdminSettings) {
     max_active: current.max_active,
     reserve_match_slots: current.reserve_match_slots,
     grace_days: current.grace_days,
+    slot_price_toman: Math.round((current.slot_price_irr || 0) / 10),
+    slot_price_ypoint: current.slot_price_ypoint || 0,
+    max_slots: current.max_slots || 32,
   };
 }
 
@@ -91,6 +97,9 @@ function saveSettings() {
       max_active: Number(form.value.max_active),
       reserve_match_slots: Number(form.value.reserve_match_slots),
       grace_days: Number(form.value.grace_days),
+      slot_price_irr: Math.round(Number(form.value.slot_price_toman) * 10),
+      slot_price_ypoint: Number(form.value.slot_price_ypoint),
+      max_slots: Number(form.value.max_slots),
     };
     applySettings(
       await hostedApi<HostedAdminSettings>("/hosted-servers/admin/settings", {
@@ -211,6 +220,21 @@ onMounted(() => {
         <Label>{{ $t("pages.hosting.admin.grace_days") }}</Label>
         <Input v-model="form.grace_days" type="number" min="0" />
       </div>
+      <div class="space-y-1">
+        <Label>{{ $t("pages.hosting.admin.slot_price_toman") }}</Label>
+        <Input v-model="form.slot_price_toman" type="number" min="0" />
+      </div>
+      <div class="space-y-1">
+        <Label>{{ $t("pages.hosting.admin.slot_price_ypoint") }}</Label>
+        <Input v-model="form.slot_price_ypoint" type="number" min="0" />
+      </div>
+      <div class="space-y-1">
+        <Label>{{ $t("pages.hosting.admin.max_slots") }}</Label>
+        <Input v-model="form.max_slots" type="number" min="2" max="64" />
+      </div>
+      <p class="m-0 text-xs text-muted-foreground sm:col-span-2 lg:col-span-4">
+        {{ $t("pages.hosting.admin.slot_price_hint") }}
+      </p>
     </div>
     <Button size="sm" :disabled="busy" @click="saveSettings">
       {{ $t("pages.hosting.panel.save") }}

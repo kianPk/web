@@ -5443,7 +5443,11 @@
         "servers_title": "Hosted servers ({n})",
         "show_deleted": "Show deleted ({n})",
         "hide_deleted": "Hide deleted",
-        "server_deleted": "Server deleted"
+        "server_deleted": "Server deleted",
+        "slot_price_toman": "Extra slot price (Toman / slot / 30 days)",
+        "slot_price_ypoint": "Extra slot price (Ypoint / slot / 30 days)",
+        "max_slots": "Max slots per server",
+        "slot_price_hint": "Owners can buy extra slots for their server, charged for the days it has left. Extra slots are added to the renewal price. Set the Toman price to 0 to stop selling slots; set the Ypoint price to 0 to allow Bale only."
       },
       "ypoint_paid": "Paid with Ypoints, your server is being created",
       "ypoint_renewed": "Renewed with Ypoints",
@@ -5463,6 +5467,20 @@
         "ban_permanent": "Permanent",
         "unban": "Unban",
         "unbanned": "Player unbanned"
+      },
+      "slots_buy": {
+        "button": "Add slots",
+        "title": "Buy extra slots",
+        "description": "Extra slots stay on the server and are added to the price of every renewal.",
+        "count": "Slots to add",
+        "slots_after": "Slots",
+        "days_left": "Charged for",
+        "price": "Price",
+        "restart_note": "The server restarts once to apply the new slots.",
+        "added": "Slots added. The server is restarting.",
+        "checkout_hint": "Complete the payment in Bale. The slots are added a few minutes after payment.",
+        "extra": "{n} extra",
+        "renew_note": "The price includes your {n} extra slot(s) for the whole renewal period."
       }
     }
   },
