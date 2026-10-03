@@ -5427,7 +5427,24 @@
         "server_deleted": "Server deleted"
       },
       "ypoint_paid": "Paid with Ypoints, your server is being created",
-      "ypoint_renewed": "Renewed with Ypoints"
+      "ypoint_renewed": "Renewed with Ypoints",
+      "admins": {
+        "title": "In-game admins",
+        "description": "Admins can use these commands in chat (with ! or /) on your server. You are always an admin. Changes apply within a few seconds. The YGuardAdmin plugin must be installed on the server.",
+        "placeholder": "SteamID64 or steamcommunity.com/profiles/… link",
+        "add": "Add admin",
+        "added": "Admin added",
+        "removed": "Admin removed",
+        "remove": "Remove admin",
+        "owner": "You (owner)",
+        "unknown_player": "Player not on the site yet",
+        "bans_title": "Bans ({n})",
+        "no_bans": "Nobody is banned.",
+        "ban_until": "Until {date}",
+        "ban_permanent": "Permanent",
+        "unban": "Unban",
+        "unbanned": "Player unbanned"
+      }
     }
   },
   "ypoint": {
