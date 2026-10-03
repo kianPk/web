@@ -111,7 +111,7 @@ async function pay() {
   paying.value = true;
   try {
     const result = await hostedApi<{ deepLink: string }>(
-      "/store/hosted-checkout",
+      "/hosted-servers/checkout",
       {
         method: "POST",
         body: {

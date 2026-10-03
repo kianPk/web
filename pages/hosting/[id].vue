@@ -216,7 +216,7 @@ function openRenew() {
 function renew() {
   return run("renew", async () => {
     const result = await hostedApi<{ deepLink: string }>(
-      "/store/hosted-checkout",
+      "/hosted-servers/checkout",
       {
         method: "POST",
         body: {

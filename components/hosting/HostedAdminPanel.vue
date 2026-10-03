@@ -9,11 +9,14 @@ import { Label } from "~/components/ui/label";
 import { toast } from "~/components/ui/toast";
 import {
   formatHostedDate,
+  formatHostedDuration,
   hostedStatusVariant,
 } from "~/utilities/hostedFormat";
+import { formatTomanAmount } from "~/utilities/irrToman";
 import {
   hostedApi,
   hostedErrorMessage,
+  type HostedAdminPlan,
   type HostedAdminSettings,
   type HostedServer,
 } from "~/composables/useHostedServers";
@@ -21,6 +24,7 @@ import {
 const emit = defineEmits<{ changed: [] }>();
 const { t, locale } = useI18n();
 
+const plans = ref<HostedAdminPlan[]>([]);
 const servers = ref<HostedServer[]>([]);
 const settings = ref<HostedAdminSettings | null>(null);
 const form = ref({
@@ -33,11 +37,13 @@ const busy = ref(false);
 
 async function load() {
   try {
-    const [list, current] = await Promise.all([
+    const [list, current, planList] = await Promise.all([
       hostedApi<HostedServer[]>("/hosted-servers/admin/list"),
       hostedApi<HostedAdminSettings>("/hosted-servers/admin/settings"),
+      hostedApi<HostedAdminPlan[]>("/hosted-servers/admin/plans"),
     ]);
     servers.value = list;
+    plans.value = planList;
     applySettings(current);
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
@@ -131,6 +137,37 @@ function setGslt(server: HostedServer) {
   );
 }
 
+function formatPrice(irr: number) {
+  const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
+  return t("pages.store.price", {
+    amount: formatTomanAmount(irr, numberLocale),
+  });
+}
+
+function setPlanActive(plan: HostedAdminPlan, active: boolean) {
+  return act(() =>
+    hostedApi(`/hosted-servers/admin/plans/${plan.id}/active`, {
+      method: "POST",
+      body: { active },
+    }),
+  );
+}
+
+function removePlan(plan: HostedAdminPlan) {
+  if (!window.confirm(t("pages.hosting.admin.plan_delete_confirm"))) return;
+  return act(async () => {
+    const result = await hostedApi<{ archived: boolean }>(
+      `/hosted-servers/admin/plans/${plan.id}/delete`,
+      { method: "POST" },
+    );
+    toast({
+      title: result.archived
+        ? t("pages.hosting.admin.plan_archived")
+        : t("pages.hosting.admin.plan_deleted"),
+    });
+  });
+}
+
 onMounted(() => {
   void load();
 });
@@ -171,6 +208,80 @@ onMounted(() => {
     <Button size="sm" :disabled="busy" @click="saveSettings">
       {{ $t("pages.hosting.panel.save") }}
     </Button>
+
+    <div class="space-y-2">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="m-0 text-base font-semibold">
+          {{ $t("pages.hosting.admin.plans") }}
+        </h3>
+        <Button size="sm" variant="outline" as-child>
+          <NuxtLink to="/settings/application/store">
+            {{ $t("pages.hosting.admin.plan_add") }}
+          </NuxtLink>
+        </Button>
+      </div>
+      <p v-if="!plans.length" class="m-0 text-sm text-muted-foreground">
+        {{ $t("pages.hosting.admin.plans_empty") }}
+      </p>
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <tbody>
+            <tr
+              v-for="plan in plans"
+              :key="plan.id"
+              class="border-b border-border/60"
+            >
+              <td class="p-2">
+                <div class="font-medium">{{ plan.title }}</div>
+                <div class="text-xs text-muted-foreground">
+                  {{ $t("pages.hosting.slots", { n: plan.hosted_slots }) }}
+                  · {{ formatHostedDuration(plan.duration, t) }} ·
+                  {{ formatPrice(plan.price_irr) }}
+                </div>
+              </td>
+              <td class="p-2">
+                <Badge :variant="plan.active ? 'default' : 'secondary'">
+                  {{
+                    plan.active
+                      ? $t("pages.hosting.admin.plan_active")
+                      : $t("pages.hosting.admin.plan_inactive")
+                  }}
+                </Badge>
+              </td>
+              <td class="p-2 text-xs text-muted-foreground">
+                {{
+                  $t("pages.hosting.admin.plan_servers", { n: plan.servers })
+                }}
+              </td>
+              <td class="p-2">
+                <div class="flex flex-wrap justify-end gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="busy"
+                    @click="setPlanActive(plan, !plan.active)"
+                  >
+                    {{
+                      plan.active
+                        ? $t("pages.hosting.admin.plan_disable")
+                        : $t("pages.hosting.admin.plan_enable")
+                    }}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    :disabled="busy"
+                    @click="removePlan(plan)"
+                  >
+                    {{ $t("pages.hosting.admin.delete") }}
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">

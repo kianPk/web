@@ -8,6 +8,16 @@ export type HostedPlan = {
   duration: string;
 };
 
+export type HostedAdminPlan = {
+  id: string;
+  title: string;
+  price_irr: number;
+  hosted_slots: number;
+  duration: string;
+  active: boolean;
+  servers: number;
+};
+
 export type HostedOverview = {
   enabled: boolean;
   available: boolean;

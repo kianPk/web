@@ -5404,7 +5404,18 @@
         "delete_confirm": "Delete this server permanently?",
         "gslt_prompt": "GSLT for this server (empty to clear)",
         "hosted_slots": "Hosted server slots",
-        "hosted_slots_hint": "Set 2–64 to sell this product as a rented server; the duration field is the rental period. Hosted plans only show on the Buy a server page."
+        "hosted_slots_hint": "Set 2–64 to sell this product as a rented server; the duration field is the rental period. Hosted plans only show on the Buy a server page.",
+        "plans": "Plans for sale",
+        "plans_empty": "No plans yet. Add a Store product with Hosted server slots.",
+        "plan_add": "Add plan",
+        "plan_active": "On sale",
+        "plan_inactive": "Hidden",
+        "plan_enable": "Show",
+        "plan_disable": "Hide",
+        "plan_servers": "{n} servers sold",
+        "plan_delete_confirm": "Delete this plan?",
+        "plan_deleted": "Plan deleted",
+        "plan_archived": "This plan has orders, so it was hidden instead of deleted"
       }
     }
   },
