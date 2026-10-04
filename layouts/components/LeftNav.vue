@@ -57,8 +57,8 @@ const {
 const hasLeagueSeason = computed(() => !!currentLeagueSeason.value);
 const { pendingImports: pendingMatchImports } = usePendingImports();
 const matchContext = useMatchContext();
-const teamspeakAddress = "tsww.ir:6857";
-const teamspeakUrl = "ts3server://tsww.ir?port=6857";
+const teamspeakAddress = "yguard.asts.ir:6857";
+const teamspeakUrl = "ts3server://yguard.asts.ir?port=6857";
 const logoPath = computed(() => (authStore.me ? "/me" : "/watch"));
 const isLogoRouteActive = computed(() => {
   if (logoPath.value === "/me") {
