@@ -18,7 +18,7 @@ namespace YGuardRanks;
 public class YGuardRanksPlugin : BasePlugin, IPluginConfig<YGuardRanksConfig>
 {
     public override string ModuleName => "YGuard Ranks";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
     public override string ModuleAuthor => "YGuard";
     public override string ModuleDescription =>
         "Public server points + Competitive rank icons on the scoreboard";
@@ -29,8 +29,8 @@ public class YGuardRanksPlugin : BasePlugin, IPluginConfig<YGuardRanksConfig>
     private bool _enabled;
     private bool _scoreboardOk = true;
 
-    // Competitive skill-group type (icons 1–18). Not Premier (11).
-    private const int RankTypeCompetitive = 12;
+    // Competitive skill-group icons (1–18). Type 7 = classic MM; not Premier (11).
+    private const int RankTypeCompetitive = 7;
     private const int MinWinsForVisibility = 10;
     private const string RankRevealAllMessage = "CCSUsrMsg_ServerRankRevealAll";
 
@@ -359,12 +359,15 @@ public class YGuardRanksPlugin : BasePlugin, IPluginConfig<YGuardRanksConfig>
     {
         if (delta == 0 && kills == 0 && deaths == 0 && assists == 0 && headshots == 0) return;
         var rank = GetOrCreate(player.SteamID, player.PlayerName);
+        var before = rank.Points;
+        var beforeSkill = RankLadder.FromPoints(before).Skill;
         rank.Points = Math.Max(0, rank.Points + delta);
         rank.Kills += kills;
         rank.Deaths += deaths;
         rank.Assists += assists;
         rank.Headshots += headshots;
         rank.Name = player.PlayerName;
+        var afterSkill = RankLadder.FromPoints(rank.Points).Skill;
 
         lock (_pendingLock)
         {
@@ -378,6 +381,27 @@ public class YGuardRanksPlugin : BasePlugin, IPluginConfig<YGuardRanksConfig>
                 Assists = assists,
                 Headshots = headshots,
             });
+        }
+
+        if (Config.ShowPointMessages && delta != 0 && player.IsValid)
+        {
+            var sign = delta > 0 ? "+" : "";
+            var color = delta > 0 ? ChatColors.Green : ChatColors.Red;
+            player.PrintToChat(
+                $" {ChatColors.Gold}[{Config.ChatPrefix}]{ChatColors.Default} {color}{sign}{delta}{ChatColors.Default} pts " +
+                $"→ {ChatColors.Green}{rank.Points}{ChatColors.Default}");
+        }
+
+        if (afterSkill != beforeSkill)
+        {
+            var (_, name) = RankLadder.FromPoints(rank.Points);
+            if (player.IsValid)
+            {
+                player.PrintToChat(
+                    $" {ChatColors.Gold}[{Config.ChatPrefix}]{ChatColors.Default} Rank: {ChatColors.Gold}{name}");
+            }
+            RefreshRoster();
+            SendRevealAll();
         }
     }
 

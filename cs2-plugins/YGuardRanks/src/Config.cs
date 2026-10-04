@@ -12,8 +12,11 @@ public class YGuardRanksConfig : BasePluginConfig
     [JsonPropertyName("PublicOnly")]
     public bool PublicOnly { get; set; } = true;
 
+    /// <summary>
+    /// Humans in T/CT required before points move. 1 = solo vs bots is fine.
+    /// </summary>
     [JsonPropertyName("MinPlayersForPoints")]
-    public int MinPlayersForPoints { get; set; } = 4;
+    public int MinPlayersForPoints { get; set; } = 1;
 
     [JsonPropertyName("PointsKill")]
     public int PointsKill { get; set; } = 5;
@@ -33,8 +36,13 @@ public class YGuardRanksConfig : BasePluginConfig
     [JsonPropertyName("PointsRoundWin")]
     public int PointsRoundWin { get; set; } = 1;
 
+    /// <summary>Award points for killing / dying to bots (typical on public fills).</summary>
     [JsonPropertyName("PointsForBots")]
-    public bool PointsForBots { get; set; } = false;
+    public bool PointsForBots { get; set; } = true;
+
+    /// <summary>Print +N / −N in chat when points change.</summary>
+    [JsonPropertyName("ShowPointMessages")]
+    public bool ShowPointMessages { get; set; } = true;
 
     [JsonPropertyName("WarmupPoints")]
     public bool WarmupPoints { get; set; } = false;

@@ -35,8 +35,11 @@
 ## امتیاز پیش‌فرض
 
 - کیل ۵ + هدشات ۲ · اسیست ۲ · مرگ −۲ · MVP ۳ · برد راند ۱
-- حداقل ۴ بازیکن انسانی در تیم‌ها
+- پیش‌فرض: حتی با ۱ نفر و کشت بات هم امتیاز می‌دهد (`MinPlayersForPoints=1`, `PointsForBots=true`)
 - روی Ranked / Practice خاموش است
+- اگر کانفیگ قدیمی روی سرور مانده، فایل  
+  `addons/counterstrikesharp/configs/plugins/YGuardRanks/YGuardRanks.json`  
+  را پاک کن یا `MinPlayersForPoints` و `PointsForBots` را دستی درست کن
 
 ## API پنل
 
