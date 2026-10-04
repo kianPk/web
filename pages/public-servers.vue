@@ -407,6 +407,47 @@ const canManage = computed(() =>
     </DialogContent>
   </Dialog>
 
+  <!-- Public ranks ladder -->
+  <PageTransition :delay="150">
+    <div v-if="ranksLeaderboard.length" class="mt-10">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-0.5 h-4 rounded-full bg-primary shrink-0" />
+        <span
+          class="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap"
+        >
+          {{ $t("pages.public_servers.ranks_title") }}
+        </span>
+        <div class="flex-1 h-px bg-border" />
+      </div>
+      <div class="rounded-xl border border-border divide-y divide-border overflow-hidden">
+        <div
+          v-for="(row, index) in ranksLeaderboard"
+          :key="row.steam_id"
+          class="flex items-center gap-3 px-4 py-2.5 text-sm"
+        >
+          <span class="w-6 font-mono text-muted-foreground tabular-nums"
+            >#{{ index + 1 }}</span
+          >
+          <img
+            v-if="csRankIcon(12, row.skill_group)"
+            :src="csRankIcon(12, row.skill_group)!"
+            :alt="row.rank_name"
+            class="h-6 w-6 shrink-0"
+          />
+          <span class="min-w-0 flex-1 truncate font-medium">{{
+            row.name || row.steam_id
+          }}</span>
+          <span class="hidden sm:inline text-muted-foreground truncate">{{
+            row.rank_name
+          }}</span>
+          <span class="font-mono tabular-nums text-[hsl(var(--tac-amber))]">{{
+            row.points
+          }}</span>
+        </div>
+      </div>
+    </div>
+  </PageTransition>
+
   <!-- LAN Servers -->
   <PageTransition :delay="200">
     <div v-if="!loading && lanServers && lanServers.length > 0" class="mt-8">
@@ -520,8 +561,17 @@ const canManage = computed(() =>
 <script lang="ts">
 import { toast } from "@/components/ui/toast";
 import { hostedApi, hostedErrorMessage } from "~/composables/useHostedServers";
+import { csRankIcon } from "~/utilities/csRank";
 
 const VIP_DURATIONS = ["1d", "7d", "30d", "90d", "perm"] as const;
+
+type PublicRankRow = {
+  steam_id: string;
+  name: string | null;
+  points: number;
+  skill_group: number;
+  rank_name: string;
+};
 
 export default {
   data() {
@@ -539,6 +589,7 @@ export default {
       vipDialogServer: null as null | { id: string; label: string },
       _vipTimer: 0 as number,
       loading: true,
+      ranksLeaderboard: [] as PublicRankRow[],
     };
   },
   apollo: {
@@ -683,6 +734,7 @@ export default {
   },
   mounted() {
     void this.refreshVipGrants();
+    void this.loadRanksLeaderboard();
     this._vipTimer = window.setInterval(() => {
       void this.refreshVipGrants();
     }, 60_000);
@@ -691,6 +743,18 @@ export default {
     if (this._vipTimer) window.clearInterval(this._vipTimer);
   },
   methods: {
+    csRankIcon,
+    async loadRanksLeaderboard() {
+      try {
+        const data = await $fetch<{ players: PublicRankRow[] }>(
+          "/api/public-ranks",
+          { query: { limit: 15 } },
+        );
+        this.ranksLeaderboard = data?.players || [];
+      } catch {
+        this.ranksLeaderboard = [];
+      }
+    },
     async refreshVipGrants() {
       try {
         this.storeVipGrants = await $fetch("/api/store/vip-roster");
