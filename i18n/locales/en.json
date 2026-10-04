@@ -3634,6 +3634,24 @@
           "perm": "Permanent"
         }
       },
+      "details": {
+        "button": "Server details",
+        "title": "Server details",
+        "visibility": "What visitors can see",
+        "show_vips": "VIP members",
+        "show_ranks": "Rank list",
+        "show_bans": "Banned players",
+        "tabs": {
+          "vips": "VIP",
+          "ranks": "Ranks",
+          "bans": "Bans"
+        },
+        "ranks_empty": "No ranks recorded for this server yet",
+        "bans_empty": "No active bans",
+        "no_reason": "No reason",
+        "perm": "Permanent",
+        "section_hidden": "This section is hidden by the server owner"
+      },
       "ranks_title": "Public ranks"
     },
     "map_pools": {

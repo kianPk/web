@@ -3634,6 +3634,24 @@
           "perm": "دائمی"
         }
       },
+      "details": {
+        "button": "جزئیات سرور",
+        "title": "جزئیات سرور",
+        "visibility": "چی برای بازدیدکننده‌ها دیده بشه",
+        "show_vips": "اعضای VIP",
+        "show_ranks": "لیست رنک",
+        "show_bans": "بازیکنان بن‌شده",
+        "tabs": {
+          "vips": "VIP",
+          "ranks": "رنک",
+          "bans": "بن"
+        },
+        "ranks_empty": "هنوز رنکی برای این سرور ثبت نشده",
+        "bans_empty": "بن فعالی نیست",
+        "no_reason": "بدون دلیل",
+        "perm": "دائمی",
+        "section_hidden": "این بخش توسط مالک سرور مخفی شده"
+      },
       "ranks_title": "رنک پابلیک"
     },
     "map_pools": {

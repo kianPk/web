@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, RefreshCw, Settings2, Trash2, UserPlus } from "lucide-vue-next";
+import {
+  Ban,
+  Crown,
+  ListOrdered,
+  RefreshCw,
+  Settings2,
+  Trash2,
+  UserPlus,
+} from "lucide-vue-next";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -230,31 +239,20 @@ const canManage = computed(() =>
                     />
                   </div>
 
-                  <!-- VIP roster opens in a dialog (keeps cards compact) -->
                   <div class="mt-3 border-t border-border/60 pt-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       class="h-8 w-full justify-between gap-2 px-2.5 font-normal"
-                      @click="openVipDialog(server)"
+                      @click="openDetailsDialog(server)"
                     >
-                      <span class="flex min-w-0 items-center gap-1.5">
-                        <Crown
-                          class="h-3.5 w-3.5 shrink-0 text-[hsl(var(--tac-amber))]"
-                        />
-                        <span
-                          class="truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-                        >
-                          {{ $t("pages.public_servers.vip_members") }}
-                        </span>
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        class="shrink-0 font-mono text-[0.65rem]"
+                      <span
+                        class="truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
                       >
-                        {{ vipMembers(server.id).length }}
-                      </Badge>
+                        {{ $t("pages.public_servers.details.button") }}
+                      </span>
+                      <Settings2 class="h-3.5 w-3.5 shrink-0 opacity-60" />
                     </Button>
                   </div>
                 </div>
@@ -292,118 +290,229 @@ const canManage = computed(() =>
   </PageTransition>
 
   <Dialog
-    :open="!!vipDialogServer"
-    @update:open="(v) => !v && (vipDialogServer = null)"
+    :open="!!detailsServer"
+    @update:open="(v) => !v && closeDetailsDialog()"
   >
-    <DialogContent class="max-w-md">
+    <DialogContent class="max-w-lg">
       <DialogHeader>
-        <DialogTitle class="flex items-center gap-2">
-          <Crown class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-          {{ $t("pages.public_servers.vip_members") }}
+        <DialogTitle>
+          {{ $t("pages.public_servers.details.title") }}
         </DialogTitle>
-        <DialogDescription v-if="vipDialogServer">
-          {{ vipDialogServer.label }}
+        <DialogDescription v-if="detailsServer">
+          {{ detailsServer.label }}
         </DialogDescription>
       </DialogHeader>
 
-      <ul
-        v-if="vipDialogServer && vipMembers(vipDialogServer.id).length"
-        class="max-h-[min(60vh,24rem)] space-y-2 overflow-y-auto pr-1"
+      <div
+        v-if="details?.can_manage"
+        class="space-y-2 rounded-lg border border-border/60 px-3 py-2.5"
       >
-        <li
-          v-for="vip in vipMembers(vipDialogServer.id)"
-          :key="`${vipDialogServer.id}-${vip.steam_id}`"
-          class="flex items-center gap-2.5 rounded-md border border-border/50 px-2.5 py-2 text-sm"
+        <p class="m-0 text-xs font-medium text-muted-foreground">
+          {{ $t("pages.public_servers.details.visibility") }}
+        </p>
+        <label
+          v-for="key in detailsVisibilityKeys"
+          :key="key"
+          class="flex cursor-pointer items-center gap-2 text-sm"
         >
-          <img
-            v-if="vip.player?.avatar_url"
-            :src="vip.player.avatar_url"
-            alt=""
-            class="h-7 w-7 rounded-sm object-cover"
+          <Checkbox
+            :model-value="detailsSettings[`show_${key}`]"
+            @update:model-value="(v) => setDetailVisibility(key, !!v)"
           />
-          <div
-            v-else
-            class="flex h-7 w-7 items-center justify-center rounded-sm bg-muted font-mono text-[0.65rem] text-muted-foreground"
-          >
-            VIP
-          </div>
-          <span class="min-w-0 flex-1 truncate font-medium">
-            {{ vip.player?.name || vip.steam_id }}
-          </span>
-          <span
-            class="shrink-0 font-mono text-[0.7rem] text-[hsl(var(--tac-amber))]"
-          >
-            {{ formatVipRemaining(vip.expires_at) }}
-          </span>
-          <Button
-            v-if="isAdmin"
-            size="icon"
-            variant="ghost"
-            class="h-7 w-7 shrink-0"
-            :disabled="vipBusy"
-            :title="$t('pages.public_servers.vip_admin.remove')"
-            @click="revokeVip(vip.steam_id)"
-          >
-            <Trash2 class="h-3.5 w-3.5" />
-          </Button>
-        </li>
-      </ul>
-      <p v-else class="py-6 text-center text-sm text-muted-foreground">
-        {{ $t("pages.public_servers.vip_none") }}
+          {{ $t(`pages.public_servers.details.show_${key}`) }}
+        </label>
+      </div>
+
+      <div class="flex gap-1 rounded-lg border border-border p-1">
+        <Button
+          v-for="tab in detailsTabs"
+          :key="tab"
+          type="button"
+          size="sm"
+          class="flex-1"
+          :variant="detailsTab === tab ? 'default' : 'ghost'"
+          :disabled="!detailsTabVisible(tab)"
+          @click="detailsTab = tab"
+        >
+          {{ $t(`pages.public_servers.details.tabs.${tab}`) }}
+        </Button>
+      </div>
+
+      <p
+        v-if="detailsLoading"
+        class="py-8 text-center text-sm text-muted-foreground"
+      >
+        {{ $t("common.loading") }}
       </p>
 
-      <div
-        v-if="isAdmin && vipDialogServer"
-        class="space-y-2 border-t border-border/60 pt-3"
-      >
-        <form class="flex gap-2" @submit.prevent="grantVip">
-          <Input
-            v-model="vipForm.steam_id"
-            dir="ltr"
-            class="min-w-0 flex-1 font-mono"
-            maxlength="120"
-            :placeholder="$t('pages.public_servers.vip_admin.placeholder')"
-          />
-          <Select v-model="vipForm.duration">
-            <SelectTrigger class="w-28 shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="duration in VIP_DURATIONS"
-                :key="duration"
-                :value="duration"
-              >
-                {{ $t(`pages.public_servers.vip_admin.durations.${duration}`) }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            type="submit"
-            size="sm"
-            class="shrink-0"
-            :disabled="vipBusy || !vipForm.steam_id.trim()"
+      <template v-else-if="detailsTab === 'vips' && detailsTabVisible('vips')">
+        <ul
+          v-if="detailsVips.length"
+          class="max-h-[min(50vh,20rem)] space-y-2 overflow-y-auto pr-1"
+        >
+          <li
+            v-for="vip in detailsVips"
+            :key="vip.steam_id"
+            class="flex items-center gap-2.5 rounded-md border border-border/50 px-2.5 py-2 text-sm"
           >
-            <UserPlus class="me-1.5 h-3.5 w-3.5" />
-            {{ $t("pages.public_servers.vip_admin.add") }}
-          </Button>
-        </form>
-        <div class="flex items-center justify-between gap-2">
-          <p class="m-0 text-xs text-muted-foreground">
-            {{ $t("pages.public_servers.vip_admin.hint") }}
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            class="shrink-0"
-            :disabled="vipBusy"
-            @click="syncVips"
-          >
-            <RefreshCw class="me-1.5 h-3.5 w-3.5" />
-            {{ $t("pages.public_servers.vip_admin.sync") }}
-          </Button>
+            <img
+              v-if="vip.avatar_url"
+              :src="vip.avatar_url"
+              alt=""
+              class="h-7 w-7 rounded-sm object-cover"
+            />
+            <Crown
+              v-else
+              class="h-7 w-7 shrink-0 p-1 text-[hsl(var(--tac-amber))]"
+            />
+            <span class="min-w-0 flex-1 truncate font-medium">
+              {{ vip.name || vip.steam_id }}
+            </span>
+            <span
+              class="shrink-0 font-mono text-[0.7rem] text-[hsl(var(--tac-amber))]"
+            >
+              {{ formatVipRemaining(vip.expires_at) }}
+            </span>
+            <Button
+              v-if="isAdmin"
+              size="icon"
+              variant="ghost"
+              class="h-7 w-7 shrink-0"
+              :disabled="vipBusy"
+              @click="revokeVip(vip.steam_id)"
+            >
+              <Trash2 class="h-3.5 w-3.5" />
+            </Button>
+          </li>
+        </ul>
+        <p v-else class="py-6 text-center text-sm text-muted-foreground">
+          {{ $t("pages.public_servers.vip_none") }}
+        </p>
+        <div
+          v-if="isAdmin && detailsServer"
+          class="mt-3 space-y-2 border-t border-border/60 pt-3"
+        >
+          <form class="flex gap-2" @submit.prevent="grantVip">
+            <Input
+              v-model="vipForm.steam_id"
+              dir="ltr"
+              class="min-w-0 flex-1 font-mono"
+              maxlength="120"
+              :placeholder="$t('pages.public_servers.vip_admin.placeholder')"
+            />
+            <Select v-model="vipForm.duration">
+              <SelectTrigger class="w-28 shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="duration in VIP_DURATIONS"
+                  :key="duration"
+                  :value="duration"
+                >
+                  {{
+                    $t(`pages.public_servers.vip_admin.durations.${duration}`)
+                  }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              type="submit"
+              size="sm"
+              class="shrink-0"
+              :disabled="vipBusy || !vipForm.steam_id.trim()"
+            >
+              <UserPlus class="me-1.5 h-3.5 w-3.5" />
+              {{ $t("pages.public_servers.vip_admin.add") }}
+            </Button>
+          </form>
+          <div class="flex items-center justify-between gap-2">
+            <p class="m-0 text-xs text-muted-foreground">
+              {{ $t("pages.public_servers.vip_admin.hint") }}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              class="shrink-0"
+              :disabled="vipBusy"
+              @click="syncVips"
+            >
+              <RefreshCw class="me-1.5 h-3.5 w-3.5" />
+              {{ $t("pages.public_servers.vip_admin.sync") }}
+            </Button>
+          </div>
         </div>
-      </div>
+      </template>
+
+      <template
+        v-else-if="detailsTab === 'ranks' && detailsTabVisible('ranks')"
+      >
+        <ul
+          v-if="detailsRanks.length"
+          class="max-h-[min(50vh,20rem)] space-y-2 overflow-y-auto pr-1"
+        >
+          <li
+            v-for="(row, index) in detailsRanks"
+            :key="row.steam_id"
+            class="flex items-center gap-2.5 rounded-md border border-border/50 px-2.5 py-2 text-sm"
+          >
+            <span class="w-6 font-mono text-muted-foreground">#{{ index + 1 }}</span>
+            <img
+              v-if="csRankIcon(7, row.skill_group)"
+              :src="csRankIcon(7, row.skill_group)!"
+              alt=""
+              class="h-6 w-6"
+            />
+            <ListOrdered v-else class="h-5 w-5 text-muted-foreground" />
+            <span class="min-w-0 flex-1 truncate font-medium">{{
+              row.name || row.steam_id
+            }}</span>
+            <span class="hidden sm:inline text-xs text-muted-foreground">{{
+              row.rank_name
+            }}</span>
+            <span class="font-mono text-[hsl(var(--tac-amber))]">{{
+              row.points
+            }}</span>
+          </li>
+        </ul>
+        <p v-else class="py-6 text-center text-sm text-muted-foreground">
+          {{ $t("pages.public_servers.details.ranks_empty") }}
+        </p>
+      </template>
+
+      <template v-else-if="detailsTab === 'bans' && detailsTabVisible('bans')">
+        <ul
+          v-if="detailsBans.length"
+          class="max-h-[min(50vh,20rem)] space-y-2 overflow-y-auto pr-1"
+        >
+          <li
+            v-for="ban in detailsBans"
+            :key="ban.steam_id"
+            class="flex items-start gap-2.5 rounded-md border border-border/50 px-2.5 py-2 text-sm"
+          >
+            <Ban class="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <div class="min-w-0 flex-1">
+              <div class="truncate font-medium">
+                {{ ban.name || ban.steam_id }}
+              </div>
+              <div class="text-xs text-muted-foreground">
+                {{ ban.reason || $t("pages.public_servers.details.no_reason") }}
+                <span v-if="ban.expires_at">
+                  · {{ formatVipRemaining(ban.expires_at) }}
+                </span>
+                <span v-else> · {{ $t("pages.public_servers.details.perm") }}</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <p v-else class="py-6 text-center text-sm text-muted-foreground">
+          {{ $t("pages.public_servers.details.bans_empty") }}
+        </p>
+      </template>
+
+      <p v-else class="py-6 text-center text-sm text-muted-foreground">
+        {{ $t("pages.public_servers.details.section_hidden") }}
+      </p>
     </DialogContent>
   </Dialog>
 
@@ -586,7 +695,37 @@ export default {
       getDedicatedServerInfo: undefined as any[] | undefined,
       maps: undefined as any[] | undefined,
       storeVipGrants: [] as any[],
-      vipDialogServer: null as null | { id: string; label: string },
+      detailsServer: null as null | { id: string; label: string },
+      details: null as null | {
+        can_manage: boolean;
+        settings: {
+          show_vips: boolean;
+          show_ranks: boolean;
+          show_bans: boolean;
+        };
+        vips?: Array<{
+          steam_id: string;
+          name: string | null;
+          avatar_url: string | null;
+          expires_at: string | null;
+        }>;
+        ranks?: PublicRankRow[];
+        bans?: Array<{
+          steam_id: string;
+          name: string | null;
+          reason: string | null;
+          expires_at: string | null;
+        }>;
+      },
+      detailsLoading: false,
+      detailsTab: "vips" as "vips" | "ranks" | "bans",
+      detailsTabs: ["vips", "ranks", "bans"] as const,
+      detailsVisibilityKeys: ["vips", "ranks", "bans"] as const,
+      detailsSettings: {
+        show_vips: true,
+        show_ranks: true,
+        show_bans: true,
+      },
       _vipTimer: 0 as number,
       loading: true,
       ranksLeaderboard: [] as PublicRankRow[],
@@ -699,6 +838,25 @@ export default {
     },
   },
   computed: {
+    detailsVips(): Array<{
+      steam_id: string;
+      name: string | null;
+      avatar_url: string | null;
+      expires_at: string | null;
+    }> {
+      return this.details?.vips || [];
+    },
+    detailsRanks(): PublicRankRow[] {
+      return this.details?.ranks || [];
+    },
+    detailsBans(): Array<{
+      steam_id: string;
+      name: string | null;
+      reason: string | null;
+      expires_at: string | null;
+    }> {
+      return this.details?.bans || [];
+    },
     // Built from the servers actually online, so the list never offers a mode
     // nobody is running.
     modeFilters(): Array<{ key: string; label: string; count: number }> {
@@ -762,18 +920,110 @@ export default {
         this.storeVipGrants = [];
       }
     },
-    openVipDialog(server: { id: string; label: string }) {
-      this.vipDialogServer = { id: server.id, label: server.label };
+    openDetailsDialog(server: { id: string; label: string }) {
+      this.detailsServer = { id: server.id, label: server.label };
+      this.detailsTab = "vips";
+      this.details = null;
+      void this.loadDetails();
+    },
+    closeDetailsDialog() {
+      this.detailsServer = null;
+      this.details = null;
+      this.detailsLoading = false;
+    },
+    detailsTabVisible(tab: "vips" | "ranks" | "bans"): boolean {
+      if (this.details?.can_manage) return true;
+      const settings = this.details?.settings || this.detailsSettings;
+      if (tab === "vips") return settings.show_vips;
+      if (tab === "ranks") return settings.show_ranks;
+      return settings.show_bans;
+    },
+    async loadDetails() {
+      const serverId = this.detailsServer?.id;
+      if (!serverId) return;
+      this.detailsLoading = true;
+      try {
+        const data = await hostedApi<{
+          can_manage: boolean;
+          settings: {
+            show_vips: boolean;
+            show_ranks: boolean;
+            show_bans: boolean;
+          };
+          vips?: Array<{
+            steam_id: string;
+            name: string | null;
+            avatar_url: string | null;
+            expires_at: string | null;
+          }>;
+          ranks?: PublicRankRow[];
+          bans?: Array<{
+            steam_id: string;
+            name: string | null;
+            reason: string | null;
+            expires_at: string | null;
+          }>;
+        }>(`/hosted-servers/public-details/${serverId}`);
+        this.details = data;
+        this.detailsSettings = { ...data.settings };
+        if (!this.detailsTabVisible(this.detailsTab)) {
+          const first = this.detailsTabs.find((tab) =>
+            this.detailsTabVisible(tab),
+          );
+          if (first) this.detailsTab = first;
+        }
+      } catch (error) {
+        toast({ variant: "destructive", title: hostedErrorMessage(error) });
+        this.closeDetailsDialog();
+      } finally {
+        this.detailsLoading = false;
+      }
+    },
+    async setDetailVisibility(
+      key: "vips" | "ranks" | "bans",
+      value: boolean,
+    ) {
+      const serverId = this.detailsServer?.id;
+      if (!serverId || !this.details?.can_manage) return;
+      const field =
+        key === "vips"
+          ? "show_vips"
+          : key === "ranks"
+            ? "show_ranks"
+            : "show_bans";
+      const previous = { ...this.detailsSettings };
+      this.detailsSettings = { ...this.detailsSettings, [field]: value };
+      try {
+        const result = await hostedApi<{
+          settings: {
+            show_vips: boolean;
+            show_ranks: boolean;
+            show_bans: boolean;
+          };
+        }>(`/hosted-servers/public-details/${serverId}/settings`, {
+          method: "POST",
+          body: { [field]: value },
+        });
+        this.detailsSettings = { ...result.settings };
+        if (this.details) {
+          this.details.settings = { ...result.settings };
+        }
+        await this.loadDetails();
+      } catch (error) {
+        this.detailsSettings = previous;
+        toast({ variant: "destructive", title: hostedErrorMessage(error) });
+      }
     },
     async runVipAction(
       action: (serverId: string) => Promise<string | null>,
     ): Promise<void> {
-      const serverId = this.vipDialogServer?.id;
+      const serverId = this.detailsServer?.id;
       if (!serverId || this.vipBusy) return;
       this.vipBusy = true;
       try {
         const title = await action(serverId);
         await this.refreshVipGrants();
+        await this.loadDetails();
         if (title) toast({ title });
       } catch (error) {
         toast({ variant: "destructive", title: hostedErrorMessage(error) });
