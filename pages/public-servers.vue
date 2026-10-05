@@ -625,6 +625,10 @@ export default {
           ?.players || 0
       );
     },
+    mapPatch(id: string): string | undefined {
+      const name = this.getDedicatedServerMap(id);
+      return this.maps?.find((m) => m.name === name)?.patch;
+    },
     mapName(id: string): string {
       return this.getDedicatedServerMap(id) || "default";
     },
