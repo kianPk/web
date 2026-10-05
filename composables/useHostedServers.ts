@@ -59,6 +59,7 @@ export type HostedServer = {
   players: number | null;
   map: string | null;
   chat_ads?: HostedChatAds;
+  vip_shop?: HostedVipShop;
 };
 
 export type HostedChatAds = {
@@ -66,6 +67,13 @@ export type HostedChatAds = {
   interval_seconds: number;
   color: string;
   messages: string[];
+};
+
+export type HostedVipShop = {
+  enabled: boolean;
+  price_7d: number;
+  price_30d: number;
+  price_90d: number;
 };
 
 export type HostedAdminSettings = {
