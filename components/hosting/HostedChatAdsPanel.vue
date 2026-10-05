@@ -14,6 +14,8 @@ import {
   type HostedServer,
 } from "~/composables/useHostedServers";
 
+type MessageRow = { id: string; text: string };
+
 const props = defineProps<{
   hostedId: string;
   ads: HostedChatAds | null | undefined;
@@ -28,7 +30,8 @@ const busy = ref(false);
 const enabled = ref(false);
 const intervalSeconds = ref(120);
 const color = ref("gold");
-const messages = ref<string[]>([""]);
+const messages = ref<MessageRow[]>([{ id: crypto.randomUUID(), text: "" }]);
+const dirty = ref(false);
 
 const INTERVALS = [30, 60, 90, 120, 180, 300, 600] as const;
 const COLORS = [
@@ -52,36 +55,72 @@ const PLACEHOLDERS = [
   "{online}",
 ] as const;
 
+function toRows(lines: string[] | undefined): MessageRow[] {
+  if (!lines?.length) return [{ id: crypto.randomUUID(), text: "" }];
+  return lines.map((text) => ({ id: crypto.randomUUID(), text }));
+}
+
+function applyAds(ads: HostedChatAds | null | undefined) {
+  enabled.value = !!ads?.enabled;
+  intervalSeconds.value = ads?.interval_seconds || 120;
+  color.value = ads?.color || "gold";
+  messages.value = toRows(ads?.messages);
+  dirty.value = false;
+}
+
 watch(
-  () => props.ads,
-  (ads) => {
-    enabled.value = !!ads?.enabled;
-    intervalSeconds.value = ads?.interval_seconds || 120;
-    color.value = ads?.color || "gold";
-    messages.value = ads?.messages?.length ? [...ads.messages] : [""];
+  () => props.hostedId,
+  () => {
+    applyAds(props.ads);
   },
   { immediate: true },
 );
 
+// Only re-sync from the server when the user is not mid-edit.
+watch(
+  () => props.ads,
+  (ads) => {
+    if (dirty.value) return;
+    applyAds(ads);
+  },
+);
+
 const canAdd = computed(() => messages.value.length < 5);
+
+function markDirty() {
+  dirty.value = true;
+}
 
 function addMessage() {
   if (!canAdd.value) return;
-  messages.value = [...messages.value, ""];
+  messages.value = [
+    ...messages.value,
+    { id: crypto.randomUUID(), text: "" },
+  ];
+  markDirty();
 }
 
-function removeMessage(index: number) {
-  const next = messages.value.filter((_, i) => i !== index);
-  messages.value = next.length ? next : [""];
+function removeMessage(id: string) {
+  const next = messages.value.filter((row) => row.id !== id);
+  messages.value = next.length
+    ? next
+    : [{ id: crypto.randomUUID(), text: "" }];
+  markDirty();
+}
+
+function setMessageText(id: string, text: string) {
+  messages.value = messages.value.map((row) =>
+    row.id === id ? { ...row, text: text.slice(0, 220) } : row,
+  );
+  markDirty();
 }
 
 function insertToken(token: string) {
-  const last = messages.value.length - 1;
-  const current = messages.value[last] || "";
+  const last = messages.value[messages.value.length - 1];
+  if (!last) return;
+  const current = last.text || "";
   const next = `${current}${current && !current.endsWith(" ") ? " " : ""}${token}`;
-  messages.value = messages.value.map((line, i) =>
-    i === last ? next.slice(0, 220) : line,
-  );
+  setMessageText(last.id, next);
 }
 
 async function save() {
@@ -96,11 +135,12 @@ async function save() {
           enabled: enabled.value,
           interval_seconds: intervalSeconds.value,
           color: color.value,
-          messages: messages.value,
+          messages: messages.value.map((row) => row.text),
         },
       },
     );
     emit("updated", server);
+    applyAds(server.chat_ads);
     toast({ title: String(t("pages.hosting.panel.chat_ads.saved")) });
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
@@ -125,7 +165,12 @@ async function save() {
       <label class="flex cursor-pointer items-center gap-2 text-sm shrink-0">
         <Checkbox
           :model-value="enabled"
-          @update:model-value="(v) => (enabled = !!v)"
+          @update:model-value="
+            (v) => {
+              enabled = !!v;
+              markDirty();
+            }
+          "
         />
         {{ $t("pages.hosting.panel.chat_ads.enabled") }}
       </label>
@@ -141,7 +186,10 @@ async function save() {
           size="sm"
           :variant="intervalSeconds === sec ? 'default' : 'outline'"
           class="font-mono"
-          @click="intervalSeconds = sec"
+          @click="
+            intervalSeconds = sec;
+            markDirty();
+          "
         >
           {{
             sec < 60
@@ -163,7 +211,10 @@ async function save() {
           type="button"
           size="sm"
           :variant="color === c ? 'default' : 'outline'"
-          @click="color = c"
+          @click="
+            color = c;
+            markDirty();
+          "
         >
           {{ $t(`pages.hosting.panel.chat_ads.colors.${c}`) }}
         </Button>
@@ -173,12 +224,12 @@ async function save() {
     <div class="space-y-2">
       <Label>{{ $t("pages.hosting.panel.chat_ads.messages") }}</Label>
       <div
-        v-for="(_, index) in messages"
-        :key="index"
+        v-for="(row, index) in messages"
+        :key="row.id"
         class="flex items-center gap-2"
       >
         <Input
-          v-model="messages[index]"
+          :model-value="row.text"
           maxlength="220"
           dir="auto"
           :placeholder="
@@ -186,6 +237,7 @@ async function save() {
               n: index + 1,
             })
           "
+          @update:model-value="(v) => setMessageText(row.id, String(v ?? ''))"
         />
         <Button
           type="button"
@@ -193,7 +245,7 @@ async function save() {
           variant="ghost"
           class="shrink-0"
           :disabled="messages.length <= 1"
-          @click="removeMessage(index)"
+          @click="removeMessage(row.id)"
         >
           <Trash2 class="h-4 w-4" />
         </Button>
