@@ -5440,7 +5440,7 @@
           "interval": "Interval",
           "seconds": "{n}s",
           "minutes": "{n}m",
-          "color": "Ad colour",
+          "color": "Message text colour",
           "colors": {
             "gold": "Gold",
             "green": "Green",

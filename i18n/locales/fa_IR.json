@@ -5440,7 +5440,7 @@
           "interval": "فاصله زمانی",
           "seconds": "{n}ث",
           "minutes": "{n}د",
-          "color": "رنگ تبلیغ",
+          "color": "رنگ متن پیام",
           "colors": {
             "gold": "طلایی",
             "green": "سبز",
