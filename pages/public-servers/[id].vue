@@ -13,7 +13,6 @@ import {
   Settings2,
   Trash2,
   UserPlus,
-  Users,
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,10 +102,11 @@ const detailsSettings = ref<DetailSettings>({
   show_ranks: true,
   show_bans: true,
 });
-const activeTab = ref<"vips" | "ranks" | "bans">("vips");
+const activeTab = ref<"vips" | "ranks" | "bans">("ranks");
 const vipForm = ref({ steam_id: "", duration: "30d" as (typeof VIP_DURATIONS)[number] });
 const vipBusy = ref(false);
 const heroReady = ref(false);
+const rankQuery = ref("");
 
 const {
   result: serverResult,
@@ -178,6 +178,18 @@ const capacityPercent = computed(() => {
 const vips = computed(() => details.value?.vips || []);
 const ranks = computed(() => details.value?.ranks || []);
 const bans = computed(() => details.value?.bans || []);
+
+const filteredRanks = computed(() => {
+  const q = rankQuery.value.trim().toLowerCase();
+  if (!q) return ranks.value;
+  return ranks.value.filter((row) => {
+    const name = (row.name || "").toLowerCase();
+    return name.includes(q) || row.steam_id.includes(q) || row.rank_name.toLowerCase().includes(q);
+  });
+});
+
+const podiumRanks = computed(() => filteredRanks.value.slice(0, 3));
+const listRanks = computed(() => filteredRanks.value.slice(3));
 
 function tabVisible(tab: "vips" | "ranks" | "bans"): boolean {
   if (details.value?.can_manage) return true;
@@ -360,112 +372,157 @@ onMounted(() => {
 
     <!-- Hero -->
     <PageTransition :delay="40">
-      <section
-        class="relative isolate overflow-hidden rounded-2xl border border-border/70"
-      >
-        <div class="absolute inset-0">
-          <img
-            :src="`/img/maps/screenshots/${mapName}.webp`"
-            :alt="mapLabel"
-            class="h-full w-full object-cover transition-transform duration-[1.4s] ease-out"
-            :class="heroReady ? 'scale-100' : 'scale-105'"
-            @error="onHeroError"
-          />
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/25"
-          />
-          <div
-            class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--tac-amber)/0.18),transparent_55%)]"
-          />
-        </div>
-
+      <section class="relative isolate -mx-1 overflow-hidden sm:mx-0">
         <div
-          class="relative z-10 flex min-h-[min(52vh,28rem)] flex-col justify-end gap-6 p-5 sm:p-8 lg:p-10"
+          class="relative overflow-hidden rounded-none border-y border-border/60 sm:rounded-2xl sm:border"
         >
-          <div class="space-y-3 max-w-3xl">
-            <div class="flex flex-wrap items-center gap-2">
-              <Badge
-                v-if="server?.type"
-                variant="secondary"
-                class="font-mono text-[0.65rem] uppercase tracking-[0.14em]"
-              >
-                {{ server.type }}
-              </Badge>
-              <Badge
-                v-if="server?.game_mode?.name"
-                variant="outline"
-                class="border-white/20 bg-black/20 text-foreground/90 backdrop-blur-sm"
-              >
-                {{ server.game_mode.name }}
-              </Badge>
-              <Badge
-                v-if="server?.region"
-                variant="outline"
-                class="border-white/15 bg-black/15 text-muted-foreground backdrop-blur-sm"
-              >
-                {{ server.region }}
-              </Badge>
-            </div>
-
-            <h1
-              class="m-0 font-sans text-[clamp(1.75rem,5vw,3.25rem)] font-bold leading-[1.05] tracking-tight text-foreground"
-            >
-              <Skeleton
-                v-if="serverLoading && !server"
-                class="h-10 w-64 max-w-full"
-              />
-              <template v-else>
-                {{
-                  server?.label ||
-                  $t("pages.public_servers.details.page_fallback")
-                }}
-              </template>
-            </h1>
-
-            <p
-              class="m-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground"
-            >
-              <span class="inline-flex items-center gap-1.5">
-                <MapIcon class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
-                {{ mapLabel }}
-              </span>
-              <span class="inline-flex items-center gap-1.5 font-mono">
-                <Users class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
-                {{ players }}
-                <span class="text-muted-foreground/70"
-                  >/ {{ maxPlayers || "—" }}</span
-                >
-              </span>
-            </p>
-
+          <div class="absolute inset-0">
+            <img
+              :src="`/img/maps/screenshots/${mapName}.webp`"
+              :alt="mapLabel"
+              class="h-full w-full object-cover transition-transform duration-[1.6s] ease-out"
+              :class="heroReady ? 'scale-100' : 'scale-[1.06]'"
+              @error="onHeroError"
+            />
             <div
-              class="h-1.5 w-full max-w-md overflow-hidden rounded-full bg-primary/15"
-            >
-              <div
-                class="h-full rounded-full bg-[hsl(var(--tac-amber))] transition-all duration-500"
-                :style="{ width: `${capacityPercent}%` }"
-              />
-            </div>
+              class="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/20"
+            />
+            <div
+              class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_80%_0%,hsl(var(--tac-amber)/0.22),transparent_60%)]"
+            />
+            <div
+              class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent"
+            />
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <div
-              v-if="server"
-              class="min-w-[12rem] flex-1 sm:flex-none [&>div]:w-full sm:[&>div]:w-auto [&_a]:w-full sm:[&_a]:w-auto [&_a_button]:w-full sm:[&_a_button]:w-auto"
-            >
-              <QuickServerConnect :server="server" highlight />
+          <div
+            class="relative z-10 flex min-h-[min(58vh,32rem)] flex-col justify-end gap-8 p-5 pb-8 sm:p-8 sm:pb-10 lg:p-12"
+          >
+            <div class="max-w-3xl space-y-4">
+              <p
+                class="m-0 inline-flex items-center gap-2 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--tac-amber))]"
+              >
+                <span class="inline-block h-px w-6 bg-[hsl(var(--tac-amber))]" />
+                {{ $t("pages.public_servers.details.page_title") }}
+              </p>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <Badge
+                  v-if="server?.type"
+                  variant="secondary"
+                  class="font-mono text-[0.65rem] uppercase tracking-[0.14em]"
+                >
+                  {{ server.type }}
+                </Badge>
+                <Badge
+                  v-if="server?.game_mode?.name"
+                  variant="outline"
+                  class="border-white/20 bg-black/25 text-foreground/90 backdrop-blur-sm"
+                >
+                  {{ server.game_mode.name }}
+                </Badge>
+                <Badge
+                  v-if="server?.region"
+                  variant="outline"
+                  class="border-white/15 bg-black/20 text-muted-foreground backdrop-blur-sm"
+                >
+                  {{ server.region }}
+                </Badge>
+              </div>
+
+              <h1
+                class="m-0 font-sans text-[clamp(2rem,6vw,3.75rem)] font-bold leading-[0.98] tracking-tight text-foreground drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]"
+              >
+                <Skeleton
+                  v-if="serverLoading && !server"
+                  class="h-12 w-72 max-w-full"
+                />
+                <template v-else>
+                  {{
+                    server?.label ||
+                    $t("pages.public_servers.details.page_fallback")
+                  }}
+                </template>
+              </h1>
+
+              <p
+                class="m-0 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]"
+              >
+                {{ $t("pages.public_servers.details.page_blurb") }}
+              </p>
             </div>
-            <Button
-              v-if="canManageDedicated && server"
-              as-child
-              variant="outline"
-              class="border-border/80 bg-background/40 backdrop-blur-sm"
+
+            <div
+              class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
             >
-              <NuxtLink :to="`/dedicated-servers/${server.id}`">
-                <Settings2 class="me-1.5 h-4 w-4" />
-                {{ $t("pages.public_servers.manage") }}
-              </NuxtLink>
-            </Button>
+              <div class="flex flex-wrap items-center gap-2">
+                <div
+                  v-if="server"
+                  class="min-w-[12rem] flex-1 sm:flex-none [&>div]:w-full sm:[&>div]:w-auto [&_a]:w-full sm:[&_a]:w-auto [&_a_button]:w-full sm:[&_a_button]:w-auto"
+                >
+                  <QuickServerConnect :server="server" highlight />
+                </div>
+                <Button
+                  v-if="canManageDedicated && server"
+                  as-child
+                  variant="outline"
+                  class="border-border/80 bg-background/45 backdrop-blur-sm"
+                >
+                  <NuxtLink :to="`/dedicated-servers/${server.id}`">
+                    <Settings2 class="me-1.5 h-4 w-4" />
+                    {{ $t("pages.public_servers.manage") }}
+                  </NuxtLink>
+                </Button>
+              </div>
+
+              <div
+                class="grid grid-cols-3 gap-2 sm:min-w-[18rem]"
+              >
+                <div
+                  class="rounded-lg border border-border/50 bg-background/55 px-3 py-2.5 backdrop-blur-md"
+                >
+                  <div
+                    class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground"
+                  >
+                    {{ $t("pages.public_servers.players") }}
+                  </div>
+                  <div class="mt-1 font-mono text-lg font-semibold tabular-nums">
+                    {{ players }}
+                    <span class="text-sm text-muted-foreground"
+                      >/{{ maxPlayers || "—" }}</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="rounded-lg border border-border/50 bg-background/55 px-3 py-2.5 backdrop-blur-md"
+                >
+                  <div
+                    class="flex items-center gap-1 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground"
+                  >
+                    <MapIcon class="h-3 w-3 text-[hsl(var(--tac-amber))]" />
+                    Map
+                  </div>
+                  <div class="mt-1 truncate text-sm font-semibold">
+                    {{ mapLabel }}
+                  </div>
+                </div>
+                <div
+                  class="rounded-lg border border-border/50 bg-background/55 px-3 py-2.5 backdrop-blur-md"
+                >
+                  <div
+                    class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground"
+                  >
+                    Fill
+                  </div>
+                  <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-primary/15">
+                    <div
+                      class="h-full rounded-full bg-[hsl(var(--tac-amber))] transition-all duration-500"
+                      :style="{ width: `${capacityPercent}%` }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -487,15 +544,26 @@ onMounted(() => {
 
           <template v-else>
             <Tabs v-model="activeTab" :scroll-floor="false">
-              <TabsList :class="tacticalTabsListClasses" class="w-full sm:w-auto">
+              <TabsList :class="tacticalTabsListClasses" class="w-full flex-wrap sm:w-auto">
                 <TabsTrigger
-                  v-for="tab in (['vips', 'ranks', 'bans'] as const)"
+                  v-for="tab in (['ranks', 'vips', 'bans'] as const)"
                   :key="tab"
                   :value="tab"
                   :disabled="!tabVisible(tab)"
                   :class="tacticalTabsTriggerClasses"
                 >
                   {{ $t(`pages.public_servers.details.tabs.${tab}`) }}
+                  <span
+                    class="ms-1.5 font-mono text-[0.65rem] text-[hsl(var(--tac-amber))] opacity-80"
+                  >
+                    {{
+                      tab === "ranks"
+                        ? ranks.length
+                        : tab === "vips"
+                          ? vips.length
+                          : bans.length
+                    }}
+                  </span>
                 </TabsTrigger>
               </TabsList>
 
@@ -639,55 +707,125 @@ onMounted(() => {
               <TabsContent value="ranks" class="mt-5 outline-none">
                 <template v-if="tabVisible('ranks')">
                   <div
-                    class="mb-4 flex items-center gap-2"
-                    :class="tacticalSectionLabelClasses"
+                    class="mb-2 flex flex-wrap items-end justify-between gap-3"
                   >
-                    <span :class="tacticalSectionTickClasses" />
-                    {{ $t("pages.public_servers.details.show_ranks") }}
-                    <span class="font-mono text-[hsl(var(--tac-amber))]"
-                      >{{ ranks.length }}</span
-                    >
+                    <div>
+                      <div
+                        class="flex items-center gap-2"
+                        :class="tacticalSectionLabelClasses"
+                      >
+                        <span :class="tacticalSectionTickClasses" />
+                        {{ $t("pages.public_servers.details.show_ranks") }}
+                      </div>
+                      <p class="m-0 text-xs text-muted-foreground">
+                        {{ $t("pages.public_servers.details.ranks_hint") }}
+                      </p>
+                    </div>
+                    <Input
+                      v-if="ranks.length > 6"
+                      v-model="rankQuery"
+                      dir="auto"
+                      class="h-9 w-full max-w-xs"
+                      :placeholder="
+                        $t('pages.public_servers.details.ranks_search')
+                      "
+                    />
                   </div>
 
-                  <ul v-if="ranks.length" class="space-y-2">
-                    <li
-                      v-for="(row, index) in ranks"
-                      :key="row.steam_id"
-                      class="flex items-center gap-3 rounded-xl border border-border/60 bg-card/40 px-3.5 py-3 transition-colors hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-card/70"
+                  <template v-if="filteredRanks.length">
+                    <div
+                      v-if="podiumRanks.length && !rankQuery.trim()"
+                      class="mb-4 grid gap-2 sm:grid-cols-3"
                     >
-                      <span
-                        class="w-8 shrink-0 font-mono text-sm text-muted-foreground tabular-nums"
-                        >#{{ index + 1 }}</span
+                      <div
+                        v-for="(row, index) in podiumRanks"
+                        :key="row.steam_id"
+                        class="relative overflow-hidden rounded-xl border px-4 py-4"
+                        :class="
+                          index === 0
+                            ? 'border-[hsl(var(--tac-amber)/0.55)] bg-[hsl(var(--tac-amber)/0.1)] sm:order-2 sm:-mt-1'
+                            : index === 1
+                              ? 'border-border/70 bg-card/50 sm:order-1'
+                              : 'border-border/70 bg-card/50 sm:order-3'
+                        "
                       >
-                      <img
-                        v-if="csRankIcon(7, row.skill_group)"
-                        :src="csRankIcon(7, row.skill_group)!"
-                        :alt="row.rank_name"
-                        class="h-8 w-8 shrink-0"
-                      />
-                      <ListOrdered
-                        v-else
-                        class="h-6 w-6 shrink-0 text-muted-foreground"
-                      />
-                      <div class="min-w-0 flex-1">
-                        <div class="truncate font-medium">
+                        <div
+                          class="mb-3 flex items-center justify-between gap-2"
+                        >
+                          <span
+                            class="font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground"
+                            >#{{ index + 1 }}</span
+                          >
+                          <img
+                            v-if="csRankIcon(7, row.skill_group)"
+                            :src="csRankIcon(7, row.skill_group)!"
+                            :alt="row.rank_name"
+                            class="h-9 w-9"
+                          />
+                        </div>
+                        <div class="truncate text-base font-semibold">
                           {{ row.name || row.steam_id }}
                         </div>
-                        <div class="text-xs text-muted-foreground">
+                        <div class="mt-0.5 text-xs text-muted-foreground">
                           {{ row.rank_name }}
                         </div>
+                        <div
+                          class="mt-3 font-mono text-lg text-[hsl(var(--tac-amber))]"
+                        >
+                          {{ row.points }}
+                          <span class="text-xs text-muted-foreground">pts</span>
+                        </div>
                       </div>
-                      <span
-                        class="shrink-0 font-mono text-sm text-[hsl(var(--tac-amber))]"
-                        >{{ row.points }}</span
+                    </div>
+
+                    <ul class="space-y-1.5">
+                      <li
+                        v-for="(row, index) in rankQuery.trim()
+                          ? filteredRanks
+                          : listRanks"
+                        :key="row.steam_id"
+                        class="flex items-center gap-3 rounded-xl border border-border/50 bg-card/30 px-3.5 py-2.5 transition-colors hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-card/60"
                       >
-                    </li>
-                  </ul>
+                        <span
+                          class="w-8 shrink-0 font-mono text-sm text-muted-foreground tabular-nums"
+                          >#{{
+                            rankQuery.trim() ? index + 1 : index + 4
+                          }}</span
+                        >
+                        <img
+                          v-if="csRankIcon(7, row.skill_group)"
+                          :src="csRankIcon(7, row.skill_group)!"
+                          :alt="row.rank_name"
+                          class="h-7 w-7 shrink-0"
+                        />
+                        <ListOrdered
+                          v-else
+                          class="h-5 w-5 shrink-0 text-muted-foreground"
+                        />
+                        <div class="min-w-0 flex-1">
+                          <div class="truncate font-medium">
+                            {{ row.name || row.steam_id }}
+                          </div>
+                          <div class="text-xs text-muted-foreground">
+                            {{ row.rank_name }}
+                          </div>
+                        </div>
+                        <span
+                          class="shrink-0 font-mono text-sm text-[hsl(var(--tac-amber))]"
+                          >{{ row.points }}</span
+                        >
+                      </li>
+                    </ul>
+                  </template>
                   <p
                     v-else
                     class="rounded-xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground"
                   >
-                    {{ $t("pages.public_servers.details.ranks_empty") }}
+                    {{
+                      rankQuery.trim()
+                        ? $t("pages.public_servers.details.ranks_no_match")
+                        : $t("pages.public_servers.details.ranks_empty")
+                    }}
                   </p>
                 </template>
                 <p
