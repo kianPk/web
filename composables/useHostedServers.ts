@@ -58,6 +58,13 @@ export type HostedServer = {
   has_gslt: boolean;
   players: number | null;
   map: string | null;
+  chat_ads?: HostedChatAds;
+};
+
+export type HostedChatAds = {
+  enabled: boolean;
+  interval_seconds: number;
+  messages: string[];
 };
 
 export type HostedAdminSettings = {

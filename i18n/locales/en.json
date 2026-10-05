@@ -5433,6 +5433,18 @@
         "settings_restart_note": "Saving restarts the server.",
         "save": "Save",
         "saved": "Saved",
+        "chat_ads": {
+          "title": "Chat ads",
+          "hint": "Messages rotate in the in-game chat on a timer. Players do not need to be VIP.",
+          "enabled": "Enabled",
+          "interval": "Interval",
+          "seconds": "{n}s",
+          "minutes": "{n}m",
+          "messages": "Messages (up to 5)",
+          "message_placeholder": "Ad line {n}",
+          "add": "Add message",
+          "saved": "Chat ads saved"
+        },
         "console": "Console (RCON)",
         "change_map": "Change map",
         "restart_game": "Restart match"

@@ -16,6 +16,7 @@ import {
 import { useAuthStore } from "~/stores/AuthStore";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import HostedAdminsPanel from "~/components/hosting/HostedAdminsPanel.vue";
+import HostedChatAdsPanel from "~/components/hosting/HostedChatAdsPanel.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -614,6 +615,13 @@ onUnmounted(() => window.clearInterval(poll));
         <HostedAdminsPanel
           v-if="server.status !== 'deleted'"
           :hosted-id="hostedId"
+        />
+
+        <HostedChatAdsPanel
+          v-if="isActive"
+          :hosted-id="hostedId"
+          :ads="server.chat_ads"
+          @updated="(next) => (server = next)"
         />
 
         <section
