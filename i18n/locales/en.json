@@ -3635,8 +3635,11 @@
         }
       },
       "details": {
-        "button": "Server details",
-        "title": "Server details",
+        "button": "Server page",
+        "title": "Server page",
+        "page_title": "Server page",
+        "page_fallback": "Public server",
+        "page_blurb": "VIP roster, competitive ranks from this box, and active bans — the same picture you see in-game.",
         "visibility": "What visitors can see",
         "show_vips": "VIP members",
         "show_ranks": "Rank list",
