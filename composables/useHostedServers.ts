@@ -64,6 +64,7 @@ export type HostedServer = {
 export type HostedChatAds = {
   enabled: boolean;
   interval_seconds: number;
+  color: string;
   messages: string[];
 };
 

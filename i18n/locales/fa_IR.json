@@ -5435,13 +5435,25 @@
         "saved": "ذخیره شد",
         "chat_ads": {
           "title": "تبلیغات چت",
-          "hint": "پیام‌ها با فاصله زمانی تو چت داخل بازی می‌چرخن. لازم نیست بازیکن VIP باشه.",
+          "hint": "پیام‌ها با فاصله زمانی تو چت بازی می‌چرخن. می‌تونی از placeholder برای مقدارهای زنده استفاده کنی.",
           "enabled": "فعال",
           "interval": "فاصله زمانی",
           "seconds": "{n}ث",
           "minutes": "{n}د",
+          "color": "رنگ تبلیغ",
+          "colors": {
+            "gold": "طلایی",
+            "green": "سبز",
+            "blue": "آبی",
+            "red": "قرمز",
+            "purple": "بنفش",
+            "lightred": "قرمز روشن",
+            "white": "سفید",
+            "grey": "خاکستری"
+          },
           "messages": "پیام‌ها (حداکثر ۵ تا)",
-          "message_placeholder": "خط تبلیغ {n}",
+          "message_placeholder": "خط تبلیغ {n} — مثلاً خوش اومدی {player} · {map}",
+          "placeholders_hint": "{time} {date} {map} {players} {maxplayers} {player} (یک بازیکن تصادفی) {online} (اسم‌ها)",
           "add": "افزودن پیام",
           "saved": "تبلیغات چت ذخیره شد"
         },

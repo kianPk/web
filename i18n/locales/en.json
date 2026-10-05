@@ -5435,13 +5435,25 @@
         "saved": "Saved",
         "chat_ads": {
           "title": "Chat ads",
-          "hint": "Messages rotate in the in-game chat on a timer. Players do not need to be VIP.",
+          "hint": "Messages rotate in the in-game chat on a timer. Use placeholders for live values.",
           "enabled": "Enabled",
           "interval": "Interval",
           "seconds": "{n}s",
           "minutes": "{n}m",
+          "color": "Ad colour",
+          "colors": {
+            "gold": "Gold",
+            "green": "Green",
+            "blue": "Blue",
+            "red": "Red",
+            "purple": "Purple",
+            "lightred": "Light red",
+            "white": "White",
+            "grey": "Grey"
+          },
           "messages": "Messages (up to 5)",
-          "message_placeholder": "Ad line {n}",
+          "message_placeholder": "Ad line {n} — e.g. Welcome {player} · {map}",
+          "placeholders_hint": "{time} {date} {map} {players} {maxplayers} {player} (random online) {online} (names)",
           "add": "Add message",
           "saved": "Chat ads saved"
         },

@@ -27,15 +27,37 @@ const { t } = useI18n();
 const busy = ref(false);
 const enabled = ref(false);
 const intervalSeconds = ref(120);
+const color = ref("gold");
 const messages = ref<string[]>([""]);
 
 const INTERVALS = [30, 60, 90, 120, 180, 300, 600] as const;
+const COLORS = [
+  "gold",
+  "green",
+  "blue",
+  "red",
+  "purple",
+  "lightred",
+  "white",
+  "grey",
+] as const;
+
+const PLACEHOLDERS = [
+  "{time}",
+  "{date}",
+  "{map}",
+  "{players}",
+  "{maxplayers}",
+  "{player}",
+  "{online}",
+] as const;
 
 watch(
   () => props.ads,
   (ads) => {
     enabled.value = !!ads?.enabled;
     intervalSeconds.value = ads?.interval_seconds || 120;
+    color.value = ads?.color || "gold";
     messages.value = ads?.messages?.length ? [...ads.messages] : [""];
   },
   { immediate: true },
@@ -53,6 +75,15 @@ function removeMessage(index: number) {
   messages.value = next.length ? next : [""];
 }
 
+function insertToken(token: string) {
+  const last = messages.value.length - 1;
+  const current = messages.value[last] || "";
+  const next = `${current}${current && !current.endsWith(" ") ? " " : ""}${token}`;
+  messages.value = messages.value.map((line, i) =>
+    i === last ? next.slice(0, 220) : line,
+  );
+}
+
 async function save() {
   if (busy.value) return;
   busy.value = true;
@@ -64,6 +95,7 @@ async function save() {
         body: {
           enabled: enabled.value,
           interval_seconds: intervalSeconds.value,
+          color: color.value,
           messages: messages.value,
         },
       },
@@ -122,6 +154,22 @@ async function save() {
       </div>
     </div>
 
+    <div class="space-y-1.5">
+      <Label>{{ $t("pages.hosting.panel.chat_ads.color") }}</Label>
+      <div class="flex flex-wrap gap-1.5">
+        <Button
+          v-for="c in COLORS"
+          :key="c"
+          type="button"
+          size="sm"
+          :variant="color === c ? 'default' : 'outline'"
+          @click="color = c"
+        >
+          {{ $t(`pages.hosting.panel.chat_ads.colors.${c}`) }}
+        </Button>
+      </div>
+    </div>
+
     <div class="space-y-2">
       <Label>{{ $t("pages.hosting.panel.chat_ads.messages") }}</Label>
       <div
@@ -131,7 +179,7 @@ async function save() {
       >
         <Input
           v-model="messages[index]"
-          maxlength="180"
+          maxlength="220"
           dir="auto"
           :placeholder="
             $t('pages.hosting.panel.chat_ads.message_placeholder', {
@@ -150,6 +198,22 @@ async function save() {
           <Trash2 class="h-4 w-4" />
         </Button>
       </div>
+      <div class="flex flex-wrap gap-1.5">
+        <Button
+          v-for="token in PLACEHOLDERS"
+          :key="token"
+          type="button"
+          size="sm"
+          variant="outline"
+          class="font-mono text-[0.7rem]"
+          @click="insertToken(token)"
+        >
+          {{ token }}
+        </Button>
+      </div>
+      <p class="m-0 text-[0.7rem] text-muted-foreground">
+        {{ $t("pages.hosting.panel.chat_ads.placeholders_hint") }}
+      </p>
       <Button
         type="button"
         size="sm"
