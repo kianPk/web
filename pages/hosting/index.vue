@@ -288,6 +288,15 @@ onMounted(() => {
                   <Badge :variant="hostedStatusVariant(server.status)">
                     {{ $t(`pages.hosting.status.${server.status}`) }}
                   </Badge>
+                  <Badge
+                    v-if="
+                      String(server.owner_steam_id) !==
+                      String(auth.me?.steam_id || '')
+                    "
+                    variant="outline"
+                  >
+                    {{ $t("pages.hosting.admins.manager_badge") }}
+                  </Badge>
                 </div>
                 <p class="m-0 mt-1 text-xs text-muted-foreground">
                   {{

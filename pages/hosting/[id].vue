@@ -76,7 +76,8 @@ const MAPS = [
 const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const isAdmin = computed(() => useAuthStore().isAdmin);
+const auth = useAuthStore();
+const isAdmin = computed(() => auth.isAdmin);
 const hostedId = computed(() => String(route.params.id));
 
 const server = ref<HostedServer | null>(null);
@@ -96,6 +97,13 @@ const renewTerms = ref(false);
 const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 const isActive = computed(() => server.value?.status === "active");
+const isServerOwner = computed(() => {
+  if (!server.value) return false;
+  if (isAdmin.value) return true;
+  return (
+    String(server.value.owner_steam_id) === String(auth.me?.steam_id || "")
+  );
+});
 const connectCommand = computed(() =>
   server.value ? hostedConnectCommand(server.value) : null,
 );
@@ -145,6 +153,7 @@ const slotsRoom = computed(() =>
 );
 const canBuySlots = computed(
   () =>
+    isServerOwner.value &&
     isActive.value &&
     (overview.value?.slot_price_irr || 0) > 0 &&
     slotsRoom.value > 0,
@@ -221,6 +230,7 @@ function buySlots(payWith: "bale" | "ypoint") {
 }
 const canRenew = computed(
   () =>
+    isServerOwner.value &&
     !!server.value &&
     ["active", "expired", "deleted"].includes(server.value.status),
 );

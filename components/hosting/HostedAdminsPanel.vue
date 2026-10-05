@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Ban, Crown, ShieldCheck, Trash2, UserPlus } from "lucide-vue-next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "~/components/ui/toast";
+import { useAuthStore } from "~/stores/AuthStore";
 import { formatHostedDate } from "~/utilities/hostedFormat";
 import { hostedApi, hostedErrorMessage } from "~/composables/useHostedServers";
 
@@ -26,12 +27,18 @@ type HostedBan = {
 const props = defineProps<{ hostedId: string }>();
 
 const { t, locale } = useI18n();
+const auth = useAuthStore();
 
 const ownerSteamId = ref("");
 const admins = ref<HostedAdmin[]>([]);
 const bans = ref<HostedBan[]>([]);
 const newAdmin = ref("");
 const busy = ref(false);
+
+const canManageAdmins = computed(() => {
+  if (auth.isAdmin) return true;
+  return String(ownerSteamId.value) === String(auth.me?.steam_id || "");
+});
 
 const COMMANDS = [
   "!slay",
@@ -130,7 +137,11 @@ onMounted(load);
       </div>
     </div>
 
-    <form class="flex gap-2" @submit.prevent="addAdmin">
+    <form
+      v-if="canManageAdmins"
+      class="flex gap-2"
+      @submit.prevent="addAdmin"
+    >
       <Input
         v-model="newAdmin"
         dir="ltr"
@@ -150,7 +161,13 @@ onMounted(load);
         class="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm"
       >
         <Crown class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-        <span class="flex-1">{{ $t("pages.hosting.admins.owner") }}</span>
+        <span class="flex-1">
+          {{
+            String(ownerSteamId) === String(auth.me?.steam_id || "")
+              ? $t("pages.hosting.admins.owner")
+              : $t("pages.hosting.admins.owner_label")
+          }}
+        </span>
         <code class="text-xs text-muted-foreground" dir="ltr">
           {{ ownerSteamId }}
         </code>
@@ -173,6 +190,7 @@ onMounted(load);
           {{ admin.steam_id }}
         </code>
         <Button
+          v-if="canManageAdmins"
           size="icon"
           variant="ghost"
           class="h-7 w-7"
