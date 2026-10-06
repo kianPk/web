@@ -932,7 +932,7 @@ export default {
       );
     },
     /**
-     * Ranked queue types (Competitive / Wingman / Trios / Duel / Premier):
+     * Ranked queue types (Competitive / Wingman / Rush / Duel / Premier):
      * only site administrators. Other match types keep organizer can_cancel.
      */
     canCancelMatch() {
@@ -941,7 +941,7 @@ export default {
       const ranked = [
         "Competitive",
         "Wingman",
-        "Trios",
+        "Rush",
         "Duel",
         "Premier",
       ];

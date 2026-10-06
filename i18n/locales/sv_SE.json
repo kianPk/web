@@ -2744,9 +2744,9 @@
           "fields": {
             "duel": "Duel",
             "wingman": "Wingman",
-            "trios": "Trios",
             "draft_create": "Draft create",
-            "draft_join": "Draft join"
+            "draft_join": "Draft join",
+            "rush": "Rush"
           }
         },
         "finance": {
@@ -3671,12 +3671,12 @@
       "match_types": {
         "all": "Alla typer",
         "competitive": "Competitive",
-        "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Duell",
         "scrimmage": "Scrim",
         "premier": "Premier",
-        "faceit": "Faceit"
+        "faceit": "Faceit",
+        "rush": "Rush"
       },
       "roles": {
         "all": "Alla roller",
@@ -5111,10 +5111,6 @@
           "title": "Duel Win",
           "description": "Win 1 Duel match today."
         },
-        "p_win_trios_1": {
-          "title": "Trios Win",
-          "description": "Win 1 Trios match today."
-        },
         "p_win_any_2": {
           "title": "Double Win",
           "description": "Win any 2 matches today."
@@ -5258,6 +5254,10 @@
         "pp_kills_day_60": {
           "title": "60 Kills Today",
           "description": "Get 60 kills across all matches today."
+        },
+        "p_win_rush_1": {
+          "title": "Rush Win",
+          "description": "Win 1 Rush match today."
         }
       }
     }
@@ -8205,10 +8205,6 @@
         "title": "Competitive",
         "description": "Den klassiska 5 mot 5-tävlingsupplevelsen med full lagkoordinering"
       },
-      "trios": {
-        "title": "Ranked 3v3",
-        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
-      },
       "wingman": {
         "title": "Wingman",
         "description": "Gå ihop med en vän och tävla i snabba 2v2-matcher"
@@ -8216,6 +8212,10 @@
       "duel": {
         "title": "Duell",
         "description": "En tävlingsupplevelse 1 mot 1, perfekt för att öva individuell skicklighet"
+      },
+      "rush": {
+        "title": "Rush",
+        "description": "Fast-paced 3 vs 3 matches, pushing room by room"
       }
     },
     "cancel_matchmaking": "Avbryt matchmaking",

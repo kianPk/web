@@ -498,7 +498,7 @@ const modeOptions = computed<{ value: string; label: string }[]>(() => {
     return [
       ALL_OPT.value,
       COMPETITIVE_OPT.value,
-      { value: "Trios", label: t("pages.leaderboard.match_types.trios") },
+      { value: "Rush", label: t("pages.leaderboard.match_types.rush") },
       WINGMAN_OPT.value,
       { value: "Duel", label: t("pages.leaderboard.match_types.duel") },
     ];
@@ -524,7 +524,7 @@ const modeOptions = computed<{ value: string; label: string }[]>(() => {
 });
 
 const selectedModeRef = computed<
-  "all" | "Competitive" | "Trios" | "Wingman" | "Duel" | "Premier"
+  "all" | "Competitive" | "Rush" | "Wingman" | "Duel" | "Premier"
 >(() => {
   if (providerRef.value === "faceit") {
     return "all";
@@ -533,7 +533,7 @@ const selectedModeRef = computed<
   const v = Array.isArray(raw) ? raw[0] : raw;
   const valid = modeOptions.value.map((o) => o.value);
   if (typeof v === "string" && valid.includes(v)) {
-    return v as "all" | "Competitive" | "Trios" | "Wingman" | "Duel" | "Premier";
+    return v as "all" | "Competitive" | "Rush" | "Wingman" | "Duel" | "Premier";
   }
   return "all";
 });
@@ -577,7 +577,7 @@ function setSource(s: StatSource) {
   const validModes =
     s === "external"
       ? ["all", "Premier", "Competitive", "Wingman"]
-      : ["all", "Competitive", "Trios", "Wingman", "Duel"];
+      : ["all", "Competitive", "Rush", "Wingman", "Duel"];
   const query: Record<string, any> = { ...route.query, source: s };
   if (!validModes.includes(selectedModeRef.value)) {
     query.mode = "all";
@@ -1573,13 +1573,13 @@ function bucketHistory(
 const windowedChartSeries = computed(() => {
   const size = bucketSize.value;
 
-  const groupBy = (m: "Competitive" | "Trios" | "Wingman" | "Duel") =>
+  const groupBy = (m: "Competitive" | "Rush" | "Wingman" | "Duel") =>
     bucketHistory(
       eloHistory.value.filter((e) => e.type === m),
       size,
     );
 
-  const allModes = ["Competitive", "Trios", "Wingman", "Duel"] as const;
+  const allModes = ["Competitive", "Rush", "Wingman", "Duel"] as const;
   return allModes
     .map((m) => ({
       key: m,

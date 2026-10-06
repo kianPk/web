@@ -2744,9 +2744,9 @@
           "fields": {
             "duel": "Duel",
             "wingman": "Wingman",
-            "trios": "Trios",
             "draft_create": "Draft create",
-            "draft_join": "Draft join"
+            "draft_join": "Draft join",
+            "rush": "Rush"
           }
         },
         "finance": {
@@ -3671,12 +3671,12 @@
       "match_types": {
         "all": "Todos",
         "competitive": "Competitivo",
-        "trios": "3v3",
         "wingman": "Braço Direito",
         "duel": "X1",
         "scrimmage": "Modo Treino",
         "premier": "Premier",
-        "faceit": "Faceit"
+        "faceit": "Faceit",
+        "rush": "Rush"
       },
       "roles": {
         "all": "Todos",
@@ -5111,10 +5111,6 @@
           "title": "Duel Win",
           "description": "Win 1 Duel match today."
         },
-        "p_win_trios_1": {
-          "title": "Trios Win",
-          "description": "Win 1 Trios match today."
-        },
         "p_win_any_2": {
           "title": "Double Win",
           "description": "Win any 2 matches today."
@@ -5258,6 +5254,10 @@
         "pp_kills_day_60": {
           "title": "60 Kills Today",
           "description": "Get 60 kills across all matches today."
+        },
+        "p_win_rush_1": {
+          "title": "Rush Win",
+          "description": "Win 1 Rush match today."
         }
       }
     }
@@ -8205,10 +8205,6 @@
         "title": "Competitivo",
         "description": "Modo competitivo clássico 5v5. Jogue em equipe, gerencie economia, execute estratégias e suba no ranking."
       },
-      "trios": {
-        "title": "Ranked 3v3",
-        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
-      },
       "wingman": {
         "title": "Braço Direito",
         "description": "Modo 2v2 em ritmo acelerado em mapas reduzidos. Junte-se a um amigo e dispute partidas 2v2 em ritmo acelerado. Rápido, objetivo e cooperativo. Perfeito para jogar com um amigo."
@@ -8216,6 +8212,10 @@
       "duel": {
         "title": "X1",
         "description": "Modo 1v1 focado em habilidades individuais. Perfeito para treinar mira, posicionamento, reflexos e chamar seu amigo newba pra um X1 pra mostrar que você é fodão."
+      },
+      "rush": {
+        "title": "Rush",
+        "description": "Fast-paced 3 vs 3 matches, pushing room by room"
       }
     },
     "cancel_matchmaking": "Sair da Fila",

@@ -186,7 +186,7 @@ export default {
       // exec'd on top of whichever one a match got.
       const preferredOrder = [
         e_game_cfg_types_enum.Competitive,
-        e_game_cfg_types_enum.Trios,
+        e_game_cfg_types_enum.Rush,
         e_game_cfg_types_enum.Wingman,
         e_game_cfg_types_enum.Duel,
         e_game_cfg_types_enum.Lan,
@@ -349,8 +349,8 @@ export default {
         [e_game_cfg_types_enum.Competitive]: this.$t(
           "pages.leaderboard.match_types.competitive",
         ),
-        [e_game_cfg_types_enum.Trios]: this.$t(
-          "pages.leaderboard.match_types.trios",
+        [e_game_cfg_types_enum.Rush]: this.$t(
+          "pages.leaderboard.match_types.rush",
         ),
         [e_game_cfg_types_enum.Wingman]: this.$t(
           "pages.leaderboard.match_types.wingman",

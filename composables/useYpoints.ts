@@ -5,7 +5,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 export type YpointCosts = {
   duel: number;
   wingman: number;
-  trios: number;
+  rush: number;
   draft_create: number;
   draft_join: number;
 };
@@ -14,7 +14,7 @@ const balance = ref<number | null>(null);
 const costs = ref<YpointCosts>({
   duel: 8,
   wingman: 0,
-  trios: 12,
+  rush: 12,
   draft_create: 15,
   draft_join: 10,
 });
@@ -42,7 +42,7 @@ function applyCosts(next: Partial<YpointCosts> | null | undefined) {
   costs.value = {
     duel: Math.max(0, Number(next.duel) || 0),
     wingman: Math.max(0, Number(next.wingman) || 0),
-    trios: Math.max(0, Number(next.trios) || 0),
+    rush: Math.max(0, Number(next.rush) || 0),
     draft_create: Math.max(0, Number(next.draft_create) || 0),
     draft_join: Math.max(0, Number(next.draft_join) || 0),
   };
@@ -60,9 +60,9 @@ export function useYpoints() {
       wingman: settingFlag("public.ypoint_free_wingman")
         ? 0
         : settingCost("public.ypoint_cost_wingman", costs.value.wingman),
-      trios: settingFlag("public.ypoint_free_trios")
+      rush: settingFlag("public.ypoint_free_rush")
         ? 0
-        : settingCost("public.ypoint_cost_trios", costs.value.trios),
+        : settingCost("public.ypoint_cost_rush", costs.value.rush),
       draft_create: settingCost(
         "public.ypoint_cost_draft_create",
         costs.value.draft_create,
@@ -119,7 +119,7 @@ export function useYpoints() {
   const costForMatchType = (type: string) => {
     if (type === "Duel") return costs.value.duel;
     if (type === "Wingman") return costs.value.wingman;
-    if (type === "Trios") return costs.value.trios;
+    if (type === "Rush") return costs.value.rush;
     return 0;
   };
 
@@ -141,18 +141,11 @@ export function useYpoints() {
       },
     );
     watch(
-      () =>
-        settingsStore.settings
-          ?.filter(
-            (s) =>
-              s.name.startsWith("public.ypoint_cost_") ||
-              s.name.startsWith("public.ypoint_free_"),
-          )
-          .map((s) => `${s.name}:${s.value}`)
-          .join("|") ?? "",
+      () => settingsStore.settings,
       () => {
         syncCostsFromSettings();
       },
+      { deep: true },
     );
   }
 

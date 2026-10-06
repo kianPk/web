@@ -2744,9 +2744,9 @@
           "fields": {
             "duel": "Duel",
             "wingman": "Wingman",
-            "trios": "Trios",
             "draft_create": "Draft create",
-            "draft_join": "Draft join"
+            "draft_join": "Draft join",
+            "rush": "Rush"
           }
         },
         "finance": {
@@ -3671,12 +3671,12 @@
       "match_types": {
         "all": "すべての種別",
         "competitive": "コンペティティブ",
-        "trios": "3v3",
         "wingman": "ウィングマン",
         "duel": "デュエル",
         "scrimmage": "スクリム",
         "premier": "Premier",
-        "faceit": "Faceit"
+        "faceit": "Faceit",
+        "rush": "Rush"
       },
       "roles": {
         "all": "すべてのロール",
@@ -5111,10 +5111,6 @@
           "title": "Duel Win",
           "description": "Win 1 Duel match today."
         },
-        "p_win_trios_1": {
-          "title": "Trios Win",
-          "description": "Win 1 Trios match today."
-        },
         "p_win_any_2": {
           "title": "Double Win",
           "description": "Win any 2 matches today."
@@ -5258,6 +5254,10 @@
         "pp_kills_day_60": {
           "title": "60 Kills Today",
           "description": "Get 60 kills across all matches today."
+        },
+        "p_win_rush_1": {
+          "title": "Rush Win",
+          "description": "Win 1 Rush match today."
         }
       }
     }
@@ -8205,10 +8205,6 @@
         "title": "コンペティティブ",
         "description": "フルチーム連携によるクラシックな5対5の競技体験"
       },
-      "trios": {
-        "title": "Ranked 3v3",
-        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
-      },
       "wingman": {
         "title": "ウィングマン",
         "description": "フレンドとペアを組んでテンポの速い2v2で対戦"
@@ -8216,6 +8212,10 @@
       "duel": {
         "title": "デュエル",
         "description": "個人スキルの練習に最適な1対1の競技体験"
+      },
+      "rush": {
+        "title": "Rush",
+        "description": "Fast-paced 3 vs 3 matches, pushing room by room"
       }
     },
     "cancel_matchmaking": "マッチメイキングをキャンセル",

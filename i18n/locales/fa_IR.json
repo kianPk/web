@@ -2767,9 +2767,9 @@
           "fields": {
             "duel": "دوئل",
             "wingman": "وینگمن",
-            "trios": "Trios",
             "draft_create": "ساخت درفت",
-            "draft_join": "ورود به درفت"
+            "draft_join": "ورود به درفت",
+            "rush": "Rush"
           }
         },
         "finance": {
@@ -3763,12 +3763,12 @@
       "match_types": {
         "all": "همه انواع",
         "competitive": "رقابتی",
-        "trios": "۳ به ۳",
         "wingman": "وینگمن",
         "duel": "دوئل",
         "scrimmage": "قلع و قمع",
         "premier": "برتر",
-        "faceit": "چهره"
+        "faceit": "چهره",
+        "rush": "راش"
       },
       "roles": {
         "all": "همه نقش ها",
@@ -5164,7 +5164,7 @@
     },
     "store": {
       "title": "فروشگاه",
-      "description": "پک Ypoint بخرید و برای دوئل، وینگمن، Trios و درفت استفاده کنید.",
+      "description": "پک Ypoint بخرید و برای دوئل، وینگمن، Rush و درفت استفاده کنید.",
       "empty_title": "هنوز محصولی نیست",
       "empty_body": "به‌زودی محصولات اضافه می‌شوند.",
       "buy": "خرید",
@@ -5227,10 +5227,6 @@
         "p_win_duel_1": {
           "title": "برد Duel",
           "description": "امروز ۱ مچ Duel ببر."
-        },
-        "p_win_trios_1": {
-          "title": "برد Trios",
-          "description": "امروز ۱ مچ Trios ببر."
         },
         "p_win_any_2": {
           "title": "دو برد",
@@ -5375,6 +5371,10 @@
         "pp_kills_day_60": {
           "title": "۶۰ کیل امروز",
           "description": "امروز در مجموع ۶۰ کیل بگیر."
+        },
+        "p_win_rush_1": {
+          "title": "برد Rush",
+          "description": "امروز ۱ مچ Rush ببر."
         }
       }
     },
@@ -8500,10 +8500,6 @@
         "title": "رقابتی",
         "description": "تجربه رقابتی کلاسیک ۵ در برابر ۵ با هماهنگی کامل تیم"
       },
-      "trios": {
-        "title": "رنک ۳ به ۳",
-        "description": "مسابقات رنک ۳ در برابر ۳ با هماهنگی کامل تیم"
-      },
       "wingman": {
         "title": "وینگمن",
         "description": "با یک دوست تیم شوید و در مسابقات سریع ۲v۲ رقابت کنید"
@@ -8511,6 +8507,10 @@
       "duel": {
         "title": "دوئل",
         "description": "تجربه رقابتی ۱ در برابر ۱، عالی برای تمرین مهارت فردی"
+      },
+      "rush": {
+        "title": "راش",
+        "description": "مچ‌های سریع ۳ به ۳، اتاق به اتاق"
       }
     },
     "cancel_matchmaking": "لغو مچ‌میکینگ",

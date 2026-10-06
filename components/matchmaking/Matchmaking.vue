@@ -549,7 +549,7 @@ export default {
               value: {
                 _in: [
                   e_match_types_enum.Competitive,
-                  e_match_types_enum.Trios,
+                  e_match_types_enum.Rush,
                   e_match_types_enum.Wingman,
                   e_match_types_enum.Duel,
                 ],
@@ -684,8 +684,8 @@ export default {
       if (matchType === e_match_types_enum.Wingman) {
         return this.ypointCosts.wingman;
       }
-      if (matchType === e_match_types_enum.Trios) {
-        return this.ypointCosts.trios;
+      if (matchType === e_match_types_enum.Rush) {
+        return this.ypointCosts.rush;
       }
       return 0;
     },

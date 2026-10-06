@@ -2767,9 +2767,9 @@
           "fields": {
             "duel": "Duel",
             "wingman": "Wingman",
-            "trios": "Trios",
             "draft_create": "Draft create",
-            "draft_join": "Draft join"
+            "draft_join": "Draft join",
+            "rush": "Rush"
           }
         },
         "finance": {
@@ -3763,12 +3763,12 @@
       "match_types": {
         "all": "All Types",
         "competitive": "Competitive",
-        "trios": "3v3",
         "wingman": "Wingman",
         "duel": "Duel",
         "scrimmage": "Scrimmage",
         "premier": "Premier",
-        "faceit": "Faceit"
+        "faceit": "Faceit",
+        "rush": "Rush"
       },
       "roles": {
         "all": "All Roles",
@@ -5164,7 +5164,7 @@
     },
     "store": {
       "title": "Store",
-      "description": "Buy Ypoint packs with Bale Pay for Duel, Wingman, Trios, and Draft.",
+      "description": "Buy Ypoint packs with Bale Pay for Duel, Wingman, Rush, and Draft.",
       "empty_title": "No products yet",
       "empty_body": "Check back soon — the shop is being stocked.",
       "buy": "Buy",
@@ -5227,10 +5227,6 @@
         "p_win_duel_1": {
           "title": "Duel Win",
           "description": "Win 1 Duel match today."
-        },
-        "p_win_trios_1": {
-          "title": "Trios Win",
-          "description": "Win 1 Trios match today."
         },
         "p_win_any_2": {
           "title": "Double Win",
@@ -5375,6 +5371,10 @@
         "pp_kills_day_60": {
           "title": "60 Kills Today",
           "description": "Get 60 kills across all matches today."
+        },
+        "p_win_rush_1": {
+          "title": "Rush Win",
+          "description": "Win 1 Rush match today."
         }
       }
     },
@@ -8500,10 +8500,6 @@
         "title": "Competitive",
         "description": "The classic 5 vs 5 competitive experience with full team coordination"
       },
-      "trios": {
-        "title": "Ranked 3v3",
-        "description": "Ranked 3 vs 3 competitive matches with full team coordination"
-      },
       "wingman": {
         "title": "Wingman",
         "description": "Team up with a friend and compete in fast-paced 2v2 matches"
@@ -8511,6 +8507,10 @@
       "duel": {
         "title": "Duel",
         "description": "A competitive 1 vs 1 experience, perfect for practicing individual skill"
+      },
+      "rush": {
+        "title": "Rush",
+        "description": "Fast-paced 3 vs 3 matches, pushing room by room"
       }
     },
     "cancel_matchmaking": "Cancel Matchmaking",

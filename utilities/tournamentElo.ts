@@ -1,4 +1,4 @@
-type EloLadder = "Competitive" | "Trios" | "Wingman";
+type EloLadder = "Competitive" | "Rush" | "Wingman";
 
 type TournamentLike =
   | {
@@ -14,7 +14,7 @@ type PlayerLike =
   | undefined;
 
 /**
- * Mirrors get_tournament_player_elo: 2-per-lineup → Wingman, 3 → Trios,
+ * Mirrors get_tournament_player_elo: 2-per-lineup → Wingman, 3 → Rush,
  * everything else → Competitive.
  */
 export function tournamentEloLadder(tournament: TournamentLike): EloLadder {
@@ -23,7 +23,7 @@ export function tournamentEloLadder(tournament: TournamentLike): EloLadder {
     Number(tournament?.max_players_per_lineup) ||
     0;
   if (size === 2) return "Wingman";
-  if (size === 3) return "Trios";
+  if (size === 3) return "Rush";
   return "Competitive";
 }
 

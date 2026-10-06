@@ -112,7 +112,11 @@ import { SELECT_NONE, nullableSelectField } from "~/utilities/selectNone";
                   </FormItem>
                 </FormField>
 
-                <FormField v-slot="{ value, handleChange }" name="map_veto">
+                <FormField
+                  v-if="!isRush"
+                  v-slot="{ value, handleChange }"
+                  name="map_veto"
+                >
                   <FormItem
                     class="space-y-2"
                     :class="
@@ -412,7 +416,11 @@ import { SELECT_NONE, nullableSelectField } from "~/utilities/selectNone";
             <Card>
               <div class="p-4 space-y-6">
                 <slot name="before-overtime"></slot>
-                <FormField v-slot="{ value, handleChange }" name="overtime">
+                <FormField
+                  v-if="!isRush"
+                  v-slot="{ value, handleChange }"
+                  name="overtime"
+                >
                   <FormItem>
                     <div
                       class="flex flex-row items-center justify-between cursor-pointer"
@@ -439,7 +447,11 @@ import { SELECT_NONE, nullableSelectField } from "~/utilities/selectNone";
                   </FormItem>
                 </FormField>
 
-                <FormField v-slot="{ value, handleChange }" name="knife_round">
+                <FormField
+                  v-if="!isRush"
+                  v-slot="{ value, handleChange }"
+                  name="knife_round"
+                >
                   <FormItem>
                     <div
                       class="flex flex-row items-center justify-between cursor-pointer"
@@ -466,7 +478,7 @@ import { SELECT_NONE, nullableSelectField } from "~/utilities/selectNone";
                   </FormItem>
                 </FormField>
 
-                <FormField v-slot="{ componentField }" name="mr">
+                <FormField v-if="!isRush" v-slot="{ componentField }" name="mr">
                   <FormItem>
                     <SettingHeader>{{
                       $t("match.options.advanced.max_rounds.label")
@@ -1677,6 +1689,15 @@ export default {
           type === e_match_types_enum.Competitive ? "12" : "8",
         );
 
+        if (type === e_match_types_enum.Rush) {
+          this.form.setFieldValue("best_of", 1);
+          this.form.setFieldValue("overtime", false);
+          this.form.setFieldValue("knife_round", false);
+          this.form.setFieldValue("map_veto", false);
+          this.form.setFieldValue("custom_map_pool", false);
+          this.form.setFieldValue("mr", "8");
+        }
+
         this.form.setFieldValue("map_pool", []);
         if (this.form.values.map_veto) {
           this.form.setFieldValue("map_pool_id", this.defaultMapPool.id);
@@ -1743,8 +1764,12 @@ export default {
       return (this.e_match_types || []).filter(
         (type: { value: string }) =>
           type.value !== e_match_types_enum.Premier &&
-          type.value !== e_match_types_enum.Faceit,
+          type.value !== e_match_types_enum.Faceit &&
+          type.value !== e_match_types_enum.Trios,
       );
+    },
+    isRush(): boolean {
+      return this.form?.values?.type === e_match_types_enum.Rush;
     },
     selectedTypeDescription(): string {
       const selected = this.selectableMatchTypes.find(
@@ -1880,8 +1905,8 @@ export default {
           switch (this.form.values.type) {
             case e_match_types_enum.Competitive:
               return map.type === e_match_types_enum.Competitive;
-            case e_match_types_enum.Trios:
-              return map.type === e_match_types_enum.Trios;
+            case e_match_types_enum.Rush:
+              return map.type === e_match_types_enum.Rush;
             case e_match_types_enum.Wingman:
               return map.type === e_match_types_enum.Wingman;
             case e_match_types_enum.Duel:

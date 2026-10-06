@@ -22,7 +22,7 @@ const copy = computed(() => {
   if (isFa.value) {
     return {
       heading: "رنکینگ بازیکن‌ها.",
-      body: "بالاترین Elo هر بازیکن در هر مودی (Competitive، Trios، Wingman یا Duel) — همان عددی که الان بیشترین است.",
+      body: "بالاترین Elo هر بازیکن در هر مودی (Competitive، Rush، Wingman یا Duel) — همان عددی که الان بیشترین است.",
       rank: "رنک",
       player: "بازیکن",
       elo: "Elo",
@@ -32,7 +32,7 @@ const copy = computed(() => {
   }
   return {
     heading: "Rankings for individual players.",
-    body: "Each player is ranked by their highest current Elo across Competitive, Trios, Wingman, and Duel.",
+    body: "Each player is ranked by their highest current Elo across Competitive, Rush, Wingman, and Duel.",
     rank: "Rank",
     player: "Player",
     elo: "Elo",

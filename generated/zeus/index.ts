@@ -314456,6 +314456,7 @@ export enum e_game_cfg_types_enum {
 	Global = "Global",
 	Lan = "Lan",
 	Live = "Live",
+	Rush = "Rush",
 	Trios = "Trios",
 	Wingman = "Wingman"
 }
@@ -314684,6 +314685,7 @@ export enum e_map_pool_types_enum {
 	Competitive = "Competitive",
 	Custom = "Custom",
 	Duel = "Duel",
+	Rush = "Rush",
 	Trios = "Trios",
 	Wingman = "Wingman"
 }
@@ -314816,6 +314818,7 @@ export enum e_match_types_enum {
 	Duel = "Duel",
 	Faceit = "Faceit",
 	Premier = "Premier",
+	Rush = "Rush",
 	Trios = "Trios",
 	Wingman = "Wingman"
 }

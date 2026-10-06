@@ -4,7 +4,7 @@ import gql from "graphql-tag";
 /** Ranked ladders we consider when picking a player's best Elo. */
 export const LANDING_ELO_MODES = [
   "Competitive",
-  "Trios",
+  "Rush",
   "Wingman",
   "Duel",
 ] as const;

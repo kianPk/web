@@ -94,11 +94,11 @@ const COST_FIELDS = [
     freeKey: "ypoint_free_wingman",
   },
   {
-    key: "ypoint_cost_trios",
-    label: "trios",
+    key: "ypoint_cost_rush",
+    label: "rush",
     fallback: 12,
     ranked: true,
-    freeKey: "ypoint_free_trios",
+    freeKey: "ypoint_free_rush",
   },
   {
     key: "ypoint_cost_draft_create",
