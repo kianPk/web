@@ -22,9 +22,8 @@ const props = withDefaults(defineProps<PrimitiveProps & {
     :data-size="size"
     :data-active="isActive"
     :class="cn(
-      'flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground/75 outline-none ring-sidebar-ring transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-sidebar-foreground focus-visible:ring-2 active:bg-[hsl(var(--tac-amber)/0.12)] active:text-[hsl(var(--tac-amber))] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
-      'data-[active=true]:bg-[hsl(var(--tac-amber)/0.12)] data-[active=true]:text-[hsl(var(--tac-amber))]',
-      '[&.router-link-active]:bg-[hsl(var(--tac-amber)/0.12)] [&.router-link-active]:text-[hsl(var(--tac-amber))]',
+      'flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground',
+      'data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground',
       size === 'sm' && 'text-xs',
       size === 'md' && 'text-sm',
       'group-data-[collapsible=icon]:hidden',
