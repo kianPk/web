@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Apply IRR (Toman) wallet columns on the panel VPS (idempotent).
+# Apply IRR (Toman) wallet columns on the panel VPS (idempotent)
+# and backfill missing VIP-shop owner credits.
 set -euo pipefail
 export KUBECONFIG="${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
 
@@ -29,44 +30,58 @@ CREATE UNIQUE INDEX IF NOT EXISTS irr_ledger_credit_idempotent_idx
   ON public.irr_ledger (steam_id, ref_type, ref_id)
   WHERE ref_type IS NOT NULL AND ref_id IS NOT NULL AND delta > 0;
 
-ALTER TABLE public.store_orders
-  DROP CONSTRAINT IF EXISTS store_orders_hosted_kind_check;
-
-ALTER TABLE public.store_orders
-  ADD CONSTRAINT store_orders_hosted_kind_check
-    CHECK (hosted_kind IS NULL OR hosted_kind IN ('new', 'renew', 'slots', 'vip_shop'));
-
-INSERT INTO public.store_products
-  (title, slug, description, price_irr, ypoint_amount, vip_server_id,
-   vip_duration, hosted_slots, subscription_tier, sort_order, active)
-VALUES (
-  'Hosted VIP (internal)',
-  'hosted-vip-shop',
-  'Internal bill carrier for hosted server VIP sales. Not sold in the store.',
-  0, NULL, NULL, NULL, NULL, NULL, 9999, false
+-- Backfill owner credits for already-paid VIP shop orders missing a ledger row.
+WITH paid AS (
+  SELECT o.id,
+         CASE
+           WHEN COALESCE(o.amount_irr, 0) > 0 THEN o.amount_irr
+           ELSE COALESCE((
+             SELECT SUM(COALESCE((x->>'price_irr')::bigint, 0))
+             FROM jsonb_array_elements(COALESCE(o.cart_items, '[]'::jsonb)) AS x
+           ), 0)
+         END AS amount_irr,
+         o.hosted_server_id
+  FROM store_orders o
+  WHERE o.status = 'paid'
+    AND (
+      o.hosted_kind = 'vip_shop'
+      OR COALESCE(o.product_title, '') ~* '^VIP[[:space:]]+(7d|30d|90d)'
+    )
+),
+owner_row AS (
+  SELECT p.id AS order_id, p.amount_irr, h.owner_steam_id
+  FROM paid p
+  JOIN hosted_servers h ON h.id = p.hosted_server_id
+  WHERE p.amount_irr > 0
+    AND h.owner_steam_id IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM irr_ledger l
+      WHERE l.steam_id = h.owner_steam_id
+        AND l.ref_type = 'hosted_vip_earning'
+        AND l.ref_id = p.id::text
+        AND l.delta > 0
+    )
+),
+credited AS (
+  UPDATE players pl
+  SET irr_balance = pl.irr_balance + o.amount_irr
+  FROM owner_row o
+  WHERE pl.steam_id = o.owner_steam_id
+  RETURNING pl.steam_id, pl.irr_balance, o.order_id, o.amount_irr
 )
-ON CONFLICT (slug) DO NOTHING;
+INSERT INTO irr_ledger (steam_id, delta, balance_after, reason, ref_type, ref_id)
+SELECT c.steam_id, c.amount_irr, c.irr_balance, 'hosted_vip_earning',
+       'hosted_vip_earning', c.order_id::text
+FROM credited c;
+
+SELECT 'backfilled_vip_credits' AS k, count(*)::text AS v FROM irr_ledger
+WHERE ref_type = 'hosted_vip_earning';
 SQL
 
 PGPOD=$(kubectl -n 5stack get pods -o name | grep -E 'timescaledb|postgres' | head -1 | cut -d/ -f2)
+echo "postgres: $PGPOD"
 kubectl -n 5stack cp "$SQL_FILE" "$PGPOD:/tmp/irr_wallet.sql"
-kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/irr_wallet.sql' \
-  || kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql "$POSTGRES_CONNECTION_STRING" -f /tmp/irr_wallet.sql'
+kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql "$POSTGRES_CONNECTION_STRING" -v ON_ERROR_STOP=1 -f /tmp/irr_wallet.sql' \
+  || kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/irr_wallet.sql'
 
-echo "IRR wallet + vip_shop constraint + carrier product applied"
-
-# Seal any already-paid VIP shop orders so the lifecycle job cannot
-# provision a hosted server from them (leftover from the plan-carrier bug).
-SEAL_FILE="$(mktemp)"
-cat >"$SEAL_FILE" <<'SQL'
-UPDATE public.store_orders
-SET hosted_fulfilled_at = COALESCE(hosted_fulfilled_at, now())
-WHERE hosted_kind = 'vip_shop'
-  AND status = 'paid'
-  AND hosted_fulfilled_at IS NULL;
-SQL
-kubectl -n 5stack cp "$SEAL_FILE" "$PGPOD:/tmp/seal_vip_shop.sql"
-kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/seal_vip_shop.sql' \
-  || kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql "$POSTGRES_CONNECTION_STRING" -f /tmp/seal_vip_shop.sql'
-rm -f "$SEAL_FILE"
-echo "sealed unpaid-fulfillment VIP shop orders"
+echo "IRR wallet schema + VIP owner credit backfill done"

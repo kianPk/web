@@ -2,6 +2,7 @@ type BaleSettings = {
   botToken: string;
   providerToken: string;
   botUsername: string;
+  webhookSecret: string;
 };
 
 type CartItemSnapshot = {
@@ -53,7 +54,9 @@ async function loadBaleSettings(): Promise<BaleSettings> {
     settings: Array<{ name: string; value: string }>;
   }>(
     `query {
-      settings(where: {name: {_in: ["bale.bot_token","bale.provider_token","bale.bot_username"]}}) {
+      settings(where: {name: {_in: [
+        "bale.bot_token","bale.provider_token","bale.bot_username","bale.webhook_secret"
+      ]}}) {
         name
         value
       }
@@ -63,10 +66,89 @@ async function loadBaleSettings(): Promise<BaleSettings> {
     (data.settings || []).map((r) => [r.name, r.value || ""]),
   );
   return {
-    botToken: map["bale.bot_token"] || "",
-    providerToken: map["bale.provider_token"] || "",
-    botUsername: map["bale.bot_username"] || "",
+    botToken: map["bale.bot_token"] || process.env.BALE_BOT_TOKEN || "",
+    providerToken:
+      map["bale.provider_token"] || process.env.BALE_PROVIDER_TOKEN || "",
+    botUsername:
+      map["bale.bot_username"] || process.env.BALE_BOT_USERNAME || "",
+    webhookSecret:
+      map["bale.webhook_secret"] || process.env.BALE_WEBHOOK_SECRET || "",
   };
+}
+
+async function runSql(sql: string) {
+  const apiDomain = process.env.NUXT_PUBLIC_API_DOMAIN;
+  const adminSecret = process.env.HASURA_GRAPHQL_ADMIN_SECRET;
+  if (!apiDomain || !adminSecret) return;
+  const res = await fetch(`https://${apiDomain}/v2/query`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-hasura-admin-secret": adminSecret,
+    },
+    body: JSON.stringify({
+      type: "run_sql",
+      args: { source: "default", sql },
+    }),
+  });
+  const json = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok || json.error) {
+    console.error("store webhook SQL failed", json.error || res.status);
+  }
+}
+
+/** Credit the hosted-server owner’s site Toman wallet for a paid VIP shop order. */
+async function creditVipShopOwner(orderId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(orderId)) return;
+  const id = orderId.replace(/'/g, "''");
+  await runSql(`
+WITH paid AS (
+  SELECT o.id,
+         CASE
+           WHEN COALESCE(o.amount_irr, 0) > 0 THEN o.amount_irr
+           ELSE COALESCE((
+             SELECT SUM(COALESCE((x->>'price_irr')::bigint, 0))
+             FROM jsonb_array_elements(COALESCE(o.cart_items, '[]'::jsonb)) AS x
+           ), 0)
+         END AS amount_irr,
+         o.hosted_server_id
+  FROM store_orders o
+  WHERE o.id = '${id}'::uuid
+    AND o.status = 'paid'
+    AND (
+      o.hosted_kind = 'vip_shop'
+      OR COALESCE(o.product_title, '') ~* '^VIP[[:space:]]+(7d|30d|90d)'
+    )
+),
+owner_row AS (
+  SELECT p.id AS order_id, p.amount_irr, h.owner_steam_id
+  FROM paid p
+  JOIN hosted_servers h ON h.id = p.hosted_server_id
+  WHERE p.amount_irr > 0
+    AND h.owner_steam_id IS NOT NULL
+),
+skip_dup AS (
+  SELECT 1
+  FROM irr_ledger l
+  JOIN owner_row o ON o.owner_steam_id = l.steam_id
+  WHERE l.ref_type = 'hosted_vip_earning'
+    AND l.ref_id = o.order_id::text
+    AND l.delta > 0
+  LIMIT 1
+),
+credited AS (
+  UPDATE players pl
+  SET irr_balance = pl.irr_balance + o.amount_irr
+  FROM owner_row o
+  WHERE pl.steam_id = o.owner_steam_id
+    AND NOT EXISTS (SELECT 1 FROM skip_dup)
+  RETURNING pl.steam_id, pl.irr_balance, o.order_id, o.amount_irr
+)
+INSERT INTO irr_ledger (steam_id, delta, balance_after, reason, ref_type, ref_id)
+SELECT c.steam_id, c.amount_irr, c.irr_balance, 'hosted_vip_earning',
+       'hosted_vip_earning', c.order_id::text
+FROM credited c;
+`);
 }
 
 async function baleApi(
@@ -125,13 +207,23 @@ function normalizeCartItems(raw: unknown): CartItemSnapshot[] {
 }
 
 /** Forward paid events to the API for VIP RCON + in-app notifications. */
-async function tryFulfillViaApi(payload: string, chargeId: string) {
+async function tryFulfillViaApi(
+  payload: string,
+  chargeId: string,
+  webhookSecret: string,
+) {
   const apiDomain = process.env.NUXT_PUBLIC_API_DOMAIN;
   if (!apiDomain) return;
   try {
-    await fetch(`https://${apiDomain}/store/bale-webhook`, {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
+    if (webhookSecret) {
+      headers["x-bale-webhook-secret"] = webhookSecret;
+    }
+    const res = await fetch(`https://${apiDomain}/store/bale-webhook`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify({
         successful_payment: {
           invoice_payload: payload,
@@ -139,8 +231,15 @@ async function tryFulfillViaApi(payload: string, chargeId: string) {
         },
       }),
     });
-  } catch {
-    // Best-effort when API /store is unreachable.
+    if (!res.ok) {
+      console.error(
+        "store fulfill via API failed",
+        res.status,
+        await res.text().catch(() => ""),
+      );
+    }
+  } catch (error) {
+    console.error("store fulfill via API unreachable", error);
   }
 }
 
@@ -463,7 +562,8 @@ export default defineEventHandler(async (event) => {
             refId: order.id,
           });
         }
-        await tryFulfillViaApi(payload, chargeId);
+        await tryFulfillViaApi(payload, chargeId, bale.webhookSecret);
+        await creditVipShopOwner(order.id);
       }
     }
     return { ok: true };
