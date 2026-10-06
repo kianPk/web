@@ -113,16 +113,10 @@ const viewer = computed<DraftViewer>(() => ({
   isPartyLeader: !!matchmaking.currentLobby && isPartyLeader.value,
 }));
 
-onMounted(() => {
-  draftGames.subscribeToOpenDraftGames();
-});
-
-onUnmounted(() => {
-  draftGames.unsubscribeFromOpenDraftGames();
-});
-
 // The intro explains draft rooms until the player hosts one, or closes it.
-const introDismissed = ref(readIntroDismissed());
+// Client-only: this is a nicety and must never take SSR (or a stale deploy)
+// down with "hasHostedDraftGame is not a function".
+const introDismissed = ref(false);
 const hostedBefore = ref<boolean | null>(null);
 
 function readIntroDismissed() {
@@ -133,18 +127,31 @@ function readIntroDismissed() {
   }
 }
 
+onMounted(() => {
+  introDismissed.value = readIntroDismissed();
+  draftGames.subscribeToOpenDraftGames();
+});
+
+onUnmounted(() => {
+  draftGames.unsubscribeFromOpenDraftGames();
+});
+
 watch(
   () => [auth.hasCheckedSession, auth.me?.steam_id] as const,
   async ([checked, steamId]) => {
+    if (!import.meta.client) return;
     if (!checked) return;
     if (!steamId) {
       hostedBefore.value = false;
       return;
     }
+    const probe = draftGames.hasHostedDraftGame;
+    if (typeof probe !== "function") {
+      hostedBefore.value = null;
+      return;
+    }
     // Unknown stays hidden: the intro is a nicety, not worth an error.
-    hostedBefore.value = await draftGames
-      .hasHostedDraftGame(steamId)
-      .catch(() => null);
+    hostedBefore.value = await probe.call(draftGames, steamId).catch(() => null);
   },
   { immediate: true },
 );
