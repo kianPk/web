@@ -91,32 +91,43 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 <template>
   <Sidebar collapsible="icon">
     <div
-      class="flex h-full w-full flex-col"
+      class="relative flex h-full w-full flex-col overflow-hidden bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.06)_0%,transparent_28%,transparent_100%)]"
       @touchstart.passive="onLeftNavTouchStart"
       @touchend="onLeftNavTouchEnd"
     >
+      <div
+        class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.14),transparent_65%)]"
+        aria-hidden="true"
+      />
       <Transition
         enter-active-class="[transition:opacity_0.2s_ease,max-height_0.2s_ease,padding_0.2s_ease,margin_0.2s_ease] overflow-hidden"
         leave-active-class="[transition:opacity_0.2s_ease,max-height_0.2s_ease,padding_0.2s_ease,margin_0.2s_ease] overflow-hidden"
         enter-from-class="opacity-0 max-h-0 py-0 my-0"
         leave-to-class="opacity-0 max-h-0 py-0 my-0"
       >
-        <SidebarHeader v-if="!isMobile && (!isPWA || !sideBarOpen)">
+        <SidebarHeader
+          v-if="!isMobile && (!isPWA || !sideBarOpen)"
+          class="relative z-[1] border-b border-sidebar-border/60 pb-2"
+        >
           <NuxtLink
             :to="logoPath"
-            class="flex min-w-0 items-center overflow-hidden transition-[gap,padding] duration-200 ease-linear [&.router-link-active]:!bg-transparent [&.router-link-exact-active]:!bg-transparent"
+            class="group/brand flex min-w-0 items-center overflow-hidden transition-[gap,padding] duration-200 ease-linear [&.router-link-active]:!bg-transparent [&.router-link-exact-active]:!bg-transparent"
             :class="{
-              'gap-2 px-2 py-1.5': !isPWA && (isMobile || sideBarOpen),
+              'gap-2.5 px-2 py-2': !isPWA && (isMobile || sideBarOpen),
               'pointer-events-none cursor-default': isLogoRouteActive,
             }"
             :tabindex="isLogoRouteActive ? -1 : undefined"
             :aria-current="isLogoRouteActive ? 'page' : undefined"
           >
-            <NuxtImg
-              class="shrink-0 rounded max-w-8 max-h-8"
-              :src="customLogoUrl || '/favicon/64.png'"
-              :alt="customBrandName || $t('layouts.app_nav.brand')"
-            />
+            <span
+              class="relative shrink-0 overflow-hidden rounded-md ring-1 ring-[hsl(var(--tac-amber)/0.35)] shadow-[0_0_18px_-6px_hsl(var(--tac-amber)/0.55)]"
+            >
+              <NuxtImg
+                class="max-h-8 max-w-8"
+                :src="customLogoUrl || '/favicon/64.png'"
+                :alt="customBrandName || $t('layouts.app_nav.brand')"
+              />
+            </span>
             <Transition
               mode="out-in"
               enter-active-class="[transition:opacity_0.15s_ease,max-width_0.2s_ease] overflow-hidden"
@@ -129,7 +140,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               <span
                 v-if="!isPWA && (isMobile || sideBarOpen)"
                 key="brand"
-                class="font-semibold text-xlg truncate"
+                class="truncate text-base font-semibold tracking-wide text-sidebar-foreground"
               >
                 {{ customBrandName || $t("layouts.app_nav.brand") }}
               </span>
@@ -137,7 +148,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </NuxtLink>
         </SidebarHeader>
       </Transition>
-      <SidebarContent>
+      <SidebarContent class="relative z-[1]">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem
@@ -347,14 +358,14 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               <SidebarMenuButton
                 as-child
                 tooltip="TeamSpeak"
-                class="bg-blue-600 font-semibold text-white shadow-sm shadow-blue-600/40 hover:bg-blue-500 hover:text-white active:bg-blue-700 active:text-white"
+                class="border border-sky-500/35 bg-sky-500/10 font-semibold text-sky-100 hover:bg-sky-500/20 hover:text-white active:bg-sky-500/25 active:text-white"
               >
                 <a :href="teamspeakUrl" @click="setOpenMobile(false)">
                   <Headset />
                   <span>TeamSpeak</span>
                   <span
                     v-if="isMobile || sideBarOpen"
-                    class="ml-auto text-xs font-normal text-blue-100"
+                    class="ml-auto font-mono text-[0.65rem] font-normal text-sky-200/80"
                     dir="ltr"
                   >
                     {{ teamspeakAddress }}
@@ -1175,7 +1186,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </NuxtLink>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter class="relative z-[1] border-t border-sidebar-border/60 bg-sidebar/40 backdrop-blur-[2px]">
         <SidebarMenu>
           <InstallAntiCheat />
           <InstallPWA />
