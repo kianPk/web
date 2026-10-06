@@ -53,4 +53,20 @@ kubectl -n 5stack cp "$SQL_FILE" "$PGPOD:/tmp/irr_wallet.sql"
 kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/irr_wallet.sql' \
   || kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql "$POSTGRES_CONNECTION_STRING" -f /tmp/irr_wallet.sql'
 
-echo "IRR wallet applied"
+echo "IRR wallet + vip_shop constraint + carrier product applied"
+
+# Seal any already-paid VIP shop orders so the lifecycle job cannot
+# provision a hosted server from them (leftover from the plan-carrier bug).
+SEAL_FILE="$(mktemp)"
+cat >"$SEAL_FILE" <<'SQL'
+UPDATE public.store_orders
+SET hosted_fulfilled_at = COALESCE(hosted_fulfilled_at, now())
+WHERE hosted_kind = 'vip_shop'
+  AND status = 'paid'
+  AND hosted_fulfilled_at IS NULL;
+SQL
+kubectl -n 5stack cp "$SEAL_FILE" "$PGPOD:/tmp/seal_vip_shop.sql"
+kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/seal_vip_shop.sql' \
+  || kubectl -n 5stack exec "$PGPOD" -- bash -lc 'psql "$POSTGRES_CONNECTION_STRING" -f /tmp/seal_vip_shop.sql'
+rm -f "$SEAL_FILE"
+echo "sealed unpaid-fulfillment VIP shop orders"
