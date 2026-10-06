@@ -37,11 +37,13 @@ let stopRestore: (() => void) | null = null;
 const snapshots = new Map<string, () => unknown>();
 
 function entryKey(): string | null {
+  if (typeof window === "undefined") return null;
   const position = window.history.state?.position;
   return typeof position === "number" ? String(position) : null;
 }
 
 function load(): Record<string, Entry> {
+  if (typeof window === "undefined") return {};
   try {
     return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "{}") ?? {};
   } catch {
@@ -183,7 +185,7 @@ export function useScrollRestorationAnchor(
   const nuxtApp = useNuxtApp();
   const { reserve } = useScrollFloor();
 
-  if (!installed) {
+  if (!installed && import.meta.client) {
     installed = true;
     entries = load();
     currentKey = entryKey();
