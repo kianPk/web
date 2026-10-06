@@ -1904,7 +1904,23 @@
           "ttl_tournament": "Tournament chat",
           "ttl_organizers": "Organizer chat",
           "ttl_draft": "Draft lobby chat",
-          "retention_direct_days": "Keep direct messages for (days)"
+          "retention_direct_days": "Keep direct messages for (days)",
+          "attachments_title": "Attachments",
+          "attachments_description": "Players can attach up to 4 images or videos to a message in lobby, tournament, organizer, draft and direct chat. A file is deleted when its room's messages expire, when its direct message is pruned, or as soon as its message is deleted.",
+          "attachment_max_mb": "Largest file (MB)",
+          "attachment_daily_mb": "Uploads per player per day (MB)",
+          "attachment_daily_mb_hint": "Counted over the last 24 hours, including files that were removed.",
+          "gifs_title": "GIFs",
+          "gifs_description": "Add a GIPHY API key to let players send GIFs. Searches go through the API, so the key never reaches a browser. Without a key, the + in chat only adds files.",
+          "giphy_api_key": "GIPHY API key",
+          "giphy_key_set": "A key is set. Enter a new one to replace it.",
+          "giphy_key_missing": "No key is set.",
+          "giphy_key_placeholder": "Paste a key",
+          "giphy_key_get": "Get a key from GIPHY",
+          "giphy_key_remove": "Remove Key",
+          "giphy_key_removed": "GIPHY key removed",
+          "giphy_hourly_limit": "GIPHY searches per hour",
+          "giphy_hourly_limit_hint": "Shared by every player. GIPHY's beta keys allow 100 an hour."
         },
         "news": {
           "title": "News",
@@ -9016,7 +9032,96 @@
     "direct": {
       "message": "Message",
       "empty": "No messages yet. Say hello."
-    }
+    },
+    "attachments": {
+      "label": "Attachment",
+      "label_count": "{count} attachments",
+      "add": "Attach images or videos",
+      "menu": "Add an image, video or GIF",
+      "remove": "Remove {name}",
+      "retry": "Retry",
+      "open_image": "Open {name}",
+      "play_video": "Play {name}",
+      "unavailable": "No longer available",
+      "drop_in": {
+        "matchmaking": "Drop to send in the lobby",
+        "tournament": "Drop to send in the tournament chat",
+        "organizers": "Drop to send in the organizers' chat",
+        "draft": "Drop to send in the draft lobby",
+        "direct": "Drop to send in this conversation"
+      },
+      "drop_hint": "Images and videos, up to {count} at a time",
+      "rejected_type": "{name} can't be attached. Only images and videos can.",
+      "rejected_size": "{name} is over the {size} limit.",
+      "rejected_empty": "{name} is empty.",
+      "rejected_count": "Up to {count} files per message.",
+      "waiting_hint": "Waiting for uploads…",
+      "failed_hint": "Remove or retry failed files",
+      "errors": {
+        "too_large": "This file is over the size limit.",
+        "image_too_large": "This image is too big.",
+        "unsupported_type": "This kind of file can't be attached.",
+        "too_many_pending": "Too many uploads are waiting to be sent. Send or remove some first.",
+        "quota_exceeded": "You've reached today's upload allowance.",
+        "rate_limited": "Too many uploads at once. Try again in a moment.",
+        "not_allowed": "You can't attach files here.",
+        "gagged": "You are gagged and can't send anything here.",
+        "unavailable": "The upload failed. Tap to retry."
+      }
+    },
+    "gifs": {
+      "label": "GIF",
+      "open": "Send a GIF",
+      "search": "Search GIPHY",
+      "command_search_for": "Search GIPHY for “{term}”",
+      "trending": "Trending",
+      "suggestions": {
+        "gg": "gg",
+        "clutch": "clutch",
+        "rage": "rage"
+      },
+      "click_to_send": "Click to send",
+      "powered_by": "Powered by GIPHY",
+      "empty": "No GIFs found",
+      "rate_limited": "Too many searches. Wait a moment and try again.",
+      "busy": "GIFs are busy, try again soon",
+      "unavailable": "GIPHY is unavailable right now."
+    },
+    "react_gagged": "You're gagged and can't add reactions.",
+    "edited": "(edited)",
+    "react": "React",
+    "react_with": "React with {emoji}",
+    "react_with_count": "React with {emoji} ({count})",
+    "reacted_by": "{names} reacted with {emoji}",
+    "reacted_by_count": "{count} player reacted with {emoji} | {count} players reacted with {emoji}",
+    "reacted_you": "You",
+    "reacted_others": "{count} other | {count} others",
+    "react_failed": "Failed to react",
+    "react_timeout": "The server didn't answer. Your reaction may still go through.",
+    "react_rate_limited": "You're reacting too fast.",
+    "message_label": "Message",
+    "message_too_long": "Messages can be up to {max} characters.",
+    "send_failed": "Failed to send message",
+    "gagged": "You're gagged and can't send chat messages.",
+    "message_actions": "Message actions",
+    "copy_message": "Copy Text",
+    "moderate_player": "Moderate {name}",
+    "delete_message": "Delete Message",
+    "delete_confirm_title": "Delete Message?",
+    "delete_confirm_description": "The message from {name} will be removed for everyone in this chat.",
+    "delete_own_confirm_description": "Your message will be removed for everyone in this chat.",
+    "delete_failed": "Failed to delete message",
+    "delete_timeout": "The server didn't answer. The message may still be removed.",
+    "message_already_gone": "Message already removed",
+    "own_message_window_closed": "You can only edit or delete your messages for 10 minutes.",
+    "edit_message": "Edit Message",
+    "edit_hint": "Enter to save · Esc to cancel",
+    "edited_at": "Edited {time}",
+    "edit_failed": "Failed to edit message",
+    "edit_timeout": "The server didn't answer. Your edit may still be saved.",
+    "edit_rate_limited": "You're editing too fast.",
+    "edit_window_closed": "You can only edit a message for 10 minutes.",
+    "add_reaction": "Add Reaction"
   },
   "charts": {
     "usage": "Usage",
@@ -10796,5 +10901,24 @@
     "pair_failed": "Could not create pair code",
     "install_button": "Install AntiCheat",
     "install_tooltip": "Download YGuard Anti-Cheat (single .exe)"
+  },
+  "player_blocks": {
+    "block": "Block",
+    "unblock": "Unblock",
+    "blocked_badge": "Blocked",
+    "confirm": {
+      "title": "Block {name}?",
+      "description": "{name} won't be able to message you, invite you, or send you friend requests. Your friendship will be removed, and unblocking won't restore it.",
+      "action": "Block"
+    },
+    "toasts": {
+      "blocked": "{name} blocked",
+      "unblocked": "{name} unblocked"
+    },
+    "errors": {
+      "title": "Action unavailable",
+      "player_blocked": "You can't do that with this player.",
+      "player_blocked_bulk": "One or more of these players can't be added."
+    }
   }
 }

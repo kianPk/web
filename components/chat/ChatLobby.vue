@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import ChatHeader from "~/components/chat/ChatHeader.vue";
+import ChatParticipants from "~/components/chat/ChatParticipants.vue";
 import ChatMessages from "~/components/chat/ChatMessages.vue";
 import ChatInput from "~/components/chat/ChatInput.vue";
 import FadeSwap from "~/components/ui/transitions/FadeSwap.vue";
 import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
+import { Upload } from "lucide-vue-next";
 </script>
 
 <template>
   <Teleport to="#global-chat-container" v-if="global" defer>
     <div
       v-bind="$attrs"
+      @dragenter="onDragEnter"
+      @dragover="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
       class="fixed bottom-4 bg-background border rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out flex flex-col w-96"
       :class="{ 'h-12': isMinimized, 'h-96': !isMinimized }"
       :style="{
@@ -90,23 +96,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
         >
           {{ $t("chat.no_participants", "No one else is in this chat yet.") }}
         </div>
-        <ul v-else class="space-y-1.5">
-          <li
-            v-for="user in participants"
-            :key="(user as any).steam_id"
-            class="flex items-center gap-2"
-          >
-            <img
-              v-if="(user as any).avatar_url"
-              :src="(user as any).avatar_url"
-              alt=""
-              class="h-5 w-5 rounded-full"
-            />
-            <span class="truncate text-[11px]">
-              {{ (user as any).name }}
-            </span>
-          </li>
-        </ul>
+        <ChatParticipants v-else :participants="participants as any" />
       </div>
       <div
         v-if="!isMinimized"
@@ -123,7 +113,11 @@ import Empty from "~/components/ui/empty/Empty.vue";
             :is-minimized="isMinimized"
             class="min-h-0 flex-1 overflow-y-auto"
             :last-read-count="lastReadMessageCount"
+            :message-room="messageRoom"
+            :can-moderate="canModerate"
+            :can-post="canSend"
             @bottom-state-change="handleBottomStateChange"
+            @edit-last-end="focusComposer"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
             <div class="space-y-1">
@@ -147,7 +141,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
               isAtBottom
             "
             type="button"
-            class="absolute top-1 left-1/2 -translate-x-1/2 z-10 rounded-full bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
+            class="absolute top-1 left-1/2 -translate-x-1/2 z-10 rounded-md bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
             @click.stop="handleJumpToNewLine"
           >
             ↑ {{ $t("chat.jump_to_new", "Jump to new") }}
@@ -155,32 +149,58 @@ import Empty from "~/components/ui/empty/Empty.vue";
           <button
             v-if="lastReadMessageCount < messages.length && !isAtBottom"
             type="button"
-            class="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 rounded-full bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
+            class="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 rounded-md bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
             @click.stop="handleJumpToBottom"
           >
             {{ $t("chat.new_messages", "New messages") }} ↓
           </button>
         </div>
         <ChatInput
-          v-if="canSend"
+          v-if="composerEnabled"
           ref="chatInputRef"
           variant="global"
+          :attachment-room="attachmentRoom"
           :channels="chatChannels"
           :destination="sendTo"
           @update:destination="sendTo = $event as any"
           @send-message="handleSendMessage"
+          @edit-last="editLastMessage"
         >
           <template #actions>
             <slot name="compose-actions"></slot>
           </template>
         </ChatInput>
         <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
-          {{ readonlyHint || $t("chat.readonly") }}
+          {{ readonlyText }}
         </div>
       </div>
+      <Transition
+        enter-active-class="transition-opacity duration-150 ease-out motion-reduce:transition-none"
+        leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="dragDepth > 0"
+          data-chat-drop-overlay
+          class="pointer-events-none absolute inset-2 z-30 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-[hsl(var(--tac-amber)/0.6)] bg-background/90 px-4 text-center"
+        >
+          <Upload class="h-6 w-6 text-[hsl(var(--tac-amber))]" />
+          <p class="text-sm font-semibold">{{ dropTitle }}</p>
+          <p class="text-xs text-muted-foreground">{{ dropHint }}</p>
+        </div>
+      </Transition>
     </div>
   </Teleport>
-  <div v-else v-bind="$attrs" :class="embeddedContainerClasses">
+  <div
+    v-else
+    v-bind="$attrs"
+    :class="embeddedContainerClasses"
+    @dragenter="onDragEnter"
+    @dragover="onDragOver"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
+  >
     <ChatMatchHeader
       v-if="isGlobalContext && hideParticipantsSummary && matchInfo"
       :match="matchInfo"
@@ -225,10 +245,10 @@ import Empty from "~/components/ui/empty/Empty.vue";
              other is busy. -->
         <div
           v-if="isMerged"
-          class="relative grid grid-cols-3 rounded-sm bg-background/60 p-[2px]"
+          class="relative grid grid-cols-3 rounded-md bg-background/60 p-[2px]"
         >
           <span
-            class="pointer-events-none absolute inset-y-[2px] left-[2px] w-[calc(33.333%-1.333px)] rounded-[2px] bg-muted/70 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
+            class="pointer-events-none absolute inset-y-[2px] left-[2px] w-[calc(33.333%-1.333px)] rounded-sm bg-muted/70 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
             :style="{ transform: `translateX(${viewFilterIndex * 100}%)` }"
           ></span>
           <button
@@ -272,23 +292,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
       >
         {{ $t("chat.no_participants", "No one else is in this chat yet.") }}
       </div>
-      <ul v-else class="space-y-1.5">
-        <li
-          v-for="user in participants"
-          :key="(user as any).steam_id"
-          class="flex items-center gap-2"
-        >
-          <img
-            v-if="(user as any).avatar_url"
-            :src="(user as any).avatar_url"
-            alt=""
-            class="h-5 w-5 rounded-full"
-          />
-          <span class="truncate text-[11px]">
-            {{ (user as any).name }}
-          </span>
-        </li>
-      </ul>
+      <ChatParticipants v-else :participants="participants as any" />
     </div>
     <div class="relative flex flex-1 min-h-0 flex-col gap-2">
       <!-- First message in an empty room dissolves the empty copy under the
@@ -309,7 +313,11 @@ import Empty from "~/components/ui/empty/Empty.vue";
           variant="embedded"
           class="min-h-0 flex-1 overflow-y-auto"
           :last-read-count="tracksReadPosition ? lastReadMessageCount : 0"
+          :message-room="messageRoom"
+          :can-moderate="canModerate"
+          :can-post="canSend"
           @bottom-state-change="handleBottomStateChange"
+          @edit-last-end="focusComposer"
         />
         <Empty v-else key="empty" class="min-h-0 flex-1 text-muted-foreground">
           <div class="space-y-1">
@@ -343,7 +351,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
             isAtBottom
           "
           type="button"
-          class="absolute top-1 left-1/2 z-10 rounded-full bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
+          class="absolute top-1 left-1/2 z-10 rounded-md bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
           style="translate: -50% 0"
           @click.stop="handleJumpToNewLine"
         >
@@ -363,7 +371,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
             !isAtBottom
           "
           type="button"
-          class="absolute bottom-20 left-1/2 z-10 rounded-full bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
+          class="absolute bottom-20 left-1/2 z-10 rounded-md bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
           style="translate: -50% 0"
           @click.stop="handleJumpToBottom"
         >
@@ -373,14 +381,16 @@ import Empty from "~/components/ui/empty/Empty.vue";
       <!-- Composer <-> readonly hint are different heights; measured swap. -->
       <HeightSwap>
         <ChatInput
-          v-if="canSend"
+          v-if="composerEnabled"
           key="composer"
           ref="chatInputRef"
           variant="embedded"
+          :attachment-room="attachmentRoom"
           :channels="chatChannels"
           :destination="sendTo"
           @update:destination="sendTo = $event as any"
           @send-message="handleSendMessage"
+          @edit-last="editLastMessage"
         >
           <!-- Controls that belong to the destination rather than to chat -- the
                team voice channel is the same room as the team pill, so it rides
@@ -394,21 +404,46 @@ import Empty from "~/components/ui/empty/Empty.vue";
           key="hint"
           class="px-3 py-2 text-center text-xs text-muted-foreground"
         >
-          {{ readonlyHint || $t("chat.readonly") }}
+          {{ readonlyText }}
         </div>
       </HeightSwap>
     </div>
+    <Transition
+      enter-active-class="transition-opacity duration-150 ease-out motion-reduce:transition-none"
+      leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="dragDepth > 0"
+        data-chat-drop-overlay
+        class="pointer-events-none absolute inset-2 z-30 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-[hsl(var(--tac-amber)/0.6)] bg-background/90 px-4 text-center"
+      >
+        <Upload class="h-6 w-6 text-[hsl(var(--tac-amber))]" />
+        <p class="text-sm font-semibold">{{ dropTitle }}</p>
+        <p class="text-xs text-muted-foreground">{{ dropHint }}</p>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script lang="ts">
 import { markRaw, type PropType } from "vue";
 import socket, { chatMessageKey, chatMessageTime } from "~/web-sockets/Socket";
-import type { ChatType, Lobby, LobbyMessage } from "~/web-sockets/Socket";
+import type {
+  ChatType,
+  Lobby,
+  LobbyMessage,
+  LobbyMessageDeleted,
+} from "~/web-sockets/Socket";
+import { e_player_roles_enum } from "~/generated/zeus";
+import type { ChatGif } from "~/utilities/chatAttachments";
 
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { useSound } from "~/composables/useSound";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
+import { useChatAttachmentConfig } from "~/composables/useChatAttachmentConfig";
+import { chatRoomTakesAttachments } from "~/utilities/chatAttachments";
 
 const { rightSidebarOpen } = useRightSidebar();
 const { playNotificationSound } = useSound();
@@ -416,6 +451,7 @@ const { playNotificationSound } = useSound();
 interface ChatMessagesRef {
   scrollToBottom: (force?: boolean) => void;
   scrollToNewDivider?: () => void;
+  editLast?: () => void;
 }
 
 const NO_MESSAGES: LobbyMessage[] = [];
@@ -437,6 +473,9 @@ function claimNotification(key: string) {
 
 export default {
   inheritAttrs: false,
+  // <script setup> closes the instance to parent refs; ChatPanel focuses the
+  // composer of a conversation it just opened.
+  expose: ["focusComposer"],
   props: {
     instance: {
       type: String,
@@ -537,9 +576,17 @@ export default {
       // how a team callout ends up in front of the other side.
       sendTo: "everyone" as "everyone" | "team",
       viewFilter: "all" as "all" | "everyone" | "team",
-      // Counted per room, but only while the filter is hiding that room --
+      // Held per room, but only while the filter is hiding that room --
       // everything on screen has by definition been offered to the reader.
-      unseen: { everyone: 0, team: 0 } as Record<string, number>,
+      // Kept as message keys so a deleted line takes its mark with it.
+      unseen: { everyone: [], team: [] } as Record<
+        "everyone" | "team",
+        string[]
+      >,
+      // Counted, not a flag: dragging over a child fires the parent's
+      // dragleave before the child's dragenter.
+      dragDepth: 0,
+      mediaConfig: useChatAttachmentConfig(),
     };
   },
   computed: {
@@ -593,6 +640,64 @@ export default {
         );
       });
     },
+    // A conversation between two people is theirs; the api refuses to moderate
+    // one, even for an administrator.
+    canModerate() {
+      return (
+        this.type !== "direct" &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+      );
+    },
+    // One object per room, kept for as long as the rooms are, so handing it to
+    // every row costs no re-render.
+    messageRooms(): Record<
+      "everyone" | "team",
+      { type: ChatType; id: string } | null
+    > {
+      return {
+        everyone: this.channelTarget("everyone"),
+        team: this.teamLobbyId ? this.channelTarget("team") : null,
+      };
+    },
+    // A gag covers group chat only, and the api refuses the send either way --
+    // this just says so before the player has typed anything.
+    isGagged() {
+      return this.type !== "direct" && !!useAuthStore().me?.is_gagged;
+    },
+    composerEnabled() {
+      return this.canSend && !this.isGagged;
+    },
+    // Match and team rooms are relayed into the game server, so a merged
+    // panel is text-only whichever way the next line goes.
+    attachmentRoom() {
+      if (this.isMerged || !chatRoomTakesAttachments(this.type)) {
+        return null;
+      }
+
+      return { type: this.type, id: this.lobbyId };
+    },
+    acceptsDrops() {
+      return (
+        !!this.attachmentRoom &&
+        this.composerEnabled &&
+        !!this.mediaConfig.config
+      );
+    },
+    dropTitle() {
+      return this.$t(`chat.attachments.drop_in.${this.type}`);
+    },
+    dropHint() {
+      return this.$t("chat.attachments.drop_hint", {
+        count: this.mediaConfig.config?.max_files ?? 4,
+      });
+    },
+    readonlyText() {
+      if (!this.canSend) {
+        return this.readonlyHint || this.$t("chat.readonly");
+      }
+
+      return this.$t("chat.gagged");
+    },
     // Only a single lineup's room is private; the match room admits both sides.
     isTeamContext() {
       return this.type === "match_team";
@@ -616,7 +721,6 @@ export default {
           value: "everyone",
           label: this.everyoneLabel,
           hint: this.$t("chat.everyone_hint"),
-          placeholder: this.$t("chat.message_placeholder"),
           tone: "muted",
         },
         {
@@ -765,15 +869,70 @@ export default {
       }
 
       if (option === "all") {
-        return this.unseen.everyone + this.unseen.team;
+        return this.unseen.everyone.length + this.unseen.team.length;
       }
 
-      return this.unseen[option] ?? 0;
+      return this.unseen[option as "everyone" | "team"]?.length ?? 0;
     },
     channelTarget(channel: "everyone" | "team") {
       return channel === "team" && this.teamLobbyId
         ? { type: "match_team" as ChatType, id: this.teamLobbyId }
         : { type: this.type as ChatType, id: this.lobbyId };
+    },
+    messageRoom(message: LobbyMessage) {
+      return this.messageRooms[message?.__channel ?? "everyone"] ?? null;
+    },
+    // Where the removed line sat in what this panel renders. `index` is its
+    // place in its own room; merged, the other room's earlier lines come first.
+    renderedIndex(
+      { message, index }: LobbyMessageDeleted,
+      channel: "everyone" | "team",
+    ) {
+      if (!this.isMerged) {
+        return index;
+      }
+
+      if (!this.channelVisible(channel)) {
+        return -1;
+      }
+
+      const other = channel === "team" ? "everyone" : "team";
+      if (!this.channelVisible(other)) {
+        return index;
+      }
+
+      const otherLobby = other === "team" ? this.teamLobby : this.lobby;
+      const time = chatMessageTime(message);
+
+      // Ties sort everyone ahead of team, as the merged stream does.
+      const earlier = (otherLobby?.messages ?? NO_MESSAGES).filter(
+        (candidate) => {
+          const candidateTime = chatMessageTime(candidate);
+          return (
+            candidateTime < time ||
+            (candidateTime === time && other === "everyone")
+          );
+        },
+      ).length;
+
+      return index + earlier;
+    },
+    // The "New" line is a count from the top, so a line removed above it would
+    // otherwise drag it down onto a message that was already read.
+    handleDeletedMessage(
+      deleted: LobbyMessageDeleted,
+      channel: "everyone" | "team",
+    ) {
+      const position = this.renderedIndex(deleted, channel);
+
+      if (position !== -1 && position < this.lastReadMessageCount) {
+        this.lastReadMessageCount = Math.max(0, this.lastReadMessageCount - 1);
+      }
+
+      const key = chatMessageKey(deleted.message);
+      this.unseen[channel] = this.unseen[channel].filter(
+        (unseenKey) => unseenKey !== key,
+      );
     },
     handleIncomingMessage(
       message: LobbyMessage,
@@ -793,7 +952,7 @@ export default {
       // Only what the filter is actively hiding. A message in a room that is
       // on screen has been shown, whether or not it was read.
       if (this.isMerged && !isOwnMessage && !this.channelVisible(channel)) {
-        this.unseen[channel]++;
+        this.unseen[channel].push(chatMessageKey(message));
       }
 
       // Auto-scroll only when already at the bottom.
@@ -843,11 +1002,92 @@ export default {
         }
       });
     },
-    handleSendMessage(message: string, destination?: string) {
+    draggingFiles(event: DragEvent) {
+      return (
+        this.acceptsDrops &&
+        Array.from(event.dataTransfer?.types ?? []).includes("Files")
+      );
+    },
+    onDragEnter(event: DragEvent) {
+      if (!this.draggingFiles(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      this.dragDepth++;
+    },
+    onDragOver(event: DragEvent) {
+      if (!this.draggingFiles(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "copy";
+      }
+    },
+    onDragLeave() {
+      this.dragDepth = Math.max(0, this.dragDepth - 1);
+    },
+    // The count drifts when a hovered node is removed mid-drag and never sees
+    // its dragleave, so anything that ends the drag starts it again from zero.
+    resetDrag() {
+      this.dragDepth = 0;
+    },
+    // Safari reports no relatedTarget on any dragleave, so only one that ends
+    // at the window's edge counts as leaving it.
+    onWindowDragLeave(event: DragEvent) {
+      if (
+        !event.relatedTarget &&
+        (event.clientX <= 0 ||
+          event.clientY <= 0 ||
+          event.clientX >= window.innerWidth ||
+          event.clientY >= window.innerHeight)
+      ) {
+        this.dragDepth = 0;
+      }
+    },
+    onDrop(event: DragEvent) {
+      this.dragDepth = 0;
+
+      if (!this.draggingFiles(event)) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const chatInput = this.$refs.chatInputRef as
+        | { addFiles?: (files: File[]) => void }
+        | undefined;
+
+      chatInput?.addFiles?.(Array.from(event.dataTransfer?.files ?? []));
+    },
+    handleSendMessage(
+      message: string,
+      destination?: string,
+      media?: {
+        attachments?: string[];
+        gif?: ChatGif;
+        delivered?: (request: Promise<void>) => void;
+        sentLate?: () => void;
+      },
+    ) {
       const channel = (destination ?? this.sendTo) as "everyone" | "team";
       const target = this.channelTarget(channel);
 
-      socket.chat(target.type, target.id, message);
+      if (media?.delivered) {
+        media.delivered(
+          socket.sendChat(
+            target.type,
+            target.id,
+            message,
+            { attachments: media.attachments },
+            media.sentLate,
+          ),
+        );
+      } else {
+        socket.chat(target.type, target.id, message, media);
+      }
       // Sending to the other room from the keyboard is a one-off; the pills do
       // not move, because the next line is almost always going back where the
       // conversation was.
@@ -863,6 +1103,14 @@ export default {
         message,
         direction: "outbound",
       });
+    },
+    editLastMessage() {
+      (this.$refs.chatMessagesRef as ChatMessagesRef | undefined)?.editLast?.();
+    },
+    focusComposer() {
+      (
+        this.$refs.chatInputRef as { focus?: () => void } | undefined
+      )?.focus?.();
     },
     handleBottomStateChange(atBottom: boolean) {
       this.isAtBottom = atBottom;
@@ -892,7 +1140,7 @@ export default {
       handler() {
         for (const channel of ["everyone", "team"] as const) {
           if (this.channelVisible(channel)) {
-            this.unseen[channel] = 0;
+            this.unseen[channel] = [];
           }
         }
       },
@@ -921,6 +1169,10 @@ export default {
 
         lobby.on("lobby:chat", (message: LobbyMessage) => {
           this.handleIncomingMessage(message, "everyone");
+        });
+
+        lobby.on("lobby:deleted", (deleted: LobbyMessageDeleted) => {
+          this.handleDeletedMessage(deleted, "everyone");
         });
       },
     },
@@ -954,6 +1206,10 @@ export default {
 
         lobby.on("lobby:chat", (message: LobbyMessage) => {
           this.handleIncomingMessage(message, "team");
+        });
+
+        lobby.on("lobby:deleted", (deleted: LobbyMessageDeleted) => {
+          this.handleDeletedMessage(deleted, "team");
         });
       },
     },
@@ -1006,9 +1262,17 @@ export default {
       },
     },
   },
+  mounted() {
+    window.addEventListener("drop", this.resetDrag);
+    window.addEventListener("dragend", this.resetDrag);
+    window.addEventListener("dragleave", this.onWindowDragLeave);
+  },
   beforeUnmount() {
     this.lobby?.leave();
     this.teamLobby?.leave();
+    window.removeEventListener("drop", this.resetDrag);
+    window.removeEventListener("dragend", this.resetDrag);
+    window.removeEventListener("dragleave", this.onWindowDragLeave);
   },
 };
 </script>

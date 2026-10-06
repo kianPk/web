@@ -3,11 +3,46 @@ import { shallowRef, type ShallowRef } from "vue";
 import type { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { useChatReadState } from "~/composables/useChatReadState";
+import {
+  toastChatError,
+  type ChatAction,
+  type ChatError,
+} from "~/utilities/chatErrors";
+import {
+  applyChatMessageEdit,
+  applyChatMessageReactions,
+  chatMessageKey,
+  hideChatAuthors,
+  insertChatMessage,
+  isChatMessageDeleted,
+  isChatMessageFrom,
+  mergeChatSnapshot,
+  removeChatMessage,
+  withoutChatReactors,
+  type ChatMessageEdit,
+  type ChatMessageReactionsUpdate,
+  type RemovedChatMessage,
+} from "~/utilities/chatLobbyMessages";
+import type { ChatReaction } from "~/constants/chat";
+import type { ChatAttachment, ChatGif } from "~/utilities/chatAttachments";
+import { blockedIdsChange } from "~/utilities/playerBlocks";
+import guid from "~/utilities/uuid";
+
+export { chatMessageKey, chatMessageTime } from "~/utilities/chatLobbyMessages";
+
+export type ChatReactions = Record<string, string[]>;
 
 export interface LobbyMessage {
   id?: string;
   message: string;
   timestamp: string;
+  source?: "web" | "game";
+  edited_at?: string;
+  // Reaction id to the steam ids holding it, oldest first. Missing from an api
+  // that predates reactions.
+  reactions?: ChatReactions;
+  attachments?: ChatAttachment[];
+  gif?: ChatGif;
   from?: {
     role?: string;
     name?: string;
@@ -20,6 +55,9 @@ export interface LobbyMessage {
   // client where two rooms are merged into one stream and a line has to say
   // which one it went to. See ChatLobby's merged `messages`.
   __channel?: "everyone" | "team";
+  // Never sent by the server either: set while `edited_at` is this browser's
+  // clock, stamped for an api that acked an edit without the server's time.
+  __edited_locally?: boolean;
 }
 
 export interface Lobby {
@@ -28,9 +66,20 @@ export interface Lobby {
   leave: () => void;
 }
 
+export type LobbyMessageDeleted = Omit<RemovedChatMessage, "messages">;
+
+const NO_HIDDEN_AUTHORS: ReadonlySet<string> = new Set<string>();
+
 interface LobbyState {
+  type: ChatType;
   messages: ShallowRef<LobbyMessage[]>;
   seen: Set<string>;
+  // Ids the room has deleted. A history snapshot built before the delete can
+  // still arrive after it, and must not bring the message back.
+  deleted: Set<string>;
+  // Ids whose reactions changed live since the room's history was last asked
+  // for. See mergeChatSnapshot.
+  reacted: Set<string>;
   instances: Set<string>;
   callbacks: Map<string, (data: any) => void>;
   listeners: ReturnType<typeof Socket.prototype.listen>[];
@@ -50,31 +99,32 @@ export type ChatType =
   // sorted ascending and joined with ":" -- see useDirectMessages.
   | "direct";
 
-// The live `chat` event and the history snapshot sent on every (re)join can
-// carry the same message, so a message needs an identity the client can compare
-// them by. Anything written before the server started stamping an id falls back
-// to a composite key.
-export function chatMessageKey(message: LobbyMessage) {
-  if (message?.id) {
-    return message.id;
-  }
-
-  return [
-    message?.from?.steam_id ?? "",
-    message?.timestamp ?? "",
-    message?.message ?? "",
-  ].join("|");
+interface ChatAck {
+  requestId?: string;
+  messageId?: string;
+  action?: ChatAction;
+  message?: string;
+  edited_at?: string;
 }
 
-export function chatMessageTime(message: LobbyMessage) {
-  return new Date(message?.timestamp).getTime() || 0;
+interface PendingChatRequest {
+  action: ChatAction;
+  resolve: (ack: ChatAck) => void;
+  reject: (error: ChatError) => void;
+  timer: ReturnType<typeof setTimeout>;
 }
 
-class Socket extends EventEmitter {
+export class Socket extends EventEmitter {
   private listening = new Set();
   private connection?: WebSocket;
   private connected = false;
   private heartBeat?: NodeJS.Timeout;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private resumeCheck?: ReturnType<typeof setTimeout>;
+  private lifecycleBound = false;
+  private pongSeen = false;
+  private lastPongAt = 0;
+  private unansweredPingAt?: number;
   private rejoinTimers: Map<string, NodeJS.Timeout> = new Map();
   private offlineQueue: Array<{
     event: string;
@@ -88,9 +138,24 @@ class Socket extends EventEmitter {
   private static readonly MAX_RETRIES = 50;
   private static readonly BASE_DELAY_MS = 1000;
   private static readonly MAX_DELAY_MS = 30000;
+  private static readonly PONG_TIMEOUT_MS = 45_000;
+  private static readonly PONG_GRACE_MS = 10_000;
 
   private lobbies: Map<string, LobbyState> = new Map();
   private instanceCounter = 0;
+  private pendingRequests: Map<string, PendingChatRequest> = new Map();
+  private reactionsInFlight = new Set<string>();
+  // The api stops sending a blocked player's lines and reactions once the
+  // block has committed, but not what is already on its way or held here.
+  private hiddenAuthors: ReadonlySet<string> = new Set<string>();
+  // Moderators are still sent a blocked player's lines and reactions in group
+  // rooms, so they can moderate them. A conversation stays closed for everyone.
+  private hidesAuthorsInGroups = true;
+  // The api answers a request it failed to carry out with nothing at all.
+  private static readonly REQUEST_TIMEOUT_MS = 8000;
+  // How long a request that timed out still recognises its answer, so a slow
+  // one is applied quietly instead of being reported a second time.
+  private static readonly LATE_ANSWER_MS = 60000;
   private rooms: Map<
     string,
     {
@@ -99,7 +164,47 @@ class Socket extends EventEmitter {
     }
   > = new Map();
 
+  constructor() {
+    super();
+
+    this.on("pong", () => {
+      this.pongSeen = true;
+      this.lastPongAt = Date.now();
+      this.unansweredPingAt = undefined;
+    });
+  }
+
+  // Only armed once this connection has answered a ping: an api that predates
+  // the pong reply would otherwise be reconnected every 45 seconds.
+  //
+  // Measured from the oldest unanswered ping and not only from the last pong,
+  // because a tab hidden for a few minutes runs the heartbeat once a minute and
+  // every pong would look late.
+  public static isStale(
+    pongSeen: boolean,
+    lastPongAt: number,
+    unansweredPingAt: number | undefined,
+    now: number,
+  ) {
+    if (!pongSeen || unansweredPingAt === undefined) {
+      return false;
+    }
+
+    return (
+      now - unansweredPingAt > Socket.PONG_GRACE_MS &&
+      now - lastPongAt > Socket.PONG_TIMEOUT_MS
+    );
+  }
+
   public connect() {
+    this.bindLifecycle();
+
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+    clearTimeout(this.resumeCheck);
+    clearInterval(this.heartBeat);
+    this.connected = false;
+
     // Clean up any existing connection before creating a new one
     if (this.connection) {
       try {
@@ -119,20 +224,27 @@ class Socket extends EventEmitter {
     this.connection = webSocket;
 
     webSocket.addEventListener("message", (message) => {
+      if (this.connection !== webSocket) {
+        return;
+      }
+
       const { event, data } = JSON.parse(message.data);
       this.emit(event, data);
     });
 
     webSocket.addEventListener("open", () => {
+      if (this.connection !== webSocket) {
+        return;
+      }
+
       this.emit("online");
       this.connected = true;
       this.retryCount = 0;
+      this.pongSeen = false;
+      this.lastPongAt = 0;
+      this.unansweredPingAt = undefined;
 
       clearInterval(this.heartBeat);
-
-      if (!this.connection) {
-        return;
-      }
 
       this.heartbeat();
 
@@ -147,16 +259,22 @@ class Socket extends EventEmitter {
       }
 
       setTimeout(() => {
-        for (let i = 0; i < this.offlineQueue.length; i++) {
-          const { event, data } = this.offlineQueue[i];
+        if (this.connection !== webSocket || !this.connected) {
+          return;
+        }
+
+        for (const { event, data } of this.offlineQueue.splice(0)) {
           this.event(event, data);
-          this.offlineQueue.shift();
-          i--;
         }
       }, 100);
     });
 
     webSocket.onclose = (closeEvent) => {
+      if (this.connection !== webSocket) {
+        return;
+      }
+
+      clearInterval(this.heartBeat);
       this.emit("offline");
       this.connected = false;
       console.warn("[ws] lost connection to websocket server", closeEvent);
@@ -179,7 +297,8 @@ class Socket extends EventEmitter {
         `[ws] reconnecting in ${Math.round(delay + jitter)}ms (attempt ${this.retryCount}/${Socket.MAX_RETRIES})`,
       );
 
-      setTimeout(() => {
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = undefined;
         this.connect();
       }, delay + jitter);
     };
@@ -187,6 +306,64 @@ class Socket extends EventEmitter {
     webSocket.onerror = (error) => {
       console.warn("[ws] web socket error", error);
     };
+  }
+
+  private forceReconnect() {
+    console.warn("[ws] no pong from the server, reconnecting");
+
+    this.connected = false;
+    this.emit("offline");
+    this.retryCount = 0;
+    this.connect();
+  }
+
+  private bindLifecycle() {
+    if (
+      this.lifecycleBound ||
+      typeof window === "undefined" ||
+      typeof document === "undefined"
+    ) {
+      return;
+    }
+
+    this.lifecycleBound = true;
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        this.resume();
+      }
+    });
+
+    window.addEventListener("online", () => {
+      this.resume();
+    });
+  }
+
+  private resume() {
+    if (!this.connected) {
+      if (this.connection?.readyState === WebSocket.CONNECTING) {
+        return;
+      }
+
+      this.retryCount = 0;
+      this.connect();
+      return;
+    }
+
+    this.heartbeat();
+
+    if (!this.connected) {
+      return;
+    }
+
+    // A zombie only gives itself away by not answering, so look again as soon
+    // as this ping is overdue instead of waiting for the next heartbeat.
+    clearTimeout(this.resumeCheck);
+    this.resumeCheck = setTimeout(() => {
+      if (this.connected) {
+        this.heartbeat();
+      }
+    }, Socket.PONG_GRACE_MS + 1);
   }
 
   private getRoomKey(room: string, data: Record<string, unknown>) {
@@ -206,6 +383,10 @@ class Socket extends EventEmitter {
     }
 
     this.event(`${room}:join`, data);
+
+    if (room === "lobby") {
+      this.lobbies.get(`${data.type}:${data.id}`)?.reacted.clear();
+    }
 
     // Our lobbies expire server-side after 24 hours, so we need to
     // periodically re-join to ensure we stay in the room for long-lived sessions.
@@ -249,6 +430,61 @@ class Socket extends EventEmitter {
     }
   }
 
+  public hidesAuthor(steamId?: string | number | null) {
+    return steamId != null && this.hiddenAuthors.has(String(steamId));
+  }
+
+  // Diffed here rather than by the caller, which can unmount and miss an
+  // unblock that this set would then never hear about.
+  public setHiddenAuthors(
+    steamIds: Array<string | number>,
+    { inGroups = true }: { inGroups?: boolean } = {},
+  ) {
+    const next = new Set(steamIds.map(String));
+    const change = blockedIdsChange(this.hiddenAuthors, next);
+    const before = new Map(
+      [...this.lobbies.values()].map((lobby) => [
+        lobby,
+        this.authorsHiddenIn(lobby),
+      ]),
+    );
+
+    this.hiddenAuthors = next;
+    this.hidesAuthorsInGroups = inGroups;
+
+    let revealed = false;
+    for (const [lobby, previous] of before) {
+      const { added, removed } = blockedIdsChange(
+        previous,
+        this.authorsHiddenIn(lobby),
+      );
+
+      if (added.length > 0) {
+        this.hideLobbyAuthors(lobby, new Set(added));
+      }
+
+      if (removed.length > 0) {
+        revealed = true;
+      }
+    }
+
+    // The api sends nothing on an unblock, so the rooms' history is asked for
+    // again to bring back whatever of theirs is still there.
+    if (change.removed.length > 0 || revealed) {
+      this.rejoinAll();
+    }
+
+    return change;
+  }
+
+  private authorsHiddenIn(lobby: LobbyState): ReadonlySet<string> {
+    if (lobby.type === "direct" || this.hidesAuthorsInGroups) {
+      return this.hiddenAuthors;
+    }
+
+    return NO_HIDDEN_AUTHORS;
+  }
+
   public event(event: string, data: Record<string, unknown>) {
     if (!this.connected || !this.connection) {
       this.offlineQueue.push({ event, data });
@@ -262,12 +498,246 @@ class Socket extends EventEmitter {
     }
   }
 
-  public chat(type: ChatType, id: string, message: string) {
+  public chat(
+    type: ChatType,
+    id: string,
+    message: string,
+    media?: { attachments?: string[]; gif?: ChatGif },
+  ) {
     this.event(`lobby:chat`, {
       id,
       type,
       message,
+      ...(media?.attachments?.length ? { attachments: media.attachments } : {}),
+      ...(media?.gif ? { gif: media.gif } : {}),
     });
+  }
+
+  // A send that carries files is answered, unlike plain text: a refusal has to
+  // hand the files back to the composer. Never queued, like every request.
+  //
+  // An answer can still arrive after the request gave up on it; `sentLate`
+  // is how the sender hears the message landed after all.
+  public sendChat(
+    type: ChatType,
+    id: string,
+    message: string,
+    media: { attachments?: string[]; gif?: ChatGif },
+    sentLate?: () => void,
+  ): Promise<void> {
+    let settled = false;
+
+    const request = this.chatRequest(
+      "send",
+      {
+        id,
+        type,
+        message,
+        ...(media.attachments?.length
+          ? { attachments: media.attachments }
+          : {}),
+        ...(media.gif ? { gif: media.gif } : {}),
+      },
+      {
+        resolved: () => {
+          if (settled) {
+            sentLate?.();
+          }
+        },
+        rejected: () => {},
+      },
+    );
+
+    const settle = () => {
+      settled = true;
+    };
+    request.then(settle, settle);
+
+    return request;
+  }
+
+  public deleteMessage(
+    type: ChatType,
+    id: string,
+    messageId: string,
+  ): Promise<void> {
+    const lobbyId = `${type}:${id}`;
+
+    return this.chatRequest(
+      "delete",
+      { id, type, messageId },
+      {
+        resolved: () => {
+          this.removeMessageFromLobby(lobbyId, messageId);
+        },
+        rejected: (error) => {
+          if (error?.code === "not_found") {
+            this.removeMessageFromLobby(lobbyId, messageId);
+          }
+        },
+      },
+    );
+  }
+
+  // The ack and the room's `edited` broadcast race: the broadcast goes round
+  // through redis, the ack waits on the notification update. Whichever lands
+  // first shows the text. Both carry the server's stored text and edited_at,
+  // except from an older api whose ack has neither: that ack stamps this
+  // browser's clock unless the broadcast already showed the same text, and
+  // the server's next stamp for the message replaces it.
+  public editMessage(
+    type: ChatType,
+    id: string,
+    messageId: string,
+    message: string,
+  ): Promise<void> {
+    const lobbyId = `${type}:${id}`;
+
+    return this.chatRequest(
+      "edit",
+      { id, type, messageId, message },
+      {
+        resolved: (ack) => {
+          if (ack.edited_at) {
+            this.editMessageInLobby(lobbyId, {
+              id: messageId,
+              message: ack.message ?? message,
+              edited_at: ack.edited_at,
+            });
+            return;
+          }
+
+          const held = this.lobbyMessages(type, id).find(
+            (lobbyMessage) => lobbyMessage?.id === messageId,
+          );
+
+          if (held?.edited_at && held.message === message) {
+            return;
+          }
+
+          this.editMessageInLobby(lobbyId, { id: messageId, message });
+        },
+        rejected: (error) => {
+          if (error?.code === "not_found") {
+            this.removeMessageFromLobby(lobbyId, messageId);
+          }
+        },
+      },
+    );
+  }
+
+  // Sending a reaction the player already holds takes it back. Nothing changes
+  // here until the room's `reaction` broadcast, which carries the whole state,
+  // so a second click before then would toggle it straight back: a toggle
+  // already on its way is not sent again.
+  public react(
+    type: ChatType,
+    id: string,
+    messageId: string,
+    reaction: ChatReaction,
+  ): Promise<void> {
+    const lobbyId = `${type}:${id}`;
+    const toggle = `${lobbyId}:${messageId}:${reaction}`;
+
+    if (this.reactionsInFlight.has(toggle)) {
+      return Promise.resolve();
+    }
+
+    const request = this.chatRequest(
+      "react",
+      { id, type, messageId, reaction },
+      {
+        resolved: () => {},
+        rejected: (error) => {
+          if (error?.code === "not_found") {
+            this.removeMessageFromLobby(lobbyId, messageId);
+          }
+        },
+      },
+    );
+
+    this.reactionsInFlight.add(toggle);
+    const settle = () => {
+      this.reactionsInFlight.delete(toggle);
+    };
+    request.then(settle, settle);
+
+    return request;
+  }
+
+  // Never queued: someone told a delete or an edit failed must not have it
+  // carried out behind their back once the connection comes back.
+  private chatRequest(
+    action: ChatAction,
+    data: Record<string, unknown>,
+    handlers: {
+      resolved: (ack: ChatAck) => void;
+      rejected: (error: ChatError) => void;
+    },
+  ): Promise<void> {
+    if (!this.connected || !this.connection) {
+      return Promise.reject({ code: "offline", action });
+    }
+
+    const requestId = guid();
+
+    return new Promise<void>((resolve, reject) => {
+      const pending: PendingChatRequest = {
+        action,
+        resolve: (ack) => {
+          handlers.resolved(ack);
+          resolve();
+        },
+        reject: (error) => {
+          handlers.rejected(error);
+          reject(error);
+        },
+        timer: setTimeout(() => {
+          reject({ code: "timeout", action, requestId });
+          pending.timer = setTimeout(() => {
+            this.pendingRequests.delete(requestId);
+          }, Socket.LATE_ANSWER_MS);
+        }, Socket.REQUEST_TIMEOUT_MS),
+      };
+
+      this.pendingRequests.set(requestId, pending);
+
+      this.event(action === "send" ? "lobby:chat" : `lobby:${action}`, {
+        ...data,
+        requestId,
+      });
+    });
+  }
+
+  public resolveChatRequest(ack: ChatAck) {
+    this.takeChatRequest(ack)?.resolve(ack);
+  }
+
+  public rejectChatRequest(error: ChatError) {
+    const pending = this.takeChatRequest(error);
+    if (!pending) {
+      return false;
+    }
+
+    pending.reject(error);
+    return true;
+  }
+
+  private takeChatRequest(answer: ChatAck | ChatError) {
+    const requestId = answer?.requestId;
+    if (!requestId) {
+      return undefined;
+    }
+
+    const pending = this.pendingRequests.get(requestId);
+    if (!pending || (answer.action ?? "send") !== pending.action) {
+      return undefined;
+    }
+
+    this.pendingRequests.delete(requestId);
+    clearTimeout(pending.timer);
+
+    return pending;
   }
 
   // Server-side read state, so a room's unread count survives a reload and
@@ -306,6 +776,19 @@ class Socket extends EventEmitter {
   // the server expires a focus after a couple of heartbeats and a tab left open
   // on a conversation has to keep saying so.
   private heartbeat() {
+    const now = Date.now();
+
+    if (
+      Socket.isStale(this.pongSeen, this.lastPongAt, this.unansweredPingAt, now)
+    ) {
+      this.forceReconnect();
+      return;
+    }
+
+    if (this.unansweredPingAt === undefined) {
+      this.unansweredPingAt = now;
+    }
+
     this.connection?.send(JSON.stringify({ event: "ping" }));
     this.sendPresence();
   }
@@ -314,6 +797,10 @@ class Socket extends EventEmitter {
     this.connection?.send(
       JSON.stringify({ event: "presence", data: this.presence }),
     );
+  }
+
+  public lobbyMessages(type: ChatType, id: string): readonly LobbyMessage[] {
+    return this.lobbies.get(`${type}:${id}`)?.messages.value ?? [];
   }
 
   public listen(event: string, callback: (data: any) => void) {
@@ -347,9 +834,12 @@ class Socket extends EventEmitter {
     }
 
     const lobby: LobbyState = {
+      type,
       instances: new Set([instanceKey]),
       messages: shallowRef([]),
       seen: new Set(),
+      deleted: new Set(),
+      reacted: new Set(),
       callbacks: new Map(),
       listeners: [],
     };
@@ -388,6 +878,27 @@ class Socket extends EventEmitter {
       }),
     );
 
+    lobby.listeners.push(
+      this.listen(`lobby:${lobbyId}:deleted`, (data: { id?: string }) => {
+        this.removeLobbyMessage(lobby, data?.id);
+      }),
+    );
+
+    lobby.listeners.push(
+      this.listen(`lobby:${lobbyId}:edited`, (edit: ChatMessageEdit) => {
+        this.editLobbyMessage(lobby, edit);
+      }),
+    );
+
+    lobby.listeners.push(
+      this.listen(
+        `lobby:${lobbyId}:reaction`,
+        (update: ChatMessageReactionsUpdate) => {
+          this.reactLobbyMessage(lobby, update);
+        },
+      ),
+    );
+
     this.join(`lobby`, {
       id: _id,
       type,
@@ -398,30 +909,13 @@ class Socket extends EventEmitter {
 
   private mergeLobbyMessages(lobby: LobbyState, messages: LobbyMessage[]) {
     const snapshot = messages || [];
-    const snapshotKeys = new Set(snapshot.map(chatMessageKey));
-
-    // The server sends its whole history for the room, so the snapshot replaces
-    // what we hold rather than being unioned into it. A union never drops what
-    // the server has since expired, and leaves both the list and `seen` growing
-    // for the life of the handle.
-    //
-    // Anything newer than the snapshot is kept: a live message can land in the
-    // window between the server building the snapshot and it arriving here.
-    const newest = snapshot.reduce(
-      (latest, message) => Math.max(latest, chatMessageTime(message)),
-      0,
+    const merged = mergeChatSnapshot(
+      lobby.messages.value,
+      hideChatAuthors(snapshot, this.authorsHiddenIn(lobby))?.messages ??
+        snapshot,
+      lobby.deleted,
+      lobby.reacted,
     );
-
-    const merged = snapshot.concat(
-      lobby.messages.value.filter((message) => {
-        return (
-          !snapshotKeys.has(chatMessageKey(message)) &&
-          chatMessageTime(message) >= newest
-        );
-      }),
-    );
-
-    merged.sort((a, b) => chatMessageTime(a) - chatMessageTime(b));
 
     lobby.seen.clear();
     for (const message of merged) {
@@ -434,22 +928,101 @@ class Socket extends EventEmitter {
 
   private addLobbyMessage(lobby: LobbyState, message: LobbyMessage) {
     const key = chatMessageKey(message);
-    if (lobby.seen.has(key)) {
+    if (
+      lobby.seen.has(key) ||
+      isChatMessageDeleted(message, lobby.deleted) ||
+      isChatMessageFrom(message, this.authorsHiddenIn(lobby))
+    ) {
       return;
     }
     lobby.seen.add(key);
 
-    const messages = lobby.messages.value.slice();
-    const timestamp = chatMessageTime(message);
-
-    let index = messages.length;
-    while (index > 0 && chatMessageTime(messages[index - 1]) > timestamp) {
-      index--;
-    }
-    messages.splice(index, 0, message);
-
-    lobby.messages.value = messages;
+    lobby.messages.value = insertChatMessage(lobby.messages.value, message);
     this.emitToLobbyInstances(lobby, "lobby:chat", message);
+  }
+
+  private editMessageInLobby(lobbyId: string, edit: ChatMessageEdit) {
+    const lobby = this.lobbies.get(lobbyId);
+    if (lobby) {
+      this.editLobbyMessage(lobby, edit);
+    }
+  }
+
+  private editLobbyMessage(lobby: LobbyState, edit: ChatMessageEdit) {
+    const messages = applyChatMessageEdit(
+      lobby.messages.value,
+      edit,
+      lobby.deleted,
+    );
+
+    if (messages) {
+      lobby.messages.value = messages;
+    }
+  }
+
+  private reactLobbyMessage(
+    lobby: LobbyState,
+    update: ChatMessageReactionsUpdate,
+  ) {
+    const messages = applyChatMessageReactions(
+      lobby.messages.value,
+      {
+        ...update,
+        reactions: withoutChatReactors(
+          update?.reactions,
+          this.authorsHiddenIn(lobby),
+        ),
+      },
+      lobby.deleted,
+    );
+
+    if (messages) {
+      lobby.reacted.add(update.id as string);
+      lobby.messages.value = messages;
+    }
+  }
+
+  private removeMessageFromLobby(lobbyId: string, messageId: string) {
+    const lobby = this.lobbies.get(lobbyId);
+    if (lobby) {
+      this.removeLobbyMessage(lobby, messageId);
+    }
+  }
+
+  private removeLobbyMessage(lobby: LobbyState, messageId?: string) {
+    if (typeof messageId !== "string" || !messageId) {
+      return;
+    }
+
+    lobby.deleted.add(messageId);
+
+    const removed = removeChatMessage(lobby.messages.value, messageId);
+    if (!removed) {
+      return;
+    }
+
+    lobby.seen.delete(chatMessageKey(removed.message));
+    lobby.messages.value = removed.messages;
+
+    const event: LobbyMessageDeleted = {
+      message: removed.message,
+      index: removed.index,
+    };
+    this.emitToLobbyInstances(lobby, "lobby:deleted", event);
+  }
+
+  // No tombstones: an unblock brings these back with the room's history.
+  private hideLobbyAuthors(lobby: LobbyState, authors: ReadonlySet<string>) {
+    const hidden = hideChatAuthors(lobby.messages.value, authors);
+    if (!hidden) {
+      return;
+    }
+
+    lobby.messages.value = hidden.messages;
+
+    for (const event of hidden.removed) {
+      this.emitToLobbyInstances(lobby, "lobby:deleted", event);
+    }
   }
 
   private emitToLobbyInstances(
@@ -538,6 +1111,19 @@ socket.listen(
   },
 );
 
+socket.listen("chat:ack", (ack: ChatAck) => {
+  socket.resolveChatRequest(ack);
+});
+
+// A request with someone waiting on it is theirs to report.
+socket.listen("chat:error", (error: ChatError) => {
+  if (socket.rejectChatRequest(error)) {
+    return;
+  }
+
+  toastChatError(error);
+});
+
 socket.listen("matchmaking:region-stats", (data) => {
   useMatchmakingStore().regionStats = data;
 });
@@ -548,19 +1134,10 @@ socket.listen("players-online", (onlinePlayerSteamIds) => {
 });
 
 socket.listen("matchmaking:error", (data: { message: string }) => {
-  const raw = data?.message || "";
-  const isAc =
-    /anti-?cheat/i.test(raw) ||
-    /YGuard AC/i.test(raw) ||
-    /open yguard/i.test(raw);
   toast({
     variant: "destructive",
-    title: isAc
-      ? useNuxtApp().$i18n.t("ac.title")
-      : useNuxtApp().$i18n.t("common.error"),
-    description: isAc
-      ? useNuxtApp().$i18n.t("ac.queue_need_ac")
-      : raw,
+    title: useNuxtApp().$i18n.t("common.error"),
+    description: data.message,
   });
 });
 

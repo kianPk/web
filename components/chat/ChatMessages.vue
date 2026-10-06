@@ -52,6 +52,12 @@
             :message="message"
             :previous-message="messages[index - 1]"
             :next-message="messages[index + 1]"
+            :room="messageRoom ? messageRoom(message) : null"
+            :can-moderate="canModerate"
+            :can-post="canPost"
+            :editing="!!message.id && message.id === editingId"
+            @edit="startEditing(message.id)"
+            @edit-end="stopEditing(message.id)"
           />
         </div>
       </TransitionGroup>
@@ -60,8 +66,11 @@
 </template>
 
 <script lang="ts">
+import type { PropType } from "vue";
 import ChatMessage from "~/components/chat/ChatMessage.vue";
 import { chatMessageKey } from "~/web-sockets/Socket";
+import { chatMessagePermissions } from "~/utilities/chatMessageActions";
+import type { ChatType, LobbyMessage } from "~/web-sockets/Socket";
 
 export default {
   components: {
@@ -92,16 +101,73 @@ export default {
       type: String,
       default: "",
     },
+    // Which room a line belongs to, for acting on it. Hand back the same object
+    // for the same room, or every row re-renders on every new message.
+    messageRoom: {
+      type: Function as PropType<
+        (message: LobbyMessage) => { type: ChatType; id: string } | null
+      >,
+      required: false,
+    },
+    canModerate: {
+      type: Boolean,
+      default: false,
+    },
+    canPost: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ["bottom-state-change"],
+  emits: ["bottom-state-change", "edit-last-end"],
   data() {
     return {
       isAtBottom: false,
+      editingId: null as string | null,
+      editingFromComposer: false,
     };
   },
   methods: {
     messageKey(message: any) {
       return chatMessageKey(message);
+    },
+    startEditing(messageId: string) {
+      this.editingId = messageId;
+      this.editingFromComposer = false;
+    },
+    stopEditing(messageId?: string) {
+      if (this.editingId === messageId) {
+        this.editingId = null;
+
+        if (this.editingFromComposer) {
+          this.$emit("edit-last-end");
+        }
+      }
+    },
+    // Up from an empty composer: the newest line the viewer can still change.
+    // The composer gets focus back once it is saved or dropped.
+    editLast() {
+      const me = useAuthStore().me;
+
+      for (let index = this.messages.length - 1; index >= 0; index--) {
+        const message = this.messages[index];
+        const room = this.messageRoom?.(message);
+
+        if (
+          room &&
+          chatMessagePermissions({
+            message,
+            viewerSteamId: me?.steam_id,
+            viewerGagged: !!me?.is_gagged,
+            canModerate: this.canModerate,
+            canPost: this.canPost,
+            roomType: room.type,
+          }).canEdit
+        ) {
+          this.editingId = message.id;
+          this.editingFromComposer = true;
+          return;
+        }
+      }
     },
     checkIfAtBottom() {
       const chatMessages = this.$refs.chatMessages as HTMLElement;
@@ -150,6 +216,13 @@ export default {
   watch: {
     messages: {
       handler(current, prev) {
+        if (
+          this.editingId &&
+          !current.some((message: any) => message?.id === this.editingId)
+        ) {
+          this.editingId = null;
+        }
+
         this.$nextTick(() => {
           this.scrollToBottom(prev.length === 0);
           this.checkIfAtBottom();
