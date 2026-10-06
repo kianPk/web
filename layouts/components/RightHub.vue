@@ -980,10 +980,7 @@ function onHubTouchEnd(e: TouchEvent) {
           :href="telegramUrl"
           target="_blank"
           rel="noopener noreferrer"
-          :class="[
-            communityLinkClass,
-            'text-[#2AABEE] hover:bg-[#2AABEE]/15 hover:text-[#5BC1F1]',
-          ]"
+          class="grid size-8 place-items-center rounded-md text-[#2AABEE] transition-colors hover:bg-[#2AABEE]/15 hover:text-[#5BC1F1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
           title="Telegram"
           aria-label="Telegram"
         >
