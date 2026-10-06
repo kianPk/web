@@ -420,7 +420,7 @@ async function buyVip() {
       paid?: boolean;
       deepLink?: string;
       orderId?: string;
-    }>("/hosted-servers/vip-shop/checkout", {
+    }>("/hosted-servers/vip-checkout", {
       method: "POST",
       body: {
         server_id: serverId.value,
