@@ -119,11 +119,11 @@ async function save() {
         class="shrink-0 font-mono text-sm font-semibold tabular-nums text-foreground"
         dir="ltr"
       >
-        {{
-          irrBalance === null
-            ? "…"
-            : `${formatTomanAmount(irrBalance, locale)} ${$t("pages.hosting.vip_shop.toman_unit")}`
-        }}
+        <template v-if="irrBalance === null">…</template>
+        <template v-else>
+          {{ formatTomanAmount(irrBalance, locale) }}
+          {{ $t("pages.hosting.vip_shop.toman_unit") }}
+        </template>
       </span>
     </div>
 

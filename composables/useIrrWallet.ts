@@ -27,6 +27,8 @@ export function useIrrWallet() {
         balance.value = Number(data.balance ?? 0);
       } catch (error) {
         console.error("Failed to load IRR wallet", error);
+        // Keep last known value if any; otherwise show 0 so the panel isn't blank.
+        if (balance.value === null) balance.value = 0;
       } finally {
         loading.value = false;
         refreshPromise = null;
