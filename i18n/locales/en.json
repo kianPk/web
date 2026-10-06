@@ -3377,11 +3377,203 @@
       },
       "matchmaking": {
         "description": "Queue solo or with your party — teams are auto-balanced and the match starts for you.",
-        "leader_required": "Only the party leader can start matchmaking."
+        "leader_required": "Only the party leader can start matchmaking.",
+        "label": "Matchmaking",
+        "players_online": "player online | players online",
+        "settings": "Matchmaking settings",
+        "mode_group": "Game mode",
+        "nobody_queued": "Nobody queued",
+        "too_big": "A party of {count} is too big for {mode}",
+        "queue_solo": "Queue solo",
+        "seats": {
+          "format": "{count} versus {count}",
+          "yours": "your party takes {count} seat | your party takes {count} seats",
+          "overflow": "your party of {count} doesn't fit on one side"
+        },
+        "regions": {
+          "edit": "Edit regions",
+          "skipped": "{name} skipped, {ms} ms",
+          "unreachable": "{name} unreachable",
+          "ms": "{ms} ms",
+          "count": "{count} region | {count} regions"
+        },
+        "party": {
+          "solo": "Queuing solo",
+          "invite": "Invite friends",
+          "leader": "Queuing as a party of {count}",
+          "you_lead": "You lead",
+          "member": "In {name}'s party of {count}",
+          "open": "Open party"
+        },
+        "guest_line": "Sign in with Steam to queue. We measure your ping to each region and match you with players nearby.",
+        "sign_in": "Sign in with Steam",
+        "find_match": "Find Match",
+        "waiting_for": "Waiting for {name}",
+        "starts_queue": "{name} starts the queue",
+        "searching": "Searching for a {mode} match",
+        "first_in_line": "You're first in line",
+        "cancel": "Cancel",
+        "leader_cancels": "{name} can cancel the search",
+        "found": "Match found · accept in the ready check",
+        "clock": "Time in queue",
+        "no_region": {
+          "title": "Every region is over your {ms} ms limit",
+          "body": "Raise your limit or star a region you'd accept, then queue again."
+        },
+        "find_lan_match": "Find LAN Match"
       },
       "draft_games": {
         "section_label": "OPEN.MATCHES",
         "description": "Browse open pick-up games or create one — captains draft the teams."
+      },
+      "more_ways": {
+        "title": "More ways to play",
+        "tournaments": {
+          "all": "All tournaments"
+        },
+        "league": {
+          "title": "League",
+          "open_until": "Registration open until {date}",
+          "open": "Registration open",
+          "teams_in": "{count} team in | {count} teams in",
+          "register": "Register a team",
+          "sign_in": "Sign in to register"
+        },
+        "scrims": {
+          "title": "Scrims",
+          "teams_today": "team looking for a scrim today | teams looking for a scrim today",
+          "none_today": "No teams looking for a scrim today",
+          "needs_team": "Needs a team you manage",
+          "post_hint": "Post when your team is free and others can request a scrim.",
+          "find": "Find a scrim",
+          "post": "Post availability"
+        },
+        "drop_in": {
+          "playing": "playing on public servers | playing on public servers",
+          "all_servers": "All servers ({count})",
+          "players": "players",
+          "connect": "Connect",
+          "copy": "Copy the connect command"
+        },
+        "practice": {
+          "title": "Practice server",
+          "description": "Your own server for utility lineups · any map",
+          "map": "Map",
+          "start": "Start practice",
+          "sign_in": "Sign in to practice"
+        }
+      },
+      "schedule": {
+        "vs": "vs",
+        "now": "Now",
+        "in_minutes": "in {count} min",
+        "in_hours": "in {count} h",
+        "tomorrow": "tomorrow",
+        "in_days": "in {count} days",
+        "best_of": "Best of {count}",
+        "teams": "{count} teams",
+        "live": "Live",
+        "live_round": "Live · Round {round}",
+        "check_in_progress": "Check-in {checked}/{total}",
+        "check_in_closes": "closes {time}",
+        "checked_in": "Checked in · {checked}/{total}",
+        "check_in_open": "Check-in open",
+        "check_in_opens": "Check-in opens {time}",
+        "veto": "Map veto",
+        "waiting_for_server": "Waiting for server",
+        "picking_players": "Picking players",
+        "scheduled": "Scheduled",
+        "registered": "Registered",
+        "check_in": "Check in",
+        "connect": "Connect",
+        "open_match": "Open match",
+        "details": "Details"
+      },
+      "draft_rooms": {
+        "title": "Draft rooms",
+        "description": "Pick-up games other players host. Captains or the host split the teams.",
+        "format_label": "Format",
+        "search_placeholder": "Search players",
+        "clear_search": "Clear search",
+        "filters": "Filters",
+        "filters_title": "Filter and sort",
+        "has_space": "Only rooms with space",
+        "avg_rank": "Average rank",
+        "any_rank": "Any",
+        "sort_label": "Sort by",
+        "sort": {
+          "filling": "Filling up first",
+          "newest": "Newest",
+          "rank_high": "Highest average rank",
+          "rank_low": "Lowest average rank"
+        },
+        "rehost": "Re-host last",
+        "host_bar": {
+          "title": "Host a room",
+          "seats": "{count} seats",
+          "draft": "Draft style",
+          "access": "Who can join",
+          "open": "Open {format} Room",
+          "sign_in": "Sign in to host",
+          "back_to_room": "Back to your room",
+          "all_settings": "All settings",
+          "rehost_detail": "{format} {mode}, {access}",
+          "phrase": {
+            "captains": "Top 2 by rank captain, snake order",
+            "host": "You put players on teams",
+            "pug": "Teams auto-balance when the room fills"
+          },
+          "open_lan": "Open {format} LAN Room"
+        },
+        "intro": {
+          "title": "Run your own pick-up game.",
+          "body": "Open a room, let players fill it, and captains draft the teams. Standard rules count toward ELO.",
+          "steps": {
+            "open": "Open a room",
+            "join": "Players join",
+            "draft": "Captains draft",
+            "play": "Match starts"
+          },
+          "board_label": "How a captains draft works",
+          "captain": "Captain",
+          "you": "You",
+          "your_pick": "Your pick",
+          "picking": "Picking",
+          "pool": "Still in the pool",
+          "dismiss": "Dismiss"
+        },
+        "types": {
+          "captains": "Captains draft",
+          "host": "Host assigns",
+          "pug": "Auto-split",
+          "teams": "Pre-made teams"
+        },
+        "access": {
+          "friends": "Friends only",
+          "invite": "Invite only",
+          "private": "Private"
+        },
+        "avg": "Avg {rank}",
+        "custom_mode": "{mode} mode, unranked",
+        "teams_title": "{team1} vs {team2}",
+        "open_team": "open team",
+        "host_elo": "Host · {elo} ELO",
+        "subs": "+{count} subs",
+        "drafting": "Drafting",
+        "join_party": "Join with party ({count})",
+        "sign_in_to_join": "Sign in to join",
+        "reasons": {
+          "spots_left": "{count} spot left | {count} spots left",
+          "no_room_for_party": "No room for your party",
+          "host_approves": "The host approves",
+          "subs_waiting": "{count} sub waiting | {count} subs waiting",
+          "full": "Full",
+          "youre_in": "You're in",
+          "waiting_for_host": "Waiting for the host"
+        },
+        "empty": "No open draft rooms right now.",
+        "no_results": "No rooms match these filters.",
+        "clear_filters": "Clear filters"
       }
     },
     "matches": {
@@ -5825,7 +6017,51 @@
       "social": "Social",
       "notifications": "Notifications",
       "lobby": "Lobby",
-      "voice": "Voice"
+      "voice": "Voice",
+      "dock": {
+        "label": "Hub",
+        "inbox": "Inbox",
+        "party": "Party",
+        "voice": "Voice",
+        "chat": "Chat",
+        "friends": "Friends",
+        "matches": "Matches",
+        "waiting": "{count} waiting on you",
+        "nothing_new": "Nothing new",
+        "searching": "Searching for a match",
+        "searching_for": "Searching · {time}",
+        "party_invites": "Party invites: {count}",
+        "in_party": "{count} of 5 in your party",
+        "start_party": "Start a party",
+        "in_call": "{channel} · {count} in the call",
+        "channels_open": "Channels you can join: {count}",
+        "voice_unavailable": "Join a party or match to talk",
+        "unread": "{count} unread",
+        "friend_requests": "Friend requests: {count}",
+        "online": "{count} online",
+        "just_online": "{count} just came online",
+        "friend_just_online": "{name} just came online",
+        "pin": "Keep the hub open",
+        "on_the_dock": "Show on the dock",
+        "people": "People",
+        "rooms": "Rooms",
+        "show_hidden": "Show hidden chats ({count})",
+        "pin_shortcut": "Pin to the dock",
+        "unpin_shortcut": "Unpin from the dock",
+        "remove_shortcut": "Remove until a new message",
+        "hide_shortcut": "Never show on the dock",
+        "show_on_dock": "Show on the dock again"
+      },
+      "empty": {
+        "inbox_title": "You're all caught up",
+        "inbox_description": "Invites, match updates and news land here.",
+        "party_title": "No party yet",
+        "friends_title": "No friends yet",
+        "friends_description": "Sync your Steam friends, or add players from their profile.",
+        "others_title": "Nobody else is online",
+        "others_description": "Players who aren't your friends show up here while they're online.",
+        "no_match": "Nobody matches \"{query}\""
+      }
     },
     "lobby_panel": {
       "lobby_invites": "Lobby Invites",
@@ -8209,7 +8445,8 @@
       "loading": "Loading",
       "settings_section": "Settings section",
       "match_section": "Match section",
-      "database_section": "Database section"
+      "database_section": "Database section",
+      "toggle_right_sidebar_unread": "Toggle Right Sidebar ({count} unread)"
     },
     "logs": {
       "title": "Server Logs",
@@ -8510,7 +8747,7 @@
       },
       "rush": {
         "title": "Rush",
-        "description": "Fast-paced 3 vs 3 matches, pushing room by room"
+        "description": "Fast-paced 3v3 matches fought room by room, where every round won pushes the fight forward"
       }
     },
     "cancel_matchmaking": "Cancel Matchmaking",
@@ -8567,7 +8804,9 @@
       "requested": "Requested",
       "cancel_request": "Cancel Request",
       "incoming_requests": "Requests",
-      "sent_requests": "Sent"
+      "sent_requests": "Sent",
+      "cancel_request_aria": "Requested, Cancel Request",
+      "just_online": "Just came online"
     },
     "others": {
       "title": "Others"
@@ -8589,7 +8828,21 @@
     "temp_banned_until": "You are temporarily banned from matchmaking until {time}",
     "new_invites_count": "New Invites ({count})",
     "tournament_banned": "You are barred from joining tournament rosters and the free agent pool.",
-    "tournament_banned_until": "You are barred from joining tournament rosters and the free agent pool until {time}."
+    "tournament_banned_until": "You are barred from joining tournament rosters and the free agent pool until {time}.",
+    "where": {
+      "label": "Where to play",
+      "lan": "LAN",
+      "online": "Online",
+      "lan_hint": "Only players on this network",
+      "ask_queue": "You're on a LAN. Where do you want to play?",
+      "ask_room": "You're on a LAN. Where should the room play?",
+      "play_lan": "Play on the LAN",
+      "play_online": "Play online",
+      "lan_room": "LAN room",
+      "online_room": "Online room",
+      "lan_room_hint": "Only players on this network can join",
+      "online_room_hint": "Plays online, anyone can join"
+    }
   },
   "game_server": {
     "lan_ip": "LAN IP",

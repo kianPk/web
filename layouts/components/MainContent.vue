@@ -25,18 +25,18 @@ const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
 const bottomDock = ref<HTMLElement | null>(null);
 let dockRO: ResizeObserver | null = null;
 
-function publishDockHeight() {
+function publishDockBox() {
   const h = bottomDock.value?.offsetHeight ?? 0;
-  document.documentElement.style.setProperty(
-    "--main-bottom-dock-height",
-    `${h}px`,
-  );
+  const left = bottomDock.value?.getBoundingClientRect().left ?? 0;
+  const root = document.documentElement.style;
+  root.setProperty("--main-bottom-dock-height", `${h}px`);
+  root.setProperty("--main-content-left", `${left}px`);
 }
 
 onMounted(() => {
-  publishDockHeight();
+  publishDockBox();
   if (typeof ResizeObserver !== "undefined" && bottomDock.value) {
-    dockRO = new ResizeObserver(() => publishDockHeight());
+    dockRO = new ResizeObserver(() => publishDockBox());
     dockRO.observe(bottomDock.value);
   }
 });
@@ -44,6 +44,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   dockRO?.disconnect();
   document.documentElement.style.removeProperty("--main-bottom-dock-height");
+  document.documentElement.style.removeProperty("--main-content-left");
 });
 
 // Inject values from default.vue
@@ -61,6 +62,10 @@ const route = useRoute();
 // the query string, so a query-only change IS the shrink we're reserving for.
 const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
   useScrollFloorAnchor(() => route.path);
+
+// Back/forward lands where the user left this scroller.
+const pageScroller = ref<HTMLElement | null>(null);
+useScrollRestorationAnchor(pageScroller, scrollFloorRootEl);
 </script>
 
 <template>
@@ -75,11 +80,14 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
       <SidebarInset
         class="flex flex-col min-h-0 h-[var(--sidebar-height)] !bg-transparent overflow-hidden"
       >
-        <div class="flex-1 overflow-auto [scrollbar-gutter:stable]">
+        <div
+          ref="pageScroller"
+          class="flex-1 overflow-auto [scrollbar-gutter:stable]"
+        >
           <SystemAlertBanner />
           <div
             ref="scrollFloorRootEl"
-            class="mx-auto p-1 sm:p-4 w-full self-center"
+            class="mx-auto p-2 sm:p-4 w-full self-center"
             :class="{
               'lg:max-w-7xl': containContentValue,
             }"

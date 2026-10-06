@@ -9,6 +9,9 @@ import { afterReveal } from "~/utils/afterReveal";
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
 );
+const PlayWherePrompt = defineAsyncComponent(
+  () => import("~/components/matchmaking/PlayWherePrompt.vue"),
+);
 const MatchActiveAlert = defineAsyncComponent(
   () => import("~/components/match/MatchActiveAlert.vue"),
 );
@@ -157,6 +160,7 @@ function pageKeyWithoutTabQuery(route: {
   <div v-if="me" style="display: contents">
     <PlayerNameRegistration />
     <MatchmakingConfirm />
+    <PlayWherePrompt />
     <MatchActiveAlert />
     <DraftActiveAlert />
   </div>

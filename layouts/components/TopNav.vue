@@ -25,14 +25,11 @@ import DraftRoomNav from "./DraftRoomNav.vue";
 import SystemStatus from "./SystemStatus.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { NuxtImg } from "#components";
-import { Button } from "@/components/ui/button";
-import { Grid } from "lucide-vue-next";
-import { useHubState } from "@/composables/useHubState";
+import MobileHubButton from "./MobileHubButton.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import { loginLinks } from "~/utilities/loginLinks";
 
 const { isMobile } = useSidebar();
-const { openLastOrDefaultHub } = useHubState();
 const { brandName, logoUrl } = useBranding();
 const matchmakingStore = useMatchmakingStore();
 const { openMatchReadyModal } = useMatchReadyModal();
@@ -602,17 +599,7 @@ const loginArrowClasses =
             />
             <span class="tabular-nums">{{ ypointBalance }}</span>
           </NuxtLink>
-          <Button
-            variant="ghost"
-            size="icon"
-            class="relative h-7 w-7 md:hidden"
-            @click="openLastOrDefaultHub()"
-          >
-            <Grid class="h-4 w-4" />
-            <span class="sr-only">{{
-              $t("ui.tooltips.toggle_right_sidebar")
-            }}</span>
-          </Button>
+          <MobileHubButton />
 
           <ProfileMenu
             v-model:open="profileMenuOpen"

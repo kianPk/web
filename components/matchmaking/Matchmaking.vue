@@ -632,8 +632,10 @@ export default {
         if (!indexes) {
           continue;
         }
-        for (const index of indexes) {
-          lobbyIndexes.add(index);
+        for (const entry of indexes) {
+          lobbyIndexes.add(
+            typeof entry === "number" ? entry : (entry as { lobby: number }).lobby,
+          );
         }
       }
       return lobbyIndexes.size;

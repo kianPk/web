@@ -12,13 +12,16 @@ import {
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
+import debounce from "~/utilities/debounce";
 import { isInCs2 } from "~/utilities/cs2Presence";
+import type { RegionStats } from "~/utilities/matchmakingPartySize";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { setActiveHub } from "~/composables/useHubState";
 
 const REGION_LATENCY_PREFIX = "5stack_region_latency_";
 const MAX_LATENCY_KEY = "5stack_max_acceptable_latency";
 const PREFERRED_REGIONS_KEY = "5stack_preferred_regions";
+const PLAY_WHERE_KEY = "5stack_play_where";
 
 function safeParseLocalStorage<T>(key: string): T | null {
   const raw = localStorage.getItem(key);
@@ -63,15 +66,44 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     confirmation: undefined,
   });
 
-  const regionStats = ref<
-    Partial<Record<string, Partial<Record<e_match_types_enum, number[]>>>>
-  >({});
+  const regionStats = ref<RegionStats>({});
+
+  // Presence arrives as a full roster on every change, so asking for the whole
+  // roster each time meant one player connecting re-ran elo and the three
+  // sanction checks for everyone online, in every open tab. A profile doesn't
+  // change while its player sits in the list, so keep the ones already
+  // fetched and only ask the API for steam ids never seen before.
+  const profiles = new Map<string, any>();
+
+  const rebuildPlayersOnline = () => {
+    playersOnline.value = onlinePlayerSteamIds.value
+      .map((steamId) => profiles.get(String(steamId)))
+      .filter(Boolean) as any;
+  };
 
   const queryPlayers = async () => {
     const steamIds = onlinePlayerSteamIds.value;
-    if (steamIds.length === 0) {
+    const online = new Set(steamIds.map(String));
+
+    // Bound the cache to who is actually online; otherwise a long-lived tab
+    // accumulates every player who has ever connected during its session.
+    for (const steamId of profiles.keys()) {
+      if (!online.has(steamId)) {
+        profiles.delete(steamId);
+      }
+    }
+
+    const missing = steamIds.filter(
+      (steamId) => !profiles.has(String(steamId)),
+    );
+
+    // Players only left, or they are all already known -- no round trip, but
+    // the list still has to drop whoever went offline.
+    if (missing.length === 0) {
+      rebuildPlayersOnline();
       return;
     }
+
     const { data } = await getGraphqlClient().query({
       query: generateQuery({
         players: [
@@ -86,15 +118,27 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         ],
       }),
       variables: {
-        steam_ids: steamIds,
+        steam_ids: missing,
       },
     });
 
-    playersOnline.value = data.players;
+    for (const player of data.players) {
+      profiles.set(String(player.steam_id), player);
+    }
+
+    rebuildPlayersOnline();
   };
+
+  // Presence churns in bursts -- a match ending drops ten players at once, and
+  // each drop is its own roster push.
+  const queryPlayersDebounced = debounce(() => {
+    void queryPlayers();
+  }, 250);
 
   const friends = ref([]);
   const lobbies = ref([]);
+  const friendsLoaded = ref(false);
+  const lobbiesLoaded = ref(false);
 
   const viewingMatchId = ref<string | undefined>();
   const subscribeToFriends = async (mySteamId: bigint) => {
@@ -249,6 +293,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       subscription.subscribe({
         next: ({ data }) => {
           friends.value = data.my_friends;
+          friendsLoaded.value = true;
         },
       }),
     );
@@ -326,6 +371,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       subscription.subscribe({
         next: ({ data }) => {
           lobbies.value = data.lobbies;
+          lobbiesLoaded.value = true;
         },
       }),
     );
@@ -334,6 +380,8 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
   watch(
     () => useAuthStore().me?.steam_id,
     (steamId) => {
+      friendsLoaded.value = false;
+      lobbiesLoaded.value = false;
       if (steamId) {
         subscribeToFriends(steamId);
         subscribeToLobbies(steamId);
@@ -351,7 +399,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       newSteamIds.length !== oldSteamIds.length ||
       !newSteamIds.every((id, index) => id === oldSteamIds[index])
     ) {
-      queryPlayers();
+      queryPlayersDebounced();
     }
   });
 
@@ -543,6 +591,19 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     });
   }
 
+  // Regions a player can be matched into: node-backed, and a LAN region only
+  // when the probe says you are on that LAN.
+  function isMatchmakingRegion(region: {
+    value: string;
+    is_lan: boolean;
+    has_node: boolean;
+  }) {
+    return (
+      region.has_node &&
+      (!region.is_lan || !!getRegionlatencyResult(region.value)?.isLan)
+    );
+  }
+
   function getRegionProbeState(region: string) {
     return probeStates.value.get(region);
   }
@@ -581,14 +642,74 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     };
   }
 
-  const preferredRegions = computed(() => {
+  // The regions you can reach on a LAN you are actually on.
+  const lanRegions = computed(() =>
+    useApplicationSettingsStore().availableRegions.filter(
+      (region) =>
+        region.is_lan && !!getRegionlatencyResult(region.value)?.isLan,
+    ),
+  );
+  const onLan = computed(() => lanRegions.value.length > 0);
+
+  // On a LAN you play there or online, never both. Asked the first time you
+  // queue or host this session; switchable from the region line.
+  const playWhere = ref<"lan" | "online" | null>(
+    (() => {
+      try {
+        const value = sessionStorage.getItem(PLAY_WHERE_KEY);
+        return value === "lan" || value === "online" ? value : null;
+      } catch {
+        return null;
+      }
+    })(),
+  );
+
+  function setPlayWhere(where: "lan" | "online") {
+    playWhere.value = where;
+    try {
+      sessionStorage.setItem(PLAY_WHERE_KEY, where);
+    } catch {}
+  }
+
+  const playWherePrompt = ref<{
+    kind: "queue" | "room";
+    anchor: HTMLElement | null;
+    resolve: (where: "lan" | "online" | null) => void;
+  } | null>(null);
+
+  // Resolves true once it is settled where to play: straight away off a LAN or
+  // when already chosen, otherwise after the player picks in the prompt.
+  function ensurePlayWhere(
+    kind: "queue" | "room",
+    anchor: HTMLElement | null = null,
+  ): Promise<boolean> {
+    if (!onLan.value || playWhere.value) {
+      return Promise.resolve(true);
+    }
+    playWherePrompt.value?.resolve(null);
+    return new Promise((resolve) => {
+      playWherePrompt.value = {
+        kind,
+        anchor,
+        resolve: (where) => {
+          playWherePrompt.value = null;
+          if (where) {
+            setPlayWhere(where);
+          }
+          resolve(!!where);
+        },
+      };
+    });
+  }
+
+  const onlineRegions = computed(() => {
     const availableRegions =
       useApplicationSettingsStore().availableRegions.filter((region) => {
-        const regionLatency = getRegionlatencyResult(region.value);
-
-        if (regionLatency && region.is_lan && regionLatency.isLan) {
-          return true;
+        if (region.is_lan) {
+          return false;
         }
+
+        const regionLatency = getRegionlatencyResult(region.value);
 
         if (
           regionLatency &&
@@ -629,21 +750,18 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
           Number(regionResult.latency) <= playerMaxAcceptableLatency.value
         );
       })
-      .sort((a, b) => {
-        if (a.is_lan && !b.is_lan) {
-          return -1;
-        }
-        if (!a.is_lan && b.is_lan) {
-          return 1;
-        }
-
-        // For non-LAN regions, sort by latency
-        return (
+      .sort(
+        (a, b) =>
           Number(getRegionlatencyResult(a.value)?.latency) -
-          Number(getRegionlatencyResult(b.value)?.latency)
-        );
-      });
+          Number(getRegionlatencyResult(b.value)?.latency),
+      );
   });
+
+  const preferredRegions = computed(() =>
+    onLan.value && playWhere.value === "lan"
+      ? lanRegions.value
+      : onlineRegions.value,
+  );
 
   // Classify lobbies by MY membership status within the `lobbies` subscription
   // itself, NOT by comparing against `me.current_lobby_id`. That field arrives
@@ -672,11 +790,13 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
 
   return {
     friends,
+    friendsLoaded,
     onlineFriends,
     offlineFriends,
     registeredFriendsOnly,
     isRegisteredFriend,
     lobbies,
+    lobbiesLoaded,
     currentLobby,
     regionStats,
     playersOnline,
@@ -689,12 +809,20 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     isRefreshing,
     getRegionlatencyResult,
     getRegionProbeState,
+    isMatchmakingRegion,
     togglePreferredRegion,
     updateMaxAcceptableLatency,
 
     latencies,
     storedRegions,
     preferredRegions,
+    onlineRegions,
+    lanRegions,
+    onLan,
+    playWhere,
+    setPlayWhere,
+    playWherePrompt,
+    ensurePlayWhere,
     playerMaxAcceptableLatency,
     lobbyInvites,
 
