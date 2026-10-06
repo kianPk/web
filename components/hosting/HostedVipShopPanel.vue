@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Crown } from "lucide-vue-next";
+import { Crown, Wallet } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
@@ -104,16 +104,27 @@ async function save() {
       <p class="m-0 text-xs text-muted-foreground">
         {{ $t("pages.hosting.vip_shop.description") }}
       </p>
-      <p
-        v-if="irrBalance !== null"
-        class="m-0 text-xs text-muted-foreground"
+    </div>
+
+    <div
+      class="flex items-center justify-between gap-3 rounded-md border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2.5"
+    >
+      <div class="flex min-w-0 items-center gap-2 text-sm">
+        <Wallet class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]" />
+        <span class="text-muted-foreground">
+          {{ $t("pages.hosting.vip_shop.wallet_label") }}
+        </span>
+      </div>
+      <span
+        class="shrink-0 font-mono text-sm font-semibold tabular-nums text-foreground"
+        dir="ltr"
       >
         {{
-          $t("pages.hosting.vip_shop.wallet_balance", {
-            n: formatTomanAmount(irrBalance, locale),
-          })
+          irrBalance === null
+            ? "…"
+            : `${formatTomanAmount(irrBalance, locale)} ${$t("pages.hosting.vip_shop.toman_unit")}`
         }}
-      </p>
+      </span>
     </div>
 
     <button

@@ -5728,7 +5728,9 @@
         "zero_hint": "Set a price to 0 to hide that package.",
         "save": "Save VIP prices",
         "saved": "VIP prices saved",
-        "wallet_balance": "Your Toman wallet: {n} Toman"
+        "wallet_balance": "Your Toman wallet: {n} Toman",
+        "wallet_label": "VIP sales Toman wallet",
+        "toman_unit": "Toman"
       },
       "admins": {
         "title": "In-game admins",

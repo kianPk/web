@@ -28,7 +28,6 @@ import { NuxtImg } from "#components";
 import MobileHubButton from "./MobileHubButton.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import { loginLinks } from "~/utilities/loginLinks";
-import { formatTomanAmount } from "~/utilities/irrToman";
 
 const { isMobile } = useSidebar();
 const { brandName, logoUrl } = useBranding();
@@ -36,9 +35,6 @@ const matchmakingStore = useMatchmakingStore();
 const { openMatchReadyModal } = useMatchReadyModal();
 const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 void refreshYpoints();
-const { balance: irrBalance, refresh: refreshIrr } = useIrrWallet();
-void refreshIrr();
-const { locale } = useI18n();
 // Genuine matchmaking ready-check only. Active matches (Veto/Live/etc.) are
 // already surfaced by the lineup pills in <MatchLobbies>, so we don't duplicate
 // them as a top-nav check-in banner.
@@ -602,17 +598,6 @@ const loginArrowClasses =
               class="h-5 w-5 shrink-0 object-contain"
             />
             <span class="tabular-nums">{{ ypointBalance }}</span>
-          </NuxtLink>
-          <NuxtLink
-            v-if="authStore.me && irrBalance !== null && irrBalance > 0"
-            to="/hosting"
-            class="hidden items-center gap-1 px-1.5 py-1 font-mono text-[0.68rem] font-bold uppercase tracking-[0.08em] text-foreground no-underline transition-opacity hover:opacity-80 sm:inline-flex"
-            :title="$t('pages.hosting.vip_shop.wallet_balance', { n: formatTomanAmount(irrBalance, locale) })"
-          >
-            <span class="text-[hsl(var(--tac-amber))]">ت</span>
-            <span class="tabular-nums">{{
-              formatTomanAmount(irrBalance, locale)
-            }}</span>
           </NuxtLink>
           <MobileHubButton />
 
