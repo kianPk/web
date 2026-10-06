@@ -127,21 +127,18 @@ owner_row AS (
   WHERE p.amount_irr > 0
     AND h.owner_steam_id IS NOT NULL
 ),
-skip_dup AS (
-  SELECT 1
-  FROM irr_ledger l
-  JOIN owner_row o ON o.owner_steam_id = l.steam_id
-  WHERE l.ref_type = 'hosted_vip_earning'
-    AND l.ref_id = o.order_id::text
-    AND l.delta > 0
-  LIMIT 1
-),
 credited AS (
   UPDATE players pl
   SET irr_balance = pl.irr_balance + o.amount_irr
   FROM owner_row o
   WHERE pl.steam_id = o.owner_steam_id
-    AND NOT EXISTS (SELECT 1 FROM skip_dup)
+    AND NOT EXISTS (
+      SELECT 1 FROM irr_ledger l
+      WHERE l.steam_id = o.owner_steam_id
+        AND l.ref_type = 'hosted_vip_earning'
+        AND l.ref_id = o.order_id::text
+        AND l.delta > 0
+    )
   RETURNING pl.steam_id, pl.irr_balance, o.order_id, o.amount_irr
 )
 INSERT INTO irr_ledger (steam_id, delta, balance_after, reason, ref_type, ref_id)

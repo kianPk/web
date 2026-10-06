@@ -35,6 +35,15 @@ export type HostedOverview = {
   max_slots: number;
 };
 
+export type HostedVipShop = {
+  enabled: boolean;
+  price_7d: number;
+  price_30d: number;
+  price_90d: number;
+  /** Owner site Toman wallet in Rials (from players.irr_balance). */
+  wallet_irr?: number;
+};
+
 export type HostedServer = {
   id: string;
   server_id: string | null;
@@ -58,6 +67,7 @@ export type HostedServer = {
   has_gslt: boolean;
   players: number | null;
   map: string | null;
+  owner_irr_balance?: number;
   chat_ads?: HostedChatAds;
   vip_shop?: HostedVipShop;
 };
@@ -67,13 +77,6 @@ export type HostedChatAds = {
   interval_seconds: number;
   color: string;
   messages: string[];
-};
-
-export type HostedVipShop = {
-  enabled: boolean;
-  price_7d: number;
-  price_30d: number;
-  price_90d: number;
 };
 
 export type HostedAdminSettings = {

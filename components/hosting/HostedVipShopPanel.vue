@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Crown, Wallet } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
@@ -18,6 +18,8 @@ import { irrToToman, tomanToIrr, formatTomanAmount } from "~/utilities/irrToman"
 const props = defineProps<{
   hostedId: string;
   shop: HostedVipShop | null | undefined;
+  /** Owner wallet in Rials (preferred over /irr/me). */
+  walletIrr?: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -36,6 +38,19 @@ const editingPrices = ref(false);
 
 const { balance: irrBalance, refresh: refreshIrr } = useIrrWallet();
 void refreshIrr();
+
+const displayWalletIrr = computed(() => {
+  if (typeof props.walletIrr === "number" && Number.isFinite(props.walletIrr)) {
+    return props.walletIrr;
+  }
+  if (
+    typeof props.shop?.wallet_irr === "number" &&
+    Number.isFinite(props.shop.wallet_irr)
+  ) {
+    return props.shop.wallet_irr;
+  }
+  return irrBalance.value;
+});
 
 function priceTextFromIrr(value: unknown) {
   return String(irrToToman(Number(value) || 0));
@@ -119,9 +134,9 @@ async function save() {
         class="shrink-0 font-mono text-sm font-semibold tabular-nums text-foreground"
         dir="ltr"
       >
-        <template v-if="irrBalance === null">…</template>
+        <template v-if="displayWalletIrr === null">…</template>
         <template v-else>
-          {{ formatTomanAmount(irrBalance, locale) }}
+          {{ formatTomanAmount(displayWalletIrr, locale) }}
           {{ $t("pages.hosting.vip_shop.toman_unit") }}
         </template>
       </span>

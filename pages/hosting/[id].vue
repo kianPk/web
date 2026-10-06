@@ -639,6 +639,7 @@ onUnmounted(() => window.clearInterval(poll));
           v-if="isActive && isServerOwner"
           :hosted-id="hostedId"
           :shop="server.vip_shop"
+          :wallet-irr="server.owner_irr_balance ?? server.vip_shop?.wallet_irr"
           @updated="(next) => (server = next)"
         />
 
