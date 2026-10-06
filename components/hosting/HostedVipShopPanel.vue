@@ -56,6 +56,10 @@ function parsePrice(raw: string) {
   return Math.max(0, Math.floor(Number(String(raw).replace(/[^\d]/g, "")) || 0));
 }
 
+function setEnabled(value: boolean | "indeterminate") {
+  enabled.value = value === true;
+}
+
 async function save() {
   if (busy.value) return;
   busy.value = true;
@@ -99,7 +103,7 @@ async function save() {
     </div>
 
     <label class="flex items-center gap-2 text-sm">
-      <Checkbox :checked="enabled" @update:checked="(v) => (enabled = !!v)" />
+      <Checkbox :checked="enabled" @update:checked="setEnabled" />
       {{ $t("pages.hosting.vip_shop.enabled") }}
     </label>
 
