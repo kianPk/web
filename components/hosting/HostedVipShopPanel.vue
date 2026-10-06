@@ -26,15 +26,24 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const busy = ref(false);
 const enabled = ref(false);
-const price7d = ref(0);
-const price30d = ref(0);
-const price90d = ref(0);
+// String models: `v-model.number` + our Input wrapper fights backspacing
+// (empty → NaN → 0) so the fields feel frozen.
+const price7d = ref("");
+const price30d = ref("");
+const price90d = ref("");
+const editingPrices = ref(false);
+
+function priceText(value: unknown) {
+  const n = Math.max(0, Math.floor(Number(value) || 0));
+  return String(n);
+}
 
 function applyShop(shop: HostedVipShop | null | undefined) {
   enabled.value = !!shop?.enabled;
-  price7d.value = Number(shop?.price_7d || 0);
-  price30d.value = Number(shop?.price_30d || 0);
-  price90d.value = Number(shop?.price_90d || 0);
+  if (editingPrices.value) return;
+  price7d.value = priceText(shop?.price_7d);
+  price30d.value = priceText(shop?.price_30d);
+  price90d.value = priceText(shop?.price_90d);
 }
 
 watch(
@@ -42,6 +51,10 @@ watch(
   () => applyShop(props.shop),
   { immediate: true, deep: true },
 );
+
+function parsePrice(raw: string) {
+  return Math.max(0, Math.floor(Number(String(raw).replace(/[^\d]/g, "")) || 0));
+}
 
 async function save() {
   if (busy.value) return;
@@ -53,13 +66,14 @@ async function save() {
         method: "POST",
         body: {
           enabled: enabled.value,
-          price_7d: Math.max(0, Math.floor(Number(price7d.value) || 0)),
-          price_30d: Math.max(0, Math.floor(Number(price30d.value) || 0)),
-          price_90d: Math.max(0, Math.floor(Number(price90d.value) || 0)),
+          price_7d: parsePrice(price7d.value),
+          price_30d: parsePrice(price30d.value),
+          price_90d: parsePrice(price90d.value),
         },
       },
     );
     emit("updated", server);
+    editingPrices.value = false;
     applyShop(server.vip_shop);
     toast({ title: t("pages.hosting.vip_shop.saved") });
   } catch (error) {
@@ -93,34 +107,40 @@ async function save() {
       <div class="space-y-1.5">
         <Label>{{ $t("pages.hosting.vip_shop.price_7d") }}</Label>
         <Input
-          v-model.number="price7d"
-          type="number"
-          min="0"
-          step="1"
+          v-model="price7d"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
           dir="ltr"
-          :disabled="!enabled"
+          :disabled="busy"
+          @focus="editingPrices = true"
+          @blur="editingPrices = false"
         />
       </div>
       <div class="space-y-1.5">
         <Label>{{ $t("pages.hosting.vip_shop.price_30d") }}</Label>
         <Input
-          v-model.number="price30d"
-          type="number"
-          min="0"
-          step="1"
+          v-model="price30d"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
           dir="ltr"
-          :disabled="!enabled"
+          :disabled="busy"
+          @focus="editingPrices = true"
+          @blur="editingPrices = false"
         />
       </div>
       <div class="space-y-1.5">
         <Label>{{ $t("pages.hosting.vip_shop.price_90d") }}</Label>
         <Input
-          v-model.number="price90d"
-          type="number"
-          min="0"
-          step="1"
+          v-model="price90d"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
           dir="ltr"
-          :disabled="!enabled"
+          :disabled="busy"
+          @focus="editingPrices = true"
+          @blur="editingPrices = false"
         />
       </div>
     </div>
