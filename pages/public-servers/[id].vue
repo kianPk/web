@@ -72,7 +72,12 @@ type ServerDetails = {
   can_manage: boolean;
   settings: DetailSettings;
   vip_shop?: {
-    packages: Array<{ duration: "7d" | "30d" | "90d"; price_irr: number }>;
+    packages: Array<{
+      duration: "7d" | "30d" | "90d";
+      price_irr?: number;
+      /** @deprecated legacy API field — same Rials value */
+      price_ypoint?: number;
+    }>;
   };
   vips?: Array<{
     steam_id: string;
@@ -190,6 +195,21 @@ const selectedVipPackage = computed(
   () =>
     vipPackages.value.find((p) => p.duration === buyDuration.value) || null,
 );
+
+function vipPackagePriceIrr(pkg: {
+  price_irr?: number;
+  price_ypoint?: number;
+}) {
+  const irr = Number(pkg.price_irr);
+  if (Number.isFinite(irr) && irr > 0) return irr;
+  const legacy = Number(pkg.price_ypoint);
+  if (Number.isFinite(legacy) && legacy > 0) return legacy;
+  return 0;
+}
+
+function formatVipPrice(pkg: { price_irr?: number; price_ypoint?: number }) {
+  return formatTomanAmount(vipPackagePriceIrr(pkg), locale.value);
+}
 
 watch(
   vipPackages,
@@ -1008,9 +1028,7 @@ async function buyVip() {
                 <span
                   class="font-mono text-[hsl(var(--tac-amber))] tabular-nums"
                 >
-                  {{
-                    formatTomanAmount(pkg.price_irr, locale)
-                  }}
+                  {{ formatVipPrice(pkg) }}
                   {{ $t("pages.settings.application.finance.toman") }}
                 </span>
               </button>
