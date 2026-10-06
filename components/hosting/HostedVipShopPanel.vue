@@ -13,6 +13,7 @@ import {
   type HostedServer,
   type HostedVipShop,
 } from "~/composables/useHostedServers";
+import { irrToToman, tomanToIrr, formatTomanAmount } from "~/utilities/irrToman";
 
 const props = defineProps<{
   hostedId: string;
@@ -23,27 +24,29 @@ const emit = defineEmits<{
   updated: [server: HostedServer];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const busy = ref(false);
 const enabled = ref(false);
 // String models: `v-model.number` + our Input wrapper fights backspacing
-// (empty → NaN → 0) so the fields feel frozen.
+// (empty → NaN → 0) so the fields feel frozen. Values are Tomans in the UI.
 const price7d = ref("");
 const price30d = ref("");
 const price90d = ref("");
 const editingPrices = ref(false);
 
-function priceText(value: unknown) {
-  const n = Math.max(0, Math.floor(Number(value) || 0));
-  return String(n);
+const { balance: irrBalance, refresh: refreshIrr } = useIrrWallet();
+void refreshIrr();
+
+function priceTextFromIrr(value: unknown) {
+  return String(irrToToman(Number(value) || 0));
 }
 
 function applyShop(shop: HostedVipShop | null | undefined) {
   enabled.value = !!shop?.enabled;
   if (editingPrices.value) return;
-  price7d.value = priceText(shop?.price_7d);
-  price30d.value = priceText(shop?.price_30d);
-  price90d.value = priceText(shop?.price_90d);
+  price7d.value = priceTextFromIrr(shop?.price_7d);
+  price30d.value = priceTextFromIrr(shop?.price_30d);
+  price90d.value = priceTextFromIrr(shop?.price_90d);
 }
 
 watch(
@@ -52,12 +55,12 @@ watch(
   { immediate: true, deep: true },
 );
 
-function parsePrice(raw: string) {
+function parseToman(raw: string) {
   return Math.max(0, Math.floor(Number(String(raw).replace(/[^\d]/g, "")) || 0));
 }
 
-function setEnabled(value: boolean | "indeterminate") {
-  enabled.value = value === true;
+function toggleEnabled() {
+  enabled.value = !enabled.value;
 }
 
 async function save() {
@@ -70,15 +73,16 @@ async function save() {
         method: "POST",
         body: {
           enabled: enabled.value,
-          price_7d: parsePrice(price7d.value),
-          price_30d: parsePrice(price30d.value),
-          price_90d: parsePrice(price90d.value),
+          price_7d: tomanToIrr(parseToman(price7d.value)),
+          price_30d: tomanToIrr(parseToman(price30d.value)),
+          price_90d: tomanToIrr(parseToman(price90d.value)),
         },
       },
     );
     emit("updated", server);
     editingPrices.value = false;
     applyShop(server.vip_shop);
+    void refreshIrr();
     toast({ title: t("pages.hosting.vip_shop.saved") });
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
@@ -100,12 +104,31 @@ async function save() {
       <p class="m-0 text-xs text-muted-foreground">
         {{ $t("pages.hosting.vip_shop.description") }}
       </p>
+      <p
+        v-if="irrBalance !== null"
+        class="m-0 text-xs text-muted-foreground"
+      >
+        {{
+          $t("pages.hosting.vip_shop.wallet_balance", {
+            n: formatTomanAmount(irrBalance, locale),
+          })
+        }}
+      </p>
     </div>
 
-    <label class="flex items-center gap-2 text-sm">
-      <Checkbox :checked="enabled" @update:checked="setEnabled" />
+    <button
+      type="button"
+      class="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-start text-sm"
+      :disabled="busy"
+      @click="toggleEnabled"
+    >
+      <Checkbox
+        :model-value="enabled"
+        class="pointer-events-none"
+        tabindex="-1"
+      />
       {{ $t("pages.hosting.vip_shop.enabled") }}
-    </label>
+    </button>
 
     <div class="grid gap-3 sm:grid-cols-3">
       <div class="space-y-1.5">

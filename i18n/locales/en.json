@@ -3844,12 +3844,12 @@
       },
       "vip_shop": {
         "title": "Buy VIP",
-        "description": "Pay with Ypoints. VIP is activated on this server right away.",
+        "description": "Pay with Bale (Toman). VIP is activated on this server after payment.",
         "duration_7d": "7 days",
         "duration_30d": "30 days",
         "duration_90d": "90 days",
         "terms": "I understand VIP is for this server only and is non-refundable.",
-        "buy": "Buy VIP",
+        "buy": "Pay with Bale",
         "bought": "VIP activated on this server"
       },
       "details": {
@@ -5720,14 +5720,15 @@
       "ypoint_renewed": "Renewed with Ypoints",
       "vip_shop": {
         "title": "Sell VIP",
-        "description": "Set Ypoint prices for VIP on your server. Players buy from the public server page and you receive the Ypoints.",
+        "description": "Set Toman prices for VIP on your server. Players pay with Bale from the public server page and the money is credited to your site Toman wallet.",
         "enabled": "Enable VIP sales",
-        "price_7d": "7 days (Ypoints)",
-        "price_30d": "30 days (Ypoints)",
-        "price_90d": "90 days (Ypoints)",
+        "price_7d": "7 days (Toman)",
+        "price_30d": "30 days (Toman)",
+        "price_90d": "90 days (Toman)",
         "zero_hint": "Set a price to 0 to hide that package.",
         "save": "Save VIP prices",
-        "saved": "VIP prices saved"
+        "saved": "VIP prices saved",
+        "wallet_balance": "Your Toman wallet: {n} Toman"
       },
       "admins": {
         "title": "In-game admins",

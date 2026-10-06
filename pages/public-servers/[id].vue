@@ -42,6 +42,7 @@ import { $ } from "~/generated/zeus";
 import { e_player_roles_enum } from "~/generated/zeus";
 import cleanMapName from "~/utilities/cleanMapName";
 import { csRankIcon } from "~/utilities/csRank";
+import { formatTomanAmount } from "~/utilities/irrToman";
 import {
   tacticalCtaButtonClasses,
   tacticalSectionLabelClasses,
@@ -71,7 +72,7 @@ type ServerDetails = {
   can_manage: boolean;
   settings: DetailSettings;
   vip_shop?: {
-    packages: Array<{ duration: "7d" | "30d" | "90d"; price_ypoint: number }>;
+    packages: Array<{ duration: "7d" | "30d" | "90d"; price_irr: number }>;
   };
   vips?: Array<{
     steam_id: string;
@@ -88,7 +89,7 @@ type ServerDetails = {
   }>;
 };
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -96,8 +97,6 @@ const isAdmin = computed(() => auth.isAdmin);
 const canManageDedicated = computed(() =>
   auth.isRoleAbove(e_player_roles_enum.moderator),
 );
-const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
-
 const serverId = computed(() => String(route.params.id || ""));
 
 const details = ref<ServerDetails | null>(null);
@@ -191,10 +190,6 @@ const selectedVipPackage = computed(
   () =>
     vipPackages.value.find((p) => p.duration === buyDuration.value) || null,
 );
-const canAffordVip = computed(() => {
-  const price = selectedVipPackage.value?.price_ypoint || 0;
-  return price > 0 && (ypointBalance.value ?? 0) >= price;
-});
 
 watch(
   vipPackages,
@@ -378,7 +373,6 @@ watch(serverId, () => {
 
 onMounted(() => {
   void loadDetails();
-  void refreshYpoints();
   requestAnimationFrame(() => {
     heroReady.value = true;
   });
@@ -402,7 +396,11 @@ async function buyVip() {
   }
   buyBusy.value = true;
   try {
-    await hostedApi("/hosted-servers/vip-shop/checkout", {
+    const result = await hostedApi<{
+      paid?: boolean;
+      deepLink?: string;
+      orderId?: string;
+    }>("/hosted-servers/vip-shop/checkout", {
       method: "POST",
       body: {
         server_id: serverId.value,
@@ -411,9 +409,16 @@ async function buyVip() {
       },
     });
     buyTerms.value = false;
-    toast({ title: t("pages.public_servers.vip_shop.bought") });
-    void refreshYpoints();
-    await loadDetails();
+    if (result?.deepLink) {
+      toast({
+        title: t("pages.store.checkout_started"),
+        description: t("pages.store.checkout_hint"),
+      });
+      window.open(result.deepLink, "_blank", "noopener,noreferrer");
+    } else {
+      toast({ title: t("pages.public_servers.vip_shop.bought") });
+      await loadDetails();
+    }
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
   } finally {
@@ -1003,7 +1008,10 @@ async function buyVip() {
                 <span
                   class="font-mono text-[hsl(var(--tac-amber))] tabular-nums"
                 >
-                  {{ pkg.price_ypoint }} YP
+                  {{
+                    formatTomanAmount(pkg.price_irr, locale)
+                  }}
+                  {{ $t("pages.settings.application.finance.toman") }}
                 </span>
               </button>
             </div>
@@ -1017,31 +1025,16 @@ async function buyVip() {
               />
               {{ $t("pages.public_servers.vip_shop.terms") }}
             </label>
-            <p
-              v-if="ypointBalance != null"
-              class="m-0 mt-2 text-xs text-muted-foreground"
-            >
-              {{
-                $t("pages.store.ypoint_balance_hint", { n: ypointBalance })
-              }}
-            </p>
             <Button
               class="mt-3 w-full"
               size="sm"
-              :disabled="
-                buyBusy ||
-                !buyTerms ||
-                !selectedVipPackage ||
-                !canAffordVip
-              "
+              :disabled="buyBusy || !buyTerms || !selectedVipPackage"
               @click="buyVip"
             >
               {{
                 !auth.me?.steam_id
                   ? $t("pages.store.sign_in_required")
-                  : !canAffordVip
-                    ? $t("ypoint.insufficient")
-                    : $t("pages.public_servers.vip_shop.buy")
+                  : $t("pages.public_servers.vip_shop.buy")
               }}
             </Button>
           </div>
