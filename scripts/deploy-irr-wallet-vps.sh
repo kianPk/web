@@ -35,6 +35,17 @@ ALTER TABLE public.store_orders
 ALTER TABLE public.store_orders
   ADD CONSTRAINT store_orders_hosted_kind_check
     CHECK (hosted_kind IS NULL OR hosted_kind IN ('new', 'renew', 'slots', 'vip_shop'));
+
+INSERT INTO public.store_products
+  (title, slug, description, price_irr, ypoint_amount, vip_server_id,
+   vip_duration, hosted_slots, subscription_tier, sort_order, active)
+VALUES (
+  'Hosted VIP (internal)',
+  'hosted-vip-shop',
+  'Internal bill carrier for hosted server VIP sales. Not sold in the store.',
+  0, NULL, NULL, NULL, NULL, NULL, 9999, false
+)
+ON CONFLICT (slug) DO NOTHING;
 SQL
 
 PGPOD=$(kubectl -n 5stack get pods -o name | grep -E 'timescaledb|postgres' | head -1 | cut -d/ -f2)
