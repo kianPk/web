@@ -109,7 +109,7 @@ async function save() {
 
 <template>
   <section
-    class="space-y-4 rounded-lg border border-border bg-card/40 p-4 lg:col-span-2"
+    class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5"
   >
     <div class="space-y-1">
       <h2 class="m-0 flex items-center gap-2 text-base font-semibold">

@@ -151,7 +151,7 @@ async function save() {
 </script>
 
 <template>
-  <section class="space-y-4 rounded-lg border border-border bg-card/40 p-4">
+  <section class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5">
     <div class="flex items-start justify-between gap-3">
       <div>
         <h2 class="m-0 flex items-center gap-2 text-base font-semibold">

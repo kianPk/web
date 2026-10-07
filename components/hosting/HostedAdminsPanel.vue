@@ -114,27 +114,32 @@ onMounted(load);
 </script>
 
 <template>
-  <section
-    class="space-y-4 rounded-lg border border-border bg-card/40 p-4 lg:col-span-2"
-  >
+  <section class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5">
     <div class="space-y-1">
       <h2 class="m-0 flex items-center gap-2 text-base font-semibold">
-        <ShieldCheck class="h-4 w-4" />
+        <ShieldCheck class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
         {{ $t("pages.hosting.admins.title") }}
       </h2>
       <p class="m-0 text-xs text-muted-foreground">
         {{ $t("pages.hosting.admins.description") }}
       </p>
-      <div class="flex flex-wrap gap-1.5 pt-1" dir="ltr">
-        <Badge
-          v-for="command in COMMANDS"
-          :key="command"
-          variant="outline"
-          class="font-mono"
+      <details class="group pt-1">
+        <summary
+          class="cursor-pointer list-none text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden"
         >
-          {{ command }}
-        </Badge>
-      </div>
+          {{ $t("pages.hosting.admins.commands_toggle") }}
+        </summary>
+        <div class="mt-2 flex flex-wrap gap-1.5" dir="ltr">
+          <Badge
+            v-for="command in COMMANDS"
+            :key="command"
+            variant="outline"
+            class="font-mono text-[0.7rem]"
+          >
+            {{ command }}
+          </Badge>
+        </div>
+      </details>
     </div>
 
     <form

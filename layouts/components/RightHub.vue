@@ -980,11 +980,11 @@ function onHubTouchEnd(e: TouchEvent) {
           :href="telegramUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="grid size-8 place-items-center rounded-md text-[#2AABEE] transition-colors hover:bg-[#2AABEE]/15 hover:text-[#5BC1F1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
+          class="grid size-11 place-items-center rounded-xl text-[#2AABEE] transition-colors hover:bg-[#2AABEE]/18 hover:text-[#5BC1F1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
           title="Telegram"
           aria-label="Telegram"
         >
-          <TelegramIcon class="size-[18px]" />
+          <TelegramIcon class="size-7 drop-shadow-[0_0_10px_rgba(42,171,238,0.45)]" />
         </a>
 
         <div class="flex-1" />

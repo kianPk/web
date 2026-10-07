@@ -28,12 +28,22 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/components/ui/tabs";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  tacticalTabsListClasses,
+  tacticalTabsTriggerClasses,
+} from "~/utilities/tacticalClasses";
 import {
   Dialog,
   DialogScrollContent,
@@ -87,6 +97,7 @@ const server = ref<HostedServer | null>(null);
 const overview = ref<HostedOverview | null>(null);
 const loading = ref(true);
 const busy = ref<string | null>(null);
+const panelTab = ref("overview");
 
 const form = ref({ label: "", connect_password: "", type: "Casual" });
 
@@ -425,7 +436,7 @@ onUnmounted(() => window.clearInterval(poll));
 </script>
 
 <template>
-  <div class="space-y-6 pb-16">
+  <div class="space-y-7 pb-16">
     <TacticalPageHeader>
       <template #title>{{
         server?.label || $t("pages.hosting.title")
@@ -434,19 +445,23 @@ onUnmounted(() => window.clearInterval(poll));
     </TacticalPageHeader>
 
     <PageTransition>
-      <div v-if="loading" class="grid gap-4 lg:grid-cols-2">
-        <Skeleton class="h-48 rounded-lg" />
-        <Skeleton class="h-48 rounded-lg" />
+      <div v-if="loading" class="space-y-4">
+        <Skeleton class="h-40 rounded-2xl" />
+        <Skeleton class="h-10 w-80 rounded-lg" />
+        <div class="grid gap-4 lg:grid-cols-2">
+          <Skeleton class="h-56 rounded-xl" />
+          <Skeleton class="h-56 rounded-xl" />
+        </div>
       </div>
 
       <p v-else-if="!server" class="text-sm text-muted-foreground">
         {{ $t("pages.hosting.panel.not_found") }}
       </p>
 
-      <div v-else class="grid gap-4 lg:grid-cols-2">
+      <div v-else class="space-y-6">
         <div
           v-if="managingAsSiteAdmin"
-          class="rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-4 py-3 text-sm lg:col-span-2"
+          class="rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-4 py-3 text-sm"
         >
           {{
             $t("pages.hosting.admin.managing_as_admin", {
@@ -454,304 +469,385 @@ onUnmounted(() => window.clearInterval(poll));
             })
           }}
         </div>
+
+        <!-- Status hero -->
         <section
-          class="space-y-4 rounded-lg border border-border bg-card/40 p-4"
+          class="relative overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(145deg,hsl(var(--card)/0.85),hsl(var(--background)/0.4))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6"
         >
-          <div class="flex flex-wrap items-center gap-2">
-            <Badge :variant="hostedStatusVariant(server.status)">
-              {{ $t(`pages.hosting.status.${server.status}`) }}
-            </Badge>
-            <Badge
-              v-if="isActive"
-              :variant="server.connected ? 'default' : 'outline'"
-            >
-              {{
-                !server.enabled
-                  ? $t("pages.hosting.panel.stopped")
-                  : server.connected
-                    ? $t("pages.hosting.panel.online")
-                    : $t("pages.hosting.panel.starting")
-              }}
-            </Badge>
-            <Badge variant="secondary">
-              {{ $t("pages.hosting.slots", { n: server.slots }) }}
-              <template v-if="extraSlots">
-                ({{ $t("pages.hosting.slots_buy.extra", { n: extraSlots }) }})
-              </template>
-            </Badge>
-            <Badge v-if="server.type" variant="outline">
-              {{ $t(`pages.hosting.modes.${server.type}`) }}
-            </Badge>
-          </div>
-
-          <p
-            v-if="server.status_detail"
-            class="m-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs"
-          >
-            {{ server.status_detail }}
-          </p>
-
-          <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt class="text-muted-foreground">
-              {{ $t("pages.hosting.panel.address") }}
-            </dt>
-            <dd class="m-0 font-mono" dir="ltr">
-              {{
-                server.host && server.port
-                  ? `${server.host}:${server.port}`
-                  : "—"
-              }}
-            </dd>
-            <dt class="text-muted-foreground">
-              {{ $t("pages.hosting.panel.expires") }}
-            </dt>
-            <dd class="m-0">
-              {{ formatHostedDate(server.expires_at, locale) }}
-            </dd>
-            <template v-if="server.players !== null">
-              <dt class="text-muted-foreground">
-                {{ $t("pages.hosting.panel.players") }}
-              </dt>
-              <dd class="m-0">
-                {{ server.players }}/{{ server.slots }}
-                <span v-if="server.map" class="font-mono text-muted-foreground">
-                  · {{ server.map }}
-                </span>
-              </dd>
-            </template>
-          </dl>
-
           <div
-            v-if="connectCommand"
-            class="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-2"
-          >
-            <code class="min-w-0 flex-1 truncate text-xs" dir="ltr">
-              {{ connectCommand }}
-            </code>
-            <Button
-              size="icon"
-              variant="ghost"
-              class="h-7 w-7"
-              @click="copyConnect"
-            >
-              <Copy class="h-3.5 w-3.5" />
-            </Button>
-          </div>
+            class="pointer-events-none absolute -end-16 -top-20 h-48 w-48 rounded-full bg-[hsl(var(--tac-amber)/0.08)] blur-3xl"
+          />
+          <div class="relative space-y-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <Badge :variant="hostedStatusVariant(server.status)">
+                {{ $t(`pages.hosting.status.${server.status}`) }}
+              </Badge>
+              <Badge
+                v-if="isActive"
+                :variant="server.connected ? 'default' : 'outline'"
+              >
+                {{
+                  !server.enabled
+                    ? $t("pages.hosting.panel.stopped")
+                    : server.connected
+                      ? $t("pages.hosting.panel.online")
+                      : $t("pages.hosting.panel.starting")
+                }}
+              </Badge>
+              <Badge variant="secondary">
+                {{ $t("pages.hosting.slots", { n: server.slots }) }}
+                <template v-if="extraSlots">
+                  ({{
+                    $t("pages.hosting.slots_buy.extra", { n: extraSlots })
+                  }})
+                </template>
+              </Badge>
+              <Badge v-if="server.type" variant="outline">
+                {{ $t(`pages.hosting.modes.${server.type}`) }}
+              </Badge>
+            </div>
 
-          <div class="flex flex-wrap gap-2">
-            <Button
-              v-if="isActive"
-              size="sm"
-              variant="outline"
-              :disabled="!!busy || !server.enabled"
-              @click="restart"
+            <p
+              v-if="server.status_detail"
+              class="m-0 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-xs"
             >
-              <RotateCcw class="me-1.5 h-3.5 w-3.5" />
-              {{ $t("pages.hosting.panel.restart") }}
-            </Button>
-            <Button
-              v-if="isActive"
-              size="sm"
-              :variant="server.enabled ? 'destructive' : 'default'"
-              :disabled="!!busy"
-              @click="togglePower"
-            >
-              <Power class="me-1.5 h-3.5 w-3.5" />
-              {{
-                server.enabled
-                  ? $t("pages.hosting.panel.stop")
-                  : $t("pages.hosting.panel.start")
-              }}
-            </Button>
-            <Button
-              v-if="canRenew"
-              size="sm"
-              variant="secondary"
-              :disabled="!!busy || !renewPlans.length"
-              @click="openRenew"
-            >
-              <RefreshCw class="me-1.5 h-3.5 w-3.5" />
-              {{ $t("pages.hosting.panel.renew") }}
-            </Button>
-            <Button
-              v-if="canBuySlots"
-              size="sm"
-              variant="secondary"
-              :disabled="!!busy"
-              @click="openSlots"
-            >
-              <Plus class="me-1.5 h-3.5 w-3.5" />
-              {{ $t("pages.hosting.slots_buy.button") }}
-            </Button>
-            <Button
-              v-if="isAdmin"
-              size="sm"
-              variant="destructive"
-              :disabled="!!busy"
-              @click="adminDelete"
-            >
-              <Trash2 class="me-1.5 h-3.5 w-3.5" />
-              {{ $t("pages.hosting.admin.delete") }}
-            </Button>
-          </div>
-        </section>
+              {{ server.status_detail }}
+            </p>
 
-        <section
-          v-if="isActive"
-          class="space-y-4 rounded-lg border border-border bg-card/40 p-4"
-        >
-          <h2 class="m-0 text-base font-semibold">
-            {{ $t("pages.hosting.panel.settings") }}
-          </h2>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.hosting.server_name") }}</Label>
-            <Input v-model="form.label" maxlength="64" />
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.hosting.panel.password") }}</Label>
-            <Input
-              v-model="form.connect_password"
-              maxlength="32"
-              dir="ltr"
-              :placeholder="$t('pages.hosting.panel.password_placeholder')"
-            />
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.hosting.mode") }}</Label>
-            <Select v-model="form.type">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="type in overview?.types || []"
-                  :key="type"
-                  :value="type"
+            <div
+              class="grid gap-4 sm:grid-cols-3 sm:gap-6"
+            >
+              <div class="space-y-1">
+                <p
+                  class="m-0 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
                 >
-                  {{ $t(`pages.hosting.modes.${type}`) }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <p class="m-0 text-xs text-muted-foreground">
-            {{ $t("pages.hosting.panel.settings_restart_note") }}
-          </p>
-          <Button size="sm" :disabled="!!busy" @click="saveSettings">
-            {{ $t("pages.hosting.panel.save") }}
-          </Button>
-        </section>
+                  {{ $t("pages.hosting.panel.address") }}
+                </p>
+                <p class="m-0 font-mono text-sm" dir="ltr">
+                  {{
+                    server.host && server.port
+                      ? `${server.host}:${server.port}`
+                      : "—"
+                  }}
+                </p>
+              </div>
+              <div class="space-y-1">
+                <p
+                  class="m-0 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+                >
+                  {{ $t("pages.hosting.panel.expires") }}
+                </p>
+                <p class="m-0 text-sm">
+                  {{ formatHostedDate(server.expires_at, locale) }}
+                </p>
+              </div>
+              <div v-if="server.players !== null" class="space-y-1">
+                <p
+                  class="m-0 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+                >
+                  {{ $t("pages.hosting.panel.players") }}
+                </p>
+                <p class="m-0 text-sm">
+                  {{ server.players }}/{{ server.slots }}
+                  <span
+                    v-if="server.map"
+                    class="font-mono text-muted-foreground"
+                  >
+                    · {{ server.map }}
+                  </span>
+                </p>
+              </div>
+            </div>
 
-        <HostedAdminsPanel
-          v-if="server.status !== 'deleted'"
-          :hosted-id="hostedId"
-        />
-
-        <HostedChatAdsPanel
-          v-if="isActive"
-          :hosted-id="hostedId"
-          :ads="server.chat_ads"
-          @updated="(next) => (server = next)"
-        />
-
-        <HostedGameplayPanel
-          v-if="isActive"
-          :hosted-id="hostedId"
-          :gameplay="server.gameplay"
-          @updated="(next) => (server = next)"
-        />
-
-        <HostedVipManagePanel
-          v-if="isActive && isServerOwner"
-          :hosted-id="hostedId"
-        />
-
-        <HostedVipShopPanel
-          v-if="isActive && isServerOwner"
-          :hosted-id="hostedId"
-          :shop="server.vip_shop"
-          :wallet-irr="server.owner_irr_balance ?? server.vip_shop?.wallet_irr"
-          @updated="(next) => (server = next)"
-        />
-
-        <section
-          v-if="isActive"
-          class="space-y-3 rounded-lg border border-border bg-card/40 p-4 lg:col-span-2"
-        >
-          <h2 class="m-0 flex items-center gap-2 text-base font-semibold">
-            <Terminal class="h-4 w-4" />
-            {{ $t("pages.hosting.panel.console") }}
-          </h2>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <Select v-model="mapToLoad">
-              <SelectTrigger class="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="map in MAPS" :key="map" :value="map">
-                  {{ map }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              variant="outline"
-              :disabled="!!busy || !server.connected"
-              @click="sendRcon(`changelevel ${mapToLoad}`)"
+            <div
+              v-if="connectCommand"
+              class="flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-3 py-2.5"
             >
-              {{ $t("pages.hosting.panel.change_map") }}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              :disabled="!!busy || !server.connected"
-              @click="sendRcon('mp_restartgame 1')"
-            >
-              {{ $t("pages.hosting.panel.restart_game") }}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              :disabled="!!busy || !server.connected"
-              @click="sendRcon('status')"
-            >
-              status
-            </Button>
-          </div>
+              <span
+                class="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                {{ $t("pages.hosting.panel.connect") }}
+              </span>
+              <code class="min-w-0 flex-1 truncate text-xs" dir="ltr">
+                {{ connectCommand }}
+              </code>
+              <Button
+                size="icon"
+                variant="ghost"
+                class="h-8 w-8 shrink-0"
+                @click="copyConnect"
+              >
+                <Copy class="h-3.5 w-3.5" />
+              </Button>
+            </div>
 
-          <form
-            class="flex gap-2"
-            dir="ltr"
-            @submit.prevent="sendRcon(rconCommand)"
-          >
-            <Input
-              v-model="rconCommand"
-              class="font-mono"
-              maxlength="512"
-              placeholder="mp_roundtime 2"
-            />
-            <Button
-              type="submit"
-              size="sm"
-              :disabled="!!busy || !server.connected || !rconCommand.trim()"
-            >
-              <Send class="h-3.5 w-3.5" />
-            </Button>
-          </form>
-
-          <div
-            v-if="rconLog.length"
-            class="max-h-80 space-y-2 overflow-y-auto rounded-md bg-black/80 p-3 font-mono text-xs text-green-300"
-            dir="ltr"
-          >
-            <div v-for="(entry, index) in rconLog" :key="index">
-              <div class="text-white">&gt; {{ entry.command }}</div>
-              <pre class="m-0 whitespace-pre-wrap">{{
-                entry.result || "(ok)"
-              }}</pre>
+            <div class="flex flex-wrap items-center gap-2 border-t border-border/50 pt-4">
+              <Button
+                v-if="isActive"
+                size="sm"
+                variant="outline"
+                :disabled="!!busy || !server.enabled"
+                @click="restart"
+              >
+                <RotateCcw class="me-1.5 h-3.5 w-3.5" />
+                {{ $t("pages.hosting.panel.restart") }}
+              </Button>
+              <Button
+                v-if="isActive"
+                size="sm"
+                :variant="server.enabled ? 'destructive' : 'default'"
+                :disabled="!!busy"
+                @click="togglePower"
+              >
+                <Power class="me-1.5 h-3.5 w-3.5" />
+                {{
+                  server.enabled
+                    ? $t("pages.hosting.panel.stop")
+                    : $t("pages.hosting.panel.start")
+                }}
+              </Button>
+              <div class="ms-auto flex flex-wrap gap-2">
+                <Button
+                  v-if="canRenew"
+                  size="sm"
+                  variant="secondary"
+                  :disabled="!!busy || !renewPlans.length"
+                  @click="openRenew"
+                >
+                  <RefreshCw class="me-1.5 h-3.5 w-3.5" />
+                  {{ $t("pages.hosting.panel.renew") }}
+                </Button>
+                <Button
+                  v-if="canBuySlots"
+                  size="sm"
+                  variant="secondary"
+                  :disabled="!!busy"
+                  @click="openSlots"
+                >
+                  <Plus class="me-1.5 h-3.5 w-3.5" />
+                  {{ $t("pages.hosting.slots_buy.button") }}
+                </Button>
+                <Button
+                  v-if="isAdmin"
+                  size="sm"
+                  variant="destructive"
+                  :disabled="!!busy"
+                  @click="adminDelete"
+                >
+                  <Trash2 class="me-1.5 h-3.5 w-3.5" />
+                  {{ $t("pages.hosting.admin.delete") }}
+                </Button>
+              </div>
             </div>
           </div>
         </section>
+
+        <Tabs v-model="panelTab" :scroll-floor="false" class="space-y-5">
+          <TabsList
+            :class="tacticalTabsListClasses"
+            class="h-auto w-full flex-wrap justify-start sm:w-auto"
+          >
+            <TabsTrigger value="overview" :class="tacticalTabsTriggerClasses">
+              {{ $t("pages.hosting.panel.tabs.overview") }}
+            </TabsTrigger>
+            <TabsTrigger
+              v-if="server.status !== 'deleted'"
+              value="players"
+              :class="tacticalTabsTriggerClasses"
+            >
+              {{ $t("pages.hosting.panel.tabs.players") }}
+            </TabsTrigger>
+            <TabsTrigger
+              v-if="isActive"
+              value="shop"
+              :class="tacticalTabsTriggerClasses"
+            >
+              {{ $t("pages.hosting.panel.tabs.shop") }}
+            </TabsTrigger>
+            <TabsTrigger
+              v-if="isActive"
+              value="console"
+              :class="tacticalTabsTriggerClasses"
+            >
+              {{ $t("pages.hosting.panel.tabs.console") }}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" class="mt-0 outline-none">
+            <div
+              v-if="isActive"
+              class="grid gap-4 lg:grid-cols-2 lg:items-start"
+            >
+              <section
+                class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5"
+              >
+                <h2 class="m-0 text-base font-semibold tracking-tight">
+                  {{ $t("pages.hosting.panel.settings") }}
+                </h2>
+                <div class="space-y-1.5">
+                  <Label>{{ $t("pages.hosting.server_name") }}</Label>
+                  <Input v-model="form.label" maxlength="64" />
+                </div>
+                <div class="space-y-1.5">
+                  <Label>{{ $t("pages.hosting.panel.password") }}</Label>
+                  <Input
+                    v-model="form.connect_password"
+                    maxlength="32"
+                    dir="ltr"
+                    :placeholder="
+                      $t('pages.hosting.panel.password_placeholder')
+                    "
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <Label>{{ $t("pages.hosting.mode") }}</Label>
+                  <Select v-model="form.type">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="type in overview?.types || []"
+                        :key="type"
+                        :value="type"
+                      >
+                        {{ $t(`pages.hosting.modes.${type}`) }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p class="m-0 text-xs text-muted-foreground">
+                  {{ $t("pages.hosting.panel.settings_restart_note") }}
+                </p>
+                <Button size="sm" :disabled="!!busy" @click="saveSettings">
+                  {{ $t("pages.hosting.panel.save") }}
+                </Button>
+              </section>
+
+              <HostedGameplayPanel
+                :hosted-id="hostedId"
+                :gameplay="server.gameplay"
+                @updated="(next) => (server = next)"
+              />
+            </div>
+            <p v-else class="m-0 text-sm text-muted-foreground">
+              {{ $t("pages.hosting.panel.subtitle") }}
+            </p>
+          </TabsContent>
+
+          <TabsContent value="players" class="mt-0 space-y-4 outline-none">
+            <HostedAdminsPanel
+              v-if="server.status !== 'deleted'"
+              :hosted-id="hostedId"
+            />
+            <HostedVipManagePanel
+              v-if="isActive && isServerOwner"
+              :hosted-id="hostedId"
+            />
+          </TabsContent>
+
+          <TabsContent value="shop" class="mt-0 outline-none">
+            <div class="grid gap-4 lg:grid-cols-2 lg:items-start">
+              <HostedChatAdsPanel
+                v-if="isActive"
+                :hosted-id="hostedId"
+                :ads="server.chat_ads"
+                @updated="(next) => (server = next)"
+              />
+              <HostedVipShopPanel
+                v-if="isActive && isServerOwner"
+                :hosted-id="hostedId"
+                :shop="server.vip_shop"
+                :wallet-irr="
+                  server.owner_irr_balance ?? server.vip_shop?.wallet_irr
+                "
+                @updated="(next) => (server = next)"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="console" class="mt-0 outline-none">
+            <section
+              v-if="isActive"
+              class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5"
+            >
+              <h2 class="m-0 flex items-center gap-2 text-base font-semibold">
+                <Terminal class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
+                {{ $t("pages.hosting.panel.console") }}
+              </h2>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <Select v-model="mapToLoad">
+                  <SelectTrigger class="w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="map in MAPS" :key="map" :value="map">
+                      {{ map }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  :disabled="!!busy || !server.connected"
+                  @click="sendRcon(`changelevel ${mapToLoad}`)"
+                >
+                  {{ $t("pages.hosting.panel.change_map") }}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  :disabled="!!busy || !server.connected"
+                  @click="sendRcon('mp_restartgame 1')"
+                >
+                  {{ $t("pages.hosting.panel.restart_game") }}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  :disabled="!!busy || !server.connected"
+                  @click="sendRcon('status')"
+                >
+                  status
+                </Button>
+              </div>
+
+              <form
+                class="flex gap-2"
+                dir="ltr"
+                @submit.prevent="sendRcon(rconCommand)"
+              >
+                <Input
+                  v-model="rconCommand"
+                  class="font-mono"
+                  maxlength="512"
+                  placeholder="mp_roundtime 2"
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  :disabled="!!busy || !server.connected || !rconCommand.trim()"
+                >
+                  <Send class="h-3.5 w-3.5" />
+                </Button>
+              </form>
+
+              <div
+                v-if="rconLog.length"
+                class="max-h-80 space-y-2 overflow-y-auto rounded-xl bg-black/80 p-3 font-mono text-xs text-green-300"
+                dir="ltr"
+              >
+                <div v-for="(entry, index) in rconLog" :key="index">
+                  <div class="text-white">&gt; {{ entry.command }}</div>
+                  <pre class="m-0 whitespace-pre-wrap">{{
+                    entry.result || "(ok)"
+                  }}</pre>
+                </div>
+              </div>
+            </section>
+          </TabsContent>
+        </Tabs>
       </div>
     </PageTransition>
 

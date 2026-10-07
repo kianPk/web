@@ -85,9 +85,9 @@ async function setFlag(key: FlagKey, value: boolean) {
 </script>
 
 <template>
-  <section class="space-y-4 rounded-lg border border-border bg-card/40 p-4">
+  <section class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5">
     <div class="space-y-1">
-      <h2 class="m-0 text-base font-semibold">
+      <h2 class="m-0 text-base font-semibold tracking-tight">
         {{ $t("pages.hosting.panel.gameplay.title") }}
       </h2>
       <p class="m-0 text-xs text-muted-foreground">

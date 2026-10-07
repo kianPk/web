@@ -5693,7 +5693,15 @@
         },
         "console": "Console (RCON)",
         "change_map": "Change map",
-        "restart_game": "Restart match"
+        "restart_game": "Restart match",
+        "tabs": {
+          "overview": "Overview",
+          "players": "Players",
+          "shop": "Shop & ads",
+          "console": "Console"
+        },
+        "connect": "Connect",
+        "actions": "Power & billing"
       },
       "admin": {
         "title": "Hosted servers (admin)",
@@ -5791,7 +5799,8 @@
       },
       "admins": {
         "title": "In-game admins",
-        "description": "Admins get the website server panel for this server and can use these commands in chat (with ! or /). You are always an admin. Only the owner can add or remove admins, renew, or buy slots. Changes apply within a few seconds. The YGuardAdmin plugin must be installed on the server.",
+        "description": "Admins get the website server panel for this server and can use chat commands (! or /). You are always an admin. Only the owner can add or remove admins, renew, or buy slots.",
+        "commands_toggle": "Show in-game commands",
         "placeholder": "SteamID64 or Steam profile link (custom /id/ links work too)",
         "add": "Add admin",
         "added": "Admin added",
