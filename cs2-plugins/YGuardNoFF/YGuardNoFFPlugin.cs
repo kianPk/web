@@ -18,7 +18,7 @@ namespace YGuardNoFF;
 public class YGuardNoFFPlugin : BasePlugin
 {
     public override string ModuleName => "YGuard No Friendly Fire";
-    public override string ModuleVersion => "1.2.1";
+    public override string ModuleVersion => "1.2.2";
     public override string ModuleAuthor => "YGuard";
     public override string ModuleDescription =>
         "Panel-driven FF, bunny hop, and hold-E parachute on public servers";
@@ -163,6 +163,8 @@ public class YGuardNoFFPlugin : BasePlugin
         if (!_paraActive.ContainsKey(player.Slot))
         {
             _paraActive[player.Slot] = true;
+            // GravityScale lives on the pawn (physical body), not the controller.
+            pawn.GravityScale = 0.1f;
             player.GravityScale = 0.1f;
         }
 
@@ -193,9 +195,16 @@ public class YGuardNoFFPlugin : BasePlugin
             return;
         }
 
-        if (player.IsValid)
+        if (!player.IsValid)
         {
-            player.GravityScale = 1.0f;
+            return;
+        }
+
+        player.GravityScale = 1.0f;
+        var pawn = player.PlayerPawn.Value;
+        if (pawn is not null && pawn.IsValid)
+        {
+            pawn.GravityScale = 1.0f;
         }
     }
 
@@ -206,7 +215,7 @@ public class YGuardNoFFPlugin : BasePlugin
             var player = Utilities.GetPlayerFromSlot(slot);
             if (player is not null && player.IsValid)
             {
-                player.GravityScale = 1.0f;
+                StopParachute(player);
             }
         }
         _paraActive.Clear();
@@ -265,7 +274,38 @@ public class YGuardNoFFPlugin : BasePlugin
             return null;
         }
 
-        return await resp.Content.ReadFromJsonAsync<GameplayPrefs>();
+        // Prefer nested gameplay.*; fall back to flat keys for older API builds.
+        await using var stream = await resp.Content.ReadAsStreamAsync();
+        using var doc = await System.Text.Json.JsonDocument.ParseAsync(stream);
+        var root = doc.RootElement;
+        var src = root.TryGetProperty("gameplay", out var nested) ? nested : root;
+        return new GameplayPrefs
+        {
+            FriendlyFire = ReadBool(src, root, "friendly_fire"),
+            BunnyHop = ReadBool(src, root, "bunny_hop"),
+            Parachute = ReadBool(src, root, "parachute"),
+        };
+    }
+
+    private static bool ReadBool(
+        System.Text.Json.JsonElement primary,
+        System.Text.Json.JsonElement fallback,
+        string name)
+    {
+        if (primary.ValueKind == System.Text.Json.JsonValueKind.Object
+            && primary.TryGetProperty(name, out var a)
+            && (a.ValueKind == System.Text.Json.JsonValueKind.True
+                || a.ValueKind == System.Text.Json.JsonValueKind.False))
+        {
+            return a.GetBoolean();
+        }
+        if (fallback.TryGetProperty(name, out var b)
+            && (b.ValueKind == System.Text.Json.JsonValueKind.True
+                || b.ValueKind == System.Text.Json.JsonValueKind.False))
+        {
+            return b.GetBoolean();
+        }
+        return false;
     }
 
     private void ApplyLocal()
