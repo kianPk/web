@@ -5675,12 +5675,29 @@
           "add": "Add message",
           "saved": "Chat ads saved"
         },
+        "gameplay": {
+          "title": "Gameplay",
+          "hint": "Changes apply over RCON while the server is online, and stay after map changes.",
+          "friendly_fire": "Friendly fire",
+          "friendly_fire_hint": "Teammate damage (default off on public servers).",
+          "bunny_hop": "Auto bunny hop",
+          "bunny_hop_hint": "Hold jump to auto-bhop (sv_autobunnyhopping).",
+          "ff_on": "Friendly fire enabled",
+          "ff_off": "Friendly fire disabled",
+          "bhop_on": "Bunny hop enabled",
+          "bhop_off": "Bunny hop disabled"
+        },
         "console": "Console (RCON)",
         "change_map": "Change map",
         "restart_game": "Restart match"
       },
       "admin": {
         "title": "Hosted servers (admin)",
+        "panel_blurb": "Manage every purchased public server, sales capacity, and plans — without the clutter.",
+        "refresh": "Refresh",
+        "tab_servers": "Servers ({n})",
+        "tab_settings": "Settings",
+        "tab_plans": "Plans ({n})",
         "settings_nav": "Hosted servers",
         "settings_page_title": "Purchased hosted servers",
         "settings_page_description": "Site administrators can open any purchased public server panel, extend, suspend, or delete it.",

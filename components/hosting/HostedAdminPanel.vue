@@ -1,11 +1,32 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import {
+  MoreHorizontal,
+  RefreshCw,
+  Search,
+  ServerCog,
+  Settings2,
+  Tags,
+} from "lucide-vue-next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/components/ui/tabs";
 import { toast } from "~/components/ui/toast";
 import {
   formatHostedDate,
@@ -24,6 +45,7 @@ import {
 const emit = defineEmits<{ changed: [] }>();
 const { t, locale } = useI18n();
 
+const tab = ref<"servers" | "settings" | "plans">("servers");
 const plans = ref<HostedAdminPlan[]>([]);
 const servers = ref<HostedServer[]>([]);
 const showDeleted = ref(false);
@@ -64,6 +86,7 @@ const form = ref({
   max_slots: 32,
 });
 const busy = ref(false);
+const loading = ref(true);
 
 async function load() {
   try {
@@ -77,6 +100,8 @@ async function load() {
     applySettings(current);
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -202,305 +227,351 @@ function removePlan(plan: HostedAdminPlan) {
   });
 }
 
+function serverAddress(server: HostedServer) {
+  if (!server.host || !server.port) return null;
+  return `${server.host}:${server.port}`;
+}
+
 onMounted(() => {
   void load();
 });
 </script>
 
 <template>
-  <section class="space-y-4 rounded-lg border border-dashed border-border p-4">
-    <h2 class="m-0 text-lg font-semibold">
-      {{ $t("pages.hosting.admin.title") }}
-    </h2>
-
-    <div v-if="settings" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <button
-        type="button"
-        class="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-start text-sm"
-        @click="form.enabled = !form.enabled"
+  <section class="space-y-5">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="space-y-1">
+        <h2 class="m-0 text-lg font-semibold tracking-tight">
+          {{ $t("pages.hosting.admin.title") }}
+        </h2>
+        <p class="m-0 text-sm text-muted-foreground">
+          {{ $t("pages.hosting.admin.panel_blurb") }}
+        </p>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        :disabled="busy || loading"
+        @click="load"
       >
-        <Checkbox
-          :model-value="form.enabled"
-          class="pointer-events-none"
-          tabindex="-1"
-        />
-        {{ $t("pages.hosting.admin.sales_enabled") }}
-      </button>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.max_active") }}</Label>
-        <Input v-model="form.max_active" type="number" min="0" />
-      </div>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.reserve_match_slots") }}</Label>
-        <Input v-model="form.reserve_match_slots" type="number" min="0" />
-      </div>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.grace_days") }}</Label>
-        <Input v-model="form.grace_days" type="number" min="0" />
-      </div>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.slot_price_toman") }}</Label>
-        <Input v-model="form.slot_price_toman" type="number" min="0" />
-      </div>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.slot_price_ypoint") }}</Label>
-        <Input v-model="form.slot_price_ypoint" type="number" min="0" />
-      </div>
-      <div class="space-y-1">
-        <Label>{{ $t("pages.hosting.admin.max_slots") }}</Label>
-        <Input v-model="form.max_slots" type="number" min="2" max="64" />
-      </div>
-      <p class="m-0 text-xs text-muted-foreground sm:col-span-2 lg:col-span-4">
-        {{ $t("pages.hosting.admin.slot_price_hint") }}
-      </p>
-    </div>
-    <Button size="sm" :disabled="busy" @click="saveSettings">
-      {{ $t("pages.hosting.panel.save") }}
-    </Button>
-
-    <div class="space-y-2">
-      <div class="flex items-center justify-between gap-2">
-        <h3 class="m-0 text-base font-semibold">
-          {{ $t("pages.hosting.admin.plans") }}
-        </h3>
-        <Button size="sm" variant="outline" as-child>
-          <NuxtLink to="/settings/application/store">
-            {{ $t("pages.hosting.admin.plan_add") }}
-          </NuxtLink>
-        </Button>
-      </div>
-      <p v-if="!plans.length" class="m-0 text-sm text-muted-foreground">
-        {{ $t("pages.hosting.admin.plans_empty") }}
-      </p>
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <tbody>
-            <tr
-              v-for="plan in plans"
-              :key="plan.id"
-              class="border-b border-border/60"
-            >
-              <td class="p-2">
-                <div class="font-medium">{{ plan.title }}</div>
-                <div class="text-xs text-muted-foreground">
-                  {{ $t("pages.hosting.slots", { n: plan.hosted_slots }) }}
-                  · {{ formatHostedDuration(plan.duration, t) }} ·
-                  {{ formatPrice(plan.price_irr) }}
-                  <span v-if="plan.price_ypoint">
-                    · {{ plan.price_ypoint }} Ypoint
-                  </span>
-                </div>
-              </td>
-              <td class="p-2">
-                <Badge :variant="plan.active ? 'default' : 'secondary'">
-                  {{
-                    plan.active
-                      ? $t("pages.hosting.admin.plan_active")
-                      : $t("pages.hosting.admin.plan_inactive")
-                  }}
-                </Badge>
-              </td>
-              <td class="p-2 text-xs text-muted-foreground">
-                {{
-                  $t("pages.hosting.admin.plan_servers", { n: plan.servers })
-                }}
-              </td>
-              <td class="p-2">
-                <div class="flex flex-wrap justify-end gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    :disabled="busy"
-                    @click="setPlanActive(plan, !plan.active)"
-                  >
-                    {{
-                      plan.active
-                        ? $t("pages.hosting.admin.plan_disable")
-                        : $t("pages.hosting.admin.plan_enable")
-                    }}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    :disabled="busy"
-                    @click="removePlan(plan)"
-                  >
-                    {{ $t("pages.hosting.admin.delete") }}
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <RefreshCw class="me-1.5 h-3.5 w-3.5" />
+        {{ $t("pages.hosting.admin.refresh") }}
+      </Button>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <h3 class="m-0 text-base font-semibold">
-        {{
-          $t("pages.hosting.admin.servers_title", {
-            n: servers.length - deletedCount,
-          })
-        }}
-      </h3>
-      <div class="flex flex-wrap items-center gap-2">
-        <Input
-          v-model="serverQuery"
-          class="h-8 w-48"
-          :placeholder="$t('pages.hosting.admin.search_placeholder')"
-        />
-        <Button
-          v-if="deletedCount"
-          size="sm"
-          variant="ghost"
-          @click="showDeleted = !showDeleted"
-        >
+    <Tabs v-model="tab" class="space-y-4">
+      <TabsList class="grid h-auto w-full grid-cols-3 gap-1 p-1 sm:w-auto sm:inline-grid">
+        <TabsTrigger value="servers" class="gap-1.5">
+          <ServerCog class="h-3.5 w-3.5" />
           {{
-            showDeleted
-              ? $t("pages.hosting.admin.hide_deleted")
-              : $t("pages.hosting.admin.show_deleted", { n: deletedCount })
+            $t("pages.hosting.admin.tab_servers", {
+              n: servers.length - deletedCount,
+            })
           }}
-        </Button>
-      </div>
-    </div>
+        </TabsTrigger>
+        <TabsTrigger value="settings" class="gap-1.5">
+          <Settings2 class="h-3.5 w-3.5" />
+          {{ $t("pages.hosting.admin.tab_settings") }}
+        </TabsTrigger>
+        <TabsTrigger value="plans" class="gap-1.5">
+          <Tags class="h-3.5 w-3.5" />
+          {{ $t("pages.hosting.admin.tab_plans", { n: plans.length }) }}
+        </TabsTrigger>
+      </TabsList>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="text-xs text-muted-foreground">
-          <tr class="border-b border-border">
-            <th class="p-2 text-start">
-              {{ $t("pages.hosting.server_name") }}
-            </th>
-            <th class="p-2 text-start">
-              {{ $t("pages.hosting.admin.owner") }}
-            </th>
-            <th class="p-2 text-start">
-              {{ $t("pages.hosting.admin.status") }}
-            </th>
-            <th class="p-2 text-start">
-              {{ $t("pages.hosting.panel.expires") }}
-            </th>
-            <th class="p-2 text-start">GSLT</th>
-            <th class="p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
+      <TabsContent value="servers" class="mt-0 space-y-3 outline-none">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative min-w-[12rem] flex-1">
+            <Search
+              class="pointer-events-none absolute start-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              v-model="serverQuery"
+              class="h-9 ps-8"
+              :placeholder="$t('pages.hosting.admin.search_placeholder')"
+            />
+          </div>
+          <Button
+            v-if="deletedCount"
+            size="sm"
+            variant="ghost"
+            @click="showDeleted = !showDeleted"
+          >
+            {{
+              showDeleted
+                ? $t("pages.hosting.admin.hide_deleted")
+                : $t("pages.hosting.admin.show_deleted", { n: deletedCount })
+            }}
+          </Button>
+        </div>
+
+        <div
+          v-if="visibleServers.length"
+          class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          <article
             v-for="server in visibleServers"
             :key="server.id"
-            class="border-b border-border/60"
+            class="group flex flex-col gap-3 rounded-xl border border-border/70 bg-card/50 p-3.5 transition-colors hover:border-border hover:bg-card/80"
           >
-            <td class="p-2">
-              <NuxtLink :to="`/hosting/${server.id}`" class="hover:underline">
-                {{ server.label }}
-              </NuxtLink>
-              <div class="text-xs text-muted-foreground">
-                {{ server.slots }} · {{ server.type || "—" }}
-              </div>
-            </td>
-            <td class="p-2">
-              <NuxtLink
-                :to="`/players/${server.owner_steam_id}`"
-                class="hover:underline"
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground"
               >
-                {{ server.owner_name || server.owner_steam_id }}
-              </NuxtLink>
-            </td>
-            <td class="p-2">
+                <ServerCog class="h-5 w-5" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <NuxtLink
+                      :to="`/hosting/${server.id}`"
+                      class="block truncate font-medium hover:underline"
+                    >
+                      {{ server.label }}
+                    </NuxtLink>
+                    <p class="m-0 mt-0.5 truncate text-xs text-muted-foreground">
+                      <NuxtLink
+                        :to="`/players/${server.owner_steam_id}`"
+                        class="hover:underline"
+                      >
+                        {{ server.owner_name || server.owner_steam_id }}
+                      </NuxtLink>
+                      <span v-if="server.type"> · {{ server.type }}</span>
+                    </p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        class="h-8 w-8 shrink-0"
+                        :disabled="busy"
+                      >
+                        <MoreHorizontal class="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-44">
+                      <DropdownMenuItem as-child>
+                        <NuxtLink :to="`/hosting/${server.id}`">
+                          {{ $t("pages.hosting.admin.open_panel") }}
+                        </NuxtLink>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem @click="extend(server)">
+                        {{ $t("pages.hosting.admin.extend") }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        v-if="server.server_id"
+                        @click="setGslt(server)"
+                      >
+                        GSLT
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        v-if="
+                          server.status === 'active' ||
+                          server.status === 'expired'
+                        "
+                        @click="suspend(server, true)"
+                      >
+                        {{ $t("pages.hosting.admin.suspend") }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        v-if="server.status === 'suspended'"
+                        @click="suspend(server, false)"
+                      >
+                        {{ $t("pages.hosting.admin.unsuspend") }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        v-if="
+                          server.status === 'failed' ||
+                          server.status === 'deleted'
+                        "
+                        @click="retry(server)"
+                      >
+                        {{ $t("pages.hosting.admin.retry") }}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        class="text-destructive focus:text-destructive"
+                        @click="remove(server)"
+                      >
+                        {{ $t("pages.hosting.admin.delete") }}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
               <Badge :variant="hostedStatusVariant(server.status)">
                 {{ $t(`pages.hosting.status.${server.status}`) }}
               </Badge>
-              <div
-                v-if="server.status_detail"
-                class="mt-1 max-w-56 text-xs text-muted-foreground"
+              <Badge variant="outline" class="font-normal">
+                {{ $t("pages.hosting.slots", { n: server.slots }) }}
+              </Badge>
+              <Badge
+                v-if="server.server_id"
+                variant="outline"
+                class="font-normal"
               >
-                {{ server.status_detail }}
+                GSLT {{ server.has_gslt ? "✓" : "✗" }}
+              </Badge>
+            </div>
+
+            <div
+              class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2.5 text-[0.7rem] text-muted-foreground"
+            >
+              <span>
+                {{ formatHostedDate(server.expires_at, locale) }}
+              </span>
+              <code v-if="serverAddress(server)" class="font-mono" dir="ltr">
+                {{ serverAddress(server) }}
+              </code>
+            </div>
+            <p
+              v-if="server.status_detail"
+              class="m-0 line-clamp-2 text-xs text-muted-foreground"
+            >
+              {{ server.status_detail }}
+            </p>
+          </article>
+        </div>
+        <p
+          v-else
+          class="m-0 rounded-xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground"
+        >
+          {{ $t("pages.hosting.no_servers") }}
+        </p>
+      </TabsContent>
+
+      <TabsContent value="settings" class="mt-0 outline-none">
+        <div
+          v-if="settings"
+          class="space-y-4 rounded-xl border border-border/70 bg-card/40 p-4"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/40 px-3 py-2.5 text-start text-sm transition-colors hover:bg-muted/30"
+            @click="form.enabled = !form.enabled"
+          >
+            <span>{{ $t("pages.hosting.admin.sales_enabled") }}</span>
+            <Checkbox
+              :model-value="form.enabled"
+              class="pointer-events-none"
+              tabindex="-1"
+            />
+          </button>
+
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.max_active") }}</Label>
+              <Input v-model="form.max_active" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.reserve_match_slots") }}</Label>
+              <Input v-model="form.reserve_match_slots" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.grace_days") }}</Label>
+              <Input v-model="form.grace_days" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.slot_price_toman") }}</Label>
+              <Input v-model="form.slot_price_toman" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.slot_price_ypoint") }}</Label>
+              <Input v-model="form.slot_price_ypoint" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.admin.max_slots") }}</Label>
+              <Input v-model="form.max_slots" type="number" min="2" max="64" />
+            </div>
+          </div>
+          <p class="m-0 text-xs text-muted-foreground">
+            {{ $t("pages.hosting.admin.slot_price_hint") }}
+          </p>
+          <Button size="sm" :disabled="busy" @click="saveSettings">
+            {{ $t("pages.hosting.panel.save") }}
+          </Button>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="plans" class="mt-0 space-y-3 outline-none">
+        <div class="flex items-center justify-between gap-2">
+          <p class="m-0 text-sm text-muted-foreground">
+            {{ $t("pages.hosting.admin.plans") }}
+          </p>
+          <Button size="sm" variant="outline" as-child>
+            <NuxtLink to="/settings/application/store">
+              {{ $t("pages.hosting.admin.plan_add") }}
+            </NuxtLink>
+          </Button>
+        </div>
+        <p
+          v-if="!plans.length"
+          class="m-0 rounded-xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground"
+        >
+          {{ $t("pages.hosting.admin.plans_empty") }}
+        </p>
+        <ul v-else class="m-0 grid list-none gap-2.5 p-0 sm:grid-cols-2">
+          <li
+            v-for="plan in plans"
+            :key="plan.id"
+            class="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/50 p-3.5"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="truncate font-medium">{{ plan.title }}</div>
+                <p class="m-0 mt-0.5 text-xs text-muted-foreground">
+                  {{ $t("pages.hosting.slots", { n: plan.hosted_slots }) }}
+                  · {{ formatHostedDuration(plan.duration, t) }}
+                  · {{ formatPrice(plan.price_irr) }}
+                  <span v-if="plan.price_ypoint">
+                    · {{ plan.price_ypoint }} Ypoint
+                  </span>
+                </p>
               </div>
-            </td>
-            <td class="p-2 text-xs">
-              {{ formatHostedDate(server.expires_at, locale) }}
-            </td>
-            <td class="p-2 text-xs">
-              {{ server.server_id ? (server.has_gslt ? "✓" : "✗") : "—" }}
-            </td>
-            <td class="p-2">
-              <div class="flex flex-wrap justify-end gap-1">
-                <Button
-                  v-if="server.status !== 'deleted'"
-                  size="sm"
-                  as-child
-                >
-                  <NuxtLink :to="`/hosting/${server.id}`">
-                    {{ $t("pages.hosting.admin.open_panel") }}
-                  </NuxtLink>
-                </Button>
+              <Badge :variant="plan.active ? 'default' : 'secondary'">
+                {{
+                  plan.active
+                    ? $t("pages.hosting.admin.plan_active")
+                    : $t("pages.hosting.admin.plan_inactive")
+                }}
+              </Badge>
+            </div>
+            <div
+              class="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2.5"
+            >
+              <span class="text-xs text-muted-foreground">
+                {{ $t("pages.hosting.admin.plan_servers", { n: plan.servers }) }}
+              </span>
+              <div class="flex gap-1.5">
                 <Button
                   size="sm"
                   variant="outline"
                   :disabled="busy"
-                  @click="extend(server)"
+                  @click="setPlanActive(plan, !plan.active)"
                 >
-                  {{ $t("pages.hosting.admin.extend") }}
-                </Button>
-                <Button
-                  v-if="server.server_id"
-                  size="sm"
-                  variant="outline"
-                  :disabled="busy"
-                  @click="setGslt(server)"
-                >
-                  GSLT
-                </Button>
-                <Button
-                  v-if="
-                    server.status === 'active' || server.status === 'expired'
-                  "
-                  size="sm"
-                  variant="outline"
-                  :disabled="busy"
-                  @click="suspend(server, true)"
-                >
-                  {{ $t("pages.hosting.admin.suspend") }}
-                </Button>
-                <Button
-                  v-if="server.status === 'suspended'"
-                  size="sm"
-                  variant="outline"
-                  :disabled="busy"
-                  @click="suspend(server, false)"
-                >
-                  {{ $t("pages.hosting.admin.unsuspend") }}
-                </Button>
-                <Button
-                  v-if="
-                    server.status === 'failed' || server.status === 'deleted'
-                  "
-                  size="sm"
-                  variant="outline"
-                  :disabled="busy"
-                  @click="retry(server)"
-                >
-                  {{ $t("pages.hosting.admin.retry") }}
+                  {{
+                    plan.active
+                      ? $t("pages.hosting.admin.plan_disable")
+                      : $t("pages.hosting.admin.plan_enable")
+                  }}
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   :disabled="busy"
-                  @click="remove(server)"
+                  @click="removePlan(plan)"
                 >
                   {{ $t("pages.hosting.admin.delete") }}
                 </Button>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <p
-        v-if="!visibleServers.length"
-        class="m-0 py-4 text-center text-sm text-muted-foreground"
-      >
-        {{ $t("pages.hosting.no_servers") }}
-      </p>
-    </div>
+            </div>
+          </li>
+        </ul>
+      </TabsContent>
+    </Tabs>
   </section>
 </template>

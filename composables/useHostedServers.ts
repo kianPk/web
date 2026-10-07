@@ -69,7 +69,13 @@ export type HostedServer = {
   map: string | null;
   owner_irr_balance?: number;
   chat_ads?: HostedChatAds;
+  gameplay?: HostedGameplay;
   vip_shop?: HostedVipShop;
+};
+
+export type HostedGameplay = {
+  friendly_fire: boolean;
+  bunny_hop: boolean;
 };
 
 export type HostedChatAds = {
