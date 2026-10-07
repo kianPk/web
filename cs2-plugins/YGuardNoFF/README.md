@@ -8,7 +8,7 @@ Panel-driven gameplay prefs on **Public / Custom dedicated** servers:
 
 Ranked (matchmaking) pods and Practice are left alone.
 
-Prefs are read from `GET /hosted-servers/plugin/state` every ~30s and on map start, so toggles from the hosting panel stick across map changes. FF/bhop also apply instantly over RCON from the API; parachute is plugin-only.
+Prefs are read from `GET /hosted-servers/plugin/state` every ~15s and on map start, so toggles from the hosting panel stick across map changes. FF/bhop also apply instantly over RCON from the API; parachute is applied in-plugin (hold E) and the API nudges `css_yguard_nof_reload` so the flag flips without waiting for the poll.
 
 ## Env
 
