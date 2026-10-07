@@ -5682,10 +5682,14 @@
           "friendly_fire_hint": "آسیب به هم‌تیمی (پیش‌فرض روی سرور پابلیک خاموش است).",
           "bunny_hop": "بانی‌هاپ خودکار",
           "bunny_hop_hint": "نگه‌داشتن جامپ برای اتو-بهوپ (sv_autobunnyhopping).",
+          "parachute": "چتر (نگه‌داشتن E)",
+          "parachute_hint": "توی هوا E را نگه دار تا مثل چتر آروم بیای پایین.",
           "ff_on": "Friendly Fire روشن شد",
           "ff_off": "Friendly Fire خاموش شد",
           "bhop_on": "بانی‌هاپ روشن شد",
-          "bhop_off": "بانی‌هاپ خاموش شد"
+          "bhop_off": "بانی‌هاپ خاموش شد",
+          "parachute_on": "چتر روشن شد",
+          "parachute_off": "چتر خاموش شد"
         },
         "console": "کنسول (RCON)",
         "change_map": "تغییر مپ",

@@ -76,6 +76,7 @@ export type HostedServer = {
 export type HostedGameplay = {
   friendly_fire: boolean;
   bunny_hop: boolean;
+  parachute: boolean;
 };
 
 export type HostedChatAds = {

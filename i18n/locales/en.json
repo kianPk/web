@@ -5682,10 +5682,14 @@
           "friendly_fire_hint": "Teammate damage (default off on public servers).",
           "bunny_hop": "Auto bunny hop",
           "bunny_hop_hint": "Hold jump to auto-bhop (sv_autobunnyhopping).",
+          "parachute": "Parachute (hold E)",
+          "parachute_hint": "In the air, hold E to fall slowly like a parachute.",
           "ff_on": "Friendly fire enabled",
           "ff_off": "Friendly fire disabled",
           "bhop_on": "Bunny hop enabled",
-          "bhop_off": "Bunny hop disabled"
+          "bhop_off": "Bunny hop disabled",
+          "parachute_on": "Parachute enabled",
+          "parachute_off": "Parachute disabled"
         },
         "console": "Console (RCON)",
         "change_map": "Change map",

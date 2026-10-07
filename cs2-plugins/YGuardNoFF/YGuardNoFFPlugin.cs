@@ -4,28 +4,33 @@ using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace YGuardNoFF;
 
 /// <summary>
-/// Applies panel gameplay prefs (friendly fire + bunny hop) on Public/Custom
-/// dedicated servers. Defaults to FF off / bhop off when the panel is unreachable.
+/// Panel gameplay prefs on Public/Custom dedicated servers:
+/// friendly fire, auto bunny hop, and hold-E parachute (slow fall).
 /// Ranked match pods and Practice are left alone.
 /// </summary>
 public class YGuardNoFFPlugin : BasePlugin
 {
     public override string ModuleName => "YGuard No Friendly Fire";
-    public override string ModuleVersion => "1.1.0";
+    public override string ModuleVersion => "1.2.0";
     public override string ModuleAuthor => "YGuard";
     public override string ModuleDescription =>
-        "Panel-driven friendly fire and bunny hop on non-Ranked dedicated servers";
+        "Panel-driven FF, bunny hop, and hold-E parachute on public servers";
+
+    /// <summary>Max downward speed while parachuting (units/s). Soft float.</summary>
+    private const float ParachuteMaxFallSpeed = -140f;
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(6) };
 
     private bool _active;
     private bool _friendlyFire;
     private bool _bunnyHop;
+    private bool _parachute;
     private string? _baseUrl;
     private string? _serverId;
     private string? _password;
@@ -64,6 +69,7 @@ public class YGuardNoFFPlugin : BasePlugin
         {
             _ = SyncAndApplyAsync();
         });
+        RegisterListener<Listeners.OnTick>(OnTick);
         RegisterEventHandler<EventRoundStart>((_, _) =>
         {
             ApplyLocal();
@@ -83,8 +89,51 @@ public class YGuardNoFFPlugin : BasePlugin
 
     public override void Unload(bool hotReload)
     {
+        if (_active)
+        {
+            RemoveListener<Listeners.OnTick>(OnTick);
+        }
         _poll?.Kill();
         _poll = null;
+    }
+
+    private void OnTick()
+    {
+        if (!_active || !_parachute) return;
+
+        foreach (var player in Utilities.GetPlayers())
+        {
+            if (player is null || !player.IsValid || player.IsBot || !player.PawnIsAlive)
+            {
+                continue;
+            }
+
+            // E / +use
+            if ((player.Buttons & PlayerButtons.Use) == 0)
+            {
+                continue;
+            }
+
+            var pawn = player.PlayerPawn.Value;
+            if (pawn is null || !pawn.IsValid)
+            {
+                continue;
+            }
+
+            if ((pawn.Flags & (uint)PlayerFlags.FL_ONGROUND) != 0)
+            {
+                continue;
+            }
+
+            var vel = pawn.AbsVelocity;
+            // Only dampen a real fall; leave upward / float alone.
+            if (vel.Z >= -40f || vel.Z >= ParachuteMaxFallSpeed)
+            {
+                continue;
+            }
+
+            pawn.Teleport(null, null, new Vector(vel.X, vel.Y, ParachuteMaxFallSpeed));
+        }
     }
 
     private async Task SyncAndApplyAsync()
@@ -96,6 +145,7 @@ public class YGuardNoFFPlugin : BasePlugin
             {
                 _friendlyFire = prefs.FriendlyFire;
                 _bunnyHop = prefs.BunnyHop;
+                _parachute = prefs.Parachute;
             }
         }
         catch (Exception ex)
@@ -165,5 +215,8 @@ public class YGuardNoFFPlugin : BasePlugin
 
         [JsonPropertyName("bunny_hop")]
         public bool BunnyHop { get; set; }
+
+        [JsonPropertyName("parachute")]
+        public bool Parachute { get; set; }
     }
 }
