@@ -226,6 +226,10 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             labelKey: "pages.settings.application.servers.title",
           },
           {
+            path: "/settings/application/hosted-servers",
+            labelKey: "pages.hosting.admin.settings_nav",
+          },
+          {
             path: "/settings/application/game-modes",
             labelKey: "pages.settings.application.game_modes.title",
           },

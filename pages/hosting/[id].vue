@@ -99,13 +99,19 @@ const renewTerms = ref(false);
 const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 const isActive = computed(() => server.value?.status === "active");
+const isActualOwner = computed(
+  () =>
+    !!server.value &&
+    String(server.value.owner_steam_id) === String(auth.me?.steam_id || ""),
+);
 const isServerOwner = computed(() => {
   if (!server.value) return false;
   if (isAdmin.value) return true;
-  return (
-    String(server.value.owner_steam_id) === String(auth.me?.steam_id || "")
-  );
+  return isActualOwner.value;
 });
+const managingAsSiteAdmin = computed(
+  () => isAdmin.value && !!server.value && !isActualOwner.value,
+);
 const connectCommand = computed(() =>
   server.value ? hostedConnectCommand(server.value) : null,
 );
@@ -437,6 +443,16 @@ onUnmounted(() => window.clearInterval(poll));
       </p>
 
       <div v-else class="grid gap-4 lg:grid-cols-2">
+        <div
+          v-if="managingAsSiteAdmin"
+          class="rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-4 py-3 text-sm lg:col-span-2"
+        >
+          {{
+            $t("pages.hosting.admin.managing_as_admin", {
+              name: server.owner_name || server.owner_steam_id,
+            })
+          }}
+        </div>
         <section
           class="space-y-4 rounded-lg border border-border bg-card/40 p-4"
         >

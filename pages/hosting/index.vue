@@ -268,9 +268,21 @@ onMounted(() => {
         </div>
 
         <section v-if="signedIn" class="space-y-3">
-          <h2 class="m-0 text-lg font-semibold">
-            {{ $t("pages.hosting.my_servers") }}
-          </h2>
+          <div class="space-y-1">
+            <h2 class="m-0 text-lg font-semibold">
+              {{
+                isAdmin
+                  ? $t("pages.hosting.admin.all_servers_title")
+                  : $t("pages.hosting.my_servers")
+              }}
+            </h2>
+            <p
+              v-if="isAdmin"
+              class="m-0 text-xs text-muted-foreground"
+            >
+              {{ $t("pages.hosting.admin.all_servers_hint") }}
+            </p>
+          </div>
           <p v-if="!myServers.length" class="m-0 text-sm text-muted-foreground">
             {{ $t("pages.hosting.no_servers") }}
           </p>
@@ -295,10 +307,22 @@ onMounted(() => {
                     "
                     variant="outline"
                   >
-                    {{ $t("pages.hosting.admins.manager_badge") }}
+                    {{
+                      isAdmin
+                        ? $t("pages.hosting.admin.site_admin_badge")
+                        : $t("pages.hosting.admins.manager_badge")
+                    }}
                   </Badge>
                 </div>
                 <p class="m-0 mt-1 text-xs text-muted-foreground">
+                  <span v-if="isAdmin" class="me-1">
+                    {{
+                      $t("pages.hosting.admin.owned_by", {
+                        name: server.owner_name || server.owner_steam_id,
+                      })
+                    }}
+                    ·
+                  </span>
                   {{
                     $t("pages.hosting.expires_at", {
                       date: formatHostedDate(server.expires_at, locale),

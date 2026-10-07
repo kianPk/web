@@ -27,14 +27,32 @@ const { t, locale } = useI18n();
 const plans = ref<HostedAdminPlan[]>([]);
 const servers = ref<HostedServer[]>([]);
 const showDeleted = ref(false);
+const serverQuery = ref("");
 const deletedCount = computed(
   () => servers.value.filter((s) => s.status === "deleted").length,
 );
-const visibleServers = computed(() =>
-  showDeleted.value
+const visibleServers = computed(() => {
+  const base = showDeleted.value
     ? servers.value
-    : servers.value.filter((s) => s.status !== "deleted"),
-);
+    : servers.value.filter((s) => s.status !== "deleted");
+  const q = serverQuery.value.trim().toLowerCase();
+  if (!q) return base;
+  return base.filter((s) => {
+    const hay = [
+      s.label,
+      s.owner_name,
+      s.owner_steam_id,
+      s.type,
+      s.host,
+      s.status,
+      s.status_detail,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hay.includes(q);
+  });
+});
 const settings = ref<HostedAdminSettings | null>(null);
 const form = ref({
   enabled: true,
@@ -325,18 +343,25 @@ onMounted(() => {
           })
         }}
       </h3>
-      <Button
-        v-if="deletedCount"
-        size="sm"
-        variant="ghost"
-        @click="showDeleted = !showDeleted"
-      >
-        {{
-          showDeleted
-            ? $t("pages.hosting.admin.hide_deleted")
-            : $t("pages.hosting.admin.show_deleted", { n: deletedCount })
-        }}
-      </Button>
+      <div class="flex flex-wrap items-center gap-2">
+        <Input
+          v-model="serverQuery"
+          class="h-8 w-48"
+          :placeholder="$t('pages.hosting.admin.search_placeholder')"
+        />
+        <Button
+          v-if="deletedCount"
+          size="sm"
+          variant="ghost"
+          @click="showDeleted = !showDeleted"
+        >
+          {{
+            showDeleted
+              ? $t("pages.hosting.admin.hide_deleted")
+              : $t("pages.hosting.admin.show_deleted", { n: deletedCount })
+          }}
+        </Button>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
@@ -400,6 +425,15 @@ onMounted(() => {
             </td>
             <td class="p-2">
               <div class="flex flex-wrap justify-end gap-1">
+                <Button
+                  v-if="server.status !== 'deleted'"
+                  size="sm"
+                  as-child
+                >
+                  <NuxtLink :to="`/hosting/${server.id}`">
+                    {{ $t("pages.hosting.admin.open_panel") }}
+                  </NuxtLink>
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
