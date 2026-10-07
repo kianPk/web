@@ -105,6 +105,9 @@ const canManageDedicated = computed(() =>
 const serverId = computed(() => String(route.params.id || ""));
 
 const details = ref<ServerDetails | null>(null);
+const canManageVip = computed(
+  () => isAdmin.value || !!details.value?.can_manage,
+);
 const detailsLoading = ref(true);
 const detailsSettings = ref<DetailSettings>({
   show_vips: true,
@@ -704,7 +707,7 @@ async function buyVip() {
                         </div>
                       </div>
                       <Button
-                        v-if="isAdmin"
+                        v-if="canManageVip"
                         size="icon"
                         variant="ghost"
                         class="h-8 w-8 shrink-0 opacity-70 group-hover:opacity-100"
@@ -723,7 +726,7 @@ async function buyVip() {
                   </p>
 
                   <div
-                    v-if="isAdmin"
+                    v-if="canManageVip"
                     class="mt-5 space-y-3 rounded-xl border border-border/70 bg-muted/20 p-4"
                   >
                     <p

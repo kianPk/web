@@ -5718,6 +5718,32 @@
       },
       "ypoint_paid": "Paid with Ypoints, your server is being created",
       "ypoint_renewed": "Renewed with Ypoints",
+      "vip_manage": {
+        "title": "Manage VIP",
+        "description": "Add, extend, or remove VIP on your public server. Adding time to an existing VIP extends it. The server must be online (RCON).",
+        "placeholder": "SteamID64 or profile link",
+        "add": "Add VIP",
+        "added": "VIP granted",
+        "added_unlisted": "VIP granted on the server. This player has never signed in to the site, so they are not shown in the list.",
+        "remove": "Remove VIP",
+        "remove_confirm": "Remove this player's VIP on this server?",
+        "removed": "VIP removed",
+        "sync": "Sync from server",
+        "synced": "Synced: {imported} on the server, {removed} removed from the list, {unregistered} not signed up on the site",
+        "hint": "Changes go to the server over RCON. Use Sync if you granted VIP from the game console.",
+        "none": "No active VIP members yet",
+        "permanent": "Permanent",
+        "remaining_days": "{days}d {hours}h",
+        "remaining_hours": "{hours}h {mins}m",
+        "remaining_mins": "{mins}m",
+        "durations": {
+          "1d": "1 day",
+          "7d": "7 days",
+          "30d": "30 days",
+          "90d": "90 days",
+          "perm": "Permanent"
+        }
+      },
       "vip_shop": {
         "title": "Sell VIP",
         "description": "Set Toman prices for VIP on your server. Players pay with Bale from the public server page and the money is credited to your site Toman wallet.",

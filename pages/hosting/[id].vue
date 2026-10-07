@@ -17,6 +17,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import HostedAdminsPanel from "~/components/hosting/HostedAdminsPanel.vue";
 import HostedChatAdsPanel from "~/components/hosting/HostedChatAdsPanel.vue";
+import HostedVipManagePanel from "~/components/hosting/HostedVipManagePanel.vue";
 import HostedVipShopPanel from "~/components/hosting/HostedVipShopPanel.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
@@ -633,6 +634,11 @@ onUnmounted(() => window.clearInterval(poll));
           :hosted-id="hostedId"
           :ads="server.chat_ads"
           @updated="(next) => (server = next)"
+        />
+
+        <HostedVipManagePanel
+          v-if="isActive && isServerOwner"
+          :hosted-id="hostedId"
         />
 
         <HostedVipShopPanel
