@@ -11,18 +11,17 @@ namespace YGuardNoFF;
 /// <summary>
 /// Panel gameplay prefs on Public/Custom dedicated servers:
 /// friendly fire, auto bunny hop, and hold-E parachute (slow fall).
-/// Parachute physics follow Franc1sco/CS2-Parachute (GravityScale + fall clamp).
-/// Ranked match pods and Practice are left alone.
+/// Parachute: Franc1sco/le1t style — pawn.GravityScale + AbsVelocity clamp.
+/// Only Ranked match pods are fully idle.
 /// </summary>
 public class YGuardNoFFPlugin : BasePlugin
 {
     public override string ModuleName => "YGuard No Friendly Fire";
-    public override string ModuleVersion => "1.2.3";
+    public override string ModuleVersion => "1.2.4";
     public override string ModuleAuthor => "YGuard";
     public override string ModuleDescription =>
         "Panel-driven FF, bunny hop, and hold-E parachute on public servers";
 
-    // Franc1sco defaults: FallSpeed 100, Linear true, DecreaseVec 50.
     private const float FallSpeed = 100f;
     private const float DecreaseVec = 50f;
     private const bool Linear = true;
@@ -38,16 +37,46 @@ public class YGuardNoFFPlugin : BasePlugin
     private string? _password;
     private CounterStrikeSharp.API.Modules.Timers.Timer? _poll;
 
-    // Same bookkeeping as Franc1sco CS2-Parachute (keyed by player.Index).
     private readonly Dictionary<int, bool> _usingPara = new();
     private readonly Dictionary<int, int> _paraTicks = new();
 
     public override void Load(bool hotReload)
     {
         var serverType = (Environment.GetEnvironmentVariable("SERVER_TYPE") ?? "").Trim();
-        _active =
-            !string.Equals(serverType, "Ranked", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(serverType, "Practice", StringComparison.OrdinalIgnoreCase);
+        // Only Ranked match pods stay fully idle. Hosted Competitive/Casual/Practice
+        // must run so panel gameplay (incl. parachute) works.
+        _active = !string.Equals(serverType, "Ranked", StringComparison.OrdinalIgnoreCase);
+
+        // Always register the debug command so RCON can prove the DLL is loaded
+        // even if we later decide the pod type should idle.
+        AddCommand(
+            "css_yguard_parachute",
+            "Force parachute on/off or print status",
+            OnParachuteCommand);
+        AddCommand(
+            "css_yguard_nof_reload",
+            "Reload YGuardNoFF gameplay prefs from the panel",
+            (_, _) =>
+            {
+                if (!_active)
+                {
+                    Logger.LogWarning("YGuardNoFF idle — reload ignored");
+                    return;
+                }
+                _ = SyncAndApplyAsync();
+            });
+        AddCommand(
+            "css_yguard_nof_status",
+            "Print YGuardNoFF status",
+            (player, info) =>
+            {
+                var msg =
+                    $"[YGuardNoFF] v{ModuleVersion} active={_active} type={serverType} " +
+                    $"para={_parachute} ff={_friendlyFire} bhop={_bunnyHop}";
+                Logger.LogInformation("{Msg}", msg);
+                info.ReplyToCommand(msg);
+                player?.PrintToChat(msg);
+            });
 
         if (!_active)
         {
@@ -68,14 +97,15 @@ public class YGuardNoFFPlugin : BasePlugin
         _password = Environment.GetEnvironmentVariable("SERVER_API_PASSWORD");
 
         Logger.LogInformation(
-            "YGuardNoFF active — syncing gameplay prefs (SERVER_TYPE={Type})",
-            serverType);
+            "YGuardNoFF {Version} active (SERVER_TYPE={Type})",
+            ModuleVersion,
+            string.IsNullOrEmpty(serverType) ? "(unset)" : serverType);
 
         if (hotReload)
         {
-            foreach (var player in Utilities.GetPlayers())
+            foreach (var p in Utilities.GetPlayers())
             {
-                EnsureParaState(player);
+                EnsureParaState(p);
             }
         }
 
@@ -84,7 +114,6 @@ public class YGuardNoFFPlugin : BasePlugin
             StopAllParachutes();
             _ = SyncAndApplyAsync();
         });
-
         RegisterListener<Listeners.OnTick>(OnTick);
 
         RegisterEventHandler<EventRoundStart>((_, _) =>
@@ -129,43 +158,6 @@ public class YGuardNoFFPlugin : BasePlugin
             return HookResult.Continue;
         });
 
-        AddCommand(
-            "css_yguard_nof_reload",
-            "Reload YGuardNoFF gameplay prefs from the panel",
-            (_, _) => { _ = SyncAndApplyAsync(); });
-
-        // Manual override / debug: css_yguard_parachute 1|0
-        AddCommand(
-            "css_yguard_parachute",
-            "Force parachute on/off (overrides until next panel sync)",
-            (player, info) =>
-            {
-                var arg = info.ArgByIndex(1);
-                if (string.Equals(arg, "1", StringComparison.Ordinal)
-                    || string.Equals(arg, "on", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(arg, "true", StringComparison.OrdinalIgnoreCase))
-                {
-                    _parachute = true;
-                    Logger.LogInformation("YGuardNoFF parachute forced ON");
-                }
-                else if (string.Equals(arg, "0", StringComparison.Ordinal)
-                    || string.Equals(arg, "off", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(arg, "false", StringComparison.OrdinalIgnoreCase))
-                {
-                    _parachute = false;
-                    Server.NextFrame(StopAllParachutes);
-                    Logger.LogInformation("YGuardNoFF parachute forced OFF");
-                }
-                else
-                {
-                    Logger.LogInformation(
-                        "YGuardNoFF parachute={Parachute} ff={Ff} bhop={Bhop}",
-                        _parachute,
-                        _friendlyFire,
-                        _bunnyHop);
-                }
-            });
-
         _poll = AddTimer(15f, () => { _ = SyncAndApplyAsync(); },
             CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
 
@@ -183,6 +175,39 @@ public class YGuardNoFFPlugin : BasePlugin
         _poll = null;
     }
 
+    private void OnParachuteCommand(CCSPlayerController? player, CounterStrikeSharp.API.Modules.Commands.CommandInfo info)
+    {
+        var arg = info.ArgByIndex(1);
+        if (string.Equals(arg, "1", StringComparison.Ordinal)
+            || string.Equals(arg, "on", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(arg, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            _parachute = true;
+            var msg = $"[YGuardNoFF] parachute FORCED ON (active={_active} v{ModuleVersion})";
+            Logger.LogInformation("{Msg}", msg);
+            info.ReplyToCommand(msg);
+            Server.PrintToChatAll($" \x10{msg}");
+            return;
+        }
+
+        if (string.Equals(arg, "0", StringComparison.Ordinal)
+            || string.Equals(arg, "off", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(arg, "false", StringComparison.OrdinalIgnoreCase))
+        {
+            _parachute = false;
+            Server.NextFrame(StopAllParachutes);
+            var msg = $"[YGuardNoFF] parachute FORCED OFF (v{ModuleVersion})";
+            Logger.LogInformation("{Msg}", msg);
+            info.ReplyToCommand(msg);
+            return;
+        }
+
+        var status =
+            $"[YGuardNoFF] v{ModuleVersion} active={_active} para={_parachute} ff={_friendlyFire} bhop={_bunnyHop}";
+        info.ReplyToCommand(status);
+        Logger.LogInformation("{Msg}", status);
+    }
+
     private void EnsureParaState(CCSPlayerController? player)
     {
         if (player is null || !player.IsValid || player.IsBot)
@@ -197,7 +222,7 @@ public class YGuardNoFFPlugin : BasePlugin
 
     private void OnTick()
     {
-        if (!_active)
+        if (!_active || !_parachute)
         {
             return;
         }
@@ -217,13 +242,9 @@ public class YGuardNoFFPlugin : BasePlugin
                 continue;
             }
 
-            // Franc1sco: hold Use (E) while airborne.
-            var holdingUse = (player.Buttons & PlayerButtons.Use) != 0;
-            var airborne = !pawn.OnGroundLastTick;
-
-            if (_parachute && holdingUse && airborne)
+            if (IsHoldingUse(player, pawn) && IsAirborne(pawn))
             {
-                StartPara(player);
+                StartPara(player, pawn);
             }
             else if (_usingPara.TryGetValue(index, out var usingPara) && usingPara)
             {
@@ -233,40 +254,74 @@ public class YGuardNoFFPlugin : BasePlugin
         }
     }
 
-    /// <summary>
-    /// Port of Franc1sco CS2-Parachute StartPara (model spawning omitted).
-    /// </summary>
-    private void StartPara(CCSPlayerController player)
+    private static bool IsHoldingUse(CCSPlayerController player, CCSPlayerPawn pawn)
+    {
+        if ((player.Buttons & PlayerButtons.Use) != 0)
+        {
+            return true;
+        }
+
+        // Fallback: some builds expose the live button state on MovementServices.
+        try
+        {
+            var services = pawn.MovementServices;
+            if (services is null)
+            {
+                return false;
+            }
+
+            var state = services.Buttons.ButtonStates[0];
+            return (state & (ulong)PlayerButtons.Use) != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsAirborne(CCSPlayerPawn pawn)
+    {
+        if (!pawn.OnGroundLastTick)
+        {
+            return true;
+        }
+
+        // Fallback ground checks — OnGroundLastTick has been flaky on some builds.
+        if ((pawn.Flags & (uint)PlayerFlags.FL_ONGROUND) == 0)
+        {
+            return true;
+        }
+
+        try
+        {
+            return !pawn.GroundEntity.IsValid;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void StartPara(CCSPlayerController player, CCSPlayerPawn pawn)
     {
         var index = (int)player.Index;
         if (!_usingPara.TryGetValue(index, out var usingPara) || !usingPara)
         {
             _usingPara[index] = true;
-            // Franc1sco sets GravityScale on the controller.
+            // le1t / working CS2 builds: GravityScale on the PAWN.
+            pawn.GravityScale = 0.1f;
             player.GravityScale = 0.1f;
-            var pawnBody = player.PlayerPawn.Value;
-            if (pawnBody is not null && pawnBody.IsValid)
-            {
-                pawnBody.GravityScale = 0.1f;
-            }
+            player.PrintToChat(" \x04[YGuard] Parachute");
         }
 
         var fallspeed = FallSpeed * -1.0f;
-        var pawn = player.PlayerPawn.Value;
-        if (pawn is null || !pawn.IsValid)
-        {
-            return;
-        }
-
         var velocity = pawn.AbsVelocity;
-        var isFallSpeed = velocity.Z >= fallspeed;
-
         if (velocity.Z >= 0.0f)
         {
             return;
         }
 
-        // Franc1sco: (isFallSpeed && Linear) || DecreaseVec == 0
+        var isFallSpeed = velocity.Z >= fallspeed;
         if ((isFallSpeed && Linear) || DecreaseVec == 0.0f)
         {
             velocity.Z = fallspeed;
@@ -276,16 +331,20 @@ public class YGuardNoFFPlugin : BasePlugin
             velocity.Z += DecreaseVec;
         }
 
-        var position = pawn.AbsOrigin;
-        var angle = pawn.AbsRotation;
-        if (position is null || angle is null)
+        // Apply velocity every tick (le1t always teleports; pawn is the physical body).
+        var origin = pawn.AbsOrigin;
+        var angles = pawn.AbsRotation;
+        var applied = new Vector(velocity.X, velocity.Y, velocity.Z);
+        if (origin is not null && angles is not null)
         {
-            return;
+            pawn.Teleport(origin, angles, applied);
+        }
+        else
+        {
+            pawn.Teleport(null, null, applied);
         }
 
-        // Pawn teleport every tick (controller.Teleport is obsolete / non-physical).
-        pawn.Teleport(position, angle, velocity);
-        _paraTicks[index] = 0;
+        _paraTicks[index] = (_paraTicks.TryGetValue(index, out var ticks) ? ticks : 0) + 1;
     }
 
     private void StopPara(CCSPlayerController player)
@@ -302,8 +361,7 @@ public class YGuardNoFFPlugin : BasePlugin
             pawn.GravityScale = 1.0f;
         }
 
-        var index = (int)player.Index;
-        _paraTicks[index] = 0;
+        _paraTicks[(int)player.Index] = 0;
     }
 
     private void StopAllParachutes()
@@ -363,8 +421,6 @@ public class YGuardNoFFPlugin : BasePlugin
             || string.IsNullOrWhiteSpace(_serverId)
             || string.IsNullOrWhiteSpace(_password))
         {
-            Logger.LogWarning(
-                "YGuardNoFF missing API env (API_DOMAIN/SERVER_ID/SERVER_API_PASSWORD)");
             return null;
         }
 
