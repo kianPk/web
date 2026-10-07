@@ -611,7 +611,7 @@ const dockButtonClass =
 const communityLinkClass =
   "grid size-8 place-items-center rounded-md text-zinc-500 transition-colors hover:bg-white/[0.06] hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]";
 
-const telegramUrl = "https://t.me/yguard_ir";
+const telegramUrl = "https://t.me/Yguardir";
 
 // Mobile: swipe right to close
 const swipeStartX = ref(0);

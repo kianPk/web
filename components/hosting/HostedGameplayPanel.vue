@@ -85,9 +85,12 @@ async function setFlag(key: FlagKey, value: boolean) {
 </script>
 
 <template>
-  <section class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5">
+  <section class="hosted-card space-y-5 p-5 sm:p-6">
     <div class="space-y-1">
-      <h2 class="m-0 text-base font-semibold tracking-tight">
+      <h2
+        class="m-0 inline-flex items-center gap-2 text-base font-semibold tracking-tight"
+      >
+        <span class="h-[2px] w-2.5 bg-[hsl(var(--tac-amber))]" />
         {{ $t("pages.hosting.panel.gameplay.title") }}
       </h2>
       <p class="m-0 text-xs text-muted-foreground">
@@ -95,12 +98,26 @@ async function setFlag(key: FlagKey, value: boolean) {
       </p>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-2.5">
       <div
-        class="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5"
+        class="flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3 transition-colors"
+        :class="
+          friendlyFire
+            ? 'border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)]'
+            : 'border-white/[0.07] bg-black/20'
+        "
       >
-        <div class="flex min-w-0 items-center gap-2.5">
-          <Crosshair class="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border"
+            :class="
+              friendlyFire
+                ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))]'
+                : 'border-white/10 bg-white/[0.03] text-muted-foreground'
+            "
+          >
+            <Crosshair class="h-4 w-4" />
+          </span>
           <div class="min-w-0">
             <Label class="text-sm font-medium">
               {{ $t("pages.hosting.panel.gameplay.friendly_fire") }}
@@ -118,10 +135,24 @@ async function setFlag(key: FlagKey, value: boolean) {
       </div>
 
       <div
-        class="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5"
+        class="flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3 transition-colors"
+        :class="
+          bunnyHop
+            ? 'border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)]'
+            : 'border-white/[0.07] bg-black/20'
+        "
       >
-        <div class="flex min-w-0 items-center gap-2.5">
-          <Footprints class="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border"
+            :class="
+              bunnyHop
+                ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))]'
+                : 'border-white/10 bg-white/[0.03] text-muted-foreground'
+            "
+          >
+            <Footprints class="h-4 w-4" />
+          </span>
           <div class="min-w-0">
             <Label class="text-sm font-medium">
               {{ $t("pages.hosting.panel.gameplay.bunny_hop") }}
@@ -139,10 +170,24 @@ async function setFlag(key: FlagKey, value: boolean) {
       </div>
 
       <div
-        class="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/30 px-3 py-2.5"
+        class="flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3 transition-colors"
+        :class="
+          parachute
+            ? 'border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)]'
+            : 'border-white/[0.07] bg-black/20'
+        "
       >
-        <div class="flex min-w-0 items-center gap-2.5">
-          <Umbrella class="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border"
+            :class="
+              parachute
+                ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))]'
+                : 'border-white/10 bg-white/[0.03] text-muted-foreground'
+            "
+          >
+            <Umbrella class="h-4 w-4" />
+          </span>
           <div class="min-w-0">
             <Label class="text-sm font-medium">
               {{ $t("pages.hosting.panel.gameplay.parachute") }}

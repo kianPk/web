@@ -146,7 +146,7 @@ onMounted(load);
 
 <template>
   <section
-    class="space-y-4 rounded-xl border border-border/70 bg-card/50 p-5"
+    class="hosted-card space-y-5 p-5 sm:p-6"
   >
     <div class="space-y-1">
       <h2 class="m-0 flex items-center gap-2 text-base font-semibold">
