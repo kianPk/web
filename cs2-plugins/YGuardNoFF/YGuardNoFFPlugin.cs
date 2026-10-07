@@ -1,10 +1,8 @@
-using System.Collections.Concurrent;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -13,18 +11,21 @@ namespace YGuardNoFF;
 /// <summary>
 /// Panel gameplay prefs on Public/Custom dedicated servers:
 /// friendly fire, auto bunny hop, and hold-E parachute (slow fall).
+/// Parachute physics follow Franc1sco/CS2-Parachute (GravityScale + fall clamp).
 /// Ranked match pods and Practice are left alone.
 /// </summary>
 public class YGuardNoFFPlugin : BasePlugin
 {
     public override string ModuleName => "YGuard No Friendly Fire";
-    public override string ModuleVersion => "1.2.2";
+    public override string ModuleVersion => "1.2.3";
     public override string ModuleAuthor => "YGuard";
     public override string ModuleDescription =>
         "Panel-driven FF, bunny hop, and hold-E parachute on public servers";
 
-    /// <summary>Target downward speed while parachuting (units/s).</summary>
-    private const float ParachuteFallSpeed = -100f;
+    // Franc1sco defaults: FallSpeed 100, Linear true, DecreaseVec 50.
+    private const float FallSpeed = 100f;
+    private const float DecreaseVec = 50f;
+    private const bool Linear = true;
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(6) };
 
@@ -37,8 +38,9 @@ public class YGuardNoFFPlugin : BasePlugin
     private string? _password;
     private CounterStrikeSharp.API.Modules.Timers.Timer? _poll;
 
-    /// <summary>Slot indexes currently under reduced gravity for parachute.</summary>
-    private readonly ConcurrentDictionary<int, bool> _paraActive = new();
+    // Same bookkeeping as Franc1sco CS2-Parachute (keyed by player.Index).
+    private readonly Dictionary<int, bool> _usingPara = new();
+    private readonly Dictionary<int, int> _paraTicks = new();
 
     public override void Load(bool hotReload)
     {
@@ -69,12 +71,22 @@ public class YGuardNoFFPlugin : BasePlugin
             "YGuardNoFF active — syncing gameplay prefs (SERVER_TYPE={Type})",
             serverType);
 
-        RegisterListener<Listeners.OnMapStart>(_map =>
+        if (hotReload)
         {
-            ClearParachuteGravity();
+            foreach (var player in Utilities.GetPlayers())
+            {
+                EnsureParaState(player);
+            }
+        }
+
+        RegisterListener<Listeners.OnMapStart>(mapName =>
+        {
+            StopAllParachutes();
             _ = SyncAndApplyAsync();
         });
+
         RegisterListener<Listeners.OnTick>(OnTick);
+
         RegisterEventHandler<EventRoundStart>((_, _) =>
         {
             ApplyLocal();
@@ -85,30 +97,74 @@ public class YGuardNoFFPlugin : BasePlugin
             ApplyLocal();
             return HookResult.Continue;
         });
-        RegisterEventHandler<EventPlayerDeath>((@event, _) =>
+        RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
         {
-            var player = @event.Userid;
-            if (player is not null && player.IsValid)
-            {
-                StopParachute(player);
-            }
+            EnsureParaState(@event.Userid);
             return HookResult.Continue;
         });
         RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
         {
             var player = @event.Userid;
-            if (player is not null && player.IsValid)
+            if (player is null || !player.IsValid)
             {
-                _paraActive.TryRemove(player.Slot, out var _removed);
+                return HookResult.Continue;
+            }
+
+            var index = (int)player.Index;
+            _usingPara.Remove(index);
+            _paraTicks.Remove(index);
+            return HookResult.Continue;
+        });
+        RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+        {
+            var player = @event.Userid;
+            if (player is not null
+                && player.IsValid
+                && _usingPara.TryGetValue((int)player.Index, out var usingPara)
+                && usingPara)
+            {
+                _usingPara[(int)player.Index] = false;
+                StopPara(player);
             }
             return HookResult.Continue;
         });
 
-        // Instant panel apply (same pattern as css_yadmin_reload).
         AddCommand(
             "css_yguard_nof_reload",
             "Reload YGuardNoFF gameplay prefs from the panel",
-            (player, info) => { _ = SyncAndApplyAsync(); });
+            (_, _) => { _ = SyncAndApplyAsync(); });
+
+        // Manual override / debug: css_yguard_parachute 1|0
+        AddCommand(
+            "css_yguard_parachute",
+            "Force parachute on/off (overrides until next panel sync)",
+            (player, info) =>
+            {
+                var arg = info.ArgByIndex(1);
+                if (string.Equals(arg, "1", StringComparison.Ordinal)
+                    || string.Equals(arg, "on", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(arg, "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    _parachute = true;
+                    Logger.LogInformation("YGuardNoFF parachute forced ON");
+                }
+                else if (string.Equals(arg, "0", StringComparison.Ordinal)
+                    || string.Equals(arg, "off", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(arg, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    _parachute = false;
+                    Server.NextFrame(StopAllParachutes);
+                    Logger.LogInformation("YGuardNoFF parachute forced OFF");
+                }
+                else
+                {
+                    Logger.LogInformation(
+                        "YGuardNoFF parachute={Parachute} ff={Ff} bhop={Bhop}",
+                        _parachute,
+                        _friendlyFire,
+                        _bunnyHop);
+                }
+            });
 
         _poll = AddTimer(15f, () => { _ = SyncAndApplyAsync(); },
             CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
@@ -121,15 +177,30 @@ public class YGuardNoFFPlugin : BasePlugin
         if (_active)
         {
             RemoveListener<Listeners.OnTick>(OnTick);
-            ClearParachuteGravity();
+            StopAllParachutes();
         }
         _poll?.Kill();
         _poll = null;
     }
 
+    private void EnsureParaState(CCSPlayerController? player)
+    {
+        if (player is null || !player.IsValid || player.IsBot)
+        {
+            return;
+        }
+
+        var index = (int)player.Index;
+        _usingPara.TryAdd(index, false);
+        _paraTicks.TryAdd(index, 0);
+    }
+
     private void OnTick()
     {
-        if (!_active) return;
+        if (!_active)
+        {
+            return;
+        }
 
         foreach (var player in Utilities.GetPlayers())
         {
@@ -138,63 +209,87 @@ public class YGuardNoFFPlugin : BasePlugin
                 continue;
             }
 
+            EnsureParaState(player);
+            var index = (int)player.Index;
             var pawn = player.PlayerPawn.Value;
             if (pawn is null || !pawn.IsValid)
             {
                 continue;
             }
 
+            // Franc1sco: hold Use (E) while airborne.
             var holdingUse = (player.Buttons & PlayerButtons.Use) != 0;
             var airborne = !pawn.OnGroundLastTick;
 
             if (_parachute && holdingUse && airborne)
             {
-                StartParachute(player, pawn);
+                StartPara(player);
             }
-            else if (_paraActive.ContainsKey(player.Slot))
+            else if (_usingPara.TryGetValue(index, out var usingPara) && usingPara)
             {
-                StopParachute(player);
+                _usingPara[index] = false;
+                StopPara(player);
             }
         }
     }
 
-    private void StartParachute(CCSPlayerController player, CCSPlayerPawn pawn)
+    /// <summary>
+    /// Port of Franc1sco CS2-Parachute StartPara (model spawning omitted).
+    /// </summary>
+    private void StartPara(CCSPlayerController player)
     {
-        if (!_paraActive.ContainsKey(player.Slot))
+        var index = (int)player.Index;
+        if (!_usingPara.TryGetValue(index, out var usingPara) || !usingPara)
         {
-            _paraActive[player.Slot] = true;
-            // GravityScale lives on the pawn (physical body), not the controller.
-            pawn.GravityScale = 0.1f;
+            _usingPara[index] = true;
+            // Franc1sco sets GravityScale on the controller.
             player.GravityScale = 0.1f;
+            var pawnBody = player.PlayerPawn.Value;
+            if (pawnBody is not null && pawnBody.IsValid)
+            {
+                pawnBody.GravityScale = 0.1f;
+            }
         }
 
-        var vel = pawn.AbsVelocity;
-        if (vel.Z >= 0f)
+        var fallspeed = FallSpeed * -1.0f;
+        var pawn = player.PlayerPawn.Value;
+        if (pawn is null || !pawn.IsValid)
         {
             return;
         }
 
-        // Clamp fall speed (same approach as Franc1sco CS2-Parachute).
-        if (vel.Z < ParachuteFallSpeed)
+        var velocity = pawn.AbsVelocity;
+        var isFallSpeed = velocity.Z >= fallspeed;
+
+        if (velocity.Z >= 0.0f)
         {
-            vel.Z = ParachuteFallSpeed;
+            return;
         }
 
-        var origin = pawn.AbsOrigin;
-        var angles = pawn.AbsRotation;
-        if (origin is not null && angles is not null)
+        // Franc1sco: (isFallSpeed && Linear) || DecreaseVec == 0
+        if ((isFallSpeed && Linear) || DecreaseVec == 0.0f)
         {
-            pawn.Teleport(origin, angles, vel);
+            velocity.Z = fallspeed;
         }
+        else
+        {
+            velocity.Z += DecreaseVec;
+        }
+
+        var position = pawn.AbsOrigin;
+        var angle = pawn.AbsRotation;
+        if (position is null || angle is null)
+        {
+            return;
+        }
+
+        // Pawn teleport every tick (controller.Teleport is obsolete / non-physical).
+        pawn.Teleport(position, angle, velocity);
+        _paraTicks[index] = 0;
     }
 
-    private void StopParachute(CCSPlayerController player)
+    private void StopPara(CCSPlayerController player)
     {
-        if (!_paraActive.TryRemove(player.Slot, out _))
-        {
-            return;
-        }
-
         if (!player.IsValid)
         {
             return;
@@ -206,19 +301,27 @@ public class YGuardNoFFPlugin : BasePlugin
         {
             pawn.GravityScale = 1.0f;
         }
+
+        var index = (int)player.Index;
+        _paraTicks[index] = 0;
     }
 
-    private void ClearParachuteGravity()
+    private void StopAllParachutes()
     {
-        foreach (var slot in _paraActive.Keys.ToArray())
+        foreach (var player in Utilities.GetPlayers())
         {
-            var player = Utilities.GetPlayerFromSlot(slot);
-            if (player is not null && player.IsValid)
+            if (player is null || !player.IsValid)
             {
-                StopParachute(player);
+                continue;
+            }
+
+            var index = (int)player.Index;
+            if (_usingPara.TryGetValue(index, out var usingPara) && usingPara)
+            {
+                _usingPara[index] = false;
+                StopPara(player);
             }
         }
-        _paraActive.Clear();
     }
 
     private async Task SyncAndApplyAsync()
@@ -241,7 +344,7 @@ public class YGuardNoFFPlugin : BasePlugin
                         _bunnyHop);
                     if (!_parachute)
                     {
-                        Server.NextFrame(ClearParachuteGravity);
+                        Server.NextFrame(StopAllParachutes);
                     }
                 }
             }
@@ -260,6 +363,8 @@ public class YGuardNoFFPlugin : BasePlugin
             || string.IsNullOrWhiteSpace(_serverId)
             || string.IsNullOrWhiteSpace(_password))
         {
+            Logger.LogWarning(
+                "YGuardNoFF missing API env (API_DOMAIN/SERVER_ID/SERVER_API_PASSWORD)");
             return null;
         }
 
@@ -274,9 +379,8 @@ public class YGuardNoFFPlugin : BasePlugin
             return null;
         }
 
-        // Prefer nested gameplay.*; fall back to flat keys for older API builds.
         await using var stream = await resp.Content.ReadAsStreamAsync();
-        using var doc = await System.Text.Json.JsonDocument.ParseAsync(stream);
+        using var doc = await JsonDocument.ParseAsync(stream);
         var root = doc.RootElement;
         var src = root.TryGetProperty("gameplay", out var nested) ? nested : root;
         return new GameplayPrefs
@@ -287,30 +391,31 @@ public class YGuardNoFFPlugin : BasePlugin
         };
     }
 
-    private static bool ReadBool(
-        System.Text.Json.JsonElement primary,
-        System.Text.Json.JsonElement fallback,
-        string name)
+    private static bool ReadBool(JsonElement primary, JsonElement fallback, string name)
     {
-        if (primary.ValueKind == System.Text.Json.JsonValueKind.Object
+        if (primary.ValueKind == JsonValueKind.Object
             && primary.TryGetProperty(name, out var a)
-            && (a.ValueKind == System.Text.Json.JsonValueKind.True
-                || a.ValueKind == System.Text.Json.JsonValueKind.False))
+            && (a.ValueKind == JsonValueKind.True || a.ValueKind == JsonValueKind.False))
         {
             return a.GetBoolean();
         }
+
         if (fallback.TryGetProperty(name, out var b)
-            && (b.ValueKind == System.Text.Json.JsonValueKind.True
-                || b.ValueKind == System.Text.Json.JsonValueKind.False))
+            && (b.ValueKind == JsonValueKind.True || b.ValueKind == JsonValueKind.False))
         {
             return b.GetBoolean();
         }
+
         return false;
     }
 
     private void ApplyLocal()
     {
-        if (!_active) return;
+        if (!_active)
+        {
+            return;
+        }
+
         Server.NextFrame(() =>
         {
             if (_friendlyFire)
