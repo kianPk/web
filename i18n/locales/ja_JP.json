@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "パブリックサーバー",
+      "eyebrow": "今すぐプレイ",
+      "subtitle": "ライブのコミュニティサーバーに参加 — モードを選んでワンクリックで接続。",
+      "stat_servers": "オンラインサーバー",
+      "stat_players": "オンラインプレイヤー",
+      "stat_live": "ステータス",
+      "stat_live_hint": "ライブ · 更新中",
       "players": "プレイヤー",
       "no_servers_title": "利用可能なサーバーなし",
       "no_public_servers": "現在利用可能なパブリックサーバーはありません。",

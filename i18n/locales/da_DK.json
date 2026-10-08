@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Offentlige servere",
+      "eyebrow": "Spil nu",
+      "subtitle": "Hop ind på live-fællesskabsservere — vælg en tilstand, forbind med ét klik.",
+      "stat_servers": "Servere online",
+      "stat_players": "Spillere online",
+      "stat_live": "Status",
+      "stat_live_hint": "Live · opdateres",
       "players": "Spillere",
       "no_servers_title": "Ingen servere tilgængelige",
       "no_public_servers": "Ingen offentlige servere tilgængelige lige nu.",

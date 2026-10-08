@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Warmup Servers",
+      "eyebrow": "Jogue agora",
+      "subtitle": "Entre em servidores da comunidade ao vivo — escolha um modo e conecte com um clique.",
+      "stat_servers": "Servidores online",
+      "stat_players": "Jogadores online",
+      "stat_live": "Status",
+      "stat_live_hint": "Ao vivo · atualizando",
       "players": "Jogadores",
       "no_servers_title": "Nenhum servidor disponível",
       "no_public_servers": "Nenhum servidor de warmup disponível no momento.",

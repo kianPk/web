@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Herkese açık sunucular",
+      "eyebrow": "Şimdi oyna",
+      "subtitle": "Canlı topluluk sunucularına katıl — bir mod seç, tek tıkla bağlan.",
+      "stat_servers": "Çevrimiçi sunucular",
+      "stat_players": "Çevrimiçi oyuncular",
+      "stat_live": "Durum",
+      "stat_live_hint": "Canlı · güncelleniyor",
       "players": "Oyuncular",
       "no_servers_title": "Kullanılabilir sunucu yok",
       "no_public_servers": "Şu anda kullanılabilir herkese açık sunucu yok.",

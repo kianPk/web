@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Öffentliche Server",
+      "eyebrow": "Jetzt spielen",
+      "subtitle": "Spring in Live-Community-Server — Modus wählen, mit einem Klick verbinden.",
+      "stat_servers": "Server online",
+      "stat_players": "Spieler online",
+      "stat_live": "Status",
+      "stat_live_hint": "Live · aktualisiert",
       "players": "Spieler",
       "no_servers_title": "Keine Server verfügbar",
       "no_public_servers": "Derzeit sind keine öffentlichen Server verfügbar.",

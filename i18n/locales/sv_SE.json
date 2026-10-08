@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Publika servrar",
+      "eyebrow": "Spela nu",
+      "subtitle": "Hoppa in i live-communityservrar — välj läge, anslut med ett klick.",
+      "stat_servers": "Servrar online",
+      "stat_players": "Spelare online",
+      "stat_live": "Status",
+      "stat_live_hint": "Live · uppdateras",
       "players": "Spelare",
       "no_servers_title": "Inga servrar tillgängliga",
       "no_public_servers": "Inga publika servrar tillgängliga just nu.",

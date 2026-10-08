@@ -3808,6 +3808,12 @@
     },
     "public_servers": {
       "title": "Public Servers",
+      "eyebrow": "Play now",
+      "subtitle": "Jump into live community servers — pick a mode, connect in one click.",
+      "stat_servers": "Servers online",
+      "stat_players": "Players online",
+      "stat_live": "Status",
+      "stat_live_hint": "Live · updating",
       "players": "Players",
       "no_servers_title": "No Servers Available",
       "no_public_servers": "No public servers available at the moment.",

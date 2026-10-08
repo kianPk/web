@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Servidores públicos",
+      "eyebrow": "Juega ahora",
+      "subtitle": "Entra en servidores comunitarios en vivo — elige un modo y conéctate en un clic.",
+      "stat_servers": "Servidores online",
+      "stat_players": "Jugadores online",
+      "stat_live": "Estado",
+      "stat_live_hint": "En vivo · actualizando",
       "players": "Jugadores",
       "no_servers_title": "No hay servidores disponibles",
       "no_public_servers": "Ahora mismo no hay servidores públicos disponibles.",

@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "퍼블릭 서버",
+      "eyebrow": "지금 플레이",
+      "subtitle": "라이브 커뮤니티 서버에 접속하세요 — 모드를 고르고 한 번에 연결하세요.",
+      "stat_servers": "온라인 서버",
+      "stat_players": "온라인 플레이어",
+      "stat_live": "상태",
+      "stat_live_hint": "라이브 · 업데이트 중",
       "players": "플레이어",
       "no_servers_title": "사용 가능한 서버 없음",
       "no_public_servers": "현재 사용 가능한 퍼블릭 서버가 없습니다.",

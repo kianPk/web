@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Server pubblici",
+      "eyebrow": "Gioca ora",
+      "subtitle": "Entra nei server della community live — scegli una modalità e connettiti in un clic.",
+      "stat_servers": "Server online",
+      "stat_players": "Giocatori online",
+      "stat_live": "Stato",
+      "stat_live_hint": "Live · aggiornamento",
       "players": "Giocatori",
       "no_servers_title": "Nessun server disponibile",
       "no_public_servers": "Al momento non ci sono server pubblici disponibili.",

@@ -3562,6 +3562,12 @@
     },
     "public_servers": {
       "title": "Serwery publiczne",
+      "eyebrow": "Graj teraz",
+      "subtitle": "Dołącz do żywych serwerów społeczności — wybierz tryb i połącz się jednym kliknięciem.",
+      "stat_servers": "Serwery online",
+      "stat_players": "Gracze online",
+      "stat_live": "Status",
+      "stat_live_hint": "Na żywo · aktualizacja",
       "players": "Gracze",
       "no_servers_title": "Brak dostępnych serwerów",
       "no_public_servers": "Obecnie brak dostępnych serwerów publicznych",

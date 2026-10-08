@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings2 } from "lucide-vue-next";
-import { AnimatedCard } from "@/components/ui/animated-card";
+import { Settings2, Radio, Users } from "lucide-vue-next";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
-import cleanMapName from "~/utilities/cleanMapName";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
-import QuickServerConnect from "~/components/match/QuickServerConnect.vue";
+import PublicServerCard from "~/components/public-servers/PublicServerCard.vue";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { e_server_types_enum } from "~/generated/zeus";
@@ -31,7 +28,13 @@ const canManage = computed(() =>
 <template>
   <PageTransition :delay="0">
     <TacticalPageHeader inline-actions>
+      <template #description>{{
+        $t("pages.public_servers.eyebrow")
+      }}</template>
       <template #title>{{ $t("pages.public_servers.title") }}</template>
+      <template #subtitle>{{
+        $t("pages.public_servers.subtitle")
+      }}</template>
 
       <template v-if="canManage && servers && servers.length" #actions>
         <NuxtLink
@@ -52,6 +55,67 @@ const canManage = computed(() =>
     </TacticalPageHeader>
   </PageTransition>
 
+  <!-- Fleet pulse strip -->
+  <PageTransition :delay="60">
+    <div
+      v-if="!loading && servers && servers.length"
+      class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3"
+    >
+      <div
+        class="rounded-lg border border-border/70 bg-card/50 px-4 py-3 backdrop-blur-sm"
+      >
+        <p
+          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+        >
+          {{ $t("pages.public_servers.stat_servers") }}
+        </p>
+        <p
+          class="mt-1 flex items-center gap-2 font-mono text-2xl font-bold tabular-nums text-foreground"
+        >
+          <Radio class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
+          {{ servers.length }}
+        </p>
+      </div>
+      <div
+        class="rounded-lg border border-border/70 bg-card/50 px-4 py-3 backdrop-blur-sm"
+      >
+        <p
+          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+        >
+          {{ $t("pages.public_servers.stat_players") }}
+        </p>
+        <p
+          class="mt-1 flex items-center gap-2 font-mono text-2xl font-bold tabular-nums text-emerald-400"
+        >
+          <Users class="h-4 w-4" />
+          {{ totalPlayers }}
+        </p>
+      </div>
+      <div
+        class="col-span-2 rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] px-4 py-3 sm:col-span-1"
+      >
+        <p
+          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]"
+        >
+          {{ $t("pages.public_servers.stat_live") }}
+        </p>
+        <p
+          class="mt-1 flex items-center gap-2 font-mono text-sm font-semibold text-foreground"
+        >
+          <span class="relative flex h-2 w-2">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50"
+            />
+            <span
+              class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"
+            />
+          </span>
+          {{ $t("pages.public_servers.stat_live_hint") }}
+        </p>
+      </div>
+    </div>
+  </PageTransition>
+
   <PageTransition :delay="100">
     <div class="mt-6">
       <Transition
@@ -61,31 +125,29 @@ const canManage = computed(() =>
         enter-from-class="opacity-0"
         leave-to-class="opacity-0"
       >
-        <!-- Loading -->
         <div
           v-if="loading"
           key="loading"
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           <div
             v-for="i in 3"
             :key="i"
-            class="rounded-xl border overflow-hidden"
+            class="overflow-hidden rounded-xl border border-border/60"
           >
-            <Skeleton class="h-36 w-full" />
-            <div class="p-4 space-y-2">
+            <Skeleton class="h-48 w-full" />
+            <div class="space-y-3 p-4">
               <Skeleton class="h-4 w-3/4" />
               <Skeleton class="h-2 w-full" />
-              <Skeleton class="h-9 w-full" />
+              <Skeleton class="h-10 w-full" />
             </div>
           </div>
         </div>
 
-        <!-- Empty -->
         <Empty
           v-else-if="!servers || (servers as any[]).length === 0"
           key="empty"
-          class="min-h-[200px]"
+          class="min-h-[220px]"
         >
           <EmptyTitle>{{
             $t("pages.public_servers.no_servers_title")
@@ -103,10 +165,7 @@ const canManage = computed(() =>
           </Button>
         </Empty>
 
-        <!-- Server cards -->
         <div v-else key="servers" class="space-y-8">
-          <!-- Only shown once modes are actually in use: on a deployment that
-               runs none, a filter with a single option is noise. -->
           <AnimatedFilters
             v-if="modeFilters.length > 2"
             v-model="modeFilter"
@@ -115,151 +174,39 @@ const canManage = computed(() =>
           />
 
           <div v-for="(gameServers, game) in serversByGame" :key="game">
-            <div class="flex items-center gap-3 mb-5">
-              <div class="w-0.5 h-4 rounded-full bg-primary shrink-0" />
+            <div class="mb-5 flex items-center gap-3">
+              <div
+                class="h-4 w-0.5 shrink-0 rounded-full bg-[hsl(var(--tac-amber))]"
+              />
               <span
-                class="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap"
+                class="whitespace-nowrap text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground"
               >
                 {{ gameLabel(game) }}
               </span>
-              <div class="flex-1 h-px bg-border" />
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <AnimatedCard
-                v-for="server of matchingMode(flattenGame(gameServers))"
-                :key="server.id"
-                variant="elevated"
-                class="overflow-hidden group cursor-pointer p-0"
+              <div class="h-px flex-1 bg-border" />
+              <span
+                class="font-mono text-[0.65rem] tabular-nums text-muted-foreground/70"
               >
-                <!-- Zone A: Map Hero -->
-                <div class="relative h-36 rounded-t-xl overflow-hidden">
-                  <img
-                    :src="`/img/maps/screenshots/${mapName(server.id)}.webp`"
-                    :alt="mapName(server.id)"
-                    class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    @error="onImgError"
-                  />
-                  <div
-                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
-                  />
-                  <!-- Top-left: map name -->
-                  <div class="absolute top-0 left-0 right-0 px-2 pt-2">
-                    <span
-                      class="text-[11px] font-bold text-white/90 uppercase tracking-widest drop-shadow-lg"
-                    >
-                      {{ cleanMapName(mapName(server.id)) }}
-                    </span>
-                  </div>
-                  <!-- Patch centered -->
-                  <div
-                    class="absolute inset-0 flex items-center justify-center"
-                  >
-                    <img
-                      v-if="mapPatch(server.id)"
-                      :src="mapPatch(server.id)"
-                      class="w-1/4 max-w-[72px] h-auto max-h-[60%] object-contain drop-shadow-2xl opacity-80"
-                    />
-                  </div>
-                  <!-- Top-right: server type -->
-                  <div class="absolute top-2 right-2">
-                    <Badge variant="secondary" class="text-xs">{{
-                      server.type
-                    }}</Badge>
-                  </div>
-                  <!-- Bottom-right: region -->
-                  <div class="absolute bottom-2 right-2">
-                    <Badge
-                      variant="outline"
-                      class="border-white/20 text-white/70 text-xs"
-                      >{{ server.region }}</Badge
-                    >
-                  </div>
-                </div>
+                {{ matchingMode(flattenGame(gameServers)).length }}
+              </span>
+            </div>
 
-                <!-- Zone B: Card Body -->
-                <div class="px-4 pt-3 pb-2">
-                  <div class="mb-2 flex items-center gap-2">
-                    <p class="min-w-0 flex-1 truncate font-semibold">
-                      {{ server.label }}
-                    </p>
-                    <!-- What the server is actually running. A name alone does
-                         not tell anyone whether this is retakes or vanilla. -->
-                    <span
-                      v-if="server.game_mode"
-                      class="shrink-0 rounded border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] px-1.5 py-0.5 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-[hsl(var(--tac-amber))]"
-                    >
-                      {{ server.game_mode.name }}
-                    </span>
-                  </div>
-                  <div class="flex items-center justify-between text-sm mb-1.5">
-                    <span class="text-muted-foreground">{{
-                      $t("pages.public_servers.players")
-                    }}</span>
-                    <span
-                      :class="capacityClass(server)"
-                      class="font-mono font-medium"
-                    >
-                      {{ getDedicatedServerPlayers(server.id) }} /
-                      {{ server.max_players }}
-                    </span>
-                  </div>
-                  <div
-                    class="relative h-1.5 w-full overflow-hidden rounded-full bg-primary/20"
-                  >
-                    <div
-                      class="h-full rounded-full transition-all"
-                      :class="capacityBarClass(server)"
-                      :style="`width: ${capacityPercent(server)}%`"
-                    />
-                  </div>
-
-                  <div class="mt-3 border-t border-border/60 pt-2">
-                    <Button
-                      as-child
-                      variant="outline"
-                      size="sm"
-                      class="h-8 w-full justify-between gap-2 px-2.5 font-normal"
-                    >
-                      <NuxtLink
-                        :to="`/public-servers/${server.id}`"
-                        class="flex w-full items-center justify-between gap-2"
-                      >
-                        <span
-                          class="truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-                        >
-                          {{ $t("pages.public_servers.details.button") }}
-                        </span>
-                        <Settings2 class="h-3.5 w-3.5 shrink-0 opacity-60" />
-                      </NuxtLink>
-                    </Button>
-                  </div>
-                </div>
-
-                <!-- Zone C: CTA Footer -->
-                <div class="px-4 pb-4 pt-3">
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="flex-1 [&>div]:w-full [&_a]:flex-1 [&_a_button]:w-full"
-                    >
-                      <QuickServerConnect :server="server" highlight />
-                    </div>
-                    <Button
-                      v-if="canManage"
-                      as-child
-                      variant="outline"
-                      size="icon"
-                      :title="$t('pages.public_servers.manage')"
-                    >
-                      <NuxtLink
-                        :to="`/dedicated-servers/${server.id}`"
-                        :aria-label="$t('pages.public_servers.manage')"
-                      >
-                        <Settings2 class="h-4 w-4" />
-                      </NuxtLink>
-                    </Button>
-                  </div>
-                </div>
-              </AnimatedCard>
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <PublicServerCard
+                v-for="(server, index) of matchingMode(
+                  flattenGame(gameServers),
+                )"
+                :key="server.id"
+                :server="server"
+                :map-name="mapName(server.id)"
+                :map-patch="mapPatch(server.id)"
+                :players="getDedicatedServerPlayers(server.id)"
+                :can-manage="canManage"
+                show-mode
+                class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+                :style="{ animationDelay: `${Math.min(index, 8) * 45}ms` }"
+                @img-error="onImgError"
+              />
             </div>
           </div>
         </div>
@@ -267,111 +214,30 @@ const canManage = computed(() =>
     </div>
   </PageTransition>
 
-  <!-- LAN Servers -->
   <PageTransition :delay="200">
-    <div v-if="!loading && lanServers && lanServers.length > 0" class="mt-8">
-      <div class="flex items-center gap-3 mb-5">
-        <div class="w-0.5 h-4 rounded-full bg-muted-foreground/40 shrink-0" />
+    <div v-if="!loading && lanServers && lanServers.length > 0" class="mt-10">
+      <div class="mb-5 flex items-center gap-3">
+        <div
+          class="h-4 w-0.5 shrink-0 rounded-full bg-muted-foreground/40"
+        />
         <span
-          class="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground/60 whitespace-nowrap"
+          class="whitespace-nowrap text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground/60"
         >
           {{ $t("pages.public_servers.lan_servers_title") }}
         </span>
-        <div class="flex-1 h-px bg-border" />
+        <div class="h-px flex-1 bg-border" />
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <AnimatedCard
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <PublicServerCard
           v-for="server of lanServers"
           :key="server.id"
-          variant="elevated"
-          class="overflow-hidden group cursor-pointer p-0"
-        >
-          <!-- Zone A: Map Hero -->
-          <div class="relative h-36 rounded-t-xl overflow-hidden">
-            <img
-              :src="`/img/maps/screenshots/${mapName(server.id)}.webp`"
-              :alt="mapName(server.id)"
-              class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700"
-              @error="onImgError"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
-            />
-            <!-- Top-left: map name -->
-            <div class="absolute top-0 left-0 right-0 px-2 pt-2">
-              <span
-                class="text-[11px] font-bold text-white/90 uppercase tracking-widest drop-shadow-lg"
-              >
-                {{ cleanMapName(mapName(server.id)) }}
-              </span>
-            </div>
-            <!-- Top-right: server type -->
-            <div class="absolute top-2 right-2">
-              <Badge variant="secondary" class="text-xs">{{
-                server.type
-              }}</Badge>
-            </div>
-            <!-- Bottom-right: region -->
-            <div class="absolute bottom-2 right-2">
-              <Badge
-                variant="outline"
-                class="border-white/20 text-white/70 text-xs"
-                >{{ server.region }}</Badge
-              >
-            </div>
-          </div>
-
-          <!-- Zone B: Card Body -->
-          <div class="px-4 pt-3 pb-2">
-            <p class="font-semibold truncate mb-2">{{ server.label }}</p>
-            <div class="flex items-center justify-between text-sm mb-1.5">
-              <span class="text-muted-foreground">{{
-                $t("pages.public_servers.players")
-              }}</span>
-              <span
-                :class="capacityClass(server)"
-                class="font-mono font-medium"
-              >
-                {{ getDedicatedServerPlayers(server.id) }} /
-                {{ server.max_players }}
-              </span>
-            </div>
-            <div
-              class="relative h-1.5 w-full overflow-hidden rounded-full bg-primary/20"
-            >
-              <div
-                class="h-full rounded-full transition-all"
-                :class="capacityBarClass(server)"
-                :style="`width: ${capacityPercent(server)}%`"
-              />
-            </div>
-          </div>
-
-          <!-- Zone C: CTA Footer -->
-          <div class="px-4 pb-4 pt-3">
-            <div class="flex items-center gap-2">
-              <div
-                class="flex-1 [&>div]:w-full [&_a]:flex-1 [&_a_button]:w-full"
-              >
-                <QuickServerConnect :server="server" highlight />
-              </div>
-              <Button
-                v-if="canManage"
-                as-child
-                variant="outline"
-                size="icon"
-                :title="$t('pages.public_servers.manage')"
-              >
-                <NuxtLink
-                  :to="`/dedicated-servers/${server.id}`"
-                  :aria-label="$t('pages.public_servers.manage')"
-                >
-                  <Settings2 class="h-4 w-4" />
-                </NuxtLink>
-              </Button>
-            </div>
-          </div>
-        </AnimatedCard>
+          :server="server"
+          :map-name="mapName(server.id)"
+          :map-patch="mapPatch(server.id)"
+          :players="getDedicatedServerPlayers(server.id)"
+          :can-manage="canManage"
+          @img-error="onImgError"
+        />
       </div>
     </div>
   </PageTransition>
@@ -497,6 +363,13 @@ export default {
     },
   },
   computed: {
+    totalPlayers(): number {
+      if (!this.servers?.length) return 0;
+      return (this.servers as any[]).reduce(
+        (sum, s) => sum + this.getDedicatedServerPlayers(s.id),
+        0,
+      );
+    },
     modeFilters(): Array<{ key: string; label: string; count: number }> {
       const counts = new Map<string, { label: string; count: number }>();
 
@@ -564,24 +437,6 @@ export default {
     },
     mapName(id: string): string {
       return this.getDedicatedServerMap(id) || "default";
-    },
-    capacityPercent(server: any): number {
-      const players = this.getDedicatedServerPlayers(server.id);
-      return server.max_players > 0
-        ? Math.min(100, Math.round((players / server.max_players) * 100))
-        : 0;
-    },
-    capacityClass(server: any): string {
-      const pct = this.capacityPercent(server);
-      if (pct >= 80) return "text-red-400";
-      if (pct >= 50) return "text-yellow-400";
-      return "text-green-400";
-    },
-    capacityBarClass(server: any): string {
-      const pct = this.capacityPercent(server);
-      if (pct >= 80) return "bg-red-400";
-      if (pct >= 50) return "bg-yellow-400";
-      return "bg-green-400";
     },
     onImgError(e: Event) {
       (e.target as HTMLImageElement).src = "/img/maps/screenshots/default.webp";
