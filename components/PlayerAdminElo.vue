@@ -76,11 +76,11 @@ async function save() {
   saving.value = true;
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
-    await $fetch(`https://${apiDomain}/matches/admin/player-elo`, {
+    await $fetch(`https://${apiDomain}/avatars/admin/player-elo`, {
       method: "POST",
       credentials: "include",
       body: {
-        steam_id: props.player.steam_id,
+        steam_id: String(props.player.steam_id),
         type: selectedType.value,
         elo,
       },
@@ -88,12 +88,18 @@ async function save() {
     toast({ title: t("pages.players.detail.admin_elo_saved") });
     emit("saved");
   } catch (error: any) {
+    const detail =
+      error?.data?.message ||
+      error?.data?.error ||
+      (Array.isArray(error?.data?.message)
+        ? error.data.message.join(", ")
+        : null) ||
+      error?.statusMessage ||
+      error?.message ||
+      t("pages.players.detail.admin_elo_failed");
     toast({
       variant: "destructive",
-      title:
-        error?.data?.message ||
-        error?.message ||
-        t("pages.players.detail.admin_elo_failed"),
+      title: String(detail),
     });
   } finally {
     saving.value = false;
