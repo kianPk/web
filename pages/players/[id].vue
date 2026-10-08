@@ -43,6 +43,8 @@ import PlayerSanctions from "~/components/PlayerSanctions.vue";
 import PlayerVacBadge from "~/components/PlayerVacBadge.vue";
 import PlayerChangeName from "~/components/PlayerChangeName.vue";
 import PlayerChangeCountry from "~/components/PlayerChangeCountry.vue";
+import PlayerAdminElo from "~/components/PlayerAdminElo.vue";
+import PlayerRefreshSteamAvatar from "~/components/PlayerRefreshSteamAvatar.vue";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -3067,6 +3069,29 @@ const playerHeroTeamChipDotClasses =
           </div>
           <PlayerChangeName :player="player" />
         </div>
+
+        <div v-if="isAdmin" class="space-y-2">
+          <div
+            class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground"
+          >
+            <span class="h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"></span>
+            {{ $t("pages.players.detail.admin_elo_title") }}
+          </div>
+          <PlayerAdminElo :player="player" />
+        </div>
+
+        <div v-if="isAdmin" class="space-y-2">
+          <div
+            class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground"
+          >
+            <span class="h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"></span>
+            {{ $t("pages.players.detail.refresh_avatar_title") }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ $t("pages.players.detail.refresh_avatar_hint") }}
+          </p>
+          <PlayerRefreshSteamAvatar :steam-id="String(player.steam_id)" />
+        </div>
       </div>
     </SheetContent>
   </Sheet>
@@ -3425,7 +3450,12 @@ export default {
     canEditPlayer() {
       // Only fields actually rendered inside the edit sheet — the role editor
       // lives inline in the hero, so it must not open an otherwise empty sheet.
-      return this.canEditAvatar || this.canEditName || this.canEditCountry;
+      return (
+        this.canEditAvatar ||
+        this.canEditName ||
+        this.canEditCountry ||
+        this.isAdmin
+      );
     },
     bulkApplyTeams() {
       const me = useAuthStore().me;

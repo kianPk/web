@@ -29,6 +29,8 @@ const showRefreshDialog = ref(false);
 const showScanDialog = ref(false);
 const scanning = ref(false);
 const showEloDialog = ref(false);
+const showAvatarDialog = ref(false);
+const refreshingAvatars = ref(false);
 
 const {
   status: eloStatus,
@@ -97,6 +99,39 @@ async function doScanSteamBans() {
     });
   } finally {
     scanning.value = false;
+  }
+}
+
+async function doRefreshSteamAvatars() {
+  refreshingAvatars.value = true;
+  showAvatarDialog.value = false;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    const result = await $fetch<{ updated: number; checked: number }>(
+      `https://${apiDomain}/avatars/admin/refresh-steam`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: { all: true, limit: 5000 },
+      },
+    );
+    toast({
+      title: t("pages.settings.application.players.refresh_avatars_done", {
+        updated: result.updated,
+        checked: result.checked,
+      }),
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.settings.application.players.refresh_avatars_failed"),
+      description:
+        error?.data?.message ||
+        error?.message ||
+        t("pages.settings.application.players.error_occurred"),
+      variant: "destructive",
+    });
+  } finally {
+    refreshingAvatars.value = false;
   }
 }
 </script>
@@ -535,6 +570,46 @@ async function doScanSteamBans() {
                   }}
                 </Button>
               </div>
+
+              <div
+                class="flex items-start justify-between gap-4 border-t border-destructive/20 pt-4"
+              >
+                <div class="min-w-0 space-y-0.5">
+                  <p class="text-sm font-medium">
+                    {{
+                      $t(
+                        "pages.settings.application.players.refresh_avatars_title",
+                      )
+                    }}
+                  </p>
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      $t(
+                        "pages.settings.application.players.refresh_avatars_description",
+                      )
+                    }}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  :disabled="refreshingAvatars"
+                  class="shrink-0 flex items-center gap-2"
+                  @click="showAvatarDialog = true"
+                >
+                  <Spinner v-if="refreshingAvatars" class="h-4 w-4" />
+                  {{
+                    refreshingAvatars
+                      ? $t(
+                          "pages.settings.application.players.refresh_avatars_running",
+                        )
+                      : $t(
+                          "pages.settings.application.players.refresh_avatars_button",
+                        )
+                  }}
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -592,6 +667,39 @@ async function doScanSteamBans() {
               </AlertDialogCancel>
               <AlertDialogAction @click="doRefreshAllPlayers">
                 {{ $t("pages.settings.application.players.refresh_button") }}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog v-model:open="showAvatarDialog">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {{
+                  $t(
+                    "pages.settings.application.players.refresh_avatars_dialog_title",
+                  )
+                }}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {{
+                  $t(
+                    "pages.settings.application.players.refresh_avatars_dialog_description",
+                  )
+                }}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                {{ $t("common.cancel") }}
+              </AlertDialogCancel>
+              <AlertDialogAction @click="doRefreshSteamAvatars">
+                {{
+                  $t(
+                    "pages.settings.application.players.refresh_avatars_button",
+                  )
+                }}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

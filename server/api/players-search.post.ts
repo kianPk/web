@@ -15,7 +15,7 @@ const INSERT_PLAYERS = gql`
     insert_players(
       objects: $objects
       on_conflict: {
-        update_columns: [name]
+        update_columns: [name, avatar_url, profile_url]
         constraint: players_steam_id_key
       }
     ) {
@@ -223,6 +223,7 @@ export default defineEventHandler(async (event) => {
         const players = steamData.response.players as {
           steamid: string;
           avatar: string;
+          avatarfull?: string;
           personaname: string;
           profileurl: string;
           loccountrycode: string;
@@ -234,7 +235,7 @@ export default defineEventHandler(async (event) => {
             objects: players.map((player) => ({
               name: player.personaname,
               steam_id: player.steamid,
-              avatar_url: player.avatar,
+              avatar_url: player.avatarfull || player.avatar,
               profile_url: player.profileurl,
               country: player.loccountrycode,
             })),
@@ -247,7 +248,7 @@ export default defineEventHandler(async (event) => {
             document: {
               name: player.personaname,
               steam_id: player.steamid,
-              avatar_url: player.avatar,
+              avatar_url: player.avatarfull || player.avatar,
               profile_url: player.profileurl,
               country: player.loccountrycode,
             },

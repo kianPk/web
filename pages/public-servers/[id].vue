@@ -122,6 +122,33 @@ const rankQuery = ref("");
 const buyDuration = ref<"7d" | "30d" | "90d" | "">("");
 const buyBusy = ref(false);
 const buyTerms = ref(false);
+const rankBusy = ref(false);
+const rankEditSteamId = ref<string | null>(null);
+const rankEditPoints = ref("");
+const rankAddSteamId = ref("");
+const rankAddPoints = ref("");
+const rankAddSkill = ref("7");
+
+const RANK_SKILL_OPTIONS = [
+  { skill: 1, name: "Silver I" },
+  { skill: 2, name: "Silver II" },
+  { skill: 3, name: "Silver III" },
+  { skill: 4, name: "Silver IV" },
+  { skill: 5, name: "Silver Elite" },
+  { skill: 6, name: "Silver Elite Master" },
+  { skill: 7, name: "Gold Nova I" },
+  { skill: 8, name: "Gold Nova II" },
+  { skill: 9, name: "Gold Nova III" },
+  { skill: 10, name: "Gold Nova Master" },
+  { skill: 11, name: "Master Guardian I" },
+  { skill: 12, name: "Master Guardian II" },
+  { skill: 13, name: "Master Guardian Elite" },
+  { skill: 14, name: "Distinguished Master Guardian" },
+  { skill: 15, name: "Legendary Eagle" },
+  { skill: 16, name: "Legendary Eagle Master" },
+  { skill: 17, name: "Supreme Master First Class" },
+  { skill: 18, name: "The Global Elite" },
+];
 
 const {
   result: serverResult,
@@ -291,6 +318,105 @@ async function loadDetails() {
     details.value = null;
   } finally {
     detailsLoading.value = false;
+  }
+}
+
+function beginRankEdit(row: PublicRankRow) {
+  rankEditSteamId.value = row.steam_id;
+  rankEditPoints.value = String(row.points);
+}
+
+function cancelRankEdit() {
+  rankEditSteamId.value = null;
+  rankEditPoints.value = "";
+}
+
+async function saveRankEdit(row: PublicRankRow) {
+  if (!details.value?.can_manage || rankBusy.value) return;
+  const points = Math.round(Number(rankEditPoints.value));
+  if (!Number.isFinite(points) || points < 0) {
+    toast({
+      variant: "destructive",
+      title: t("pages.public_servers.details.rank_points_invalid"),
+    });
+    return;
+  }
+  rankBusy.value = true;
+  try {
+    await hostedApi(`/hosted-servers/public-details/${serverId.value}/ranks/set`, {
+      method: "POST",
+      body: { steam_id: row.steam_id, points, name: row.name || undefined },
+    });
+    toast({ title: t("pages.public_servers.details.rank_saved") });
+    cancelRankEdit();
+    await loadDetails();
+  } catch (error) {
+    toast({ variant: "destructive", title: hostedErrorMessage(error) });
+  } finally {
+    rankBusy.value = false;
+  }
+}
+
+async function setRankBySkill(row: PublicRankRow, skillGroup: number) {
+  if (!details.value?.can_manage || rankBusy.value) return;
+  rankBusy.value = true;
+  try {
+    await hostedApi(`/hosted-servers/public-details/${serverId.value}/ranks/set`, {
+      method: "POST",
+      body: {
+        steam_id: row.steam_id,
+        skill_group: skillGroup,
+        name: row.name || undefined,
+      },
+    });
+    toast({ title: t("pages.public_servers.details.rank_saved") });
+    await loadDetails();
+  } catch (error) {
+    toast({ variant: "destructive", title: hostedErrorMessage(error) });
+  } finally {
+    rankBusy.value = false;
+  }
+}
+
+async function addOrSetRank() {
+  if (!details.value?.can_manage || rankBusy.value) return;
+  const steamId = rankAddSteamId.value.trim();
+  if (!/\b7656119\d{10}\b/.test(steamId)) {
+    toast({
+      variant: "destructive",
+      title: t("pages.public_servers.details.rank_steam_invalid"),
+    });
+    return;
+  }
+  const pointsRaw = rankAddPoints.value.trim();
+  const body: Record<string, unknown> = { steam_id: steamId };
+  if (pointsRaw !== "") {
+    const points = Math.round(Number(pointsRaw));
+    if (!Number.isFinite(points) || points < 0) {
+      toast({
+        variant: "destructive",
+        title: t("pages.public_servers.details.rank_points_invalid"),
+      });
+      return;
+    }
+    body.points = points;
+  } else {
+    body.skill_group = Number(rankAddSkill.value) || 7;
+  }
+  rankBusy.value = true;
+  try {
+    await hostedApi(`/hosted-servers/public-details/${serverId.value}/ranks/set`, {
+      method: "POST",
+      body,
+    });
+    toast({ title: t("pages.public_servers.details.rank_saved") });
+    rankAddSteamId.value = "";
+    rankAddPoints.value = "";
+    await loadDetails();
+  } catch (error) {
+    toast({ variant: "destructive", title: hostedErrorMessage(error) });
+  } finally {
+    rankBusy.value = false;
   }
 }
 
@@ -829,6 +955,59 @@ async function buyVip() {
                     />
                   </div>
 
+                  <div
+                    v-if="details?.can_manage"
+                    class="mb-4 space-y-2 rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] p-3"
+                  >
+                    <p class="text-xs font-medium text-foreground">
+                      {{ $t("pages.public_servers.details.rank_set_title") }}
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <Input
+                        v-model="rankAddSteamId"
+                        class="h-9 min-w-[12rem] flex-1 font-mono text-xs"
+                        :placeholder="
+                          $t('pages.public_servers.details.rank_steam_placeholder')
+                        "
+                      />
+                      <Input
+                        v-model="rankAddPoints"
+                        type="number"
+                        min="0"
+                        class="h-9 w-28 font-mono text-xs"
+                        :placeholder="
+                          $t('pages.public_servers.details.rank_points_placeholder')
+                        "
+                      />
+                      <Select v-model="rankAddSkill">
+                        <SelectTrigger class="h-9 w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem
+                            v-for="opt in RANK_SKILL_OPTIONS"
+                            :key="opt.skill"
+                            :value="String(opt.skill)"
+                          >
+                            {{ opt.name }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="tactical"
+                        :disabled="rankBusy"
+                        @click="addOrSetRank"
+                      >
+                        {{ $t("pages.public_servers.details.rank_set_button") }}
+                      </Button>
+                    </div>
+                    <p class="text-[0.7rem] text-muted-foreground">
+                      {{ $t("pages.public_servers.details.rank_set_hint") }}
+                    </p>
+                  </div>
+
                   <template v-if="filteredRanks.length">
                     <div
                       v-if="podiumRanks.length && !rankQuery.trim()"
@@ -907,10 +1086,74 @@ async function buyVip() {
                             {{ row.rank_name }}
                           </div>
                         </div>
-                        <span
-                          class="shrink-0 font-mono text-sm text-[hsl(var(--tac-amber))]"
-                          >{{ row.points }}</span
+                        <template
+                          v-if="
+                            details?.can_manage &&
+                            rankEditSteamId === row.steam_id
+                          "
                         >
+                          <Input
+                            v-model="rankEditPoints"
+                            type="number"
+                            min="0"
+                            class="h-8 w-24 font-mono text-xs"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="tactical"
+                            :disabled="rankBusy"
+                            @click="saveRankEdit(row)"
+                          >
+                            {{ $t("common.save") }}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            :disabled="rankBusy"
+                            @click="cancelRankEdit"
+                          >
+                            {{ $t("common.cancel") }}
+                          </Button>
+                        </template>
+                        <template v-else>
+                          <span
+                            class="shrink-0 font-mono text-sm text-[hsl(var(--tac-amber))]"
+                            >{{ row.points }}</span
+                          >
+                          <template v-if="details?.can_manage">
+                            <Select
+                              :model-value="String(row.skill_group)"
+                              @update:model-value="
+                                (v) => setRankBySkill(row, Number(v))
+                              "
+                            >
+                              <SelectTrigger class="h-8 w-36 shrink-0 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  v-for="opt in RANK_SKILL_OPTIONS"
+                                  :key="opt.skill"
+                                  :value="String(opt.skill)"
+                                >
+                                  {{ opt.name }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              class="shrink-0 px-2"
+                              :disabled="rankBusy"
+                              @click="beginRankEdit(row)"
+                            >
+                              {{ $t("pages.public_servers.details.rank_edit") }}
+                            </Button>
+                          </template>
+                        </template>
                       </li>
                     </ul>
                   </template>
