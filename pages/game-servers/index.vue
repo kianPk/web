@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { Gamepad2, Radio, Settings2, Users } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import Empty from "~/components/ui/empty/Empty.vue";
-import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
-import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
@@ -20,16 +17,50 @@ const canManage = computed(() =>
 );
 
 const ready = computed(() => !loading.value || servers.value.length > 0);
+
+const stats = computed(() => [
+  {
+    key: "players",
+    icon: Users,
+    label: "pages.servers.stat_players",
+    value: totalPlayers.value,
+  },
+  {
+    key: "servers",
+    icon: Radio,
+    label: "pages.servers.stat_servers",
+    value: servers.value.length,
+  },
+  {
+    key: "modes",
+    icon: Gamepad2,
+    label: "pages.servers.stat_modes",
+    value: modes.value.length,
+  },
+]);
+
+const { t } = useI18n();
+useHead(() => ({ title: t("pages.servers.title") }));
 </script>
 
 <template>
   <PageTransition :delay="0">
-    <TacticalPageHeader inline-actions>
-      <template #description>{{ $t("pages.servers.eyebrow") }}</template>
-      <template #title>{{ $t("pages.servers.title") }}</template>
-      <template #subtitle>{{ $t("pages.servers.subtitle") }}</template>
-      <template v-if="canManage" #actions>
-        <Button as-child variant="outline">
+    <section
+      class="relative overflow-hidden rounded-2xl bg-[linear-gradient(115deg,hsl(160_45%_22%)_0%,hsl(200_30%_14%)_45%,hsl(var(--card))_100%)] p-6 ring-1 ring-white/5 md:p-8"
+    >
+      <div
+        class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--tac-amber)/0.18)] blur-3xl"
+      />
+      <div class="relative flex flex-wrap items-start justify-between gap-4">
+        <div class="max-w-2xl space-y-2">
+          <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
+            {{ $t("pages.servers.hero_title") }}
+          </h1>
+          <p class="text-sm leading-relaxed text-white/75">
+            {{ $t("pages.servers.subtitle") }}
+          </p>
+        </div>
+        <Button v-if="canManage" as-child variant="outline" size="sm">
           <NuxtLink to="/dedicated-servers/create">
             <Settings2 class="h-4 w-4" />
             <span class="hidden md:inline">{{
@@ -37,110 +68,42 @@ const ready = computed(() => !loading.value || servers.value.length > 0);
             }}</span>
           </NuxtLink>
         </Button>
+      </div>
+
+      <div class="relative mt-6 flex flex-wrap gap-2">
+        <div
+          v-for="stat in stats"
+          :key="stat.key"
+          class="flex items-center gap-3 rounded-lg bg-black/25 px-4 py-2.5 backdrop-blur-sm"
+        >
+          <component
+            :is="stat.icon"
+            class="h-5 w-5 text-[hsl(var(--tac-amber))]"
+          />
+          <div class="leading-tight">
+            <p class="text-[0.7rem] text-white/60">{{ $t(stat.label) }}</p>
+            <p class="font-mono text-sm font-bold tabular-nums">
+              {{ stat.value }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </PageTransition>
+
+  <PageTransition :delay="80">
+    <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <template v-if="!ready">
+        <Skeleton v-for="i in 3" :key="i" class="aspect-[5/6] rounded-xl" />
       </template>
-    </TacticalPageHeader>
-  </PageTransition>
-
-  <PageTransition :delay="60">
-    <div class="mt-5 grid grid-cols-3 gap-3">
-      <div
-        class="rounded-lg border border-border/70 bg-card/50 px-4 py-3 backdrop-blur-sm"
-      >
-        <p
-          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-        >
-          {{ $t("pages.servers.stat_players") }}
-        </p>
-        <p
-          class="mt-1 flex items-center gap-2 font-mono text-2xl font-bold tabular-nums text-emerald-400"
-        >
-          <span class="relative flex h-2 w-2">
-            <span
-              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50"
-            />
-            <span
-              class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"
-            />
-          </span>
-          {{ totalPlayers }}
-        </p>
-      </div>
-      <div
-        class="rounded-lg border border-border/70 bg-card/50 px-4 py-3 backdrop-blur-sm"
-      >
-        <p
-          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-        >
-          {{ $t("pages.servers.stat_servers") }}
-        </p>
-        <p
-          class="mt-1 flex items-center gap-2 font-mono text-2xl font-bold tabular-nums"
-        >
-          <Radio class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-          {{ servers.length }}
-        </p>
-      </div>
-      <div
-        class="rounded-lg border border-border/70 bg-card/50 px-4 py-3 backdrop-blur-sm"
-      >
-        <p
-          class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
-        >
-          {{ $t("pages.servers.stat_modes") }}
-        </p>
-        <p
-          class="mt-1 flex items-center gap-2 font-mono text-2xl font-bold tabular-nums"
-        >
-          <Gamepad2 class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-          {{ modes.length }}
-        </p>
-      </div>
-    </div>
-  </PageTransition>
-
-  <PageTransition :delay="100">
-    <div class="mt-6">
-      <div
-        v-if="!ready"
-        class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-      >
-        <Skeleton v-for="i in 8" :key="i" class="aspect-[4/3] rounded-xl" />
-      </div>
-
-      <Empty v-else-if="modes.length === 0" class="min-h-[220px]">
-        <EmptyTitle>{{ $t("pages.servers.empty_title") }}</EmptyTitle>
-        <EmptyDescription>{{
-          canManage
-            ? $t("pages.servers.empty_admin")
-            : $t("pages.servers.empty")
-        }}</EmptyDescription>
-      </Empty>
-
-      <div
+      <ServerModeTile
+        v-for="(mode, index) in modes"
         v-else
-        class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-      >
-        <ServerModeTile
-          v-for="(mode, index) in modes"
-          :key="mode.key"
-          :mode="mode"
-          class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
-          :style="{ animationDelay: `${Math.min(index, 10) * 40}ms` }"
-        />
-      </div>
-
-      <div
-        v-if="ready && modes.length > 0"
-        class="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground"
-      >
-        <Users class="h-3.5 w-3.5" />
-        <NuxtLink
-          to="/public-servers"
-          class="underline-offset-4 hover:text-foreground hover:underline"
-        >
-          {{ $t("pages.servers.all_servers_link") }}
-        </NuxtLink>
-      </div>
+        :key="mode.key"
+        :mode="mode"
+        class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+        :style="{ animationDelay: `${index * 50}ms` }"
+      />
     </div>
   </PageTransition>
 </template>

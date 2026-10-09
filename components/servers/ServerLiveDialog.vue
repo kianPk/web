@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import QuickServerConnect from "~/components/match/QuickServerConnect.vue";
-import cleanMapName from "~/utilities/cleanMapName";
+import { mapLabel } from "~/utilities/serverModes";
 import { csRankIcon } from "~/utilities/csRank";
 import type { FleetServer } from "~/composables/usePublicServerFleet";
 
@@ -101,6 +101,7 @@ function onAvatarError(e: Event) {
           />
           <div class="absolute inset-x-0 bottom-0 space-y-1.5 p-5">
             <DialogTitle class="text-xl font-bold tracking-tight">
+              <span class="font-mono text-muted-foreground">#{{ server.number }}</span>
               {{ server.label }}
             </DialogTitle>
             <DialogDescription
@@ -111,10 +112,13 @@ function onAvatarError(e: Event) {
               >
                 {{ modeName }}
               </span>
-              <span>{{ cleanMapName(server.map) }}</span>
-              <span v-if="server.region" class="inline-flex items-center gap-1">
+              <span>{{ mapLabel(server.map) }}</span>
+              <span
+                v-if="server.regionName"
+                class="inline-flex items-center gap-1"
+              >
                 <MapPin class="h-3 w-3" />
-                {{ server.region }}
+                {{ server.regionName }}
               </span>
               <span
                 class="inline-flex items-center gap-1 font-mono tabular-nums"

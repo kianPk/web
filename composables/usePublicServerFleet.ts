@@ -3,18 +3,22 @@ import { useQuery, useSubscription } from "@vue/apollo-composable";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { $, e_server_types_enum } from "~/generated/zeus";
 import {
+  SERVER_MODES,
   liveMapName,
-  serverModeDefinition,
   serverModeKey,
   type ServerModeDefinition,
+  type ServerModeKey,
 } from "~/utilities/serverModes";
 
 export type FleetServer = {
   id: string;
+  /** Position within its mode, the way players refer to a server: "#3". */
+  number: number;
   label: string | null;
   type: string;
   game: string;
   region: string | null;
+  regionName: string | null;
   connection_link: string | null;
   connection_string: string | null;
   max_players: number | null;
@@ -23,7 +27,7 @@ export type FleetServer = {
     name: string;
     description: string | null;
   } | null;
-  modeKey: string;
+  modeKey: ServerModeKey;
   map: string;
   players: number;
   capacity: number;
@@ -36,8 +40,9 @@ export type FleetMode = ServerModeDefinition & {
 };
 
 /**
- * Every public (non-ranked, non-LAN, online) server grouped into mode tiles,
- * with live map and player counts from the one-minute status ping.
+ * Every public (non-ranked, non-LAN, online) server running one of the listed
+ * modes, with live map and player counts from the one-minute status ping. All
+ * modes are returned even with no servers, so the tabs never shift around.
  */
 export function usePublicServerFleet() {
   const { result: serversResult, loading } = useSubscription(
@@ -47,15 +52,11 @@ export function usePublicServerFleet() {
           where: {
             _and: [
               {
-                _or: [
-                  {
-                    type: {
-                      _neq: $("rankedType", "e_server_types_enum!"),
-                    },
-                  },
-                  { connection_string: { _is_null: false } },
-                ],
+                type: {
+                  _neq: $("rankedType", "e_server_types_enum!"),
+                },
               },
+              { connection_string: { _is_null: false } },
               { enabled: { _eq: true } },
               { connected: { _eq: true } },
             ],
@@ -78,6 +79,7 @@ export function usePublicServerFleet() {
           },
           server_region: {
             is_lan: true,
+            description: true,
           },
         },
       ],
@@ -109,47 +111,56 @@ export function usePublicServerFleet() {
     const rows = ((serversResult.value as any)?.servers || []) as Array<
       Record<string, any>
     >;
-    return rows
-      .filter((row) => !row.server_region?.is_lan && row.connection_string)
-      .map((row) => {
-        const stats = live.value.get(row.id);
-        const players = Number(stats?.players) || 0;
-        const capacity = Number(row.max_players) || 0;
-        return {
-          id: row.id,
-          label: row.label,
-          type: row.type,
-          game: row.game,
-          region: row.region,
-          connection_link: row.connection_link,
-          connection_string: row.connection_string,
-          max_players: row.max_players,
-          game_mode: row.game_mode,
-          modeKey: serverModeKey(row),
-          map: liveMapName(stats?.map),
-          players,
-          capacity,
-          full: capacity > 0 && players >= capacity,
-        };
-      });
-  });
+    const counters = new Map<ServerModeKey, number>();
+    const list: FleetServer[] = [];
 
-  const modes = computed<FleetMode[]>(() => {
-    const grouped = new Map<string, FleetServer[]>();
-    for (const server of servers.value) {
-      const list = grouped.get(server.modeKey) || [];
-      list.push(server);
-      grouped.set(server.modeKey, list);
+    for (const row of rows) {
+      if (row.server_region?.is_lan) continue;
+      const modeKey = serverModeKey(row);
+      if (!modeKey) continue;
+
+      const number = (counters.get(modeKey) ?? 0) + 1;
+      counters.set(modeKey, number);
+
+      const stats = live.value.get(row.id);
+      const players = Number(stats?.players) || 0;
+      const capacity =
+        Number(row.max_players) ||
+        SERVER_MODES.find((m) => m.key === modeKey)!.slots;
+
+      list.push({
+        id: row.id,
+        number,
+        label: row.label,
+        type: row.type,
+        game: row.game,
+        region: row.region,
+        regionName: row.server_region?.description || row.region || null,
+        connection_link: row.connection_link,
+        connection_string: row.connection_string,
+        max_players: row.max_players,
+        game_mode: row.game_mode,
+        modeKey,
+        map: liveMapName(stats?.map),
+        players,
+        capacity,
+        full: players >= capacity,
+      });
     }
 
-    return [...grouped.entries()]
-      .map(([key, list]) => ({
-        ...serverModeDefinition(key, list[0]),
+    return list;
+  });
+
+  const modes = computed<FleetMode[]>(() =>
+    SERVER_MODES.map((mode) => {
+      const list = servers.value.filter((s) => s.modeKey === mode.key);
+      return {
+        ...mode,
         servers: list,
         players: list.reduce((sum, s) => sum + s.players, 0),
-      }))
-      .sort((a, b) => a.order - b.order || b.players - a.players);
-  });
+      };
+    }).sort((a, b) => a.order - b.order),
+  );
 
   const totalPlayers = computed(() =>
     servers.value.reduce((sum, s) => sum + s.players, 0),
@@ -161,17 +172,17 @@ export function usePublicServerFleet() {
 /**
  * The server Quick Play drops a player into: the fullest one that still has
  * room, so a lone player lands where the action already is instead of on an
- * empty box.
+ * empty box. A map preference narrows the pick when one is set.
  */
 export function pickQuickPlayServer(
   servers: FleetServer[],
+  map?: string | null,
 ): FleetServer | null {
-  const open = servers.filter((s) => !s.full && s.connection_link);
+  const open = servers.filter(
+    (s) => !s.full && s.connection_link && (!map || s.map === map),
+  );
   if (open.length === 0) return null;
-  return [...open].sort(
-    (a, b) =>
-      b.players - a.players || (a.label || "").localeCompare(b.label || ""),
-  )[0];
+  return [...open].sort((a, b) => b.players - a.players || a.number - b.number)[0];
 }
 
 /**
