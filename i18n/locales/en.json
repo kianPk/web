@@ -5865,6 +5865,114 @@
         "extra": "{n} extra",
         "renew_note": "The price includes your {n} extra slot(s) for the whole renewal period."
       }
+    },
+    "servers": {
+      "title": "Servers",
+      "eyebrow": "Pick a mode",
+      "subtitle": "Deathmatch, duels, 2v2 and AWP — always online, join in one click.",
+      "stat_players": "Players in game",
+      "stat_servers": "Servers online",
+      "stat_modes": "Modes",
+      "empty_title": "No servers yet",
+      "empty": "No servers are online right now. Check back soon.",
+      "empty_admin": "Create a public server and give it a game mode (Deathmatch, Duels, AWP…) to list it here.",
+      "all_servers_link": "View all public servers",
+      "in_game": "In game: {count}",
+      "server_count": "Servers: {count}",
+      "quick_play": "Quick Play",
+      "quick_play_hint": "Joins {server} — the busiest server with a free slot",
+      "quick_play_none": "No server has a free slot right now",
+      "commands_title": "Server commands",
+      "commands": {
+        "guns": "Choose weapons",
+        "guns_preferences": "Weapon preferences",
+        "rounds": "Round types",
+        "afk": "Toggle AFK"
+      },
+      "filters": {
+        "all_maps": "All maps",
+        "sort_players_desc": "Most players",
+        "sort_players_asc": "Fewest players",
+        "sort_name": "Name",
+        "show_full": "Show full servers",
+        "view_tiles": "Tiles",
+        "view_table": "Table"
+      },
+      "no_match_filters": "No servers match these filters.",
+      "join": "Join",
+      "full": "Full",
+      "table": {
+        "server": "Server",
+        "players": "Players",
+        "map": "Map",
+        "region": "Region"
+      },
+      "mode_missing_title": "Mode not found",
+      "mode_missing": "No server is running this mode right now.",
+      "back_to_modes": "All modes",
+      "dialog": {
+        "player": "Player",
+        "rank": "Rank",
+        "empty": "Nobody is on this server right now.",
+        "players_unknown": "The player list refreshes every minute — check again shortly."
+      },
+      "modes": {
+        "dm": {
+          "name": "Deathmatch",
+          "tagline": "Warm up your aim with instant respawns",
+          "description": "Free-for-all with instant respawns, health and armour back on every kill and a rotating weapon pool. The fastest way to warm up your aim."
+        },
+        "duels": {
+          "name": "Duels",
+          "tagline": "1v1 ladder — win to climb",
+          "description": "1v1 arenas on a ladder: win your duel to move up an arena, lose and you drop down. The weapon set changes from round to round."
+        },
+        "wingman": {
+          "name": "2v2",
+          "tagline": "Wingman with a friend",
+          "description": "Classic 2v2 Wingman on small maps — practise trades and timing with a partner."
+        },
+        "awp": {
+          "name": "AWP",
+          "tagline": "Snipers only",
+          "description": "AWP-only servers to drill flicks, no-scopes and first-shot accuracy."
+        },
+        "retake": {
+          "name": "Retake",
+          "tagline": "Retake or hold the planted bomb",
+          "description": "Every round starts with the bomb planted: attackers hold the site, defenders retake it. Practise post-plant and retake situations."
+        },
+        "competitive": {
+          "name": "5v5",
+          "tagline": "Full competitive rules",
+          "description": "Classic 5v5 with competitive rules on the active map pool."
+        },
+        "public": {
+          "name": "Public",
+          "tagline": "Classic casual games",
+          "description": "Classic casual games on the standard map pool — relaxed play with no ranking pressure."
+        },
+        "armsrace": {
+          "name": "Arms Race",
+          "tagline": "A new gun with every kill",
+          "description": "Every kill upgrades your weapon. First to a kill with the golden knife wins."
+        },
+        "surf": {
+          "name": "Surf",
+          "tagline": "Slide the ramps",
+          "description": "Surf maps to train air strafing and movement control."
+        },
+        "bhop": {
+          "name": "BHOP",
+          "tagline": "Bunny-hop courses",
+          "description": "Bunny-hop courses to train jump timing and strafe speed."
+        },
+        "kz": {
+          "name": "KZ",
+          "tagline": "Climb maps",
+          "description": "Climb maps that test precise movement, jumps and patience."
+        }
+      }
     }
   },
   "ypoint": {
@@ -5962,7 +6070,8 @@
         "teamspeak": "TeamSpeak",
         "store": "Store",
         "challenges": "Challenges",
-        "hosting": "Buy a server"
+        "hosting": "Buy a server",
+        "game_servers": "Servers"
       },
       "community": {
         "title": "Community"
@@ -6041,7 +6150,8 @@
         "teamspeak": "TeamSpeak",
         "store": "Store",
         "finance": "Finance — payments, VIP, Ypoints",
-        "challenges": "Daily Challenges"
+        "challenges": "Daily Challenges",
+        "game_servers": "Servers by game mode"
       },
       "logout_dialog": {
         "title": "Logout",
@@ -6080,7 +6190,8 @@
           "subtitle": "Join matches, tournaments.",
           "primary": "PRIMARY"
         },
-        "operations": "OPERATIONS"
+        "operations": "OPERATIONS",
+        "game_servers": "Servers"
       },
       "community": {
         "watch": {

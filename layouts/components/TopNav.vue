@@ -306,6 +306,16 @@ const loginArrowClasses =
                       </li>
                       <li v-if="showPublicServersLink">
                         <NavigationMenuLink as-child>
+                          <NuxtLink to="/game-servers" :class="navItemClasses">
+                            <span :class="navItemChevronClasses">◢</span>
+                            <span :class="navItemLabelClasses">
+                              {{ $t("layouts.top_nav.play.game_servers") }}
+                            </span>
+                          </NuxtLink>
+                        </NavigationMenuLink>
+                      </li>
+                      <li v-if="showPublicServersLink">
+                        <NavigationMenuLink as-child>
                           <NuxtLink
                             to="/public-servers"
                             :class="navItemClasses"

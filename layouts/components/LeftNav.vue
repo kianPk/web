@@ -32,6 +32,7 @@ import {
   Target,
   Headset,
   ServerCog,
+  Gamepad2,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -305,6 +306,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <CalendarRange />
                   {{ $t("layouts.app_nav.navigation.events") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="showPublicServersLink">
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.game_servers')"
+              >
+                <NuxtLink
+                  :to="{ name: 'game-servers' }"
+                  :class="{
+                    'router-link-active': isRouteActive('game-servers'),
+                  }"
+                >
+                  <Gamepad2 />
+                  {{ $t("layouts.app_nav.navigation.game_servers") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
