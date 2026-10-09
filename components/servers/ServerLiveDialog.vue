@@ -99,7 +99,7 @@ watch(
       const apiDomain = useRuntimeConfig().public.apiDomain as string;
       const { maps } = await $fetch<{
         maps: Array<{ id: string; name: string }>;
-      }>(`https://${apiDomain}/dedicated-servers/section-maps/${modeKey}`);
+      }>(`https://${apiDomain}/hosted-servers/section-maps/${modeKey}`);
       pool.value = maps;
     } catch {
       pool.value = [];

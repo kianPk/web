@@ -115,7 +115,7 @@ async function loadPool() {
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain;
     const { maps } = await $fetch<{ maps: Array<{ name: string }> }>(
-      `https://${apiDomain}/dedicated-servers/section-maps/${modeKey.value}`,
+      `https://${apiDomain}/hosted-servers/section-maps/${modeKey.value}`,
     );
     livePool.value = maps.map((map) => map.name);
   } catch {

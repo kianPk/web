@@ -188,7 +188,7 @@ async function loadPools() {
     SERVER_MODES.map(async (mode) => {
       try {
         const { maps } = await $fetch<{ maps: SectionMap[] }>(
-          `https://${apiDomain}/dedicated-servers/section-maps/${mode.key}`,
+          `https://${apiDomain}/hosted-servers/section-maps/${mode.key}`,
         );
         pools.value[mode.key] = maps.map((map) => ({ ...map }));
       } catch {
