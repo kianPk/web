@@ -2864,7 +2864,7 @@
         },
         "servers_section": {
           "title": "Servers section",
-          "description": "How many servers each mode runs. The site creates, configures and removes them by itself within a minute; their rules, maps and plugins are fixed per mode.",
+          "description": "How many servers each mode runs. The site creates, configures and removes them by itself within a minute; their rules and plugins are fixed per mode.",
           "count_hint": "Servers for this mode",
           "reserve": "Slots kept free for matches",
           "reserve_hint": "A node only gets a new section server while it still has this many free slots for matches.",
@@ -2877,7 +2877,18 @@
             "online": "Online",
             "booting": "Starting",
             "disabled": "Disabled"
-          }
+          },
+          "maps": "Map pools",
+          "maps_hint": "The maps each mode rotates through, in order; the first is where a server starts. Servers pick up a change on their next map. A workshop map is its id from the Steam Workshop link (…?id=3139172262), a stock map its name (de_inferno).",
+          "map_name": "Name players see",
+          "map_id": "Workshop id or map name",
+          "map_add": "Add map",
+          "map_invalid": "Each map needs a name, and a workshop id (digits) or a map name like de_inferno.",
+          "maps_save": "Save map pools",
+          "maps_saved": "Map pools saved — servers use them from their next map",
+          "change_map": "Change map now",
+          "change_map_pick": "Pick a map",
+          "change_map_sent": "Changing the map on {server}"
         }
       },
       "language": {

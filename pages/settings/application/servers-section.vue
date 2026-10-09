@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import gql from "graphql-tag";
 import {
@@ -7,7 +7,14 @@ import {
   useQuery,
   useSubscription,
 } from "@vue/apollo-composable";
-import { ExternalLink, Loader2 } from "lucide-vue-next";
+import {
+  ArrowDown,
+  ArrowUp,
+  ExternalLink,
+  Loader2,
+  Plus,
+  Trash2,
+} from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "@/components/ui/toast";
@@ -58,7 +65,18 @@ const SAVE_SETTINGS = gql`
   }
 `;
 
+const CHANGE_MAP = gql`
+  mutation ChangeSectionServerMap($server_id: uuid!, $map: String!) {
+    changeSectionServerMap(server_id: $server_id, map: $map) {
+      success
+    }
+  }
+`;
+
 const RESERVE_SETTING = "servers_section_reserve_slots";
+// The api and the mode plugins accept nothing else: a workshop id or a stock
+// map name.
+const MAP_ID = /^(\d{6,12}|[a-z][a-z0-9_]{1,63})$/;
 const DEFAULT_RESERVE = 2;
 const MAX_PER_MODE = 50;
 
@@ -85,8 +103,7 @@ watch(
       name: string;
       value: string;
     }>;
-    const read = (name: string) =>
-      rows.find((row) => row.name === name)?.value;
+    const read = (name: string) => rows.find((row) => row.name === name)?.value;
     for (const mode of SERVER_MODES) {
       counts.value[mode.key] =
         parseInt(read(`servers_section_${mode.key}`) ?? "", 10) || 0;
@@ -151,6 +168,129 @@ async function save() {
     });
   } finally {
     saving.value = false;
+  }
+}
+
+type SectionMap = { id: string; name: string };
+
+const pools = ref<Record<ServerModeKey, SectionMap[]>>({
+  duels: [],
+  awp: [],
+  "2x2": [],
+});
+const savingMaps = ref(false);
+
+// The api answers with the saved pool or, before there is one, the mode's
+// defaults -- the same list the servers fetch.
+async function loadPools() {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  await Promise.all(
+    SERVER_MODES.map(async (mode) => {
+      try {
+        const { maps } = await $fetch<{ maps: SectionMap[] }>(
+          `https://${apiDomain}/dedicated-servers/section-maps/${mode.key}`,
+        );
+        pools.value[mode.key] = maps.map((map) => ({ ...map }));
+      } catch {
+        pools.value[mode.key] = [];
+      }
+    }),
+  );
+}
+
+onMounted(loadPools);
+
+function addMap(mode: ServerModeKey) {
+  pools.value[mode].push({ id: "", name: "" });
+}
+
+function removeMap(mode: ServerModeKey, index: number) {
+  pools.value[mode].splice(index, 1);
+}
+
+function moveMap(mode: ServerModeKey, index: number, by: number) {
+  const list = pools.value[mode];
+  const to = index + by;
+  if (to < 0 || to >= list.length) return;
+  [list[index], list[to]] = [list[to], list[index]];
+}
+
+function cleanPool(list: SectionMap[]) {
+  return list
+    .map((map) => ({
+      id: map.id.trim().toLowerCase(),
+      name: map.name.trim(),
+    }))
+    .filter((map) => map.id || map.name);
+}
+
+async function saveMaps() {
+  const cleaned = Object.fromEntries(
+    SERVER_MODES.map((mode) => [mode.key, cleanPool(pools.value[mode.key])]),
+  ) as Record<ServerModeKey, SectionMap[]>;
+
+  if (
+    Object.values(cleaned).some((list) =>
+      list.some((map) => !map.name || !MAP_ID.test(map.id)),
+    )
+  ) {
+    toast({
+      title: t("pages.settings.application.servers_section.map_invalid"),
+      variant: "destructive",
+    });
+    return;
+  }
+
+  savingMaps.value = true;
+  try {
+    await client.mutate({
+      mutation: SAVE_SETTINGS,
+      variables: {
+        objects: SERVER_MODES.map((mode) => ({
+          name: `servers_section_${mode.key}_maps`,
+          value: JSON.stringify(cleaned[mode.key]),
+        })),
+      },
+    });
+    await loadPools();
+    toast({
+      title: t("pages.settings.application.servers_section.maps_saved"),
+    });
+  } catch (error: any) {
+    toast({
+      title: error?.message ?? String(error),
+      variant: "destructive",
+    });
+  } finally {
+    savingMaps.value = false;
+  }
+}
+
+const mapChoice = ref<Record<string, string>>({});
+const changingMap = ref<string | null>(null);
+
+async function changeMap(server: SectionServer) {
+  const map = mapChoice.value[server.id];
+  if (!map) return;
+
+  changingMap.value = server.id;
+  try {
+    await client.mutate({
+      mutation: CHANGE_MAP,
+      variables: { server_id: server.id, map },
+    });
+    toast({
+      title: t("pages.settings.application.servers_section.change_map_sent", {
+        server: server.label,
+      }),
+    });
+  } catch (error: any) {
+    toast({
+      title: error?.message ?? String(error),
+      variant: "destructive",
+    });
+  } finally {
+    changingMap.value = null;
   }
 }
 
@@ -223,6 +363,93 @@ function statusOf(server: SectionServer) {
         </SettingsSection>
 
         <SettingsSection
+          id="servers-section-maps"
+          :title="$t('pages.settings.application.servers_section.maps')"
+          :description="
+            $t('pages.settings.application.servers_section.maps_hint')
+          "
+        >
+          <div class="grid gap-3 lg:grid-cols-3">
+            <div
+              v-for="mode in SERVER_MODES"
+              :key="mode.key"
+              class="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3"
+            >
+              <p class="text-sm font-semibold">
+                {{ $t(`pages.servers.modes.${mode.key}.name`) }}
+              </p>
+              <div
+                v-for="(map, index) in pools[mode.key]"
+                :key="index"
+                class="flex items-center gap-1"
+              >
+                <span class="w-4 shrink-0 text-xs text-muted-foreground">{{
+                  index + 1
+                }}</span>
+                <Input
+                  v-model="map.name"
+                  :placeholder="
+                    $t('pages.settings.application.servers_section.map_name')
+                  "
+                  class="h-8 min-w-0 flex-1 text-xs"
+                  dir="ltr"
+                />
+                <Input
+                  v-model="map.id"
+                  :placeholder="
+                    $t('pages.settings.application.servers_section.map_id')
+                  "
+                  class="h-8 w-28 shrink-0 font-mono text-xs"
+                  dir="ltr"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 shrink-0"
+                  :disabled="index === 0"
+                  @click="moveMap(mode.key, index, -1)"
+                >
+                  <ArrowUp class="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 shrink-0"
+                  :disabled="index === pools[mode.key].length - 1"
+                  @click="moveMap(mode.key, index, 1)"
+                >
+                  <ArrowDown class="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 shrink-0 text-destructive"
+                  @click="removeMap(mode.key, index)"
+                >
+                  <Trash2 class="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                class="w-full"
+                @click="addMap(mode.key)"
+              >
+                <Plus class="h-3.5 w-3.5" />
+                {{ $t("pages.settings.application.servers_section.map_add") }}
+              </Button>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <Button :disabled="savingMaps" @click="saveMaps">
+              <Loader2 v-if="savingMaps" class="h-4 w-4 animate-spin" />
+              {{ $t("pages.settings.application.servers_section.maps_save") }}
+            </Button>
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
           id="servers-section-fleet"
           :title="$t('pages.settings.application.servers_section.fleet')"
           :description="
@@ -250,10 +477,7 @@ function statusOf(server: SectionServer) {
                 {{ $t("pages.settings.application.servers_section.none") }}
               </p>
               <ul class="space-y-1">
-                <li
-                  v-for="server in serversByMode[mode.key]"
-                  :key="server.id"
-                >
+                <li v-for="server in serversByMode[mode.key]" :key="server.id">
                   <NuxtLink
                     :to="`/dedicated-servers/${server.id}`"
                     class="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50"
@@ -275,6 +499,50 @@ function statusOf(server: SectionServer) {
                     }}</span>
                     <ExternalLink class="h-3 w-3 text-muted-foreground" />
                   </NuxtLink>
+                  <div
+                    v-if="server.enabled"
+                    class="mt-1 flex items-center gap-1 px-2"
+                  >
+                    <select
+                      v-model="mapChoice[server.id]"
+                      class="h-7 min-w-0 flex-1 rounded-md border border-border bg-card px-2 text-xs"
+                      dir="ltr"
+                    >
+                      <option :value="undefined" disabled>
+                        {{
+                          $t(
+                            "pages.settings.application.servers_section.change_map_pick",
+                          )
+                        }}
+                      </option>
+                      <option
+                        v-for="map in pools[mode.key].filter((map) => map.id)"
+                        :key="map.id"
+                        :value="map.id"
+                      >
+                        {{ map.name || map.id }}
+                      </option>
+                    </select>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      class="h-7 shrink-0 px-2 text-xs"
+                      :disabled="
+                        !mapChoice[server.id] || changingMap === server.id
+                      "
+                      @click="changeMap(server)"
+                    >
+                      <Loader2
+                        v-if="changingMap === server.id"
+                        class="h-3 w-3 animate-spin"
+                      />
+                      {{
+                        $t(
+                          "pages.settings.application.servers_section.change_map",
+                        )
+                      }}
+                    </Button>
+                  </div>
                 </li>
               </ul>
             </div>

@@ -16,7 +16,7 @@ export type ServerModeDefinition = {
   /** Slots a server of this mode usually runs with, used when one has none set. */
   slots: number;
   commands: ServerModeCommand[];
-  /** The rotation MapChooser cycles through, as players know the maps. */
+  /** The rotation until the api's pool (kept in the settings) arrives. */
   maps: string[];
   /** Number of FAQ entries under pages.servers.modes.<key>.faq */
   faq: number;
@@ -45,7 +45,7 @@ export const SERVER_MODES: ServerModeDefinition[] = [
       { command: "!afk", descriptionKey: "afk" },
       ...MAP_VOTE_COMMANDS,
     ],
-    maps: ["Mirage Duels", "Redline", "Anubis Duels", "Forgotten Yard"],
+    maps: ["am_map", "Redline NGNW", "Redline"],
     faq: 3,
   },
   {
@@ -78,9 +78,7 @@ export function serverModeDefinition(
 
 /** A server belongs to the section through its section_mode, set by the api. */
 export function sectionModeKey(value: unknown): ServerModeKey | null {
-  return value === "duels" || value === "2x2" || value === "awp"
-    ? value
-    : null;
+  return value === "duels" || value === "2x2" || value === "awp" ? value : null;
 }
 
 /** The api labels section servers "Duels #3"; players call that one #3. */
@@ -93,13 +91,19 @@ export function serverNumber(label: string | null | undefined): number | null {
 export function liveMapName(raw: string | null | undefined): string {
   const value = String(raw || "").trim();
   if (!value || value === "unknown") return "default";
-  return value.replace(/^workshop\//, "").split("/").pop() || "default";
+  return (
+    value
+      .replace(/^workshop\//, "")
+      .split("/")
+      .pop() || "default"
+  );
 }
 
 const MAP_LABELS: Record<string, string> = {
   am_mirage_middle: "Mirage Duels",
   am_anubis_p: "Anubis Duels",
   am_redline: "Redline",
+  am_redline_ngnw: "Redline NGNW",
 };
 
 /** The name a player knows a map by: "Mirage Duels", "Inferno", awp_lego_2. */

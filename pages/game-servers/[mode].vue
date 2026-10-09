@@ -106,6 +106,25 @@ watch(modeKey, () => {
   loadQuickPlayMap();
 });
 
+// The pool operators keep in the settings; the mode's built-in list until it
+// arrives or if the api cannot be reached.
+const livePool = ref<string[] | null>(null);
+const mapPool = computed(() => livePool.value ?? mode.value?.maps ?? []);
+async function loadPool() {
+  livePool.value = null;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain;
+    const { maps } = await $fetch<{ maps: Array<{ name: string }> }>(
+      `https://${apiDomain}/dedicated-servers/section-maps/${modeKey.value}`,
+    );
+    livePool.value = maps.map((map) => map.name);
+  } catch {
+    livePool.value = null;
+  }
+}
+onMounted(loadPool);
+watch(modeKey, loadPool);
+
 function distinct(values: Array<string | null>) {
   return [...new Set(values.filter((v): v is string => !!v))].sort();
 }
@@ -376,10 +395,7 @@ useHead(() => ({
               </span>
             </Button>
 
-            <p
-              v-if="!quickPlayTarget"
-              class="text-xs text-muted-foreground"
-            >
+            <p v-if="!quickPlayTarget" class="text-xs text-muted-foreground">
               {{ $t("pages.servers.quick_play_none") }}
             </p>
           </div>
@@ -609,7 +625,9 @@ useHead(() => ({
           >
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-white/5 text-xs text-muted-foreground">
+                <tr
+                  class="border-b border-white/5 text-xs text-muted-foreground"
+                >
                   <th class="w-14 px-4 py-2.5 text-start font-medium">#</th>
                   <th class="px-3 py-2.5 text-start font-medium">
                     {{ $t("pages.servers.table.players") }}
@@ -674,7 +692,7 @@ useHead(() => ({
             <p class="text-sm font-bold">{{ $t("pages.servers.map_pool") }}</p>
             <div class="mt-3 flex flex-wrap gap-1.5">
               <span
-                v-for="map in mode.maps"
+                v-for="map in mapPool"
                 :key="map"
                 class="rounded-md bg-white/5 px-2 py-1 text-xs"
                 dir="ltr"
