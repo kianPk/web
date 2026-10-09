@@ -304,7 +304,7 @@ const loginArrowClasses =
                           </NuxtLink>
                         </NavigationMenuLink>
                       </li>
-                      <li v-if="showPublicServersLink">
+                      <li>
                         <NavigationMenuLink as-child>
                           <NuxtLink to="/game-servers" :class="navItemClasses">
                             <span :class="navItemChevronClasses">◢</span>
@@ -711,6 +711,7 @@ export default {
                   },
                   { enabled: { _eq: true } },
                   { connected: { _eq: true } },
+                  { section_mode: { _is_null: true } } as any,
                 ],
               },
             },

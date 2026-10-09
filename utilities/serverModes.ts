@@ -76,32 +76,17 @@ export function serverModeDefinition(
   return SERVER_MODES.find((mode) => mode.key === key);
 }
 
-type ServerLike = {
-  type?: string | null;
-  game_mode?: {
-    slug?: string | null;
-    name?: string | null;
-  } | null;
-};
+/** A server belongs to the section through its section_mode, set by the api. */
+export function sectionModeKey(value: unknown): ServerModeKey | null {
+  return value === "duels" || value === "2x2" || value === "awp"
+    ? value
+    : null;
+}
 
-/**
- * Which mode a public server lists under, or null when it is none of them.
- * The game mode wins over the Valve type: an AWP box runs as Casual, and a
- * Wingman-type server with no mode is still a 2x2 server.
- */
-export function serverModeKey(server: ServerLike): ServerModeKey | null {
-  const slug = (server.game_mode?.slug || "").toLowerCase();
-  if (slug === "duels" || slug === "2x2" || slug === "awp") return slug;
-
-  const text = `${slug} ${server.game_mode?.name ?? ""}`.toLowerCase();
-  if (text.trim()) {
-    if (/awp/.test(text)) return "awp";
-    if (/duel|arena|1v1/.test(text)) return "duels";
-    if (/wingman|2v2|2x2/.test(text)) return "2x2";
-    return null;
-  }
-
-  return server.type === "Wingman" ? "2x2" : null;
+/** The api labels section servers "Duels #3"; players call that one #3. */
+export function serverNumber(label: string | null | undefined): number | null {
+  const match = /#(\d+)\s*$/.exec(label || "");
+  return match ? Number(match[1]) : null;
 }
 
 /** Workshop maps report as workshop/<id>/<name>; the card wants <name>. */

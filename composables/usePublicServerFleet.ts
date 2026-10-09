@@ -1,11 +1,11 @@
 import { computed } from "vue";
 import { useQuery, useSubscription } from "@vue/apollo-composable";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
-import { $, e_server_types_enum } from "~/generated/zeus";
 import {
   SERVER_MODES,
   liveMapName,
-  serverModeKey,
+  sectionModeKey,
+  serverNumber,
   type ServerModeDefinition,
   type ServerModeKey,
 } from "~/utilities/serverModes";
@@ -22,11 +22,6 @@ export type FleetServer = {
   connection_link: string | null;
   connection_string: string | null;
   max_players: number | null;
-  game_mode: {
-    slug: string;
-    name: string;
-    description: string | null;
-  } | null;
   modeKey: ServerModeKey;
   map: string;
   players: number;
@@ -40,22 +35,21 @@ export type FleetMode = ServerModeDefinition & {
 };
 
 /**
- * Every public (non-ranked, non-LAN, online) server running one of the listed
- * modes, with live map and player counts from the one-minute status ping. All
- * modes are returned even with no servers, so the tabs never shift around.
+ * The Servers section's own servers (created by the api per mode, never by
+ * hand) that are online, with live map and player counts from the one-minute
+ * status ping. All modes are returned even with no servers, so the tabs never
+ * shift around.
  */
 export function usePublicServerFleet() {
+  // section_mode is newer than the generated client; Zeus passes a field it
+  // has no schema entry for through as-is.
   const { result: serversResult, loading } = useSubscription(
     generateSubscription({
       servers: [
         {
           where: {
             _and: [
-              {
-                type: {
-                  _neq: $("rankedType", "e_server_types_enum!"),
-                },
-              },
+              { section_mode: { _is_null: false } } as any,
               { connection_string: { _is_null: false } },
               { enabled: { _eq: true } },
               { connected: { _eq: true } },
@@ -72,19 +66,14 @@ export function usePublicServerFleet() {
           connection_link: true,
           connection_string: true,
           max_players: true,
-          game_mode: {
-            slug: true,
-            name: true,
-            description: true,
-          },
+          section_mode: true,
           server_region: {
             is_lan: true,
             description: true,
           },
-        },
+        } as any,
       ],
     }),
-    () => ({ rankedType: e_server_types_enum.Ranked }),
   );
 
   const { result: liveResult } = useQuery(
@@ -116,10 +105,11 @@ export function usePublicServerFleet() {
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
-      const modeKey = serverModeKey(row);
+      const modeKey = sectionModeKey(row.section_mode);
       if (!modeKey) continue;
 
-      const number = (counters.get(modeKey) ?? 0) + 1;
+      const number =
+        serverNumber(row.label) ?? (counters.get(modeKey) ?? 0) + 1;
       counters.set(modeKey, number);
 
       const stats = live.value.get(row.id);
@@ -139,7 +129,6 @@ export function usePublicServerFleet() {
         connection_link: row.connection_link,
         connection_string: row.connection_string,
         max_players: row.max_players,
-        game_mode: row.game_mode,
         modeKey,
         map: liveMapName(stats?.map),
         players,
@@ -148,7 +137,7 @@ export function usePublicServerFleet() {
       });
     }
 
-    return list;
+    return list.sort((a, b) => a.number - b.number);
   });
 
   const modes = computed<FleetMode[]>(() =>

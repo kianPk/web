@@ -307,6 +307,8 @@ export default {
                       _eq: true,
                     },
                   },
+                  // The Servers section's servers are listed there only.
+                  { section_mode: { _is_null: true } } as any,
                 ],
               },
               order_by: [

@@ -310,7 +310,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="showPublicServersLink">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.game_servers')"
@@ -1279,6 +1279,7 @@ export default {
                   },
                   { enabled: { _eq: true } },
                   { connected: { _eq: true } },
+                  { section_mode: { _is_null: true } } as any,
                 ],
               },
             },

@@ -2861,6 +2861,23 @@
           "premium_grant_failed": "Could not update Premium subscription",
           "premium_revoke_ok": "Premium subscription revoked",
           "premium_revoke_failed": "Could not revoke Premium subscription"
+        },
+        "servers_section": {
+          "title": "Servers section",
+          "description": "How many servers each mode runs. The site creates, configures and removes them by itself within a minute; their rules, maps and plugins are fixed per mode.",
+          "count_hint": "Servers for this mode",
+          "reserve": "Slots kept free for matches",
+          "reserve_hint": "A node only gets a new section server while it still has this many free slots for matches.",
+          "save": "Save",
+          "saved": "Saved — servers follow within a minute",
+          "fleet": "Servers",
+          "fleet_hint": "Every server the section has created, per mode.",
+          "none": "No servers yet",
+          "status": {
+            "online": "Online",
+            "booting": "Starting",
+            "disabled": "Disabled"
+          }
         }
       },
       "language": {

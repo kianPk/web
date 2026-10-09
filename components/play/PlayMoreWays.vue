@@ -116,6 +116,7 @@ const serversSubscription = generateSubscription({
           },
           { enabled: { _eq: true } },
           { connected: { _eq: true } },
+          { section_mode: { _is_null: true } } as any,
         ],
       },
       order_by: [{ label: "asc" as any }],

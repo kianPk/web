@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Gamepad2, Radio, Settings2, Users } from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
+import { Gamepad2, Radio, Users } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
-import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
 
 const { loading, servers, modes, totalPlayers } = usePublicServerFleet();
-
-const canManage = computed(() =>
-  useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
-);
 
 const ready = computed(() => !loading.value || servers.value.length > 0);
 
@@ -51,23 +44,13 @@ useHead(() => ({ title: t("pages.servers.title") }));
       <div
         class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--tac-amber)/0.18)] blur-3xl"
       />
-      <div class="relative flex flex-wrap items-start justify-between gap-4">
-        <div class="max-w-2xl space-y-2">
-          <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
-            {{ $t("pages.servers.hero_title") }}
-          </h1>
-          <p class="text-sm leading-relaxed text-white/75">
-            {{ $t("pages.servers.subtitle") }}
-          </p>
-        </div>
-        <Button v-if="canManage" as-child variant="outline" size="sm">
-          <NuxtLink to="/dedicated-servers/create">
-            <Settings2 class="h-4 w-4" />
-            <span class="hidden md:inline">{{
-              $t("pages.public_servers.setup_public_server")
-            }}</span>
-          </NuxtLink>
-        </Button>
+      <div class="relative max-w-2xl space-y-2">
+        <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
+          {{ $t("pages.servers.hero_title") }}
+        </h1>
+        <p class="text-sm leading-relaxed text-white/75">
+          {{ $t("pages.servers.subtitle") }}
+        </p>
       </div>
 
       <div class="relative mt-6 flex flex-wrap gap-2">
