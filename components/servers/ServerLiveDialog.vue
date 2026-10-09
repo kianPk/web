@@ -3,7 +3,7 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import gql from "graphql-tag";
 import { useApolloClient } from "@vue/apollo-composable";
-import { ArrowUpRight, Loader2, MapPin, Users } from "lucide-vue-next";
+import { Loader2, MapPin, Users } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import { useAuthStore } from "~/stores/AuthStore";
 import {
@@ -211,19 +211,7 @@ function onAvatarError(e: Event) {
               dir="ltr"
               >{{ server.connection_string }}</code
             >
-            <div class="flex items-center gap-2">
-              <QuickServerConnect :server="server" highlight />
-              <Button
-                as-child
-                variant="outline"
-                size="icon"
-                :title="$t('pages.public_servers.details.button')"
-              >
-                <NuxtLink :to="`/public-servers/${server.id}`">
-                  <ArrowUpRight class="h-4 w-4" />
-                </NuxtLink>
-              </Button>
-            </div>
+            <QuickServerConnect :server="server" highlight />
           </div>
 
           <div

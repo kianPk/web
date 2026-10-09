@@ -51,6 +51,8 @@ import {
   tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
 import { useQuery } from "@vue/apollo-composable";
+import gql from "graphql-tag";
+import { SERVER_MODES } from "~/utilities/serverModes";
 
 const VIP_DURATIONS = ["1d", "7d", "30d", "90d", "perm"] as const;
 
@@ -195,6 +197,33 @@ const { result: liveResult } = useQuery(
   }),
   null,
   () => ({ pollInterval: 15_000 }),
+);
+
+// The Servers section's servers have no page of their own: their mode's page
+// lists and joins them. Raw document: section_mode is newer than the
+// generated client.
+const { result: sectionResult } = useQuery(
+  gql`
+    query PublicServerSectionMode($id: uuid!) {
+      servers(where: { id: { _eq: $id } }, limit: 1) {
+        section_mode
+      }
+    }
+  `,
+  () => ({ id: serverId.value }),
+  () => ({
+    enabled: /^[0-9a-f-]{36}$/i.test(serverId.value),
+  }),
+);
+
+watch(
+  () => sectionResult.value?.servers?.[0]?.section_mode as string | undefined,
+  (mode) => {
+    if (mode && SERVER_MODES.some((entry) => entry.key === mode)) {
+      void navigateTo(`/game-servers/${mode}`, { replace: true });
+    }
+  },
+  { immediate: true },
 );
 
 const server = computed(() => serverResult.value?.servers?.[0] ?? null);
