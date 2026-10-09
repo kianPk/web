@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from "vue";
-import { ArrowUpRight, MapPin, Users } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
+import gql from "graphql-tag";
+import { useApolloClient } from "@vue/apollo-composable";
+import { ArrowUpRight, Loader2, MapPin, Users } from "lucide-vue-next";
+import { toast } from "@/components/ui/toast";
+import { useAuthStore } from "~/stores/AuthStore";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +73,61 @@ watch(
 
 onUnmounted(() => window.clearInterval(timer));
 
+// Admins switch a section server's map from here; the mode's plugin makes
+// the change, announced in chat a few seconds before it happens.
+const CHANGE_MAP = gql`
+  mutation ChangeSectionServerMap($server_id: uuid!, $map: String!) {
+    changeSectionServerMap(server_id: $server_id, map: $map) {
+      success
+    }
+  }
+`;
+
+const { t } = useI18n();
+const { client } = useApolloClient();
+const isAdmin = computed(() => useAuthStore().isAdmin);
+const pool = ref<Array<{ id: string; name: string }>>([]);
+const chosenMap = ref<string>();
+const changingMap = ref(false);
+
+watch(
+  () => [open.value, props.server?.modeKey, isAdmin.value] as const,
+  async ([isOpen, modeKey, admin]) => {
+    chosenMap.value = undefined;
+    if (!isOpen || !modeKey || !admin) return;
+    try {
+      const apiDomain = useRuntimeConfig().public.apiDomain as string;
+      const { maps } = await $fetch<{
+        maps: Array<{ id: string; name: string }>;
+      }>(`https://${apiDomain}/dedicated-servers/section-maps/${modeKey}`);
+      pool.value = maps;
+    } catch {
+      pool.value = [];
+    }
+  },
+);
+
+async function changeMap() {
+  const server = props.server;
+  if (!server || !chosenMap.value) return;
+  changingMap.value = true;
+  try {
+    await client.mutate({
+      mutation: CHANGE_MAP,
+      variables: { server_id: server.id, map: chosenMap.value },
+    });
+    toast({
+      title: t("pages.settings.application.servers_section.change_map_sent", {
+        server: server.label,
+      }),
+    });
+  } catch (error: any) {
+    toast({ title: error?.message ?? String(error), variant: "destructive" });
+  } finally {
+    changingMap.value = false;
+  }
+}
+
 const capacityPercent = computed(() => {
   const s = props.server;
   if (!s?.capacity) return 0;
@@ -85,9 +145,7 @@ function onAvatarError(e: Event) {
 
 <template>
   <Dialog v-model:open="open">
-    <DialogContent
-      class="max-w-2xl gap-0 overflow-hidden border-border/70 p-0"
-    >
+    <DialogContent class="max-w-2xl gap-0 overflow-hidden border-border/70 p-0">
       <template v-if="server">
         <div class="relative h-36 overflow-hidden">
           <img
@@ -101,7 +159,9 @@ function onAvatarError(e: Event) {
           />
           <div class="absolute inset-x-0 bottom-0 space-y-1.5 p-5">
             <DialogTitle class="text-xl font-bold tracking-tight">
-              <span class="font-mono text-muted-foreground">#{{ server.number }}</span>
+              <span class="font-mono text-muted-foreground"
+                >#{{ server.number }}</span
+              >
               {{ server.label }}
             </DialogTitle>
             <DialogDescription
@@ -164,6 +224,38 @@ function onAvatarError(e: Event) {
                 </NuxtLink>
               </Button>
             </div>
+          </div>
+
+          <div
+            v-if="isAdmin && pool.length > 0"
+            class="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-2"
+          >
+            <select
+              v-model="chosenMap"
+              class="h-8 min-w-0 flex-1 rounded-md border border-border bg-card px-2 text-xs"
+              dir="ltr"
+            >
+              <option :value="undefined" disabled>
+                {{
+                  $t(
+                    "pages.settings.application.servers_section.change_map_pick",
+                  )
+                }}
+              </option>
+              <option v-for="map in pool" :key="map.id" :value="map.id">
+                {{ map.name }}
+              </option>
+            </select>
+            <Button
+              size="sm"
+              variant="outline"
+              class="h-8 shrink-0"
+              :disabled="!chosenMap || changingMap"
+              @click="changeMap"
+            >
+              <Loader2 v-if="changingMap" class="h-3.5 w-3.5 animate-spin" />
+              {{ $t("pages.settings.application.servers_section.change_map") }}
+            </Button>
           </div>
 
           <div class="rounded-lg border border-border/60">
