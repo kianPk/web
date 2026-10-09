@@ -5897,7 +5897,7 @@
     "servers": {
       "title": "Servers",
       "hero_title": "Pick a mode and jump in",
-      "subtitle": "Duels, 2v2 and AWP servers that are always online. Pick a mode, hit Quick Game and you're in.",
+      "subtitle": "Duels, Deathmatch, BHOP and 2v2 servers that are always online. Pick a mode, hit Quick Game and you're in.",
       "stat_players": "Players in game",
       "stat_servers": "Servers online",
       "stat_modes": "Modes",
@@ -5927,7 +5927,28 @@
         "rtv": "Vote to change the map",
         "nominate": "Nominate a map for the vote",
         "timeleft": "Time left on this map",
-        "nextmap": "Show the next map"
+        "nextmap": "Show the next map",
+        "dm_guns": "Choose your main weapon and pistol",
+        "ak": "Play with the AK-47 (also !awp)",
+        "m4": "Play with the M4A4 (!m4s for the M4A1-S)",
+        "respawn_fast": "Short respawn time (!f)",
+        "respawn_medium": "Medium respawn time (!m)",
+        "respawn_slow": "Long respawn time (!s)",
+        "hs": "Headshots only: your body shots do no damage",
+        "restart": "Back to the start of the map (also !restart, !spawn, !start)",
+        "weapon": "Get a weapon (also !glock, !knife)",
+        "hud": "Smaller timer (!hud_m for the normal one)",
+        "fov": "Change your field of view (1-140, default 90)",
+        "spec": "Watch instead of playing",
+        "bonus": "Go to bonus N (also !bonus N)",
+        "info": "Map info: record and your best time",
+        "wr": "The map's record",
+        "bwr": "A bonus's record",
+        "pb": "Your best time and rank on this map",
+        "top": "The map's ten best times",
+        "practice": "Pause the timer and move freely",
+        "noclip": "Fly through walls (turns practice mode on)",
+        "resume": "Leave practice mode and carry on where you were"
       },
       "filters": {
         "all_maps": "Map: any",
@@ -5985,17 +6006,30 @@
             "a2": "When a match ends the server votes on the next map. Type !rtv to start a vote early or !nominate to put a map in it."
           }
         },
-        "awp": {
-          "name": "AWP",
-          "subtitle": "AWP only: free armour, no buying, unlimited ammo. Nothing but flicks and first-shot accuracy.",
-          "about": "Everyone spawns with an AWP, a knife and armour. Buying is off, ammo never runs out and the map changes every 20 minutes.",
+        "dm": {
+          "name": "Deathmatch",
+          "subtitle": "Train your aim as comfortably as possible with automatic HP and ammo regeneration and well-thought-out spawns",
+          "about": "Train your aim comfortably on our CS2 DM servers! Automatic health and ammo regeneration, fast and well-thought-out spawns — everything so you can focus on improving your gameplay!",
           "faq": {
-            "q1": "What are the rules?",
-            "a1": "Everyone spawns with an AWP, a knife and armour. Money and buying are off and ammo is unlimited. Rounds are short and the map changes every 20 minutes.",
-            "q2": "Can I pick up other weapons?",
-            "a2": "No. Weapons don't drop on death and map-placed weapons are removed, so it's always AWP against AWP.",
-            "q3": "How does the map change?",
-            "a3": "Every 20 minutes the server votes on the next map. Type !rtv to vote early, !nominate to suggest a map and !timeleft to see how long is left."
+            "q1": "How to change weapons in DM mode",
+            "a1": "To change weapons, write the command !guns in the game chat. !ak and !m4 pick a rifle straight away.",
+            "q2": "How to enable HS Only on DM mode",
+            "a2": "Type !hs in the game chat. Only your headshots do damage until you type it again.",
+            "q3": "How do I respawn faster?",
+            "a3": "Type !fast, !medium or !slow to pick how long you wait before you respawn. Every kill gives you full health, armour and a full magazine."
+          }
+        },
+        "bhop": {
+          "name": "BHOP",
+          "subtitle": "Show your agility and improve jump speed and accuracy on various maps",
+          "about": "Show your agility! On our CS2 BHOP servers, you can test your abilities on various maps, improving jump speed and accuracy.",
+          "faq": {
+            "q1": "How do I nominate a map in Bhop mode?",
+            "a1": "To nominate a map, type the command !nominate",
+            "q2": "What if I'm new at bhop?",
+            "a2": "We have maps from easy for new players to hard for professionals. Hold jump to hop — auto-bhop is on — and type !practice or !noclip to learn a part of the map without the timer.",
+            "q3": "How does the timer work?",
+            "a3": "Leave the start zone to start the timer and reach the end zone to stop it. !r takes you back to the start, !wr shows the record and !pb your best time."
           }
         }
       }

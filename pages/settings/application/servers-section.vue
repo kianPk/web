@@ -90,7 +90,8 @@ const { result: serversResult } = useSubscription(SERVERS_SUBSCRIPTION);
 
 const counts = ref<Record<ServerModeKey, number>>({
   duels: 0,
-  awp: 0,
+  dm: 0,
+  bhop: 0,
   "2x2": 0,
 });
 const reserve = ref(DEFAULT_RESERVE);
@@ -175,7 +176,8 @@ type SectionMap = { id: string; name: string };
 
 const pools = ref<Record<ServerModeKey, SectionMap[]>>({
   duels: [],
-  awp: [],
+  dm: [],
+  bhop: [],
   "2x2": [],
 });
 const savingMaps = ref(false);
