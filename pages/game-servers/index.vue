@@ -40,7 +40,7 @@ useHead(() => ({ title: t("pages.servers.title") }));
 <template>
   <PageTransition :delay="0">
     <ServersVideoHero>
-      <div class="flex min-h-[220px] flex-col justify-center p-6 md:p-8">
+      <div class="flex flex-1 flex-col justify-end p-6 md:p-8">
         <div class="max-w-xl space-y-2">
           <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
             {{ $t("pages.servers.hero_title") }}

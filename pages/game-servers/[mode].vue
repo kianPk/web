@@ -295,9 +295,7 @@ useHead(() => ({
   <template v-else>
     <PageTransition :delay="40">
       <ServersVideoHero class="mt-3">
-        <div
-          class="flex min-h-[260px] flex-col justify-center gap-4 p-6 md:p-8"
-        >
+        <div class="flex flex-1 flex-col justify-end gap-4 p-6 md:p-8">
           <div class="space-y-2">
             <h1 class="text-4xl font-bold tracking-tight">
               {{ modeName }}

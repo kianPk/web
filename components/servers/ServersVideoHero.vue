@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
-// The Servers section's banner: a looping gameplay clip under a veil dark
-// enough for the text over it.
+// The Servers section's banner: a looping gameplay clip, shown whole (the box
+// keeps the clip's 1280x714 shape), with the text over its darkened bottom.
 const video = ref<HTMLVideoElement>();
 
 onMounted(() => {
@@ -21,7 +21,7 @@ onMounted(() => {
 
 <template>
   <section
-    class="relative overflow-hidden rounded-xl bg-black ring-1 ring-white/5"
+    class="relative flex aspect-[1280/714] flex-col overflow-hidden rounded-xl bg-black ring-1 ring-white/5"
   >
     <video
       ref="video"
@@ -35,12 +35,12 @@ onMounted(() => {
       aria-hidden="true"
     />
     <div
-      class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/15 rtl:bg-gradient-to-l"
+      class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent rtl:bg-gradient-to-l"
     />
     <div
-      class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent"
+      class="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent"
     />
-    <div class="relative">
+    <div class="relative flex flex-1 flex-col">
       <slot />
     </div>
   </section>
