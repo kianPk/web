@@ -62,6 +62,7 @@ export const SERVER_MODES: ServerModeDefinition[] = [
       { command: "!medium", descriptionKey: "respawn_medium" },
       { command: "!slow", descriptionKey: "respawn_slow" },
       { command: "!hs", descriptionKey: "hs" },
+      { command: "!sounds", descriptionKey: "sounds" },
       { command: "!rtv", descriptionKey: "rtv" },
       { command: "!nominate", descriptionKey: "nominate" },
       { command: "!timeleft", descriptionKey: "timeleft" },

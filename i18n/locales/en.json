@@ -5935,6 +5935,7 @@
         "respawn_medium": "Medium respawn time (!m)",
         "respawn_slow": "Long respawn time (!s)",
         "hs": "Headshots only: your body shots do no damage",
+        "sounds": "Turn the kill sounds on or off",
         "restart": "Back to the start of the map (also !restart, !spawn, !start)",
         "weapon": "Get a weapon (also !glock, !knife)",
         "hud": "Smaller timer (!hud_m for the normal one)",
