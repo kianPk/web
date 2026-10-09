@@ -5909,6 +5909,7 @@
       "quick_play_map": "Map preference",
       "any_map": "Any map",
       "quick_play_none": "No server has a free slot right now",
+      "login_steam": "Login via Steam",
       "commands_title": "Server commands",
       "commands_hint": "Type them in the in-game chat. Click one to copy it.",
       "show_all": "Show all",
@@ -5936,6 +5937,7 @@
         "sort_players_desc": "Players ↓",
         "sort_players_asc": "Players ↑",
         "sort_number": "Number",
+        "view": "View",
         "view_tiles": "Tiles",
         "view_table": "Table"
       },

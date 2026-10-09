@@ -10,10 +10,10 @@ import {
   LayoutGrid,
   List,
   Loader2,
+  LogIn,
   MapPin,
   Play,
   Settings,
-  Users,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +54,9 @@ import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import ServerLiveDialog from "~/components/servers/ServerLiveDialog.vue";
+import ServersVideoHero from "~/components/servers/ServersVideoHero.vue";
+import { useAuthStore } from "~/stores/AuthStore";
+import { loginLinks } from "~/utilities/loginLinks";
 import { mapLabel } from "~/utilities/serverModes";
 import {
   acAllowsJoin,
@@ -76,8 +79,16 @@ const modeName = computed(() =>
   mode.value ? t(`pages.servers.modes.${mode.value.key}.name`) : "",
 );
 
+const loggedIn = computed(() => !!useAuthStore().me?.steam_id);
+function loginWithSteam() {
+  window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.href)}`;
+}
+
 type SortKey = "players_desc" | "players_asc" | "number";
 type ViewKey = "tiles" | "table";
+
+const TOOLBAR_SELECT =
+  "h-8 w-auto min-w-0 gap-1.5 border-0 bg-card px-3 text-xs font-medium ring-1 ring-white/5";
 
 const ANY = "all";
 const mapFilter = ref(ANY);
@@ -247,21 +258,18 @@ useHead(() => ({
         v-for="m in modes"
         :key="m.key"
         :to="`/game-servers/${m.key}`"
-        class="flex min-w-24 shrink-0 flex-col items-center rounded-lg px-4 py-2 transition-colors"
+        class="flex shrink-0 flex-col items-start rounded-lg px-3 py-1.5 leading-tight transition-colors"
         :class="
           m.key === modeKey
-            ? 'bg-card text-foreground ring-1 ring-white/10'
-            : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'
+            ? 'bg-card text-[#e3d39a]'
+            : 'text-foreground hover:bg-card/60'
         "
       >
-        <span class="text-sm font-bold">{{
+        <span class="text-sm font-medium">{{
           $t(`pages.servers.modes.${m.key}.name`)
         }}</span>
-        <span
-          class="inline-flex items-center gap-1 text-[0.7rem] tabular-nums"
-          :class="m.players > 0 ? 'text-emerald-400' : 'opacity-60'"
-        >
-          <Users class="h-3 w-3" />{{ m.players }}
+        <span class="text-[0.7rem] tabular-nums text-muted-foreground">
+          {{ m.players }}
         </span>
       </NuxtLink>
     </nav>
@@ -286,36 +294,30 @@ useHead(() => ({
 
   <template v-else>
     <PageTransition :delay="40">
-      <section
-        class="relative mt-3 overflow-hidden rounded-2xl bg-card ring-1 ring-white/5"
-      >
-        <img
-          :src="mode.cover"
-          alt=""
-          class="absolute inset-0 h-full w-full object-cover opacity-40"
-          @error="onImgError"
-        />
+      <ServersVideoHero class="mt-3">
         <div
-          class="absolute inset-0 bg-gradient-to-r from-card via-card/80 to-card/10 rtl:bg-gradient-to-l"
-        />
-
-        <div class="relative flex flex-col gap-5 p-5 md:p-7">
+          class="flex min-h-[260px] flex-col justify-center gap-4 p-6 md:p-8"
+        >
           <div class="space-y-2">
-            <h1 class="text-3xl font-extrabold tracking-tight md:text-4xl">
+            <h1 class="text-4xl font-bold tracking-tight">
               {{ modeName }}
             </h1>
             <div
-              class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-white/70"
+              class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-white"
             >
               <TooltipProvider :delay-duration="100">
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <button
                       type="button"
-                      class="inline-flex items-center gap-1 hover:text-white"
+                      class="inline-flex items-center gap-1.5 hover:text-white/80"
                     >
                       {{ $t("pages.servers.about_mode") }}
-                      <CircleHelp class="h-3.5 w-3.5" />
+                      <span
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-black/30"
+                      >
+                        <CircleHelp class="h-3 w-3" />
+                      </span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-xs text-xs leading-relaxed">
@@ -325,125 +327,118 @@ useHead(() => ({
               </TooltipProvider>
               <button
                 type="button"
-                class="inline-flex items-center gap-1.5 hover:text-white"
+                class="inline-flex items-center gap-1.5 hover:text-white/80"
                 @click="commandsOpen = true"
               >
                 {{ $t("pages.servers.server_commands") }}
                 <span
-                  class="inline-flex h-5 w-5 items-center justify-center rounded bg-white/10"
+                  class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-black/30"
                 >
-                  <KeyRound class="h-3 w-3" />
+                  <KeyRound class="h-2.5 w-2.5" />
                 </span>
               </button>
             </div>
-            <p class="max-w-xl pt-1 text-sm leading-relaxed text-white/80">
-              {{ $t(`pages.servers.modes.${mode.key}.subtitle`) }}
-            </p>
           </div>
+          <p class="max-w-xl text-sm leading-relaxed text-white">
+            {{ $t(`pages.servers.modes.${mode.key}.subtitle`) }}
+          </p>
 
           <div class="flex flex-wrap items-center gap-2">
-            <Popover>
-              <PopoverTrigger as-child>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  class="h-12 w-12 shrink-0 rounded-xl"
-                  :title="$t('pages.servers.quick_play_settings')"
-                >
-                  <Settings class="h-5 w-5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" class="w-64 space-y-2">
-                <p class="text-sm font-semibold">
-                  {{ $t("pages.servers.quick_play_settings") }}
-                </p>
-                <p class="text-xs text-muted-foreground">
-                  {{ $t("pages.servers.quick_play_map") }}
-                </p>
-                <Select v-model="quickPlayMap">
-                  <SelectTrigger class="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem :value="ANY">{{
-                      $t("pages.servers.any_map")
-                    }}</SelectItem>
-                    <SelectItem v-for="map in maps" :key="map" :value="map">
-                      {{ mapLabel(map) }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </PopoverContent>
-            </Popover>
+            <div class="flex">
+              <Popover>
+                <PopoverTrigger as-child>
+                  <button
+                    type="button"
+                    class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-s-lg bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+                    :title="$t('pages.servers.quick_play_settings')"
+                  >
+                    <Settings class="h-5 w-5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" class="w-64 space-y-2">
+                  <p class="text-sm font-semibold">
+                    {{ $t("pages.servers.quick_play_settings") }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t("pages.servers.quick_play_map") }}
+                  </p>
+                  <Select v-model="quickPlayMap">
+                    <SelectTrigger class="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem :value="ANY">{{
+                        $t("pages.servers.any_map")
+                      }}</SelectItem>
+                      <SelectItem v-for="map in maps" :key="map" :value="map">
+                        {{ mapLabel(map) }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </PopoverContent>
+              </Popover>
 
-            <Button
-              class="tac-amber-cta h-12 min-w-52 flex-col gap-0 rounded-xl px-6 leading-tight"
-              :disabled="!quickPlayTarget || joining"
-              @click="quickPlay"
+              <button
+                type="button"
+                class="inline-flex h-12 min-w-40 flex-col items-start justify-center rounded-e-lg bg-[rgba(115,121,128,0.1)] px-4 text-start leading-tight text-white backdrop-blur-sm transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="!quickPlayTarget || joining"
+                @click="quickPlay"
+              >
+                <span class="inline-flex items-center gap-2 text-sm font-bold">
+                  {{ $t("pages.servers.quick_play") }}
+                  <Loader2 v-if="joining" class="h-4 w-4 animate-spin" />
+                  <Play v-else class="h-3.5 w-3.5 fill-current" />
+                </span>
+                <span class="text-[0.65rem] text-white/60">
+                  {{
+                    quickPlayMap === ANY
+                      ? $t("pages.servers.any_map")
+                      : mapLabel(quickPlayMap)
+                  }}
+                </span>
+              </button>
+            </div>
+
+            <button
+              v-if="!loggedIn"
+              type="button"
+              class="inline-flex h-12 items-center gap-2 rounded-lg bg-[rgba(115,121,128,0.1)] px-4 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+              @click="loginWithSteam"
             >
-              <span class="inline-flex items-center gap-2 text-base font-bold">
-                {{ $t("pages.servers.quick_play") }}
-                <Loader2 v-if="joining" class="h-4 w-4 animate-spin" />
-                <Play v-else class="h-4 w-4 fill-current" />
-              </span>
-              <span class="text-[0.65rem] font-medium opacity-75">
-                {{
-                  quickPlayMap === ANY
-                    ? $t("pages.servers.any_map")
-                    : mapLabel(quickPlayMap)
-                }}
-              </span>
-            </Button>
+              <LogIn class="h-4 w-4" />
+              {{ $t("pages.servers.login_steam") }}
+            </button>
 
-            <p v-if="!quickPlayTarget" class="text-xs text-muted-foreground">
+            <p v-if="!quickPlayTarget" class="text-xs text-white/60">
               {{ $t("pages.servers.quick_play_none") }}
             </p>
           </div>
         </div>
-      </section>
+      </ServersVideoHero>
     </PageTransition>
 
     <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
       <div class="min-w-0 flex-1">
         <PageTransition :delay="80">
           <div class="flex flex-wrap items-center gap-2">
-            <div
-              class="inline-flex h-9 items-center rounded-lg bg-card p-0.5 ring-1 ring-white/5"
-            >
-              <button
-                type="button"
-                class="inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-xs"
-                :class="
-                  view === 'tiles'
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground'
-                "
-                @click="view = 'tiles'"
-              >
-                <LayoutGrid class="h-4 w-4" />
-                <span class="hidden sm:inline">{{
+            <Select v-model="view">
+              <SelectTrigger :class="TOOLBAR_SELECT">
+                <LayoutGrid v-if="view === 'tiles'" class="h-3.5 w-3.5" />
+                <List v-else class="h-3.5 w-3.5" />
+                <span>{{ $t("pages.servers.filters.view") }}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tiles">{{
                   $t("pages.servers.filters.view_tiles")
-                }}</span>
-              </button>
-              <button
-                type="button"
-                class="inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-xs"
-                :class="
-                  view === 'table'
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground'
-                "
-                @click="view = 'table'"
-              >
-                <List class="h-4 w-4" />
-                <span class="hidden sm:inline">{{
+                }}</SelectItem>
+                <SelectItem value="table">{{
                   $t("pages.servers.filters.view_table")
-                }}</span>
-              </button>
-            </div>
+                }}</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Select v-model="mapFilter">
-              <SelectTrigger class="h-9 w-40 bg-card">
+              <SelectTrigger :class="TOOLBAR_SELECT">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -457,7 +452,7 @@ useHead(() => ({
             </Select>
 
             <Select v-model="regionFilter">
-              <SelectTrigger class="h-9 w-40 bg-card">
+              <SelectTrigger :class="TOOLBAR_SELECT">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -476,25 +471,31 @@ useHead(() => ({
 
             <button
               type="button"
-              class="inline-flex h-9 items-center gap-2 rounded-lg bg-card px-3 text-xs ring-1 ring-white/5 transition-colors"
-              :class="showFull ? 'text-foreground' : 'text-muted-foreground'"
+              role="switch"
+              :aria-checked="showFull"
+              class="inline-flex h-8 items-center gap-2 rounded-md bg-card px-3 text-xs font-medium ring-1 ring-white/5"
               @click="showFull = !showFull"
             >
-              <span
-                class="inline-flex h-4 w-4 items-center justify-center rounded border"
-                :class="
-                  showFull
-                    ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber))] text-black'
-                    : 'border-white/30'
-                "
-              >
-                <Check v-if="showFull" class="h-3 w-3" />
-              </span>
               {{ $t("pages.servers.filters.show_full") }}
+              <span
+                class="relative inline-flex h-4 w-7 items-center rounded-full transition-colors"
+                :class="showFull ? 'bg-white/20' : 'bg-white/10'"
+              >
+                <span
+                  class="absolute start-0.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full transition-transform"
+                  :class="
+                    showFull
+                      ? 'translate-x-2.5 bg-[#e3d39a] text-black rtl:-translate-x-2.5'
+                      : 'bg-white/40'
+                  "
+                >
+                  <Check v-if="showFull" class="h-2.5 w-2.5" />
+                </span>
+              </span>
             </button>
 
             <Select v-model="sortKey">
-              <SelectTrigger class="ms-auto h-9 w-48 bg-card">
+              <SelectTrigger :class="['ms-auto', TOOLBAR_SELECT]">
                 <span class="text-muted-foreground"
                   >{{ $t("pages.servers.filters.sort_by") }}:</span
                 >
@@ -535,76 +536,58 @@ useHead(() => ({
 
           <div
             v-else-if="view === 'tiles'"
-            class="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2"
+            class="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2"
           >
             <div
               v-for="server in visibleServers"
               :key="server.id"
               role="button"
               tabindex="0"
-              class="group relative flex h-[88px] cursor-pointer items-stretch overflow-hidden rounded-xl bg-card ring-1 ring-white/5 transition-all hover:ring-white/20"
+              class="group relative flex h-[76px] cursor-pointer items-center gap-3 overflow-hidden rounded-xl border border-white/5 bg-card px-3.5 transition-colors hover:border-white/15"
               @click="openServer(server)"
               @keydown.enter="openServer(server)"
             >
               <img
                 :src="mapImage(server.map)"
                 alt=""
-                class="absolute inset-0 h-full w-full object-cover opacity-30 transition-all duration-300 group-hover:scale-105 group-hover:opacity-45"
+                class="absolute inset-0 h-full w-full rounded-[10px] object-cover opacity-20 transition-opacity duration-300 group-hover:opacity-30"
                 @error="onImgError"
               />
-              <div
-                class="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent rtl:bg-gradient-to-l"
-              />
 
-              <div
-                class="relative flex min-w-0 flex-1 flex-col justify-between px-4 py-3"
-              >
-                <div class="flex items-center gap-2 text-sm">
-                  <span class="font-extrabold">#{{ server.number }}</span>
+              <div class="relative flex min-w-0 flex-1 flex-col gap-1.5">
+                <div class="flex items-center gap-2 text-[0.8rem] font-medium">
+                  <b class="font-bold">#{{ server.number }}</b>
                   <span
                     v-if="server.regionName"
-                    class="inline-flex min-w-0 items-center gap-1 text-xs text-white/60"
+                    class="inline-flex min-w-0 items-center gap-1"
                   >
-                    <MapPin class="h-3 w-3 shrink-0" />
+                    <MapPin class="h-3 w-3 shrink-0 text-white/60" />
                     <span class="truncate">{{ server.regionName }}</span>
                   </span>
                 </div>
-                <div class="flex items-center gap-3 text-xs">
+                <div
+                  class="flex min-w-0 items-center gap-2 text-xs font-medium"
+                >
                   <span
-                    class="inline-flex items-center gap-1 font-semibold tabular-nums"
-                    :class="playersTone(server)"
+                    class="shrink-0 rounded px-1.5 py-0.5 tabular-nums"
+                    :class="
+                      server.full
+                        ? 'bg-red-500/15 text-red-400'
+                        : 'bg-[#e3d39a]/15 text-[#e3d39a]'
+                    "
                   >
-                    <Users class="h-3.5 w-3.5" />
-                    {{ server.players }}/{{ server.capacity }}
+                    {{ server.players }}
+                    <span class="opacity-60">/ {{ server.capacity }}</span>
                   </span>
-                  <span class="truncate text-white/80">{{
-                    mapLabel(server.map)
-                  }}</span>
+                  <span class="text-white/40">•</span>
+                  <span class="truncate">{{ mapLabel(server.map) }}</span>
                 </div>
               </div>
 
-              <div class="relative flex items-center gap-1.5 pe-3">
+              <div class="relative flex shrink-0 items-center gap-2.5">
                 <button
                   type="button"
-                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-                  :title="$t('pages.servers.copy_ip')"
-                  @click.stop="
-                    copyText(
-                      server.connection_string,
-                      $t('pages.servers.copied_ip'),
-                    )
-                  "
-                >
-                  <Copy class="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
-                  :class="
-                    server.full
-                      ? 'cursor-not-allowed bg-white/5 text-white/30'
-                      : 'bg-[hsl(var(--tac-amber))] text-black hover:brightness-110'
-                  "
+                  class="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-white opacity-50 transition-opacity hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
                   :disabled="server.full"
                   :title="
                     server.full
@@ -613,7 +596,20 @@ useHead(() => ({
                   "
                   @click.stop="connect(server)"
                 >
-                  <Play class="h-4 w-4 fill-current" />
+                  <Play class="ms-0.5 h-3 w-3 fill-current" />
+                </button>
+                <button
+                  type="button"
+                  class="text-white opacity-50 transition-opacity hover:opacity-100"
+                  :title="$t('pages.servers.copy_ip')"
+                  @click.stop="
+                    copyText(
+                      server.connection_string,
+                      $t('pages.servers.copied_ip'),
+                    )
+                  "
+                >
+                  <Copy class="h-[18px] w-[18px]" />
                 </button>
               </div>
             </div>

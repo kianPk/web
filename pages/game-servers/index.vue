@@ -5,6 +5,7 @@ import { Gamepad2, Radio, Users } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
+import ServersVideoHero from "~/components/servers/ServersVideoHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 
 const { loading, servers, modes, totalPlayers } = usePublicServerFleet();
@@ -38,46 +39,42 @@ useHead(() => ({ title: t("pages.servers.title") }));
 
 <template>
   <PageTransition :delay="0">
-    <section
-      class="relative overflow-hidden rounded-2xl bg-[linear-gradient(115deg,hsl(160_45%_22%)_0%,hsl(200_30%_14%)_45%,hsl(var(--card))_100%)] p-6 ring-1 ring-white/5 md:p-8"
-    >
-      <div
-        class="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--tac-amber)/0.18)] blur-3xl"
-      />
-      <div class="relative max-w-2xl space-y-2">
-        <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
-          {{ $t("pages.servers.hero_title") }}
-        </h1>
-        <p class="text-sm leading-relaxed text-white/75">
-          {{ $t("pages.servers.subtitle") }}
-        </p>
-      </div>
+    <ServersVideoHero>
+      <div class="flex min-h-[220px] flex-col justify-center p-6 md:p-8">
+        <div class="max-w-xl space-y-2">
+          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
+            {{ $t("pages.servers.hero_title") }}
+          </h1>
+          <p class="text-sm leading-relaxed text-white/80">
+            {{ $t("pages.servers.subtitle") }}
+          </p>
+        </div>
 
-      <div class="relative mt-6 flex flex-wrap gap-2">
-        <div
-          v-for="stat in stats"
-          :key="stat.key"
-          class="flex items-center gap-3 rounded-lg bg-black/25 px-4 py-2.5 backdrop-blur-sm"
-        >
-          <component
-            :is="stat.icon"
-            class="h-5 w-5 text-[hsl(var(--tac-amber))]"
-          />
-          <div class="leading-tight">
-            <p class="text-[0.7rem] text-white/60">{{ $t(stat.label) }}</p>
-            <p class="font-mono text-sm font-bold tabular-nums">
-              {{ stat.value }}
-            </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <div
+            v-for="stat in stats"
+            :key="stat.key"
+            class="flex items-center gap-2.5 rounded-lg bg-white/[0.07] px-3 py-2 backdrop-blur-sm"
+          >
+            <component :is="stat.icon" class="h-4 w-4 text-[#e3d39a]" />
+            <div class="leading-tight">
+              <p class="text-[0.65rem] text-white/60">{{ $t(stat.label) }}</p>
+              <p class="text-sm font-bold tabular-nums">
+                {{ stat.value }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </ServersVideoHero>
   </PageTransition>
 
   <PageTransition :delay="80">
-    <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div
+      class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"
+    >
       <template v-if="!ready">
-        <Skeleton v-for="i in 3" :key="i" class="aspect-[5/6] rounded-xl" />
+        <Skeleton v-for="i in 3" :key="i" class="aspect-[4/5] rounded-lg" />
       </template>
       <ServerModeTile
         v-for="(mode, index) in modes"

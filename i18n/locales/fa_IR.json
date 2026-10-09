@@ -5909,6 +5909,7 @@
       "quick_play_map": "مپ دلخواه",
       "any_map": "هر مپی",
       "quick_play_none": "فعلاً هیچ سروری جای خالی ندارد",
+      "login_steam": "ورود با Steam",
       "commands_title": "دستورات سرور",
       "commands_hint": "این‌ها را در چت بازی تایپ کن. برای کپی روی هرکدام کلیک کن.",
       "show_all": "نمایش همه",
@@ -5936,6 +5937,7 @@
         "sort_players_desc": "بازیکن ↓",
         "sort_players_asc": "بازیکن ↑",
         "sort_number": "شماره",
+        "view": "نمایش",
         "view_tiles": "کاشی",
         "view_table": "جدول"
       },
