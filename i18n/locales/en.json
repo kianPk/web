@@ -5628,7 +5628,7 @@
         "removed": "Video removed",
         "upload_failed": "Could not upload the video",
         "remove_failed": "Could not remove the video",
-        "only_mp4": "Only MP4 videos can be uploaded",
+        "only_mp4": "Only MP4 or WebM videos can be uploaded",
         "too_large": "The video is larger than {mb} MB"
       }
     },

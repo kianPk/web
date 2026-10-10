@@ -5272,7 +5272,7 @@
         "removed": "Vídeo quitado",
         "upload_failed": "No se pudo subir el vídeo",
         "remove_failed": "No se pudo quitar el vídeo",
-        "only_mp4": "Solo se pueden subir vídeos MP4",
+        "only_mp4": "Solo se pueden subir vídeos MP4 o WebM",
         "too_large": "El vídeo pesa más de {mb} MB"
       }
     },

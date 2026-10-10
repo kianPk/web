@@ -422,6 +422,7 @@ export function utilityStillZoom(kind: string): number {
 export function utilityClipFileName(
   mapName: string | null | undefined,
   name: string | null | undefined,
+  extension: "mp4" | "webm" = "mp4",
 ): string {
   const slug = [(mapName ?? "").replace(/^(de|cs)_/, ""), name ?? ""]
     .join(" ")
@@ -430,7 +431,7 @@ export function utilityClipFileName(
     .replace(/^-+|-+$/g, "")
     .slice(0, 80)
     .replace(/-+$/, "");
-  return `${slug || "lineup"}.mp4`;
+  return `${slug || "lineup"}.${extension}`;
 }
 
 /**
@@ -444,7 +445,11 @@ export function utilityClipDownload(
   if (!url) {
     return null;
   }
-  const name = utilityClipFileName(lineup.map_name, lineup.name);
+  const name = utilityClipFileName(
+    lineup.map_name,
+    lineup.name,
+    /\.webm(\?|#|$)/i.test(url) ? "webm" : "mp4",
+  );
   return { href: clipDownloadUrl(url, name), name };
 }
 

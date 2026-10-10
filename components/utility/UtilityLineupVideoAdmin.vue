@@ -11,6 +11,19 @@ import type { UtilityLineup } from "~/types/utility";
 // The API takes one direct post, which Cloudflare caps at ~100MB.
 const MAX_BYTES = 90 * 1024 * 1024;
 
+const TYPES: Record<string, string> = { mp4: "video/mp4", webm: "video/webm" };
+
+// Some systems hand a .webm over with an empty type, and the API judges the
+// part by its declared type before it reads a byte, so it is set from the
+// extension whenever the browser left it out.
+function videoType(file: File): string | null {
+  if (Object.values(TYPES).includes(file.type)) {
+    return file.type;
+  }
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return TYPES[extension] ?? null;
+}
+
 const props = defineProps<{ lineup: UtilityLineup }>();
 
 const emit = defineEmits<{
@@ -47,9 +60,18 @@ function durationOf(file: File): Promise<number | null> {
   });
 }
 
-function send(file: File, durationMs: number | null): Promise<void> {
+function send(
+  file: File,
+  type: string,
+  durationMs: number | null,
+): Promise<void> {
   const form = new FormData();
-  form.append("file", file, file.name || "lineup.mp4");
+  const extension = type === TYPES.webm ? "webm" : "mp4";
+  form.append(
+    "file",
+    new Blob([file], { type }),
+    file.name || `lineup.${extension}`,
+  );
   if (durationMs) {
     form.append("duration_ms", String(Math.round(durationMs)));
   }
@@ -103,7 +125,8 @@ async function onPick(event: Event) {
     return;
   }
 
-  if (file.type !== "video/mp4") {
+  const type = videoType(file);
+  if (!type) {
     toast({
       title: t("pages.utility.video.only_mp4"),
       variant: "destructive",
@@ -121,7 +144,7 @@ async function onPick(event: Event) {
 
   progress.value = 0;
   try {
-    await send(file, await durationOf(file));
+    await send(file, type, await durationOf(file));
     await refresh();
     toast({ title: t("pages.utility.video.uploaded") });
   } catch (error) {
@@ -172,7 +195,7 @@ async function remove() {
     <input
       ref="input"
       type="file"
-      accept="video/mp4"
+      accept="video/mp4,video/webm,.mp4,.webm"
       class="hidden"
       @change="onPick"
     />

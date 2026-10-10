@@ -5272,7 +5272,7 @@
         "removed": "Video entfernt",
         "upload_failed": "Video konnte nicht hochgeladen werden",
         "remove_failed": "Video konnte nicht entfernt werden",
-        "only_mp4": "Nur MP4-Videos können hochgeladen werden",
+        "only_mp4": "Nur MP4- oder WebM-Videos können hochgeladen werden",
         "too_large": "Das Video ist größer als {mb} MB"
       }
     },

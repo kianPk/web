@@ -5272,7 +5272,7 @@
         "removed": "视频已删除",
         "upload_failed": "无法上传视频",
         "remove_failed": "无法删除视频",
-        "only_mp4": "只能上传 MP4 视频",
+        "only_mp4": "只能上传 MP4 或 WebM 视频",
         "too_large": "视频超过 {mb} MB"
       }
     },

@@ -5272,7 +5272,7 @@
         "removed": "Video kaldırıldı",
         "upload_failed": "Video yüklenemedi",
         "remove_failed": "Video kaldırılamadı",
-        "only_mp4": "Yalnızca MP4 videolar yüklenebilir",
+        "only_mp4": "Yalnızca MP4 veya WebM videolar yüklenebilir",
         "too_large": "Video {mb} MB'tan büyük"
       }
     },

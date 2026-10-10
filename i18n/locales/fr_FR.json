@@ -5272,7 +5272,7 @@
         "removed": "Vidéo supprimée",
         "upload_failed": "Impossible d'importer la vidéo",
         "remove_failed": "Impossible de supprimer la vidéo",
-        "only_mp4": "Seules les vidéos MP4 peuvent être importées",
+        "only_mp4": "Seules les vidéos MP4 ou WebM peuvent être importées",
         "too_large": "La vidéo dépasse {mb} Mo"
       }
     },

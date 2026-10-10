@@ -5272,7 +5272,7 @@
         "removed": "Wideo usunięte",
         "upload_failed": "Nie udało się przesłać wideo",
         "remove_failed": "Nie udało się usunąć wideo",
-        "only_mp4": "Można przesyłać tylko wideo MP4",
+        "only_mp4": "Można przesyłać tylko wideo MP4 lub WebM",
         "too_large": "Wideo jest większe niż {mb} MB"
       }
     },

@@ -5272,7 +5272,7 @@
         "removed": "Video borttagen",
         "upload_failed": "Det gick inte att ladda upp videon",
         "remove_failed": "Det gick inte att ta bort videon",
-        "only_mp4": "Endast MP4-videor kan laddas upp",
+        "only_mp4": "Endast MP4- eller WebM-videor kan laddas upp",
         "too_large": "Videon är större än {mb} MB"
       }
     },

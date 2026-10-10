@@ -5272,7 +5272,7 @@
         "removed": "Video fjernet",
         "upload_failed": "Videoen kunne ikke uploades",
         "remove_failed": "Videoen kunne ikke fjernes",
-        "only_mp4": "Kun MP4-videoer kan uploades",
+        "only_mp4": "Kun MP4- eller WebM-videoer kan uploades",
         "too_large": "Videoen er større end {mb} MB"
       }
     },

@@ -5272,7 +5272,7 @@
         "removed": "影片已刪除",
         "upload_failed": "無法上傳影片",
         "remove_failed": "無法刪除影片",
-        "only_mp4": "只能上傳 MP4 影片",
+        "only_mp4": "只能上傳 MP4 或 WebM 影片",
         "too_large": "影片超過 {mb} MB"
       }
     },
