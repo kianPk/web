@@ -26,7 +26,6 @@ import UtilityPlaybooksPanel from "~/components/utility/UtilityPlaybooksPanel.vu
 import UtilityCreatePanel from "~/components/utility/UtilityCreatePanel.vue";
 import UtilityMapRail from "~/components/utility/UtilityMapRail.vue";
 import UtilityPracticeBar from "~/components/utility/UtilityPracticeBar.vue";
-import UtilityPracticePanel from "~/components/utility/UtilityPracticePanel.vue";
 import UtilityMetaIcon from "~/components/utility/UtilityMetaIcon.vue";
 import UtilityMetaPanel from "~/components/utility/UtilityMetaPanel.vue";
 import type { UtilityMetaScope } from "~/components/utility/UtilityMetaPanel.vue";
@@ -52,7 +51,6 @@ import {
   notOpenedHere,
   openedHere,
   stepOutOf,
-  useBackDismiss,
 } from "~/composables/useBackDismiss";
 import { addressOpenMode, addressWrites } from "~/utilities/backDismiss";
 import { escapeTaken, takeEscape } from "~/utilities/escapeKey";
@@ -100,7 +98,6 @@ import type {
   UtilityLineupContext,
   UtilityMetaSpot,
   UtilityPanelBoard,
-  UtilityPracticeTarget,
   UtilityScope,
   UtilitySort,
 } from "~/utilities/utilityDisplay";
@@ -273,7 +270,6 @@ const page = computed<number>({
 const perPage = 60;
 const selectedId = ref<string | null>(null);
 const hoveredId = ref<string | null>(null);
-const practiceOpen = ref(false);
 
 // The same session the top bar shows, so the page's button never disagrees
 // with the chrome about whether a server exists.
@@ -830,21 +826,6 @@ watch(
       !tabs.some((tab) => tab.key === listTab.value)
     ) {
       listTab.value = LIST_TAB;
-    }
-  },
-  { immediate: true },
-);
-
-// ?practice= carries an invite code, not a session id.
-const joinInviteCode = computed(() =>
-  typeof route.query.practice === "string" ? route.query.practice : null,
-);
-
-watch(
-  joinInviteCode,
-  (id) => {
-    if (id) {
-      practiceOpen.value = true;
     }
   },
   { immediate: true },
@@ -1575,7 +1556,6 @@ watch(
     if (tab === previousTab) {
       return;
     }
-    practiceOpen.value = false;
     const patch: Record<string, string | null> = {};
     if (lineup && lineup === previousLineup) {
       patch.lineup = null;
@@ -1589,62 +1569,9 @@ watch(
   },
 );
 
-// What the server panel should have ready when it opens: the lineup you were
-// reading, the execute, or the collection it was opened from.
-const practiceTarget = ref<UtilityPracticeTarget | null>(null);
-
-function openPractice(target: UtilityPracticeTarget | null = null) {
-  practiceTarget.value = target;
-  practiceOpen.value = true;
-}
-
-// The drawer's handle. A drawer with no close button is closed by the thing
-// drawers have: press the handle, or pull it down. Pulled past a short way and
-// let go, it closes from where it was let go; short of that it settles back.
-const drawerPull = ref(0);
-const drawerPulling = ref(false);
-let drawerPullFrom = 0;
-const DRAWER_CLOSE_PX = 56;
-
-function onDrawerGrab(event: PointerEvent) {
-  drawerPulling.value = true;
-  drawerPullFrom = event.clientY;
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-}
-
-function onDrawerPull(event: PointerEvent) {
-  if (drawerPulling.value) {
-    drawerPull.value = Math.max(0, event.clientY - drawerPullFrom);
-  }
-}
-
-function onDrawerRelease() {
-  if (!drawerPulling.value) {
-    return;
-  }
-  drawerPulling.value = false;
-  // No travel at all is a press on the handle, which closes it too.
-  if (drawerPull.value > DRAWER_CLOSE_PX || drawerPull.value < 4) {
-    practiceOpen.value = false;
-  } else {
-    drawerPull.value = 0;
-  }
-}
-
-watch(practiceOpen, (open) => {
-  if (open) {
-    drawerPull.value = 0;
-  }
-});
-
-useBackDismiss(
-  () => practiceOpen.value,
-  () => (practiceOpen.value = false),
-);
-
 // "Practice next" on the plan: open the lineup and put it on the server. With
 // a server on this map that is one command; with one elsewhere the host brings
-// it over; with none, the first step is starting one.
+// it over.
 const load = useUtilityLoad();
 
 async function practiceNext() {
@@ -1661,8 +1588,6 @@ async function practiceNext() {
       name: next.lineup.name,
       lineup_id: next.id,
     });
-  } else {
-    openPractice({ lineupId: next.id });
   }
 }
 
@@ -1701,15 +1626,6 @@ const barOffer = computed<UtilityBarOffer | null>(() => {
   }
   return panelBar.value ?? planBar.value;
 });
-
-// Started from the bar, the server opens with what you were looking at.
-function togglePractice() {
-  if (practiceOpen.value) {
-    practiceOpen.value = false;
-  } else {
-    openPractice(barOffer.value?.target ?? null);
-  }
-}
 
 // Fork and archive are asked for from inside the dialog; both open a dialog of
 // their own, so the detail has to get out of the way first.
@@ -1900,17 +1816,6 @@ function closeTopLayer(event: KeyboardEvent) {
     return;
   }
   const target = event.target instanceof Element ? event.target : null;
-  if (
-    practiceOpen.value &&
-    !target?.closest("input, textarea, select, [contenteditable='true']") &&
-    !document.querySelector(
-      "[role='dialog'][data-state='open'], [role='menu'], [role='listbox']",
-    )
-  ) {
-    practiceOpen.value = false;
-    takeEscape(event);
-    return;
-  }
   if (
     target?.closest("input, textarea, select, [contenteditable='true']") ||
     document.querySelector("[role='dialog'][data-state='open']")
@@ -2330,13 +2235,12 @@ function selectLineup(id: string | null) {
                 :map-name="mapName"
                 :types="filters.types"
                 :open-lineup-id="detailId"
-                :can-practice="!isMobile"
+                :can-practice="false"
                 @board="(state) => (panelBoard = state)"
                 @cover="(value) => (panelCover = value)"
                 @bar="(offer) => (panelBar = offer)"
                 @toggle-type="toggleType"
                 @open-lineup="openLineup"
-                @practice="openPractice"
               />
 
               <UtilityPlaybooksPanel
@@ -2345,13 +2249,12 @@ function selectLineup(id: string | null) {
                 :map-name="mapName"
                 :types="filters.types"
                 :open-lineup-id="detailId"
-                :can-practice="!isMobile"
+                :can-practice="false"
                 @board="(state) => (panelBoard = state)"
                 @cover="(value) => (panelCover = value)"
                 @bar="(offer) => (panelBar = offer)"
                 @toggle-type="toggleType"
                 @open-lineup="openLineup"
-                @practice="openPractice"
               />
 
               <UtilityBlockPanel
@@ -2497,7 +2400,7 @@ function selectLineup(id: string | null) {
                   :meta-throwers="metaSpotByLineup[entry.lineup.id]?.throwers ?? null"
                   :meta-throws="metaSpotByLineup[entry.lineup.id]?.throws ?? null"
                   :meta-busiest="metaBusiest"
-                  :show-practice="!isMobile"
+                  :show-practice="false"
                   :can-review="canReview"
                   :can-react="!!mySteamId"
                   @select="openLineup"
@@ -2548,7 +2451,6 @@ function selectLineup(id: string | null) {
             :lineups="lineups"
             :busiest="Math.max(1, metaBusiest)"
             :signed-in="!!mySteamId"
-            :can-practice="!!mySteamId && !isMobile"
             @back="closeMetaSpot"
             @open-lineup="openLineup"
             @write-up="writeUpMetaSpot"
@@ -2561,7 +2463,7 @@ function selectLineup(id: string | null) {
             :lineups="lineups"
             :context="detailContext"
             :can-react="!!mySteamId"
-            :can-practice="!isMobile && !!mySteamId"
+            :can-practice="false"
             :can-review="canReview"
             @skip="skipFromDetail"
             @bar="setDetailBar"
@@ -2577,84 +2479,16 @@ function selectLineup(id: string | null) {
             @delete="deleteFromDetail"
           />
 
-          <!-- The server pulls up out of its bar, like a drawer out of the
-               foot of the card. The bar does not move -- it is the handle,
-               and the press that opened the drawer closes it without the
-               pointer going anywhere -- and the drawer is only as tall as
-               what is in it, so opening it is not the whole card changing.
-               What is behind it steps back; a press there lets it down. -->
-          <Transition name="drawer" :duration="{ enter: 280, leave: 180 }">
-            <div
-              v-show="practiceOpen"
-              :data-utility-practice-open="practiceOpen || undefined"
-              class="absolute inset-0 z-30 flex flex-col justify-end overflow-hidden"
-            >
-              <button
-                type="button"
-                tabindex="-1"
-                aria-hidden="true"
-                class="drawer-scrim absolute inset-0 cursor-default bg-black/60"
-                @click="practiceOpen = false"
-              />
-              <!-- The panel travels inside this box and nowhere else. It ends
-                   at the bar's top edge, so on its way up the panel is never
-                   drawn over the bar or below it: it comes out of the bar.
-                   The room above is for its shadow. -->
-              <section
-                class="relative flex min-h-0 flex-col overflow-hidden pt-8"
-                :aria-label="$t('pages.utility.practice.title')"
-              >
-                <div
-                  class="drawer-panel min-h-0 overflow-y-auto overscroll-contain rounded-t-xl border-t border-white/[0.1] bg-sidebar px-4 pb-4 shadow-[0_-14px_28px_-14px_rgba(0,0,0,0.9)]"
-                  :class="drawerPulling ? '' : 'drawer-settle'"
-                  :style="{ '--drawer-pull': `${drawerPull}px` }"
-                >
-                  <button
-                    type="button"
-                    class="group sticky top-0 z-10 -mx-4 flex h-7 w-[calc(100%+2rem)] cursor-grab touch-none items-center justify-center rounded-t-xl bg-sidebar focus-visible:outline-none active:cursor-grabbing"
-                    :aria-label="$t('common.close')"
-                    data-no-sheet-drag
-                    @pointerdown="onDrawerGrab"
-                    @pointermove="onDrawerPull"
-                    @pointerup="onDrawerRelease"
-                    @pointercancel="onDrawerRelease"
-                    @keydown.enter.prevent="practiceOpen = false"
-                    @keydown.space.prevent="practiceOpen = false"
-                  >
-                    <span
-                      aria-hidden="true"
-                      class="h-1 w-10 rounded-full bg-white/25 transition-colors duration-150 group-hover:bg-white/45 group-focus-visible:bg-white/70"
-                    />
-                  </button>
-                  <UtilityPracticePanel
-                    :active="practiceOpen"
-                    :map-name="mapName"
-                    :lineup-id="practiceTarget?.lineupId ?? selectedId"
-                    :playbook-id="practiceTarget?.playbookId ?? null"
-                    :collection-id="practiceTarget?.collectionId ?? null"
-                    :join-invite-code="joinInviteCode"
-                    @joined="practiceOpen = false"
-                  />
-                </div>
-              </section>
-            </div>
-          </Transition>
           </div>
 
           <!-- The foot of the card, under the list and under whatever is open
-               over it. It starts the server, and it carries what the thing
-               above it is for: sending it to that server once you are in one,
-               or the view's own main action. Signed out there is no server to
-               have -- starting one, joining one and the list of them all need
-               an account -- and a phone cannot join one, so there the bar is
-               only ever a view's action. -->
+               over it: the view's own main action. -->
           <UtilityPracticeBar
-            v-if="mySteamId && (!isMobile || barOffer?.actions.length)"
+            v-if="mySteamId && barOffer?.actions.length"
             :map-name="mapName"
-            :open="practiceOpen"
-            :server="!isMobile"
+            :open="false"
+            :server="false"
             :offer="barOffer"
-            @toggle="togglePractice"
           />
         </div>
 
@@ -2709,46 +2543,11 @@ function selectLineup(id: string | null) {
   transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The practice drawer. The wrapper is what Vue times; the parts move. The
-   panel rides up inside a box that ends at the bar's top edge, so it reads as
-   coming out of the bar rather than passing over it. */
-.drawer-panel {
-  transform: translateY(var(--drawer-pull, 0px));
-}
-/* Let go short of closing, it settles back; while held it follows the hand. */
-.drawer-panel.drawer-settle {
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.drawer-enter-active .drawer-panel {
-  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.drawer-leave-active .drawer-panel {
-  transition: transform 180ms cubic-bezier(0.4, 0, 1, 1);
-}
-.drawer-enter-active .drawer-scrim {
-  transition: opacity 200ms ease-out;
-}
-.drawer-leave-active .drawer-scrim {
-  transition: opacity 180ms ease-in;
-}
-.drawer-enter-from .drawer-panel,
-.drawer-leave-to .drawer-panel {
-  transform: translateY(100%);
-}
-.drawer-enter-from .drawer-scrim,
-.drawer-leave-to .drawer-scrim {
-  opacity: 0;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .lrow-enter-active,
   .lrow-leave-active,
-  .lrow-move,
-  .drawer-panel.drawer-settle,
-  .drawer-enter-active .drawer-panel,
-  .drawer-leave-active .drawer-panel,
-  .drawer-enter-active .drawer-scrim,
-  .drawer-leave-active .drawer-scrim {
+  .lrow-move {
     transition-duration: 1ms;
   }
 }
