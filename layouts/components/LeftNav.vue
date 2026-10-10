@@ -33,6 +33,7 @@ import {
   Headset,
   ServerCog,
   Gamepad2,
+  Bomb,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -548,6 +549,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Trophy />
                   {{ $t("layouts.app_nav.navigation.leaderboard") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="utilityLibraryEnabled">
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.utility')"
+              >
+                <NuxtLink
+                  to="/utility"
+                  :class="{
+                    'router-link-active': isRouteActive('utility'),
+                  }"
+                >
+                  <Bomb />
+                  {{ $t("layouts.app_nav.navigation.utility") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1391,6 +1409,9 @@ export default {
     },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
+    },
+    utilityLibraryEnabled() {
+      return useApplicationSettingsStore().utilityLibraryEnabled;
     },
     gamePluginsEnabled() {
       return useApplicationSettingsStore().gamePluginsEnabled;

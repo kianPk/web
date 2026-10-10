@@ -326,6 +326,14 @@ export const useApplicationSettingsStore = defineStore(
       );
     });
 
+    const utilityLibraryEnabled = computed(() => {
+      return (
+        settings.value?.find(
+          (setting) => setting.name === "public.utility_library_enabled",
+        )?.value === "true"
+      );
+    });
+
     // Community events: off by default (absent row = disabled), matching the
     // public_events insert permission gate on public.events_enabled.
     const eventsEnabled = computed(() => {
@@ -736,6 +744,7 @@ export const useApplicationSettingsStore = defineStore(
       supportsGameServerVersionPinning,
       playerNameRegistration,
       newsEnabled,
+      utilityLibraryEnabled,
       seasonsEnabled,
       leaguesEnabled,
       leagueAllowDivisionRequest,
