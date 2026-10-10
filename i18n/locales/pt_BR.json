@@ -5262,6 +5262,18 @@
         "failed": "Não foi possível salvar isso",
         "public_note": "Tornar público passa por revisão — use \"Enviar para revisão\" no menu ⋯.",
         "geometry_note": "Onde você fica, para onde mira e a distância do voo não podem ser editados. Bifurque para mudar o arremesso em si."
+      },
+      "video": {
+        "title": "Vídeo",
+        "upload": "Enviar vídeo",
+        "replace": "Substituir vídeo",
+        "remove": "Remover vídeo",
+        "uploaded": "Vídeo enviado",
+        "removed": "Vídeo removido",
+        "upload_failed": "Não foi possível enviar o vídeo",
+        "remove_failed": "Não foi possível remover o vídeo",
+        "only_mp4": "Apenas vídeos MP4 podem ser enviados",
+        "too_large": "O vídeo tem mais de {mb} MB"
       }
     },
     "store": {

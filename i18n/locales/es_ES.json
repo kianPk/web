@@ -5262,6 +5262,18 @@
         "failed": "No se pudo guardar eso",
         "public_note": "Hacerlo público pasa por una revisión: usa «Enviar a revisión» en el menú ⋯.",
         "geometry_note": "Dónde te colocas, dónde apuntas y cuánto vuela no se pueden editar. Bifúrcalo para cambiar el lanzamiento en sí."
+      },
+      "video": {
+        "title": "Vídeo",
+        "upload": "Subir vídeo",
+        "replace": "Reemplazar vídeo",
+        "remove": "Quitar vídeo",
+        "uploaded": "Vídeo subido",
+        "removed": "Vídeo quitado",
+        "upload_failed": "No se pudo subir el vídeo",
+        "remove_failed": "No se pudo quitar el vídeo",
+        "only_mp4": "Solo se pueden subir vídeos MP4",
+        "too_large": "El vídeo pesa más de {mb} MB"
       }
     },
     "store": {

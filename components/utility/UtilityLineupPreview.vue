@@ -18,8 +18,8 @@ const props = defineProps<{ lineup: UtilityLineup }>();
 
 const meshCdn = useRuntimeConfig().public.mapMeshCdn as string;
 
-// Watching it beats replaying a lineup nobody filmed, so a clip wins whenever
-// there is one. Everything below it is a reconstruction.
+// The reconstruction always shows; a filmed clip, when there is one, plays
+// beneath it.
 const clip = computed(() => utilityClipSource(props.lineup));
 
 const download = computed(() => utilityClipDownload(props.lineup));
@@ -58,10 +58,10 @@ const hasMesh = ref(false);
 // appear until the probe has answered -- otherwise a map with no mesh shows an
 // empty scene rather than falling back to the radar.
 watch(
-  () => [props.lineup.map_name, clip.value] as const,
-  async ([name, clipSrc]) => {
+  () => props.lineup.map_name,
+  async (name) => {
     hasMesh.value = false;
-    if (clipSrc || !name || !import.meta.client) {
+    if (!name || !import.meta.client) {
       return;
     }
     hasMesh.value = await hasMeshForMap(meshCdn, name);
@@ -74,8 +74,28 @@ watch(
   <!-- Keyed on the lineup so switching remounts the scene rather than leaving
        the previous throw's camera -- or the previous clip's playhead -- behind. -->
   <div :key="lineup.id" class="flex min-w-0 flex-col gap-2">
+    <UtilityLineupViewer3D
+      v-if="hasMesh"
+      :lineup="lineup"
+      data-no-sheet-drag
+    />
+
+    <template v-else>
+      <UtilityRadarBoard
+        :map-name="lineup.map_name"
+        :lineups="[lineup]"
+        :selected-id="lineup.id"
+        :touch="false"
+      />
+      <p class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Boxes class="h-3.5 w-3.5 shrink-0" />
+        {{ $t("pages.utility.detail.no_mesh") }}
+      </p>
+    </template>
+
     <ClipPlayer
       v-if="clip"
+      :key="clip"
       ref="player"
       :src="clip"
       :poster="lineup.preview_thumbnail_url"
@@ -104,24 +124,5 @@ watch(
         />
       </template>
     </ClipPlayer>
-
-    <UtilityLineupViewer3D
-      v-else-if="hasMesh"
-      :lineup="lineup"
-      data-no-sheet-drag
-    />
-
-    <template v-else>
-      <UtilityRadarBoard
-        :map-name="lineup.map_name"
-        :lineups="[lineup]"
-        :selected-id="lineup.id"
-        :touch="false"
-      />
-      <p class="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Boxes class="h-3.5 w-3.5 shrink-0" />
-        {{ $t("pages.utility.detail.no_mesh") }}
-      </p>
-    </template>
   </div>
 </template>

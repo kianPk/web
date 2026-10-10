@@ -5262,6 +5262,18 @@
         "failed": "無法儲存",
         "public_note": "設為公開需要經過審核——請使用⋯ 選單裡的「送出審核」。",
         "geometry_note": "站位、瞄準與飛行距離無法編輯。要改動投擲本身，請複刻這個點位。"
+      },
+      "video": {
+        "title": "影片",
+        "upload": "上傳影片",
+        "replace": "替換影片",
+        "remove": "刪除影片",
+        "uploaded": "影片已上傳",
+        "removed": "影片已刪除",
+        "upload_failed": "無法上傳影片",
+        "remove_failed": "無法刪除影片",
+        "only_mp4": "只能上傳 MP4 影片",
+        "too_large": "影片超過 {mb} MB"
       }
     },
     "store": {

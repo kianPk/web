@@ -5618,6 +5618,18 @@
         "failed": "Could not save that",
         "public_note": "Making it public is a review — use Submit for review from the ⋯ menu.",
         "geometry_note": "Where you stand, where you aim and how far it flies cannot be edited. Fork it to change the throw itself."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Upload video",
+        "replace": "Replace video",
+        "remove": "Remove video",
+        "uploaded": "Video uploaded",
+        "removed": "Video removed",
+        "upload_failed": "Could not upload the video",
+        "remove_failed": "Could not remove the video",
+        "only_mp4": "Only MP4 videos can be uploaded",
+        "too_large": "The video is larger than {mb} MB"
       }
     },
     "store": {

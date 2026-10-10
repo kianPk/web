@@ -5262,6 +5262,18 @@
         "failed": "Kunde inte spara det",
         "public_note": "Att göra den offentlig kräver en granskning — använd Skicka för granskning i ⋯-menyn.",
         "geometry_note": "Var du står, var du siktar och hur långt den flyger går inte att redigera. Förgrena den för att ändra själva kastet."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Ladda upp video",
+        "replace": "Ersätt video",
+        "remove": "Ta bort video",
+        "uploaded": "Video uppladdad",
+        "removed": "Video borttagen",
+        "upload_failed": "Det gick inte att ladda upp videon",
+        "remove_failed": "Det gick inte att ta bort videon",
+        "only_mp4": "Endast MP4-videor kan laddas upp",
+        "too_large": "Videon är större än {mb} MB"
       }
     },
     "store": {

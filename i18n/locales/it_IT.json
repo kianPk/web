@@ -5262,6 +5262,18 @@
         "failed": "Impossibile salvarlo",
         "public_note": "Renderlo pubblico passa da una revisione: usa «Invia in revisione» dal menu ⋯.",
         "geometry_note": "Dove ti posizioni, dove miri e quanto vola non si possono modificare. Duplicalo per cambiare il lancio stesso."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Carica video",
+        "replace": "Sostituisci video",
+        "remove": "Rimuovi video",
+        "uploaded": "Video caricato",
+        "removed": "Video rimosso",
+        "upload_failed": "Impossibile caricare il video",
+        "remove_failed": "Impossibile rimuovere il video",
+        "only_mp4": "Si possono caricare solo video MP4",
+        "too_large": "Il video supera {mb} MB"
       }
     },
     "store": {

@@ -5262,6 +5262,18 @@
         "failed": "无法保存",
         "public_note": "设为公开需要经过审核——请使用⋯ 菜单里的「提交审核」。",
         "geometry_note": "站位、瞄准和飞行距离无法编辑。要改动投掷本身，请复刻这个点位。"
+      },
+      "video": {
+        "title": "视频",
+        "upload": "上传视频",
+        "replace": "替换视频",
+        "remove": "删除视频",
+        "uploaded": "视频已上传",
+        "removed": "视频已删除",
+        "upload_failed": "无法上传视频",
+        "remove_failed": "无法删除视频",
+        "only_mp4": "只能上传 MP4 视频",
+        "too_large": "视频超过 {mb} MB"
       }
     },
     "store": {

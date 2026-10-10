@@ -5262,6 +5262,18 @@
         "failed": "Bu kaydedilemedi",
         "public_note": "Herkese açmak bir incelemeden geçer — ⋯ menüsündeki \"İncelemeye gönder\"i kullan.",
         "geometry_note": "Nerede durduğun, nereye nişan aldığın ve ne kadar uçtuğu düzenlenemez. Atışın kendisini değiştirmek için çatalla."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Video yükle",
+        "replace": "Videoyu değiştir",
+        "remove": "Videoyu kaldır",
+        "uploaded": "Video yüklendi",
+        "removed": "Video kaldırıldı",
+        "upload_failed": "Video yüklenemedi",
+        "remove_failed": "Video kaldırılamadı",
+        "only_mp4": "Yalnızca MP4 videolar yüklenebilir",
+        "too_large": "Video {mb} MB'tan büyük"
       }
     },
     "store": {

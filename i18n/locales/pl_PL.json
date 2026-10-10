@@ -5262,6 +5262,18 @@
         "failed": "Nie udało się tego zapisać",
         "public_note": "Upublicznienie wymaga przeglądu — użyj „Wyślij do przeglądu” w menu ⋯.",
         "geometry_note": "Gdzie stoisz, gdzie celujesz i jak daleko leci — tego nie da się edytować. Rozgałęź ustawkę, żeby zmienić sam rzut."
+      },
+      "video": {
+        "title": "Wideo",
+        "upload": "Prześlij wideo",
+        "replace": "Zastąp wideo",
+        "remove": "Usuń wideo",
+        "uploaded": "Wideo przesłane",
+        "removed": "Wideo usunięte",
+        "upload_failed": "Nie udało się przesłać wideo",
+        "remove_failed": "Nie udało się usunąć wideo",
+        "only_mp4": "Można przesyłać tylko wideo MP4",
+        "too_large": "Wideo jest większe niż {mb} MB"
       }
     },
     "store": {

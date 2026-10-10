@@ -5262,6 +5262,18 @@
         "failed": "Das konnte nicht gespeichert werden",
         "public_note": "Öffentlich zu machen ist eine Prüfung – nutze „Zur Prüfung einreichen“ im ⋯-Menü.",
         "geometry_note": "Wo du stehst, wohin du zielst und wie weit es fliegt, lässt sich nicht bearbeiten. Fork es, um den Wurf selbst zu ändern."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Video hochladen",
+        "replace": "Video ersetzen",
+        "remove": "Video entfernen",
+        "uploaded": "Video hochgeladen",
+        "removed": "Video entfernt",
+        "upload_failed": "Video konnte nicht hochgeladen werden",
+        "remove_failed": "Video konnte nicht entfernt werden",
+        "only_mp4": "Nur MP4-Videos können hochgeladen werden",
+        "too_large": "Das Video ist größer als {mb} MB"
       }
     },
     "store": {

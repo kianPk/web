@@ -5262,6 +5262,18 @@
         "failed": "Kunne ikke gemme det",
         "public_note": "At gøre den offentlig kræver et gennemsyn — brug Send til gennemsyn i ⋯-menuen.",
         "geometry_note": "Hvor du står, hvor du sigter, og hvor langt den flyver, kan ikke redigeres. Forgren den for at ændre selve kastet."
+      },
+      "video": {
+        "title": "Video",
+        "upload": "Upload video",
+        "replace": "Erstat video",
+        "remove": "Fjern video",
+        "uploaded": "Video uploadet",
+        "removed": "Video fjernet",
+        "upload_failed": "Videoen kunne ikke uploades",
+        "remove_failed": "Videoen kunne ikke fjernes",
+        "only_mp4": "Kun MP4-videoer kan uploades",
+        "too_large": "Videoen er større end {mb} MB"
       }
     },
     "store": {

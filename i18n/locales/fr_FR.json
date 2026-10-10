@@ -5262,6 +5262,18 @@
         "failed": "Impossible d'enregistrer cela",
         "public_note": "Le rendre public passe par une validation — utilisez « Soumettre pour validation » dans le menu ⋯.",
         "geometry_note": "Où vous vous placez, où vous visez et la distance de vol ne sont pas modifiables. Dupliquez-le pour changer le lancer lui-même."
+      },
+      "video": {
+        "title": "Vidéo",
+        "upload": "Importer une vidéo",
+        "replace": "Remplacer la vidéo",
+        "remove": "Supprimer la vidéo",
+        "uploaded": "Vidéo importée",
+        "removed": "Vidéo supprimée",
+        "upload_failed": "Impossible d'importer la vidéo",
+        "remove_failed": "Impossible de supprimer la vidéo",
+        "only_mp4": "Seules les vidéos MP4 peuvent être importées",
+        "too_large": "La vidéo dépasse {mb} Mo"
       }
     },
     "store": {

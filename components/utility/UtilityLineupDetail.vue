@@ -42,6 +42,7 @@ import UtilityCollectionPicker from "~/components/utility/UtilityCollectionPicke
 import UtilityConfidenceMark from "~/components/utility/UtilityConfidenceMark.vue";
 import UtilityThrowStrip from "~/components/utility/UtilityThrowStrip.vue";
 import UtilityLineupPreview from "~/components/utility/UtilityLineupPreview.vue";
+import UtilityLineupVideoAdmin from "~/components/utility/UtilityLineupVideoAdmin.vue";
 import UtilityLineupStills from "~/components/utility/UtilityLineupStills.vue";
 import UtilityMissPatternPanel from "~/components/utility/UtilityMissPatternPanel.vue";
 import UtilityProgressPanel from "~/components/utility/UtilityProgressPanel.vue";
@@ -378,6 +379,17 @@ const canEdit = computed(
 const canRestore = computed(
   () => !!lineup.value?.can_edit && !!lineup.value.archived_at,
 );
+
+const isAdmin = computed(() => useAuthStore().isAdmin);
+
+// A lineup reached by link alone lives in `fetched`, not in the page's list,
+// so the parent's patch would never reach it.
+function patchVideo(id: string, patch: Partial<UtilityLineup>) {
+  if (fetched.value?.id === id) {
+    fetched.value = { ...fetched.value, ...patch };
+  }
+  emit("updated", id, patch);
+}
 
 const color = computed(
   () => UTILITY_TYPE_COLORS[lineup.value?.utility_type ?? "Smoke"] ?? "#ffffff",
@@ -947,6 +959,11 @@ const stats = computed(() => {
           </div>
 
           <UtilityLineupPreview :lineup="lineup" />
+          <UtilityLineupVideoAdmin
+            v-if="isAdmin"
+            :lineup="lineup"
+            @updated="(patch) => patchVideo(lineup!.id, patch)"
+          />
           <UtilityLineupStills :stills="lineup.preview_stills_url" />
 
           <!-- Editing swaps the details for the form; the throw stays on
