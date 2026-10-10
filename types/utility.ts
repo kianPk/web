@@ -53,6 +53,26 @@ export type UtilityTrajectoryPoint = {
   t?: number;
 };
 
+/**
+ * One 64Hz tick of the run-up the practice plugin recorded before a release.
+ * `t` is ms relative to the release, so the last sample is 0; `buttons` is
+ * CS2's IN_* bitmask held on that tick.
+ */
+export type UtilityApproachSample = {
+  t: number;
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  pitch: number;
+  yaw: number;
+  buttons: number;
+  on_ground: boolean;
+  ducked: boolean;
+};
+
 export type UtilityLineup = {
   id: string;
   map_name: string;
@@ -112,6 +132,8 @@ export type UtilityLineup = {
    */
   preview_url?: string | null;
   preview_thumbnail_url?: string | null;
+  /** Stills the render cut from its clip, kind -> url (stance, aim, aim_close, landing). */
+  preview_stills_url?: Record<string, string> | null;
   preview_duration_ms?: number | null;
   preview_rendered_at?: string | null;
   verified_at: string | null;
@@ -156,6 +178,11 @@ export type UtilityLineupRender = {
   skip_reason: string | null;
   duration_ms: number | null;
   k8s_job_name: string | null;
+  /**
+   * What the pipeline that filmed it said it was. 0 is a pod that said
+   * nothing, null a render from before previews carried a version.
+   */
+  render_version?: number | null;
   game_server_node_id: string | null;
   paused: boolean;
   sort_index: number | null;
@@ -188,6 +215,33 @@ export type UtilityLineupRender = {
   > | null;
 };
 
+export type UtilityRenderGapState = "missing" | "outdated" | "unrenderable";
+
+export type UtilityRenderGap = {
+  id: string;
+  name: string | null;
+  map_name: string;
+  utility_type: UtilityType;
+  state: UtilityRenderGapState;
+  preview_version: number | null;
+  /** Set for a lineup that cannot be filmed. */
+  reason: string | null;
+};
+
+export type UtilityRenderCoverage = {
+  /** The render version this api expects. */
+  version: number;
+  /** What the last finished render reported; null until one has. */
+  pipeline_version: number | null;
+  total: number;
+  current: number;
+  missing: number;
+  outdated: number;
+  queued: number;
+  unrenderable: number;
+  lineups: UtilityRenderGap[];
+};
+
 export type UtilityCollection = {
   id: string;
   name: string;
@@ -201,6 +255,55 @@ export type UtilityCollection = {
   items_aggregate?: {
     aggregate?: { count?: number | null } | null;
   } | null;
+  // Only on the Collections tab's read; the pickers ask for less.
+  map_name?: string | null;
+  visibility?: UtilityVisibility;
+  team_id?: string | null;
+  updated_at?: string | null;
+  owner?: { steam_id: string; name: string } | null;
+  items?: UtilityCollectionItem[] | null;
+};
+
+/**
+ * A collection's lineup, as light as the tab's list can get away with: enough
+ * to count it by map and type and to draw it on the board. Null when the
+ * caller cannot see the lineup the item points at.
+ */
+export type UtilityCollectionLineupRef = Pick<
+  UtilityLineup,
+  | "id"
+  | "name"
+  | "map_name"
+  | "utility_type"
+  | "archived_at"
+  | "origin_x"
+  | "origin_y"
+  | "origin_z"
+  | "eye_z"
+  | "land_x"
+  | "land_y"
+  | "land_z"
+  | "trajectory_preview"
+>;
+
+export type UtilityCollectionItem = {
+  utility_lineup_id: string;
+  utility_lineup?: UtilityCollectionLineupRef | null;
+};
+
+/** A collection as the Collections tab lists it, read against one map. */
+export type UtilityCollectionCard = {
+  collection: UtilityCollection;
+  // The caller owns it. `can_edit` is wider: a team's admins edit a team
+  // collection, but only its owner may delete it or change who sees it.
+  mine: boolean;
+  /** Its lineups on the map being looked at, in the collection's order. */
+  here: UtilityCollectionLineupRef[];
+  /** Every lineup in it the caller can see, on any map. */
+  total: number;
+  counts: Partial<Record<UtilityType, number>>;
+  /** The other maps it reaches, as map names. */
+  otherMaps: string[];
 };
 
 /** One player's drill record against one lineup. Streaks are API-written. */
@@ -570,7 +673,8 @@ export function readUtilityRepairOutput(
 export type UtilityUtilityReportTypeRow = {
   utility_type: string;
   throws: number;
-  matched: number;
+  matched_lineups: number;
+  matched_meta: number;
   landed: number;
 };
 
@@ -589,7 +693,8 @@ export type UtilityUtilityReportOutput = {
 export type UtilityUtilityReportTypeView = {
   utilityType: string;
   throws: number;
-  matched: number;
+  matchedLineups: number;
+  matchedMeta: number;
   landed: number;
 };
 
@@ -628,7 +733,8 @@ export function readUtilityUtilityReport(
       .map((row) => ({
         utilityType: row.utility_type,
         throws: utilityCount(row.throws),
-        matched: utilityCount(row.matched),
+        matchedLineups: utilityCount(row.matched_lineups),
+        matchedMeta: utilityCount(row.matched_meta),
         landed: utilityCount(row.landed),
       })),
   };
@@ -961,6 +1067,8 @@ export type UtilityDriftScan = {
   map_name: string;
   status: string | null;
   failure_reason: string | null;
+  /** The parser's warning label for the scan's numbers: a JSON array of strings. */
+  caveats: unknown;
   from_revision: string | null;
   to_revision: string | null;
   /** How many lineups the scan took on, and how many it has got through. */
@@ -1000,6 +1108,7 @@ export type UtilityDriftScanView = {
   mapName: string;
   status: string | null;
   failureReason: string | null;
+  caveats: string[];
   fromRevision: string | null;
   toRevision: string | null;
   lineups: number | null;
@@ -1061,6 +1170,9 @@ export function readUtilityDriftScan(row: UtilityDriftScan): UtilityDriftScanVie
     mapName: row.map_name,
     status: row.status ?? null,
     failureReason: row.failure_reason ?? null,
+    caveats: Array.isArray(row.caveats)
+      ? row.caveats.filter((caveat): caveat is string => typeof caveat === "string")
+      : [],
     fromRevision: row.from_revision ?? null,
     toRevision: row.to_revision ?? null,
     lineups,

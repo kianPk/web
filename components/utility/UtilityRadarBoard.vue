@@ -1,9 +1,23 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowReactive,
+  useId,
+  watch,
+} from "vue";
+import { useElementSize, useMediaQuery } from "@vueuse/core";
 import { MapPinOff, Maximize2, Minus, Plus, Tags } from "lucide-vue-next";
 import RadarCallouts from "~/components/common/RadarCallouts.vue";
+import UtilityLineupHoverPreview from "~/components/utility/UtilityLineupHoverPreview.vue";
+import { useUtilityPeek } from "~/composables/useUtilityPeek";
 import { useMapCallouts } from "~/composables/useMapCallouts";
-import { useRadarProjection } from "~/composables/useRadarProjection";
+import {
+  useRadarProjection,
+  type RadarPoint,
+} from "~/composables/useRadarProjection";
 import {
   UTILITY_TYPE_COLORS,
   utilityLanding,
@@ -16,6 +30,35 @@ import type {
   UtilityMetaSpot,
 } from "~/utilities/utilityDisplay";
 import type { UtilityLineup } from "~/types/utility";
+import {
+  DOUBLE_TAP_MS,
+  NO_MAP_INSETS,
+  TAP_MAX_MS,
+  TAP_SLOP_PX,
+  clampMapPan,
+  dragZoom,
+  isDoubleTap,
+  isTap,
+  mapCanPan,
+  mapPanToShow,
+  mapRoomToShow,
+  momentumStep,
+  pinchView,
+  releaseVelocity,
+  type MapFrame,
+  type MapInsets,
+  type MapPoint,
+  type MapSample,
+  type MapView,
+} from "~/utilities/mapGestures";
+import {
+  hitRadius,
+  markInk,
+  maxZoomFor,
+  tapTarget,
+  type TapTarget,
+} from "~/utilities/boardMarks";
+import { escapeTaken, takeEscape } from "~/utilities/escapeKey";
 
 // The zoom stack is pinned to the shell, not to the square, so a class from
 // the call site still has to land on the square -- that is where the frame is.
@@ -42,6 +85,19 @@ const props = withDefaults(
     markers?: UtilityBoardMarker[];
     segments?: UtilityBoardSegment[];
     selectedSegmentKey?: string | null;
+    // The page draws the zoom row above the map instead; see defineExpose.
+    controls?: boolean;
+    // A radar the page before this one was already showing, so the board
+    // opens on it instead of on the blueprint and a fade.
+    seedSrc?: string | null;
+    // Resting on a marker opens the lineup's peek, as resting on its row does.
+    peek?: boolean;
+    // Off for a board that is one picture in a column that scrolls: with it
+    // on, a finger on the map moves the map and never the page under it.
+    touch?: boolean;
+    // How much of each side of the square something is drawn over -- the
+    // sheet, on a phone. The map can be moved out from under it.
+    cover?: MapInsets;
   }>(),
   {
     selectedId: null,
@@ -55,6 +111,10 @@ const props = withDefaults(
     markers: () => [],
     segments: () => [],
     selectedSegmentKey: null,
+    controls: true,
+    peek: false,
+    touch: true,
+    cover: () => NO_MAP_INSETS,
   },
 );
 
@@ -88,7 +148,36 @@ watch(
  * element's own `load` because a cached PNG can be `complete` before Vue has
  * bound the listener, which would strand the fade at zero.
  */
-const displaySrc = ref<string | null>(null);
+const displaySrc = ref<string | null>(props.seedSrc ?? null);
+
+// A map with a radar per room shows the room the throws are in: the selected
+// lineup's, or else wherever most of what the board draws stands.
+function boardVolumePoints(): RadarPoint[] {
+  const selected = props.lineups.find(
+    (lineup) => lineup.id === props.selectedId,
+  );
+  const points: RadarPoint[] = [];
+  for (const lineup of selected ? [selected] : props.lineups) {
+    points.push(utilityOrigin(lineup));
+    const landing = utilityLanding(lineup);
+    if (landing) {
+      points.push(landing);
+    }
+  }
+  if (selected) {
+    return points;
+  }
+  for (const spot of props.metaSpots ?? []) {
+    points.push(spot.landing ?? spot.origin);
+  }
+  for (const marker of props.markers ?? []) {
+    points.push(marker.point);
+  }
+  for (const segment of props.segments ?? []) {
+    points.push(segment.from, segment.to);
+  }
+  return points;
+}
 
 const {
   radarSrc,
@@ -96,7 +185,10 @@ const {
   projectCalibrated,
   unprojectCalibrated,
   CANVAS,
-} = useRadarProjection(() => props.mapName, { radarFailed });
+} = useRadarProjection(() => props.mapName, {
+  radarFailed,
+  volumePoints: boardVolumePoints,
+});
 
 const { callouts, hasCallouts } = useMapCallouts(() => props.mapName);
 
@@ -126,9 +218,13 @@ watch(
   radarSrc,
   (next) => {
     // No radar for this map at all: there is nothing to hold on to, and holding
-    // the previous map would be a lie about which map you are looking at.
+    // the previous map would be a lie about which map you are looking at. Not
+    // known yet is not none, though: until the calibrations are read the board
+    // keeps the radar it was opened on.
     if (!next) {
-      displaySrc.value = null;
+      if (!hasCalibration.value || radarFailed.value) {
+        displaySrc.value = null;
+      }
       return;
     }
 
@@ -167,7 +263,31 @@ type Marker = {
   origin: { x: number; y: number };
   landing: { x: number; y: number } | null;
   path: string | null;
+  // How far the smoke blooms or the fire spreads, in board units, so the open
+  // lineup can show the ground it actually covers.
+  footprint: number | null;
 };
+
+// World units. A smoke fills ~144 units around where it pops; a molotov's fire
+// spreads ~120. The rest cover no ground worth drawing.
+const FOOTPRINT_UNITS: Partial<Record<string, number>> = {
+  Smoke: 144,
+  Molotov: 120,
+};
+
+// Gradient ids have to be unique on the page, and a lineup's preview mounts a
+// second board beside this one.
+const uid = useId();
+
+const markerEls = shallowReactive(new Map<string, Element>());
+
+function trackMarker(id: string, el: unknown) {
+  if (el instanceof Element) {
+    markerEls.set(id, el);
+  } else {
+    markerEls.delete(id);
+  }
+}
 
 const markers = computed<Marker[]>(() => {
   const out: Marker[] = [];
@@ -190,12 +310,19 @@ const markers = computed<Marker[]>(() => {
             })
             .join(" ")
         : null;
+    const reach = FOOTPRINT_UNITS[lineup.utility_type];
+    const edge =
+      land && landing && reach
+        ? projectCalibrated({ ...land, x: land.x + reach })
+        : null;
     out.push({
       id: lineup.id,
       color: UTILITY_TYPE_COLORS[lineup.utility_type] ?? "#ffffff",
       origin,
       landing,
       path,
+      footprint:
+        edge && landing ? Math.hypot(edge.x - landing.x, edge.y - landing.y) : null,
     });
   }
   return out;
@@ -585,8 +712,12 @@ function onMetaClick(marker: MetaMarker) {
   emit("select-meta", marker.key);
 }
 
+// The page closes its own layers on Escape too (selection, spot filter), and
+// both listeners sit on window. The board mounts first so it hears the key
+// first; marking the event handled stops one press closing two layers.
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === "Escape" && openCluster.value) {
+  if (event.key === "Escape" && !escapeTaken(event) && openCluster.value) {
+    takeEscape(event);
     beginFan(null);
   }
 }
@@ -658,21 +789,71 @@ const drawnMarkers = computed<DrawnMarker[]>(() => {
 // click handler's normalised fraction stays correct at any zoom without
 // knowing a thing about it.
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 6;
+const ZOOM_CEILING = 6;
 
 const zoom = ref(1);
 const panX = ref(0);
 const panY = ref(0);
 const viewportRef = ref<HTMLElement | null>(null);
+const { width: frameWidth } = useElementSize(viewportRef);
+
+const radarWidth = ref(0);
+const maxZoom = computed(() =>
+  maxZoomFor(radarWidth.value, frameWidth.value, ZOOM_CEILING),
+);
+
+// What the peek must not cover: the throw as drawn -- the marker and its
+// line, which live in separate layers -- clipped to the part of the board
+// that is on screen.
+function peekLine(lineupId: string): DOMRect | null {
+  const root = viewportRef.value;
+  if (!root) {
+    return null;
+  }
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  root
+    .querySelectorAll(`[data-peek-line="${lineupId}"]`)
+    .forEach((element) => {
+      const rect = element.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        return;
+      }
+      left = Math.min(left, rect.left);
+      top = Math.min(top, rect.top);
+      right = Math.max(right, rect.right);
+      bottom = Math.max(bottom, rect.bottom);
+    });
+  return right > left && bottom > top
+    ? new DOMRect(left, top, right - left, bottom - top)
+    : null;
+}
+
+let releasePeekBoard: (() => void) | null = null;
+
+watch(
+  () => props.peek,
+  (enabled) => {
+    releasePeekBoard?.();
+    releasePeekBoard =
+      enabled && import.meta.client
+        ? useUtilityPeek().registerBoard({
+            rect: () => viewportRef.value?.getBoundingClientRect() ?? null,
+            line: peekLine,
+          })
+        : null;
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => releasePeekBoard?.());
 const svgRef = ref<SVGSVGElement | null>(null);
 const panning = ref(false);
 
 let dragged = false;
 let captured = false;
-let lastX = 0;
-let lastY = 0;
-let startX = 0;
-let startY = 0;
 
 // How far the pointer may wander before a press counts as a pan rather than a
 // pick. Measured from where the press started, not between consecutive move
@@ -680,18 +861,51 @@ let startY = 0;
 // to pan the map and then register a pick at the end of it.
 const DRAG_SLOP = 3;
 
-const boardTransform = computed(
-  () => `translate(${panX.value}px, ${panY.value}px) scale(${zoom.value})`,
-);
+// The zoom the board is LAID OUT at, as opposed to the one it is drawn at. A
+// scale transform on a layer of its own is painted once at 1x and stretched:
+// a soft map, and marks that were sub-pixel when painted turning up as faint
+// smudges. So at rest the board really is that many times the frame's size,
+// and only while something moves does the difference ride the transform,
+// which costs no layout.
+const laidZoom = ref(1);
 
-// The whole board is scaled by one CSS transform, which is right for the map
-// and wrong for everything drawn on it: at 4x a 2px ring stroke is 8px of ink
-// and a 14px count is 56px of type sitting across half a bombsite. Anything
-// that is ink rather than distance divides by this, so it holds the same weight
-// on screen at every zoom. Radii do NOT -- a meta ring's radius is how far
-// apart the throws in that cluster actually landed, which is a distance on the
-// map and has to scale with it.
-const ink = computed(() => 1 / zoom.value);
+const boardStyle = computed(() => {
+  const laid = laidZoom.value;
+  const moving = panning.value || easing.value || gliding.value;
+  return {
+    width: `${laid * 100}%`,
+    height: `${laid * 100}%`,
+    left: `${(1 - laid) * 50}%`,
+    top: `${(1 - laid) * 50}%`,
+    transform: `translate(${panX.value}px, ${panY.value}px) scale(${zoom.value / laid})`,
+    transformOrigin: "center center",
+    // will-change pins the layer's raster at the scale it was promoted at:
+    // smooth during a drag, soft the rest of the time.
+    willChange: moving ? "transform" : "auto",
+    transition: easing.value
+      ? `transform ${ZOOM_EASE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
+      : "none",
+  };
+});
+
+// Anything that is ink rather than distance is multiplied by this, so it
+// holds its size on screen at every zoom and on every board. Radii are NOT:
+// a meta ring's radius is how far apart the throws in that cluster landed,
+// which is a distance on the map and has to scale with it.
+const coarse = useMediaQuery("(pointer: coarse)");
+const ink = computed(() =>
+  markInk(zoom.value, frameWidth.value, CANVAS, coarse.value),
+);
+const reach = computed(() =>
+  hitRadius(zoom.value, frameWidth.value, CANVAS, coarse.value),
+);
+// Only a finger's reach is wide enough to take in things that are not marks
+// of their own: a ring whose size is a distance on the map.
+const touchReach = computed(() => (coarse.value ? reach.value : 0));
+
+function hit(size: number) {
+  return Math.max(size * ink.value, reach.value);
+}
 
 // The fan is a transient read, never a mode. Anything that changes what is on
 // the map underneath it -- a new zoom, a threshold sweep, the overlay going
@@ -705,17 +919,39 @@ watch([zoom, () => props.metaSpots], () => {
   }
 });
 
-// Panning past the edge would reveal the background behind the map, so the
-// offset is clamped to whatever the current zoom actually overflows by.
+// Only a board that takes the finger is moved out from under anything.
+const cover = computed(() => (props.touch ? props.cover : NO_MAP_INSETS));
+const isCovered = computed(() => {
+  const { top, right, bottom, left } = cover.value;
+  return top + right + bottom + left > 0;
+});
+
+function currentView(): MapView {
+  return { zoom: zoom.value, x: panX.value, y: panY.value };
+}
+
+// See mapPanLimits: to the edge of what can be seen, and no further.
 function clampPan() {
-  const rect = viewportRef.value?.getBoundingClientRect();
-  if (!rect) {
+  if (!viewportRef.value) {
     return;
   }
-  const slackX = (rect.width * (zoom.value - 1)) / 2;
-  const slackY = (rect.height * (zoom.value - 1)) / 2;
-  panX.value = Math.min(slackX, Math.max(-slackX, panX.value));
-  panY.value = Math.min(slackY, Math.max(-slackY, panY.value));
+  const held = clampMapPan(currentView(), frameSize(), cover.value);
+  panX.value = held.x;
+  panY.value = held.y;
+}
+
+// Zoomed in, there is more map than can be seen at once; so there is with
+// part of it under something. Out from under is a finger's to pull, though,
+// not a mouse's: a mouse at 1x is aiming a click, and has a wheel to scroll
+// the page with.
+function canPan(pointerType: string) {
+  if (zoom.value > MIN_ZOOM) {
+    return true;
+  }
+  return (
+    pointerType !== "mouse" &&
+    mapCanPan(zoom.value, frameSize(), cover.value)
+  );
 }
 
 // Zooming toward the pointer rather than the centre: the thing under the
@@ -732,6 +968,7 @@ let easeTimer: ReturnType<typeof setTimeout> | null = null;
 const ZOOM_EASE_MS = 260;
 
 function easeZoom(run: () => void) {
+  stopWheel();
   easing.value = true;
   if (easeTimer) {
     clearTimeout(easeTimer);
@@ -747,11 +984,13 @@ onBeforeUnmount(() => {
   if (easeTimer) {
     clearTimeout(easeTimer);
   }
+  stopWheel();
+  cancelAnimationFrame(glideFrame);
 });
 
 function zoomAt(next: number, clientX?: number, clientY?: number) {
   const rect = viewportRef.value?.getBoundingClientRect();
-  const target = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+  const target = Math.min(maxZoom.value, Math.max(MIN_ZOOM, next));
   if (rect && clientX !== undefined && clientY !== undefined) {
     const originX = clientX - rect.left - rect.width / 2;
     const originY = clientY - rect.top - rect.height / 2;
@@ -760,80 +999,597 @@ function zoomAt(next: number, clientX?: number, clientY?: number) {
     panY.value = originY - (originY - panY.value) * ratio;
   }
   zoom.value = target;
-  if (target === MIN_ZOOM) {
+  if (target === MIN_ZOOM && !isCovered.value) {
     panX.value = 0;
     panY.value = 0;
   }
   clampPan();
 }
 
-function onWheel(event: WheelEvent) {
-  event.preventDefault();
-  zoomAt(
-    zoom.value * (event.deltaY < 0 ? 1.15 : 1 / 1.15),
-    event.clientX,
-    event.clientY,
-  );
+// A wheel says how far, not only which way: a notched wheel sends one big
+// delta per click, a Magic Mouse or trackpad sends dozens of small ones a
+// second. A fixed 15% per event zoomed the second kind several times too fast,
+// and every step landed in one frame, which read as the map jumping. The
+// distance now moves a target and the board glides after it -- a share of the
+// remaining way each frame, so a stream of events stays one smooth motion.
+const WHEEL_RATE = 0.0025;
+// A trackpad pinch arrives as a ctrl-wheel with much smaller deltas.
+const PINCH_RATE = 0.01;
+// One accelerated flick must not cross the whole range in a single event.
+const WHEEL_DELTA_CAP = 60;
+// Time constant of the glide; frame-rate independent, so 120Hz is not faster.
+const WHEEL_GLIDE_MS = 50;
+
+const WHEEL_REST_MS = 140;
+
+let wheelTarget = 1;
+let wheelX = 0;
+let wheelY = 0;
+let wheelFrame = 0;
+let wheelLast = 0;
+let wheelRest: ReturnType<typeof setTimeout> | null = null;
+const wheeling = ref(false);
+
+function stopWheel() {
+  cancelAnimationFrame(wheelFrame);
+  wheelFrame = 0;
+  wheelLast = 0;
+  if (wheelRest) {
+    clearTimeout(wheelRest);
+    wheelRest = null;
+  }
+  wheeling.value = false;
 }
 
-// Capture is deliberately NOT taken here. While a pointer capture is set, the
-// compatibility click is dispatched at the capturing element instead of the
-// element under the pointer -- so capturing the viewport on press meant the
-// click never reached the <svg> beneath it, and picking a point silently
-// stopped working at any zoom above 1. It is taken on the first real movement
-// instead, by which time the gesture is a pan and there is no click to lose.
-function onPointerDown(event: PointerEvent) {
-  if (zoom.value <= MIN_ZOOM || event.button !== 0) {
+function glideWheel(now: number) {
+  const dt = wheelLast ? Math.min(64, now - wheelLast) : 16;
+  wheelLast = now;
+  const remaining = Math.log(wheelTarget / zoom.value);
+  if (Math.abs(remaining) < 0.002) {
+    zoomAt(wheelTarget, wheelX, wheelY);
+    stopWheel();
     return;
   }
+  zoomAt(
+    zoom.value * Math.exp(remaining * (1 - Math.exp(-dt / WHEEL_GLIDE_MS))),
+    wheelX,
+    wheelY,
+  );
+  wheelFrame = requestAnimationFrame(glideWheel);
+}
+
+function onWheel(event: WheelEvent) {
+  event.preventDefault();
+  const unit =
+    event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+  const delta = Math.max(
+    -WHEEL_DELTA_CAP,
+    Math.min(WHEEL_DELTA_CAP, event.deltaY * unit),
+  );
+  const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
+  if (!wheelFrame) {
+    wheelTarget = zoom.value;
+  }
+  wheelTarget = Math.min(
+    maxZoom.value,
+    Math.max(MIN_ZOOM, wheelTarget * Math.exp(-delta * rate)),
+  );
+  wheelX = event.clientX;
+  wheelY = event.clientY;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    wheeling.value = true;
+    zoomAt(wheelTarget, wheelX, wheelY);
+    if (wheelRest) {
+      clearTimeout(wheelRest);
+    }
+    wheelRest = setTimeout(stopWheel, WHEEL_REST_MS);
+    return;
+  }
+  if (!wheelFrame) {
+    wheeling.value = true;
+    wheelFrame = requestAnimationFrame(glideWheel);
+  }
+}
+
+// Capture is deliberately NOT taken on the press. While a pointer capture is
+// set, the compatibility click is dispatched at the capturing element instead
+// of the element under the pointer -- so capturing the viewport on press meant
+// the click never reached the <svg> beneath it, and picking a point silently
+// stopped working at any zoom above 1. It is taken on the first real movement
+// instead, by which time the gesture is a pan and there is no click to lose.
+type Press = {
+  id: number;
+  type: string;
+  x: number;
+  y: number;
+  t: number;
+  moved: number;
+};
+
+const TAP_ZOOM_STEP = 2;
+const FLING_MIN = 0.05;
+
+const pointers = new Map<number, { x: number; y: number }>();
+let press: Press | null = null;
+let pinch: {
+  ids: [number, number];
+  view: MapView;
+  from: [MapPoint, MapPoint];
+  t: number;
+  still: boolean;
+} | null = null;
+let pinched = false;
+let lastTap: MapSample | null = null;
+let tapZoom: { zoom: number; y: number; x: number } | null = null;
+let samples: MapSample[] = [];
+// A gesture that was not a tap must not select what it ended on.
+let swallowClick = false;
+const gliding = ref(false);
+
+watch([zoom, panning, easing, gliding, wheeling], () => {
+  if (
+    !panning.value &&
+    !easing.value &&
+    !gliding.value &&
+    !wheeling.value
+  ) {
+    laidZoom.value = zoom.value;
+  }
+});
+
+// A smaller picture, or a narrower frame, can bring the limit in under where
+// the board already is.
+watch(maxZoom, (limit) => {
+  if (zoom.value > limit) {
+    zoomAt(limit);
+  }
+});
+
+function framePoint(clientX: number, clientY: number): MapPoint {
+  const rect = viewportRef.value?.getBoundingClientRect();
+  if (!rect) {
+    return { x: 0, y: 0 };
+  }
+  return {
+    x: clientX - rect.left - rect.width / 2,
+    y: clientY - rect.top - rect.height / 2,
+  };
+}
+
+function frameSize() {
+  const rect = viewportRef.value?.getBoundingClientRect();
+  return { width: rect?.width ?? 0, height: rect?.height ?? 0 };
+}
+
+function takes(event: PointerEvent) {
+  if (event.pointerType === "mouse") {
+    return event.button === 0;
+  }
+  return props.touch;
+}
+
+function capture(event: PointerEvent, id = event.pointerId) {
+  (event.currentTarget as HTMLElement).setPointerCapture?.(id);
+  captured = true;
+}
+
+let glideFrame = 0;
+let glideLast = 0;
+let glideVelocity: MapPoint = { x: 0, y: 0 };
+
+function stopGlide() {
+  cancelAnimationFrame(glideFrame);
+  glideFrame = 0;
+  glideLast = 0;
+  gliding.value = false;
+}
+
+// The fling after a pan: it slows the whole way, and an axis that meets the
+// edge of the map gives up its speed there instead of pushing against it.
+function glide(now: number) {
+  const dt = glideLast ? Math.min(64, now - glideLast) : 16;
+  glideLast = now;
+  const reduced = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  const step = momentumStep(glideVelocity, dt, reduced ? 90 : undefined);
+  const wantX = panX.value + step.dx;
+  const wantY = panY.value + step.dy;
+  panX.value = wantX;
+  panY.value = wantY;
+  clampPan();
+  glideVelocity = {
+    x: panX.value === wantX ? step.velocity.x : 0,
+    y: panY.value === wantY ? step.velocity.y : 0,
+  };
+  if (step.done || (glideVelocity.x === 0 && glideVelocity.y === 0)) {
+    stopGlide();
+    return;
+  }
+  glideFrame = requestAnimationFrame(glide);
+}
+
+function beginPinch(event: PointerEvent) {
+  const [a, b] = [...pointers.entries()];
+  pinch = {
+    ids: [a[0], b[0]],
+    view: { zoom: zoom.value, x: panX.value, y: panY.value },
+    from: [framePoint(a[1].x, a[1].y), framePoint(b[1].x, b[1].y)],
+    t: event.timeStamp,
+    still: true,
+  };
+  pinched = true;
+  swallowClick = true;
+  tapZoom = null;
   panning.value = true;
+  capture(event, a[0]);
+  capture(event, b[0]);
+}
+
+function onPointerDown(event: PointerEvent) {
+  if (!takes(event)) {
+    return;
+  }
+  stopWheel();
+  stopGlide();
+  easing.value = false;
+  // The first finger down starts over. A pointer whose release never arrived
+  // (the mark under it was redrawn mid-press) would otherwise sit here as a
+  // second finger and turn the next pan into a pinch.
+  if (event.isPrimary) {
+    pointers.clear();
+    pinch = null;
+  }
+  pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (pointers.size === 2) {
+    beginPinch(event);
+    return;
+  }
+  if (pointers.size > 2) {
+    return;
+  }
+  const tap = { t: event.timeStamp, x: event.clientX, y: event.clientY };
+  press = { id: event.pointerId, type: event.pointerType, ...tap, moved: 0 };
+  samples = [tap];
+  pinched = false;
   dragged = false;
   captured = false;
-  lastX = event.clientX;
-  lastY = event.clientY;
-  startX = event.clientX;
-  startY = event.clientY;
+  swallowClick = false;
+  tapZoom =
+    event.pointerType !== "mouse" && isDoubleTap(lastTap, tap)
+      ? { zoom: zoom.value, x: tap.x, y: tap.y }
+      : null;
+  if (tapZoom) {
+    forget();
+  }
 }
 
 function onPointerMove(event: PointerEvent) {
-  if (!panning.value) {
+  const last = pointers.get(event.pointerId);
+  if (!last) {
     return;
   }
-  const dx = event.clientX - lastX;
-  const dy = event.clientY - lastY;
-  if (
-    Math.abs(event.clientX - startX) > DRAG_SLOP ||
-    Math.abs(event.clientY - startY) > DRAG_SLOP
-  ) {
+  const at = { x: event.clientX, y: event.clientY };
+  pointers.set(event.pointerId, at);
+
+  if (pinch) {
+    const a = pointers.get(pinch.ids[0]);
+    const b = pointers.get(pinch.ids[1]);
+    if (!a || !b) {
+      return;
+    }
+    const to: [MapPoint, MapPoint] = [
+      framePoint(a.x, a.y),
+      framePoint(b.x, b.y),
+    ];
+    if (
+      Math.hypot(to[0].x - pinch.from[0].x, to[0].y - pinch.from[0].y) >
+        TAP_SLOP_PX ||
+      Math.hypot(to[1].x - pinch.from[1].x, to[1].y - pinch.from[1].y) >
+        TAP_SLOP_PX
+    ) {
+      pinch.still = false;
+    }
+    const view = pinchView(
+      pinch.view,
+      pinch.from,
+      to,
+      { min: MIN_ZOOM, max: maxZoom.value },
+      frameSize(),
+      cover.value,
+    );
+    zoom.value = view.zoom;
+    panX.value = view.x;
+    panY.value = view.y;
+    return;
+  }
+
+  if (!press || press.id !== event.pointerId) {
+    return;
+  }
+  press.moved = Math.max(
+    press.moved,
+    Math.hypot(at.x - press.x, at.y - press.y),
+  );
+  if (!dragged) {
+    if (press.moved <= (press.type === "mouse" ? DRAG_SLOP : TAP_SLOP_PX)) {
+      return;
+    }
+    // With nothing to pan, a mouse press that wandered is still the click it
+    // was meant as -- picking a point at 1x must not need a steady hand.
+    if (press.type === "mouse" && zoom.value <= MIN_ZOOM) {
+      return;
+    }
     dragged = true;
+    swallowClick = true;
+    capture(event);
   }
-  if (dragged && !captured) {
-    captured = true;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+
+  if (tapZoom) {
+    panning.value = true;
+    zoomAt(
+      dragZoom(tapZoom.zoom, at.y - tapZoom.y),
+      tapZoom.x,
+      tapZoom.y,
+    );
+    return;
   }
-  panX.value += dx;
-  panY.value += dy;
-  lastX = event.clientX;
-  lastY = event.clientY;
+  if (!canPan(press.type)) {
+    return;
+  }
+  panning.value = true;
+  panX.value += at.x - last.x;
+  panY.value += at.y - last.y;
   clampPan();
+  samples.push({ t: event.timeStamp, x: at.x, y: at.y });
+  if (samples.length > 12) {
+    samples.shift();
+  }
+}
+
+function settleZoom(clientX: number, clientY: number) {
+  if (zoom.value < MIN_ZOOM || zoom.value > maxZoom.value) {
+    easeZoom(() => zoomAt(zoom.value, clientX, clientY));
+  }
+}
+
+function endPinch(event: PointerEvent) {
+  const ended = pinch;
+  if (!ended) {
+    return;
+  }
+  pinch = null;
+  const a = pointers.get(ended.ids[0]) ?? {
+    x: event.clientX,
+    y: event.clientY,
+  };
+  const b = pointers.get(ended.ids[1]) ?? {
+    x: event.clientX,
+    y: event.clientY,
+  };
+  const midX = (a.x + b.x) / 2;
+  const midY = (a.y + b.y) / 2;
+  // Two fingers down and up without moving: one step back out.
+  if (ended.still && event.timeStamp - ended.t <= TAP_MAX_MS) {
+    easeZoom(() => zoomAt(zoom.value / TAP_ZOOM_STEP, midX, midY));
+  } else {
+    settleZoom(midX, midY);
+  }
 }
 
 function onPointerUp(event: PointerEvent) {
-  if (!panning.value) {
+  if (!pointers.has(event.pointerId)) {
     return;
   }
-  panning.value = false;
+  liftPointer(event);
+  // The limits can have moved while a finger held the map; with the last
+  // one up it is brought inside them.
+  if (pointers.size === 0 && !gliding.value && !easing.value) {
+    settle(false);
+  }
+}
+
+function liftPointer(event: PointerEvent) {
+  const target = event.currentTarget as HTMLElement;
+  if (pinch?.ids.includes(event.pointerId)) {
+    endPinch(event);
+  }
+  pointers.delete(event.pointerId);
   if (captured) {
-    captured = false;
-    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+    target.releasePointerCapture?.(event.pointerId);
+  }
+
+  if (pointers.size === 1 && pinched) {
+    const [[id, at]] = [...pointers.entries()];
+    press = {
+      id,
+      type: event.pointerType,
+      x: at.x,
+      y: at.y,
+      t: event.timeStamp,
+      moved: Infinity,
+    };
+    dragged = true;
+    samples = [{ t: event.timeStamp, x: at.x, y: at.y }];
+    return;
+  }
+  if (pointers.size > 0) {
+    return;
+  }
+
+  const ended = press;
+  press = null;
+  panning.value = false;
+  captured = false;
+  if (!ended || ended.id !== event.pointerId) {
+    tapZoom = null;
+    return;
+  }
+  if (event.type === "pointercancel") {
+    tapZoom = null;
+    lastTap = null;
+    return;
+  }
+
+  const tap = { t: event.timeStamp, x: event.clientX, y: event.clientY };
+  if (tapZoom && dragged) {
+    tapZoom = null;
+    lastTap = null;
+    return;
+  }
+  if (
+    ended.type !== "mouse" &&
+    !pinched &&
+    isTap(ended.moved, event.timeStamp - ended.t)
+  ) {
+    if (tapZoom) {
+      tapZoom = null;
+      lastTap = null;
+      swallowClick = true;
+      easeZoom(() => zoomAt(zoom.value * TAP_ZOOM_STEP, tap.x, tap.y));
+      return;
+    }
+    lastTap = tap;
+    return;
+  }
+  tapZoom = null;
+  lastTap = null;
+
+  if (dragged && !pinched && canPan(ended.type)) {
+    const velocity = releaseVelocity(samples, event.timeStamp);
+    if (Math.hypot(velocity.x, velocity.y) > FLING_MIN) {
+      glideVelocity = velocity;
+      gliding.value = true;
+      glideFrame = requestAnimationFrame(glide);
+    }
+  }
+}
+
+// Safari announces a pinch with its own gesture events and zooms the page on
+// them unless they are refused, whatever touch-action says.
+function refuseGesture(event: Event) {
+  if (props.touch) {
+    event.preventDefault();
+  }
+}
+
+onMounted(() => {
+  viewportRef.value?.addEventListener("gesturestart", refuseGesture, {
+    passive: false,
+  });
+  viewportRef.value?.addEventListener("gesturechange", refuseGesture, {
+    passive: false,
+  });
+});
+
+function onClickCapture(event: MouseEvent) {
+  if (swallowClick) {
+    swallowClick = false;
+    event.stopPropagation();
+    event.preventDefault();
   }
 }
 
 function resetView() {
+  stopWheel();
+  stopGlide();
   zoom.value = 1;
   panX.value = 0;
   panY.value = 0;
 }
+
+// Clear of the edge of what can be seen by a mark and a little air.
+const SHOW_MARGIN_PX = 28;
+
+// The open lineup's two ends as the frame draws them at 1x. Where it lands
+// comes first: that is the end to keep when both will not fit.
+function selectedPoints(frame: MapFrame): MapPoint[] {
+  const marker = markers.value.find((entry) => entry.id === props.selectedId);
+  if (!marker) {
+    return [];
+  }
+  return [marker.landing, marker.origin]
+    .filter((point): point is { x: number; y: number } => point !== null)
+    .map((point) => ({
+      x: (point.x / CANVAS - 0.5) * frame.width,
+      y: (point.y / CANVAS - 0.5) * frame.height,
+    }));
+}
+
+/**
+ * Brings the map to where what covers it lets it rest and, with `show`, the
+ * open lineup out from under the cover. Eased, and never under a finger: a
+ * gesture is held to the limits by its own moves, and a map that slid away
+ * from the hand moving it would be fighting it.
+ */
+function settle(show: boolean) {
+  if (pointers.size > 0 || !viewportRef.value) {
+    return;
+  }
+  const frame = frameSize();
+  if (!frame.width || !frame.height) {
+    return;
+  }
+  const from = currentView();
+  const points =
+    show &&
+    isCovered.value &&
+    mapRoomToShow(frame, cover.value, SHOW_MARGIN_PX)
+      ? selectedPoints(frame)
+      : [];
+  const to = points.length
+    ? mapPanToShow(from, points, frame, cover.value, SHOW_MARGIN_PX)
+    : clampMapPan(from, frame, cover.value);
+  if (Math.abs(to.x - from.x) < 0.5 && Math.abs(to.y - from.y) < 0.5) {
+    return;
+  }
+  stopGlide();
+  easeZoom(() => {
+    panX.value = to.x;
+    panY.value = to.y;
+  });
+}
+
+watch(cover, () => settle(false), { flush: "post" });
+
+watch(frameWidth, () => {
+  if (isCovered.value) {
+    settle(false);
+  }
+});
+
+watch(
+  () => props.selectedId,
+  (id) => {
+    if (id) {
+      settle(true);
+    }
+  },
+  { flush: "post" },
+);
+
+const zoomIn = () => easeZoom(() => zoomAt(zoom.value * 1.4));
+const zoomOut = () => easeZoom(() => zoomAt(zoom.value / 1.4));
+const resetZoom = () => easeZoom(() => resetView());
+const ready = computed(() => !!displaySrc.value);
+
+defineExpose({
+  ready,
+  // The square the radar is drawn in, for a page that grows it out of -- or
+  // hands it back to -- a smaller copy of itself.
+  viewport: viewportRef,
+  zoom,
+  zoomIn,
+  zoomOut,
+  resetZoom,
+  canZoomIn: computed(() => zoom.value < maxZoom.value),
+  canZoomOut: computed(() => zoom.value > MIN_ZOOM),
+  hasCallouts,
+  showCallouts,
+  // For when what covers the map has come to rest somewhere new: the open
+  // lineup is brought out from under it.
+  showSelected: () => settle(true),
+});
 
 // A new map is a new view; keeping the old pan would open it somewhere random.
 watch(
@@ -862,6 +1618,108 @@ function worldAt(clientX: number, clientY: number) {
     },
     props.pickZ,
   );
+}
+
+function activate(key: string) {
+  const split = key.indexOf(":");
+  const kind = key.slice(0, split);
+  const id = key.slice(split + 1);
+  if (kind === "lineup") {
+    emit("select", id);
+  } else if (kind === "badge") {
+    beginFan(id);
+  } else {
+    const ring = metaMarkers.value.find((marker) => marker.key === id);
+    if (ring) {
+      onMetaClick(ring);
+    }
+  }
+}
+
+function tapTargets(): TapTarget[] {
+  const reach = touchReach.value;
+  const drawn = 9 * ink.value;
+  const targets: TapTarget[] = markers.value.flatMap((marker) =>
+    [marker.origin, marker.landing].flatMap((point) =>
+      point
+        ? [{ key: `lineup:${marker.id}`, ...point, within: reach * 1.25, drawn }]
+        : [],
+    ),
+  );
+  if (!props.metaInteractive || props.picking) {
+    return targets;
+  }
+  for (const marker of metaMarkers.value) {
+    if (!metaStacked(marker)) {
+      targets.push({
+        key: `ring:${marker.key}`,
+        ...metaTarget(marker),
+        within: Math.max(marker.radius, reach),
+        drawn,
+      });
+    }
+  }
+  for (const cluster of metaClusters.value) {
+    if (openCluster.value !== cluster.cluster) {
+      targets.push({
+        key: `badge:${cluster.cluster}`,
+        x: cluster.anchor.x + cluster.radius * 0.72,
+        y: cluster.anchor.y - cluster.radius * 0.72,
+        within: reach,
+        drawn,
+      });
+    }
+  }
+  return targets;
+}
+
+let waiting: { timer: ReturnType<typeof setTimeout>; key: string } | null =
+  null;
+
+function forget() {
+  if (!waiting) {
+    return;
+  }
+  clearTimeout(waiting.timer);
+  if (waiting.key.startsWith("lineup:")) {
+    emit("hover", null);
+  }
+  waiting = null;
+}
+
+onBeforeUnmount(forget);
+
+// `hit` is what the browser found under the press, which is all a mouse
+// needs. Under a finger the nearest thing is the one meant. A tap on the mark
+// as drawn opens it at once; one in the 44px of room round it waits out the
+// double-tap window, or every double tap to zoom on a busy map would open
+// whatever was nearest its first tap.
+function onTap(hit: string, event: MouseEvent) {
+  const rect = svgRef.value?.getBoundingClientRect();
+  if (!coarse.value || !rect?.width || !rect.height) {
+    activate(hit);
+    return;
+  }
+  const target = tapTarget(tapTargets(), {
+    x: ((event.clientX - rect.left) / rect.width) * CANVAS,
+    y: ((event.clientY - rect.top) / rect.height) * CANVAS,
+  });
+  const key = target?.key ?? hit;
+  forget();
+  if (target?.direct) {
+    activate(key);
+    return;
+  }
+  if (key.startsWith("lineup:")) {
+    emit("hover", key.slice("lineup:".length));
+  }
+  waiting = {
+    key,
+    timer: setTimeout(() => {
+      waiting = null;
+      activate(key);
+    }, DOUBLE_TAP_MS),
+  };
 }
 
 function onBoardClick(event: MouseEvent) {
@@ -932,24 +1790,68 @@ function metaLit(key: string) {
   return props.selectedMetaKey === key || props.hoveredMetaKey === key;
 }
 
-function isLit(id: string) {
-  return props.showAllLines || activeId.value === id;
+// Lines live in their own layer above every marker, in two groups. Markers
+// used to be re-sorted so the lit one came last, and moving a node in the DOM
+// cancels whatever transition it was in -- which is why a hovered line and its
+// marker could only ever pop. Nothing is reordered now, so everything eases.
+//
+// The open lineup keeps its line while the cursor is on another marker, just
+// quieter: hovering is a look at something else, not a reason for the thing
+// you are reading to vanish and come back.
+const steadyTrails = computed(() =>
+  markers.value.filter(
+    (marker) =>
+      marker.landing &&
+      (props.showAllLines || marker.id === props.selectedId),
+  ),
+);
+
+const hoverTrail = computed(() => {
+  const id = props.hoveredId;
+  if (!id || props.showAllLines || id === props.selectedId) {
+    return [];
+  }
+  return markers.value.filter((marker) => marker.id === id && marker.landing);
+});
+
+// Scaled about its own centre, in the board's units.
+function grow(point: { x: number; y: number }, by: number) {
+  return {
+    transform: `scale(${by})`,
+    transformOrigin: `${point.x}px ${point.y}px`,
+  };
 }
 
-// The lit lineup is drawn last so its line and markers sit over the rest of the
-// board rather than under whatever happens to come after it in the list.
-const orderedMarkers = computed(() => {
-  const lit: Marker[] = [];
-  const rest: Marker[] = [];
-  for (const marker of markers.value) {
-    if (activeId.value === marker.id) {
-      lit.push(marker);
-    } else {
-      rest.push(marker);
+// The open lineup's line draws itself from the thrower to the landing -- but
+// only when it arrives new. A line already on screen because the cursor was
+// on it when you clicked does not draw a second time.
+const drawId = ref<string | null>(null);
+let drawTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(
+  () => props.selectedId,
+  (id) => {
+    drawId.value = id && id !== props.hoveredId ? id : null;
+    if (drawTimer) {
+      clearTimeout(drawTimer);
     }
+    drawTimer = setTimeout(() => (drawId.value = null), 500);
+  },
+);
+
+onBeforeUnmount(() => {
+  if (drawTimer) {
+    clearTimeout(drawTimer);
   }
-  return [...rest, ...lit];
 });
+
+function trailPath(marker: Marker) {
+  if (marker.path) {
+    return marker.path;
+  }
+  const end = marker.landing ?? marker.origin;
+  return `M${marker.origin.x} ${marker.origin.y} L${end.x} ${end.y}`;
+}
 </script>
 
 <template>
@@ -964,8 +1866,15 @@ const orderedMarkers = computed(() => {
       ref="viewportRef"
       v-bind="$attrs"
       class="relative mx-auto aspect-square w-full max-w-[calc(100vh-12rem)] overflow-hidden rounded-md border border-border bg-card/40"
-      :class="zoom > 1 ? (panning ? 'cursor-grabbing' : 'cursor-grab') : ''"
+      :class="[
+        zoom > 1 ? (panning ? 'cursor-grabbing' : 'cursor-grab') : '',
+        touch
+          ? 'touch-none select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]'
+          : '',
+      ]"
+      :data-no-sheet-drag="touch ? '' : undefined"
       @wheel="onWheel"
+      @click.capture="onClickCapture"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -975,23 +1884,7 @@ const orderedMarkers = computed(() => {
          than it bought: the map is square, so shortening it vertically shrinks
          it in BOTH axes and leaves wide empty margins. The name and the legend
          carry their own text shadows for exactly this reason. -->
-      <div
-        class="absolute inset-0"
-        :style="{
-          transform: boardTransform,
-          transformOrigin: 'center center',
-          // will-change pins the layer's raster at the scale it was promoted
-          // at, so a zoomed-in board stayed a 1x bitmap blown up -- the dashed
-          // rings furred and the thrower counts went soft. It buys smoothness
-          // during a drag and costs sharpness the rest of the time, so it is
-          // only on while a drag is actually happening; letting go re-rasterises
-          // the vectors at the scale you are looking at them.
-          willChange: panning || easing ? 'transform' : 'auto',
-          transition: easing
-            ? `transform ${ZOOM_EASE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`
-            : 'none',
-        }"
-      >
+      <div data-board-layer class="absolute" :style="boardStyle">
         <!-- A blueprint grid under the map, not a grey card. Before the first radar
          arrives this square is 740px of nothing with a border around it, which
          reads as a panel that failed rather than one that is still loading. -->
@@ -1018,6 +1911,9 @@ const orderedMarkers = computed(() => {
             alt=""
             class="absolute inset-0 h-full w-full select-none object-cover"
             draggable="false"
+            @load="
+              radarWidth = ($event.target as HTMLImageElement).naturalWidth
+            "
           />
         </Transition>
 
@@ -1048,7 +1944,7 @@ const orderedMarkers = computed(() => {
             v-if="showCallouts"
             :callouts="callouts"
             :project="projectCalibrated"
-            :zoom="zoom"
+            :zoom="1 / ink"
           />
           <g
             :class="
@@ -1143,7 +2039,7 @@ const orderedMarkers = computed(() => {
                   metaStacked(meta) ? 'meta-marker--stacked' : '',
                   metaMuted(meta) ? 'meta-marker--muted' : '',
                 ]"
-                @click.stop="onMetaClick(meta)"
+                @click.stop="onTap(`ring:${meta.key}`, $event)"
                 @mouseenter="onMetaHover(meta.key)"
                 @mouseleave="onMetaHover(null)"
               >
@@ -1164,7 +2060,7 @@ const orderedMarkers = computed(() => {
                   <circle
                     :cx="meta.point.x"
                     :cy="meta.point.y"
-                    :r="meta.radius"
+                    :r="Math.max(meta.radius, touchReach)"
                     fill="transparent"
                   />
                   <circle
@@ -1214,8 +2110,15 @@ const orderedMarkers = computed(() => {
                 v-if="openCluster !== cluster.cluster"
                 class="meta-badge cursor-pointer"
                 :class="metaMuted(cluster) ? 'meta-marker--muted' : ''"
-                @click.stop="beginFan(cluster.cluster)"
+                @click.stop="onTap(`badge:${cluster.cluster}`, $event)"
               >
+                <circle
+                  v-if="coarse"
+                  :cx="cluster.anchor.x + cluster.radius * 0.72"
+                  :cy="cluster.anchor.y - cluster.radius * 0.72"
+                  :r="hit(9)"
+                  fill="transparent"
+                />
                 <circle
                   :cx="cluster.anchor.x + cluster.radius * 0.72"
                   :cy="cluster.anchor.y - cluster.radius * 0.72"
@@ -1249,61 +2152,164 @@ const orderedMarkers = computed(() => {
            beside it is mounting. -->
           <TransitionGroup name="mk" tag="g">
             <g
-              v-for="marker of orderedMarkers"
+              v-for="marker of markers"
               :key="marker.id"
+              :ref="(el) => trackMarker(marker.id, el)"
+              :data-peek-line="marker.id"
               :class="picking ? 'pointer-events-none' : 'cursor-pointer'"
-              @click.stop="emit('select', marker.id)"
+              @click.stop="onTap(`lineup:${marker.id}`, $event)"
               @mouseenter="emit('hover', marker.id)"
               @mouseleave="emit('hover', null)"
             >
-              <path
-                v-if="marker.path && isLit(marker.id)"
-                :d="marker.path"
-                fill="none"
-                :stroke="marker.color"
-                :stroke-opacity="activeId === marker.id ? 0.95 : 0.4"
-                :stroke-width="(activeId === marker.id ? 4 : 2) * ink"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <line
-                v-else-if="marker.landing && isLit(marker.id)"
-                :x1="marker.origin.x"
-                :y1="marker.origin.y"
-                :x2="marker.landing.x"
-                :y2="marker.landing.y"
-                :stroke="marker.color"
-                :stroke-opacity="activeId === marker.id ? 0.95 : 0.4"
-                :stroke-width="(activeId === marker.id ? 4 : 2) * ink"
-                stroke-linecap="round"
-                :stroke-dasharray="`${10 * ink} ${8 * ink}`"
-              />
-
-              <circle
-                v-if="marker.landing"
-                :cx="marker.landing.x"
-                :cy="marker.landing.y"
-                :r="(activeId === marker.id ? 13 : 9) * ink"
-                :fill="marker.color"
-                :fill-opacity="activeId === marker.id ? 0.9 : 0.45"
-                stroke="#05070b"
-                :stroke-width="2 * ink"
-              />
+              <template v-if="marker.landing">
+                <!-- The landing grows under the cursor rather than swapping to
+                     a bigger ring. Where the open throw shows the ground it
+                     covers, the ring steps back for it and the dot stays. -->
+                <g
+                  class="utility-glyph"
+                  :style="grow(marker.landing, activeId === marker.id ? 1.55 : 1)"
+                >
+                  <g
+                    class="utility-glyph-fade"
+                    :opacity="activeId === marker.id && marker.footprint ? 0 : 1"
+                  >
+                    <circle
+                      :cx="marker.landing.x"
+                      :cy="marker.landing.y"
+                      :r="8.5 * ink"
+                      fill="none"
+                      stroke="#05070b"
+                      stroke-opacity="0.55"
+                      :stroke-width="2 * ink"
+                    />
+                    <circle
+                      :cx="marker.landing.x"
+                      :cy="marker.landing.y"
+                      :r="7 * ink"
+                      fill="rgba(5, 7, 11, 0.35)"
+                      :stroke="marker.color"
+                      :stroke-opacity="activeId === marker.id ? 1 : 0.75"
+                      :stroke-width="2 * ink"
+                    />
+                  </g>
+                  <circle
+                    :cx="marker.landing.x"
+                    :cy="marker.landing.y"
+                    :r="2.5 * ink"
+                    :fill="marker.color"
+                    :fill-opacity="activeId === marker.id ? 1 : 0.8"
+                  />
+                </g>
+                <!-- The ring is smaller than the dot it replaced; the target
+                     is not, and it does not grow with the ring -- a target
+                     that moves under a still cursor hovers itself on and off. -->
+                <circle
+                  data-mark-hit
+                  :cx="marker.landing.x"
+                  :cy="marker.landing.y"
+                  :r="hit(13)"
+                  fill="transparent"
+                />
+              </template>
 
               <!-- The throw origin is the part a player has to stand on, so it is
-             drawn as a hard square while the landing stays a soft dot. -->
-              <rect
-                :x="marker.origin.x - (activeId === marker.id ? 9 : 6) * ink"
-                :y="marker.origin.y - (activeId === marker.id ? 9 : 6) * ink"
-                :width="(activeId === marker.id ? 18 : 12) * ink"
-                :height="(activeId === marker.id ? 18 : 12) * ink"
-                :fill="marker.color"
-                :fill-opacity="activeId === marker.id ? 1 : 0.65"
-                stroke="#05070b"
-                :stroke-width="2 * ink"
+             drawn as a hard square while the landing stays a soft ring. -->
+              <g
+                class="utility-glyph"
+                :style="grow(marker.origin, activeId === marker.id ? 1.3 : 1)"
+              >
+                <rect
+                  :x="marker.origin.x - 5.5 * ink"
+                  :y="marker.origin.y - 5.5 * ink"
+                  :width="11 * ink"
+                  :height="11 * ink"
+                  :rx="3 * ink"
+                  :fill="marker.color"
+                  :fill-opacity="activeId === marker.id ? 1 : 0.7"
+                  stroke="#05070b"
+                  :stroke-width="2 * ink"
+                />
+              </g>
+              <circle
+                data-mark-hit
+                :cx="marker.origin.x"
+                :cy="marker.origin.y"
+                :r="hit(11)"
+                fill="transparent"
               />
             </g>
           </TransitionGroup>
+
+          <!-- Faint where it leaves the hand and solid where it lands, so the
+               direction reads without an arrowhead, on a dark casing that
+               keeps it legible across the white walls. The open smoke or
+               molotov lands as the ground it covers, to the map's scale. -->
+          <g class="pointer-events-none">
+            <TransitionGroup
+              v-for="(group, layer) of [steadyTrails, hoverTrail]"
+              :key="layer"
+              name="trail"
+              tag="g"
+            >
+              <g
+                v-for="marker of group"
+                :key="marker.id"
+                :data-peek-line="marker.id"
+              >
+                <defs>
+                  <linearGradient
+                    :id="`${uid}-trail-${marker.id}`"
+                    gradientUnits="userSpaceOnUse"
+                    :x1="marker.origin.x"
+                    :y1="marker.origin.y"
+                    :x2="marker.landing!.x"
+                    :y2="marker.landing!.y"
+                  >
+                    <stop offset="0" :stop-color="marker.color" stop-opacity="0.05" />
+                    <stop offset="0.55" :stop-color="marker.color" stop-opacity="0.55" />
+                    <stop offset="1" :stop-color="marker.color" stop-opacity="1" />
+                  </linearGradient>
+                </defs>
+                <path
+                  :d="trailPath(marker)"
+                  fill="none"
+                  stroke="#05070b"
+                  :stroke-opacity="activeId === marker.id ? 0.45 : 0.2"
+                  :stroke-width="7 * ink"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  pathLength="1"
+                  class="utility-trail-line"
+                  :class="drawId === marker.id ? 'utility-trail-draw' : ''"
+                />
+                <path
+                  :d="trailPath(marker)"
+                  fill="none"
+                  :stroke="`url(#${uid}-trail-${marker.id})`"
+                  :stroke-opacity="activeId === marker.id ? 1 : 0.45"
+                  :stroke-width="(activeId === marker.id ? 3.5 : 2) * ink"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  pathLength="1"
+                  class="utility-trail-line"
+                  :class="drawId === marker.id ? 'utility-trail-draw' : ''"
+                />
+                <Transition name="trail">
+                  <circle
+                    v-if="activeId === marker.id && marker.footprint"
+                    :cx="marker.landing!.x"
+                    :cy="marker.landing!.y"
+                    :r="marker.footprint"
+                    :fill="marker.color"
+                    fill-opacity="0.16"
+                    :stroke="marker.color"
+                    stroke-opacity="0.85"
+                    :stroke-width="1.5 * ink"
+                  />
+                </Transition>
+              </g>
+            </TransitionGroup>
+          </g>
 
           <g :class="picking ? 'pointer-events-none' : ''">
             <g v-for="segment of drawnSegments" :key="`segment-${segment.key}`">
@@ -1316,7 +2322,7 @@ const orderedMarkers = computed(() => {
                 :x2="segment.to.x"
                 :y2="segment.to.y"
                 stroke="transparent"
-                :stroke-width="22 * ink"
+                :stroke-width="2 * hit(11)"
                 class="cursor-pointer"
                 @click.stop="emit('select-segment', segment.key)"
               />
@@ -1392,7 +2398,7 @@ const orderedMarkers = computed(() => {
                   v-if="picking && marker.draggable"
                   :cx="marker.point.x"
                   :cy="marker.point.y"
-                  :r="18 * ink"
+                  :r="hit(18)"
                   fill="transparent"
                 />
                 <template v-if="marker.shape === 'cross'">
@@ -1480,7 +2486,7 @@ const orderedMarkers = computed(() => {
          whenever the map ran out of width. The shell is always the full width
          of the box, so the stack sits in the same corner at every size. -->
     <div
-      v-if="displaySrc"
+      v-if="displaySrc && controls"
       class="absolute right-2 top-2 flex flex-col overflow-hidden rounded-md border border-white/10 bg-background/80 [backdrop-filter:blur(10px)]"
       @pointerdown.stop
       @wheel.stop
@@ -1488,9 +2494,9 @@ const orderedMarkers = computed(() => {
       <button
         type="button"
         class="flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground disabled:opacity-30"
-        :disabled="zoom >= 6"
+        :disabled="zoom >= maxZoom"
         :title="$t('pages.utility.board.zoom_in')"
-        @click.stop="easeZoom(() => zoomAt(zoom * 1.4))"
+        @click.stop="zoomIn"
       >
         <Plus class="h-3.5 w-3.5" />
       </button>
@@ -1499,7 +2505,7 @@ const orderedMarkers = computed(() => {
         class="flex h-7 w-7 items-center justify-center border-t border-white/10 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground disabled:opacity-30"
         :disabled="zoom <= 1"
         :title="$t('pages.utility.board.zoom_out')"
-        @click.stop="easeZoom(() => zoomAt(zoom / 1.4))"
+        @click.stop="zoomOut"
       >
         <Minus class="h-3.5 w-3.5" />
       </button>
@@ -1508,7 +2514,7 @@ const orderedMarkers = computed(() => {
         type="button"
         class="flex h-7 w-7 items-center justify-center border-t border-white/10 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
         :title="$t('pages.utility.board.zoom_reset')"
-        @click.stop="easeZoom(() => resetView())"
+        @click.stop="resetZoom"
       >
         <Maximize2 class="h-3.5 w-3.5" />
       </button>
@@ -1525,10 +2531,79 @@ const orderedMarkers = computed(() => {
         <Tags class="h-3.5 w-3.5" />
       </button>
     </div>
+
+    <template v-if="peek && !picking">
+      <UtilityLineupHoverPreview
+        v-for="lineup of lineups"
+        :key="lineup.id"
+        :lineup="lineup"
+        :anchor="markerEls.get(lineup.id) ?? null"
+        placement="pointer"
+        :enabled="!panning"
+      />
+    </template>
   </div>
 </template>
 
 <style scoped>
+/* Hover is a thing you do a dozen times a second across a busy site, so what
+   it changes eases rather than cuts: a line fades in and out, a marker grows
+   and settles, the open throw's line dims instead of vanishing. Short enough
+   to keep up with the cursor. */
+.trail-enter-active {
+  transition: opacity 180ms ease-out;
+}
+.trail-leave-active {
+  transition: opacity 120ms ease-in;
+}
+.trail-enter-from,
+.trail-leave-to {
+  opacity: 0;
+}
+.utility-trail-line {
+  transition:
+    stroke-opacity 160ms ease-out,
+    stroke-width 160ms ease-out;
+}
+.utility-glyph {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.utility-glyph-fade {
+  transition: opacity 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trail-enter-active,
+  .trail-leave-active,
+  .utility-trail-line,
+  .utility-glyph,
+  .utility-glyph-fade {
+    transition-duration: 1ms;
+  }
+}
+
+/* pathLength="1" on the trail makes one dash exactly the line's length, so it
+   draws on with no measuring. */
+.utility-trail-draw {
+  stroke-dasharray: 1;
+  animation: utility-trail-draw 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes utility-trail-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .utility-trail-draw {
+    animation: none;
+  }
+}
+
 /* What the board looks like before there is a map on it. Static on purpose:
    this square is the biggest thing on the page, and anything that pulses or
    sweeps at that size is the flash it was meant to replace. */

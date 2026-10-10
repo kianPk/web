@@ -1,5 +1,9 @@
 import { $ } from "~/generated/zeus";
-import { generateMutation, generateSubscription } from "~/graphql/graphqlGen";
+import {
+  generateMutation,
+  generateQuery,
+  generateSubscription,
+} from "~/graphql/graphqlGen";
 import { utilityAuthorFields } from "~/graphql/utilityGraphql";
 
 // Not in zeus until the next codegen — consumers cast operation maps as any,
@@ -58,6 +62,15 @@ export const utilityRendersInFlightSubscription = generateSubscription({
       ],
     },
     utilityRenderFields,
+  ],
+} as any);
+
+// Rows rather than an aggregate, so it rides the select permission the queue
+// already uses. In-flight rows are few.
+export const utilityRendersInFlightBriefSubscription = generateSubscription({
+  utility_lineup_renders: [
+    { where: { status: { _in: [...RENDER_IN_FLIGHT_STATUSES] } } },
+    { id: true, utility_lineup_id: true, status: true, progress: true },
   ],
 } as any);
 

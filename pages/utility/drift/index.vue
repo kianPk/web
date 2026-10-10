@@ -183,7 +183,7 @@ async function loadResults(scanId: string) {
       return;
     }
     const { data: lineupRows } = await client.query({
-      query: utilityLineupsQuery,
+      query: utilityLineupsQuery(),
       variables: {
         where: { id: { _in: ids } },
         order_by: [{ created_at: order_by.desc }],
@@ -603,6 +603,26 @@ function startRepair(row: UtilityDriftResultView) {
           {{ selectedScan.failureReason }}
         </p>
 
+        <details
+          v-if="selectedScan?.caveats.length"
+          class="rounded-md border border-[hsl(var(--tac-amber))]/40 bg-[hsl(var(--tac-amber))]/5 p-2 text-xs"
+        >
+          <summary
+            class="cursor-pointer font-mono text-[0.58rem] uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
+          >
+            {{
+              $t("pages.utility.drift.caveats", {
+                count: selectedScan.caveats.length,
+              })
+            }}
+          </summary>
+          <ul class="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
+            <li v-for="caveat in selectedScan.caveats" :key="caveat">
+              {{ caveat }}
+            </li>
+          </ul>
+        </details>
+
         <AnimatedFilters
           v-if="results.length"
           v-model="verdictFilter"
@@ -718,7 +738,7 @@ function startRepair(row: UtilityDriftResultView) {
 
               <NuxtLink
                 :to="utilityLineupRoute(selectedScan?.mapName, row.lineupId)"
-                class="inline-flex shrink-0 items-center gap-1 rounded p-1 text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                class="inline-flex shrink-0 items-center gap-1 rounded-md p-1 text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                 :class="
                   canRepair(row) || repairQueued[row.lineupId] ? '' : 'ml-auto'
                 "
