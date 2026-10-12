@@ -5,12 +5,16 @@ import { Gamepad2, Radio, Users } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
-import ServersVideoHero from "~/components/servers/ServersVideoHero.vue";
+import ServersHero from "~/components/servers/ServersHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 
 const { loading, servers, modes, totalPlayers } = usePublicServerFleet();
 
 const ready = computed(() => !loading.value || servers.value.length > 0);
+
+const heroSlides = computed(() =>
+  modes.value.map((mode) => ({ src: mode.cover, accent: mode.accent })),
+);
 
 const stats = computed(() => [
   {
@@ -39,13 +43,25 @@ useHead(() => ({ title: t("pages.servers.title") }));
 
 <template>
   <PageTransition :delay="0">
-    <ServersVideoHero>
-      <div class="flex flex-1 flex-col justify-end p-6 md:p-8">
-        <div class="max-w-xl space-y-2">
-          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
+    <ServersHero :slides="heroSlides">
+      <div class="flex flex-1 flex-col justify-end p-6 md:p-10">
+        <div class="max-w-xl space-y-3">
+          <span
+            class="inline-flex items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1 text-[0.7rem] font-medium text-white/80 ring-1 ring-white/10 backdrop-blur-sm"
+          >
+            <span class="relative flex h-2 w-2">
+              <span
+                class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping"
+              />
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            {{ $t("pages.servers.stat_players") }}:
+            <b class="tabular-nums text-white">{{ totalPlayers }}</b>
+          </span>
+          <h1 class="text-3xl font-extrabold tracking-tight md:text-5xl">
             {{ $t("pages.servers.hero_title") }}
           </h1>
-          <p class="text-sm leading-relaxed text-white/80">
+          <p class="text-sm leading-relaxed text-white/75 md:text-base">
             {{ $t("pages.servers.subtitle") }}
           </p>
         </div>
@@ -54,19 +70,23 @@ useHead(() => ({ title: t("pages.servers.title") }));
           <div
             v-for="stat in stats"
             :key="stat.key"
-            class="flex items-center gap-2.5 rounded-lg bg-white/[0.07] px-3 py-2 backdrop-blur-sm"
+            class="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3.5 py-2.5 ring-1 ring-white/10 backdrop-blur-md"
           >
-            <component :is="stat.icon" class="h-4 w-4 text-[#e3d39a]" />
+            <span
+              class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#e3d39a]/10"
+            >
+              <component :is="stat.icon" class="h-4 w-4 text-[#e3d39a]" />
+            </span>
             <div class="leading-tight">
               <p class="text-[0.65rem] text-white/60">{{ $t(stat.label) }}</p>
-              <p class="text-sm font-bold tabular-nums">
+              <p class="text-base font-bold tabular-nums">
                 {{ stat.value }}
               </p>
             </div>
           </div>
         </div>
       </div>
-    </ServersVideoHero>
+    </ServersHero>
   </PageTransition>
 
   <PageTransition :delay="80">

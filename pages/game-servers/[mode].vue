@@ -54,7 +54,7 @@ import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import ServerLiveDialog from "~/components/servers/ServerLiveDialog.vue";
-import ServersVideoHero from "~/components/servers/ServersVideoHero.vue";
+import ServersHero from "~/components/servers/ServersHero.vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import { loginLinks } from "~/utilities/loginLinks";
 import { mapLabel } from "~/utilities/serverModes";
@@ -240,6 +240,14 @@ function playersTone(server: FleetServer) {
 function mapImage(map: string) {
   return `/img/maps/screenshots/${map}.webp`;
 }
+// The mode's cover, then the maps its servers are on right now. A workshop map
+// has no screenshot, and the hero drops whatever fails to load.
+const heroSlides = computed(() =>
+  [mode.value?.cover, ...maps.value.map(mapImage)]
+    .filter((src): src is string => !!src)
+    .map((src) => ({ src })),
+);
+
 function onImgError(e: Event) {
   const img = e.target as HTMLImageElement;
   const fallback = mode.value?.cover || "/img/maps/screenshots/default.webp";
@@ -294,7 +302,7 @@ useHead(() => ({
 
   <template v-else>
     <PageTransition :delay="40">
-      <ServersVideoHero class="mt-3">
+      <ServersHero class="mt-3" :slides="heroSlides" :accent="mode.accent">
         <div class="flex flex-1 flex-col justify-end gap-4 p-6 md:p-8">
           <div class="space-y-2">
             <h1 class="text-4xl font-bold tracking-tight">
@@ -412,7 +420,7 @@ useHead(() => ({
             </p>
           </div>
         </div>
-      </ServersVideoHero>
+      </ServersHero>
     </PageTransition>
 
     <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
