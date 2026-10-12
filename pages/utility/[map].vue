@@ -223,10 +223,37 @@ async function applyQuery(
   }
 }
 
+// A map opens on its smokes; the other types are a chip away. With nothing in
+// the address that default stands, so turning every chip off has to be written
+// down as "all" or it would read back as smokes again.
+const DEFAULT_TYPES: UtilityType[] = ["Smoke"];
+const ALL_TYPES = "all";
+
+function readTypes(): UtilityType[] {
+  const raw = route.query.type;
+  if (raw === undefined || raw === null) {
+    return [...DEFAULT_TYPES];
+  }
+  if (raw === ALL_TYPES) {
+    return [];
+  }
+  return readList("type") as UtilityType[];
+}
+
+function writeTypes(types: UtilityType[]) {
+  if (!types.length) {
+    return ALL_TYPES;
+  }
+  const isDefault =
+    types.length === DEFAULT_TYPES.length &&
+    DEFAULT_TYPES.every((type) => types.includes(type));
+  return isDefault ? null : types.join(",");
+}
+
 const filters = computed<UtilityFilterState>({
   get: () => ({
     scope: (route.query.scope as UtilityScope) || "public",
-    types: readList("type") as UtilityFilterState["types"],
+    types: readTypes(),
     sides: readList("side") as UtilityFilterState["sides"],
     techniques: readList("tech") as UtilityFilterState["techniques"],
     strengths: readList("str") as UtilityFilterState["strengths"],
@@ -239,7 +266,7 @@ const filters = computed<UtilityFilterState>({
       scope: next.scope === "public" ? null : next.scope,
       sort: next.sort === "top" ? null : next.sort,
       q: next.search,
-      type: next.types.join(","),
+      type: writeTypes(next.types),
       side: next.sides.join(","),
       tech: next.techniques.join(","),
       str: next.strengths.join(","),
