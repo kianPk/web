@@ -4265,7 +4265,9 @@
         "title": "Var behöver du utility?",
         "all": "Alla platser",
         "more": "{count} till",
-        "fewer": "Färre"
+        "fewer": "Färre",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "Visa mer av listan",

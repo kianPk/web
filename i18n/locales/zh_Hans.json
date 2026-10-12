@@ -4265,7 +4265,9 @@
         "title": "哪里需要道具？",
         "all": "全部位置",
         "more": "另外 {count} 个",
-        "fewer": "收起"
+        "fewer": "收起",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "显示更多列表",

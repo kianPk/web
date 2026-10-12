@@ -3,6 +3,8 @@ import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from "v
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
+  ArrowLeft,
+  ChevronRight,
   ClipboardCheck,
   ExternalLink,
   Library,
@@ -87,7 +89,9 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { useUtilityReactions } from "~/composables/useUtilityReactions";
 import { normalizeMapName } from "~/utilities/mapAssets";
 import {
+  UTILITY_TYPE_COLORS,
   UTILITY_TYPES,
+  groupUtilityLandings,
   matchUtilityMetaSpot,
   utilityLineupWhere,
   toUtilityMetaSpots,
@@ -96,6 +100,7 @@ import type {
   UtilityFilterState,
   UtilityBarOffer,
   UtilityLineupContext,
+  UtilityLandingGroup,
   UtilityMetaSpot,
   UtilityPanelBoard,
   UtilityScope,
@@ -267,7 +272,9 @@ const page = computed<number>({
   },
   set: (value) => writeQuery({ page: value > 1 ? String(value) : null }),
 });
-const perPage = 60;
+// The Lineups tab groups a map's throws by where they land, and a spot is only
+// whole when every lineup on the map is on the page.
+const perPage = 500;
 const selectedId = ref<string | null>(null);
 const hoveredId = ref<string | null>(null);
 
@@ -651,10 +658,78 @@ const typeStripOpen = computed(
 // usual type order. The rows keep the order the sort gave them.
 type ListEntry =
   | { kind: "header"; key: string; type: UtilityType; count: number }
-  | { kind: "row"; key: string; lineup: UtilityLineup };
+  | { kind: "row"; key: string; lineup: UtilityLineup }
+  | { kind: "group"; key: string; group: UtilityLandingGroup }
+  | { kind: "spot"; key: string; group: UtilityLandingGroup };
+
+// On the Lineups tab the map shows one dot per spot; opening one shows every
+// way onto it, and the list follows the map.
+const groupsOn = computed(() => listTab.value === LIST_TAB);
+const landingGroups = computed(() => groupUtilityLandings(lineups.value));
+const groupKey = ref<string | null>(null);
+const hoveredGroupKey = ref<string | null>(null);
+const selectedGroup = computed(() =>
+  groupsOn.value
+    ? (landingGroups.value.find((group) => group.key === groupKey.value) ??
+      null)
+    : null,
+);
+
+watch(mapName, () => {
+  groupKey.value = null;
+  hoveredGroupKey.value = null;
+});
+
+watch(selectedGroup, () => (hoveredGroupKey.value = null));
+
+const boardLineups = computed(() =>
+  groupsOn.value ? (selectedGroup.value?.lineups ?? []) : lineups.value,
+);
+
+function selectGroup(key: string | null) {
+  groupKey.value = key;
+  if (key && detailId.value) {
+    closeDetail();
+  }
+}
 
 const listEntries = computed<ListEntry[]>(() => {
   const out: ListEntry[] = [];
+  if (selectedGroup.value) {
+    out.push({
+      kind: "spot",
+      key: `spot-${selectedGroup.value.key}`,
+      group: selectedGroup.value,
+    });
+    for (const lineup of selectedGroup.value.lineups) {
+      out.push({ kind: "row", key: lineup.id, lineup });
+    }
+    return out;
+  }
+  if (groupsOn.value) {
+    for (const type of UTILITY_TYPES) {
+      const groups = landingGroups.value
+        .filter((group) => group.utilityType === type)
+        .sort(
+          (a, b) =>
+            b.lineups.length - a.lineups.length ||
+            a.label.localeCompare(b.label),
+        );
+      if (!groups.length) {
+        continue;
+      }
+      out.push({
+        kind: "header",
+        key: `type-${type}`,
+        type,
+        count: groups.length,
+      });
+      for (const group of groups) {
+        out.push({ kind: "group", key: `group-${group.key}`, group });
+      }
+    }
+    return out;
+  }
   for (const type of UTILITY_TYPES) {
     const rows = lineups.value.filter((lineup) => lineup.utility_type === type);
     if (!rows.length) {
@@ -1488,6 +1563,22 @@ watch(
   { immediate: true },
 );
 
+watch(
+  [detailId, landingGroups],
+  ([id, groups]) => {
+    if (!id || !groupsOn.value) {
+      return;
+    }
+    const group = groups.find((entry) =>
+      entry.lineups.some((lineup) => lineup.id === id),
+    );
+    if (group) {
+      groupKey.value = group.key;
+    }
+  },
+  { immediate: true },
+);
+
 // Something is open over the list: a lineup, a meta spot, or a view one of
 // the tabs opened. The same rule covers all of them.
 const covered = computed(
@@ -1824,10 +1915,16 @@ function closeTopLayer(event: KeyboardEvent) {
   }
   // A spot, a collection or an execute opened over the card answers Escape
   // itself; all that is left here is a marker highlighted from the list.
-  if (!selectedId.value || covered.value) {
+  if (covered.value) {
     return;
   }
-  selectedId.value = null;
+  if (selectedId.value) {
+    selectedId.value = null;
+  } else if (selectedGroup.value) {
+    groupKey.value = null;
+  } else {
+    return;
+  }
   takeEscape(event);
 }
 
@@ -1849,6 +1946,9 @@ function selectLineup(id: string | null) {
   if (id) {
     openLineup(id);
   } else if (!detailId.value) {
+    if (!selectedId.value) {
+      groupKey.value = null;
+    }
     selectedId.value = null;
   }
 }
@@ -2030,7 +2130,10 @@ function selectLineup(id: string | null) {
           :cover="boardCover"
           :seed-src="arrival?.src"
           :map-name="mapName"
-          :lineups="panelBoard?.lineups ?? lineups"
+          :lineups="panelBoard?.lineups ?? boardLineups"
+          :groups="!panelBoard && groupsOn ? landingGroups : []"
+          :selected-group-key="selectedGroup?.key ?? null"
+          :hovered-group-key="hoveredGroupKey"
           :selected-id="panelBoard ? (panelBoard.selectedId ?? null) : selectedId"
           :hovered-id="panelBoard ? (panelBoard.hoveredId ?? null) : hoveredId"
           :meta-spots="metaOnBoard"
@@ -2042,7 +2145,9 @@ function selectLineup(id: string | null) {
           :markers="panelBoard?.markers ?? []"
           :segments="panelBoard?.segments ?? []"
           :selected-segment-key="panelBoard?.selectedSegmentKey ?? null"
-          :show-all-lines="!!panelBoard?.showAllLines"
+          :show-all-lines="
+            panelBoard ? !!panelBoard.showAllLines : !!selectedGroup
+          "
           @select="
             (id) =>
               panelBoard?.onSelect ? panelBoard.onSelect(id) : selectLineup(id)
@@ -2053,6 +2158,8 @@ function selectLineup(id: string | null) {
           "
           @select-meta="(key) => (selectedMetaKey = key)"
           @hover-meta="(key) => (hoveredMetaKey = key)"
+          @select-group="selectGroup"
+          @hover-group="(key) => (hoveredGroupKey = key)"
           @pick="(point) => panelBoard?.onPick?.(point)"
           @marker-grab="(key) => panelBoard?.onMarkerGrab?.(key)"
           @marker-drag="
@@ -2386,7 +2493,96 @@ function selectLineup(id: string | null) {
                     @toggle="toggleType(entry.type)"
                   />
                 </div>
-                <div v-else :id="`utility-card-${entry.lineup.id}`" class="pt-2">
+                <div v-else-if="entry.kind === 'spot'" class="pt-2">
+                  <div
+                    class="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1.5 pr-3"
+                  >
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      class="h-8 w-8 shrink-0"
+                      :aria-label="$t('pages.utility.spots.back')"
+                      @click="selectGroup(null)"
+                    >
+                      <ArrowLeft class="h-4 w-4 rtl:rotate-180" />
+                    </Button>
+                    <span
+                      class="h-2.5 w-2.5 shrink-0 rounded-full"
+                      :style="{
+                        backgroundColor: UTILITY_TYPE_COLORS[entry.group.utilityType],
+                      }"
+                    />
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold">
+                        {{ entry.group.label }}
+                      </p>
+                      <p
+                        class="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
+                      >
+                        {{
+                          $t(
+                            "pages.utility.spots.lineups",
+                            { count: entry.group.lineups.length },
+                            entry.group.lineups.length,
+                          )
+                        }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div v-else-if="entry.kind === 'group'" class="pt-2">
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                    :class="
+                      hoveredGroupKey === entry.group.key
+                        ? 'border-white/20 bg-white/[0.07]'
+                        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.05]'
+                    "
+                    @click="selectGroup(entry.group.key)"
+                    @mouseenter="hoveredGroupKey = entry.group.key"
+                    @mouseleave="hoveredGroupKey = null"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 shrink-0 rounded-full"
+                      :style="{
+                        backgroundColor: UTILITY_TYPE_COLORS[entry.group.utilityType],
+                      }"
+                    />
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-medium">
+                        {{ entry.group.label }}
+                      </span>
+                      <span
+                        class="block font-mono text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
+                      >
+                        {{
+                          $t(
+                            "pages.utility.spots.lineups",
+                            { count: entry.group.lineups.length },
+                            entry.group.lineups.length,
+                          )
+                        }}
+                        <template v-if="entry.group.sides.length">
+                          ·
+                          {{
+                            entry.group.sides
+                              .map((side) => (side === "CT" ? "CT" : "T"))
+                              .join(" / ")
+                          }}
+                        </template>
+                      </span>
+                    </span>
+                    <ChevronRight
+                      class="h-4 w-4 shrink-0 text-muted-foreground rtl:rotate-180"
+                    />
+                  </button>
+                </div>
+                <div
+                  v-else-if="entry.kind === 'row'"
+                  :id="`utility-card-${entry.lineup.id}`"
+                  class="pt-2"
+                >
                 <!-- A click opens the lineup in the panel, where everything you can
                      do with it lives -- so the row carries no menu of its own. -->
                 <UtilityLineupCard

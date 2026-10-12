@@ -4265,7 +4265,9 @@
         "title": "Dove ti serve l'utility?",
         "all": "Tutti i punti",
         "more": "Altri {count}",
-        "fewer": "Meno"
+        "fewer": "Meno",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "Mostra più elenco",

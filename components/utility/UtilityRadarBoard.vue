@@ -27,6 +27,7 @@ import {
 import type {
   UtilityBoardMarker,
   UtilityBoardSegment,
+  UtilityLandingGroup,
   UtilityMetaSpot,
 } from "~/utilities/utilityDisplay";
 import type { UtilityLineup } from "~/types/utility";
@@ -76,6 +77,11 @@ const props = withDefaults(
     selectedMetaKey?: string | null;
     hoveredMetaKey?: string | null;
     metaInteractive?: boolean;
+    // One dot per spot the library lands on. The open one is left out: its
+    // lineups come in through `lineups` and draw themselves.
+    groups?: UtilityLandingGroup[];
+    selectedGroupKey?: string | null;
+    hoveredGroupKey?: string | null;
     // Point-picking mode: the whole board becomes one target and every marker
     // stops taking clicks, so a pick never lands on a lineup instead.
     picking?: boolean;
@@ -106,6 +112,9 @@ const props = withDefaults(
     metaSpots: () => [],
     selectedMetaKey: null,
     metaInteractive: false,
+    groups: () => [],
+    selectedGroupKey: null,
+    hoveredGroupKey: null,
     picking: false,
     pickZ: 0,
     markers: () => [],
@@ -123,6 +132,8 @@ const emit = defineEmits<{
   (e: "hover", id: string | null): void;
   (e: "select-meta", key: string | null): void;
   (e: "hover-meta", key: string | null): void;
+  (e: "select-group", key: string): void;
+  (e: "hover-group", key: string | null): void;
   (e: "pick", point: { x: number; y: number; z: number }): void;
   (e: "marker-grab", key: string): void;
   (e: "marker-drag", key: string, point: { x: number; y: number; z: number }): void;
@@ -169,6 +180,9 @@ function boardVolumePoints(): RadarPoint[] {
   }
   for (const spot of props.metaSpots ?? []) {
     points.push(spot.landing ?? spot.origin);
+  }
+  for (const group of props.groups ?? []) {
+    points.push(group.landing);
   }
   for (const marker of props.markers ?? []) {
     points.push(marker.point);
@@ -323,6 +337,33 @@ const markers = computed<Marker[]>(() => {
       path,
       footprint:
         edge && landing ? Math.hypot(edge.x - landing.x, edge.y - landing.y) : null,
+    });
+  }
+  return out;
+});
+
+type GroupMarker = {
+  key: string;
+  color: string;
+  point: { x: number; y: number };
+  count: number;
+};
+
+const groupMarkers = computed<GroupMarker[]>(() => {
+  const out: GroupMarker[] = [];
+  for (const group of props.groups ?? []) {
+    if (group.key === props.selectedGroupKey) {
+      continue;
+    }
+    const point = projectCalibrated(group.landing);
+    if (!point) {
+      continue;
+    }
+    out.push({
+      key: group.key,
+      color: UTILITY_TYPE_COLORS[group.utilityType] ?? "#ffffff",
+      point,
+      count: group.lineups.length,
     });
   }
   return out;
@@ -1626,6 +1667,8 @@ function activate(key: string) {
   const id = key.slice(split + 1);
   if (kind === "lineup") {
     emit("select", id);
+  } else if (kind === "group") {
+    emit("select-group", id);
   } else if (kind === "badge") {
     beginFan(id);
   } else {
@@ -1646,6 +1689,16 @@ function tapTargets(): TapTarget[] {
         : [],
     ),
   );
+  if (!props.picking) {
+    for (const group of groupMarkers.value) {
+      targets.push({
+        key: `group:${group.key}`,
+        ...group.point,
+        within: reach * 1.25,
+        drawn: 12 * ink.value,
+      });
+    }
+  }
   if (!props.metaInteractive || props.picking) {
     return targets;
   }
@@ -2151,6 +2204,67 @@ function trailPath(marker: Marker) {
            SVG geometry tweens would run on the main thread while the panel
            beside it is mounting. -->
           <TransitionGroup name="mk" tag="g">
+            <g
+              v-for="group of groupMarkers"
+              :key="`group-${group.key}`"
+              :class="picking ? 'pointer-events-none' : 'cursor-pointer'"
+              :opacity="
+                selectedGroupKey && hoveredGroupKey !== group.key ? 0.4 : 1
+              "
+              @click.stop="onTap(`group:${group.key}`, $event)"
+              @mouseenter="emit('hover-group', group.key)"
+              @mouseleave="emit('hover-group', null)"
+            >
+              <g
+                class="utility-glyph"
+                :style="grow(group.point, hoveredGroupKey === group.key ? 1.3 : 1)"
+              >
+                <circle
+                  :cx="group.point.x"
+                  :cy="group.point.y"
+                  :r="12 * ink"
+                  fill="rgba(5, 7, 11, 0.7)"
+                  :stroke="group.color"
+                  :stroke-width="2.5 * ink"
+                />
+                <circle
+                  :cx="group.point.x"
+                  :cy="group.point.y"
+                  :r="4 * ink"
+                  :fill="group.color"
+                />
+                <template v-if="group.count > 1">
+                  <circle
+                    :cx="group.point.x + 10 * ink"
+                    :cy="group.point.y - 10 * ink"
+                    :r="7.5 * ink"
+                    :fill="group.color"
+                    stroke="#05070b"
+                    :stroke-width="1.5 * ink"
+                  />
+                  <text
+                    :x="group.point.x + 10 * ink"
+                    :y="group.point.y - 10 * ink"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    fill="#05070b"
+                    :font-size="9.5 * ink"
+                    font-weight="700"
+                    font-family="monospace"
+                    class="pointer-events-none"
+                  >
+                    {{ group.count }}
+                  </text>
+                </template>
+              </g>
+              <circle
+                data-mark-hit
+                :cx="group.point.x"
+                :cy="group.point.y"
+                :r="hit(15)"
+                fill="transparent"
+              />
+            </g>
             <g
               v-for="marker of markers"
               :key="marker.id"

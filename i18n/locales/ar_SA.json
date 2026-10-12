@@ -4265,7 +4265,9 @@
         "title": "أين تحتاج إلى أداة؟",
         "all": "كل المواقع",
         "more": "{count} أخرى",
-        "fewer": "أقل"
+        "fewer": "أقل",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "اعرض المزيد من القائمة",

@@ -4265,7 +4265,9 @@
         "title": "Wo brauchst du Utility?",
         "all": "Alle Spots",
         "more": "{count} weitere",
-        "fewer": "Weniger"
+        "fewer": "Weniger",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "Mehr von der Liste zeigen",

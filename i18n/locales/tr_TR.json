@@ -4265,7 +4265,9 @@
         "title": "Nereye utility lazım?",
         "all": "Tüm noktalar",
         "more": "{count} tane daha",
-        "fewer": "Daha az"
+        "fewer": "Daha az",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "Listeyi daha çok göster",

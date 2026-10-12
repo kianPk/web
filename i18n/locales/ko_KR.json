@@ -4265,7 +4265,9 @@
         "title": "어디에 유틸이 필요한가요?",
         "all": "모든 지점",
         "more": "{count}개 더",
-        "fewer": "접기"
+        "fewer": "접기",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "목록 더 보기",

@@ -701,6 +701,105 @@ export function utilityLineupWhere(
   return clause;
 }
 
+/** Every lineup that puts the same utility on the same spot, from wherever it is thrown. */
+export type UtilityLandingGroup = {
+  key: string;
+  utilityType: UtilityType;
+  label: string;
+  landing: UtilityTrajectoryPoint;
+  sides: UtilitySide[];
+  lineups: UtilityLineup[];
+};
+
+// World units between two landings that still count as one spot: about a
+// smoke's own radius, so two smokes that cover the same doorway share a dot.
+// Flashes pop in the air and scatter further for the same job.
+const LANDING_GROUP_UNITS: Partial<Record<string, number>> = {
+  Smoke: 170,
+  Molotov: 150,
+};
+const LANDING_GROUP_DEFAULT_UNITS = 220;
+// Nuke and Vertigo stack spots on top of each other.
+const LANDING_GROUP_HEIGHT_UNITS = 220;
+
+// "Smoke red room · T Spawn 5" names the spot before the dot and the throw
+// after it; "Smoke CT Cross #2" is the second way onto the same spot.
+function landingLabel(name: string) {
+  return name
+    .split(" · ")[0]
+    .replace(/\s*#\d+\s*$/, "")
+    .trim();
+}
+
+export function groupUtilityLandings(
+  lineups: UtilityLineup[],
+): UtilityLandingGroup[] {
+  const groups: Array<
+    UtilityLandingGroup & { sum: { x: number; y: number; z: number } }
+  > = [];
+  for (const lineup of lineups) {
+    const landing = utilityLanding(lineup) ?? utilityOrigin(lineup);
+    if (!Number.isFinite(landing.x) || !Number.isFinite(landing.y)) {
+      continue;
+    }
+    const within =
+      LANDING_GROUP_UNITS[lineup.utility_type] ?? LANDING_GROUP_DEFAULT_UNITS;
+    const group = groups.find(
+      (entry) =>
+        entry.utilityType === lineup.utility_type &&
+        Math.hypot(entry.landing.x - landing.x, entry.landing.y - landing.y) <=
+          within &&
+        Math.abs((entry.landing.z ?? 0) - (landing.z ?? 0)) <=
+          LANDING_GROUP_HEIGHT_UNITS,
+    );
+    if (!group) {
+      groups.push({
+        key: "",
+        utilityType: lineup.utility_type,
+        label: "",
+        landing: { ...landing },
+        sides: [],
+        lineups: [lineup],
+        sum: { x: landing.x, y: landing.y, z: landing.z ?? 0 },
+      });
+      continue;
+    }
+    group.lineups.push(lineup);
+    group.sum.x += landing.x;
+    group.sum.y += landing.y;
+    group.sum.z += landing.z ?? 0;
+    const count = group.lineups.length;
+    group.landing = {
+      x: group.sum.x / count,
+      y: group.sum.y / count,
+      z: group.sum.z / count,
+    };
+  }
+
+  return groups.map(({ sum: _sum, ...group }) => {
+    const labels = new Map<string, number>();
+    for (const lineup of group.lineups) {
+      const label = landingLabel(lineup.name ?? "");
+      if (label) {
+        labels.set(label, (labels.get(label) ?? 0) + 1);
+      }
+    }
+    const label =
+      [...labels.entries()].sort(
+        (a, b) => b[1] - a[1] || a[0].length - b[0].length,
+      )[0]?.[0] ?? group.utilityType;
+    const sides = [
+      ...new Set(
+        group.lineups
+          .map((lineup) => lineup.side)
+          .filter((side): side is UtilitySide => !!side),
+      ),
+    ];
+    const first = [...group.lineups].map((lineup) => lineup.id).sort()[0];
+    return { ...group, key: `${group.utilityType}:${first}`, label, sides };
+  });
+}
+
 /** A point the board draws on top of everything else. */
 export type UtilityBoardMarker = {
   key: string;

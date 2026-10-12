@@ -4265,7 +4265,9 @@
         "title": "Куда нужна граната?",
         "all": "Все точки",
         "more": "Ещё {count}",
-        "fewer": "Меньше"
+        "fewer": "Меньше",
+        "back": "All spots",
+        "lineups": "{count} lineup | {count} lineups"
       },
       "sheet": {
         "expand": "Показать больше списка",
