@@ -6402,6 +6402,79 @@
           }
         }
       }
+    },
+    "battle_pass": {
+      "title": "Battle Pass",
+      "description": "Level up by playing and unlock site rewards.",
+      "subtitle": "Season {season} · ends {ends}",
+      "refresh": "Refresh",
+      "login_required": "Sign in to see your Battle Pass.",
+      "no_season": "The next season has not started yet.",
+      "level": "Level",
+      "season_name": "Season {season}",
+      "total_xp": "{xp} XP this season",
+      "premium_active": "Premium",
+      "next_level": "Next: level {level}",
+      "max_level": "Max level reached",
+      "breakdown": {
+        "matches": "Matches",
+        "daily": "Daily missions",
+        "weekly": "Weekly missions",
+        "subscriber": "Premium challenges"
+      },
+      "premium_title": "Premium track",
+      "premium_body": "Get a reward on every level: Ypoints, Premium and Premium Plus days and the exclusive Legend badge. Levels you already reached can be claimed right away.",
+      "price": "Price",
+      "your_balance": "Your balance",
+      "buy_premium": "Unlock Premium",
+      "get_ypoints": "Get Ypoints",
+      "premium_owned": "You own the Premium track this season.",
+      "premium_confirm": "Unlock the Premium track for {price} Ypoints?",
+      "premium_toast": "Premium track unlocked",
+      "rewards_title": "Rewards",
+      "claim": "Claim",
+      "claim_all": "Claim all ({count})",
+      "claimed_toast": "Reward claimed",
+      "claimed_all_toast": "{count} rewards claimed",
+      "free_track": "Free",
+      "premium_track": "Premium",
+      "xp_rules": "Every finished match gives 100 XP, plus 50 for a win (first 6 matches each day). Daily and weekly missions give extra XP. Every 1000 XP is one level.",
+      "daily_title": "Daily missions",
+      "weekly_title": "Weekly missions",
+      "resets": "New missions {time}",
+      "subscriber_title": "Premium challenges",
+      "subscriber_help": "These pay Ypoints automatically and add {xp} XP to your Battle Pass.",
+      "subscriber_locked": "Premium subscribers get extra daily challenges that pay Ypoints and also count toward the Battle Pass.",
+      "reward": {
+        "subscription": "{tier} {days} days"
+      },
+      "badge": {
+        "veteran": "Veteran badge",
+        "elite": "Elite badge",
+        "legend": "Legend badge"
+      },
+      "missions": {
+        "d_play_1": "Play {target} match",
+        "d_play_2": "Play {target} matches",
+        "d_win_1": "Win {target} match",
+        "d_kills_15": "Get {target} kills today",
+        "d_kills_30": "Get {target} kills today",
+        "d_hs_8": "Get {target} headshot kills today",
+        "d_dmg_1500": "Deal {target} damage today",
+        "d_assists_6": "Get {target} assists today",
+        "d_flash_6": "Flash {target} enemies today",
+        "d_he_150": "Deal {target} grenade damage today",
+        "d_3k_1": "Get a triple kill (3K) round in a match",
+        "w_play_10": "Play {target} matches this week",
+        "w_win_5": "Win {target} matches this week",
+        "w_duel_3": "Play {target} 1v1 matches this week",
+        "w_kills_100": "Get {target} kills this week",
+        "w_hs_40": "Get {target} headshot kills this week",
+        "w_dmg_8000": "Deal {target} damage this week",
+        "w_3k_5": "Get {target} triple kill (3K) rounds this week",
+        "w_flash_30": "Flash {target} enemies this week",
+        "w_trade_15": "Get {target} trade kills this week"
+      }
     }
   },
   "ypoint": {
@@ -6500,7 +6573,8 @@
         "store": "Store",
         "challenges": "Challenges",
         "hosting": "Buy a server",
-        "game_servers": "Servers"
+        "game_servers": "Servers",
+        "battle_pass": "Battle Pass"
       },
       "community": {
         "title": "Community"
@@ -6580,7 +6654,8 @@
         "store": "Store",
         "finance": "Finance — payments, VIP, Ypoints",
         "challenges": "Daily Challenges",
-        "game_servers": "Servers by game mode"
+        "game_servers": "Servers by game mode",
+        "battle_pass": "Battle Pass"
       },
       "logout_dialog": {
         "title": "Logout",

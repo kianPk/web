@@ -29,7 +29,7 @@ import {
   CalendarRange,
   ShoppingBag,
   Wallet,
-  Target,
+  Ticket,
   Headset,
   ServerCog,
   Gamepad2,
@@ -411,16 +411,16 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 as-child
-                :tooltip="$t('layouts.app_nav.tooltips.challenges')"
+                :tooltip="$t('layouts.app_nav.tooltips.battle_pass')"
               >
                 <NuxtLink
-                  :to="{ name: 'challenges' }"
+                  :to="{ name: 'battle-pass' }"
                   :class="{
-                    'router-link-active': isRouteActive('challenges'),
+                    'router-link-active': isRouteActive('battle-pass'),
                   }"
                 >
-                  <Target />
-                  {{ $t("layouts.app_nav.navigation.challenges") }}
+                  <Ticket />
+                  {{ $t("layouts.app_nav.navigation.battle_pass") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

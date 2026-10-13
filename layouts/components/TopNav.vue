@@ -218,9 +218,9 @@ const loginArrowClasses =
 
             <NavigationMenuItem class="hidden md:block">
               <NavigationMenuLink as-child>
-                <NuxtLink to="/challenges" :class="navLinkClasses">
+                <NuxtLink to="/battle-pass" :class="navLinkClasses">
                   <span :class="navTickClasses"></span>
-                  {{ $t("layouts.app_nav.navigation.challenges") }}
+                  {{ $t("layouts.app_nav.navigation.battle_pass") }}
                 </NuxtLink>
               </NavigationMenuLink>
             </NavigationMenuItem>

@@ -6402,6 +6402,79 @@
           }
         }
       }
+    },
+    "battle_pass": {
+      "title": "بتل پس",
+      "description": "با بازی کردن لول بگیر و جایزه‌های سایت را باز کن.",
+      "subtitle": "فصل {season} · پایان {ends}",
+      "refresh": "به‌روزرسانی",
+      "login_required": "برای دیدن بتل پس وارد حسابت شو.",
+      "no_season": "فصل بعدی هنوز شروع نشده است.",
+      "level": "لول",
+      "season_name": "فصل {season}",
+      "total_xp": "{xp} XP در این فصل",
+      "premium_active": "پریمیوم",
+      "next_level": "بعدی: لول {level}",
+      "max_level": "به بالاترین لول رسیدی",
+      "breakdown": {
+        "matches": "مسابقه‌ها",
+        "daily": "ماموریت روزانه",
+        "weekly": "ماموریت هفتگی",
+        "subscriber": "چلنج‌های پریمیوم"
+      },
+      "premium_title": "مسیر پریمیوم",
+      "premium_body": "در هر لول یک جایزه بگیر: وای‌پوینت، روزهای اشتراک Premium و Premium Plus و نشان اختصاصی Legend. جایزه لول‌هایی که قبلاً رسیده‌ای را همان لحظه می‌توانی بگیری.",
+      "price": "قیمت",
+      "your_balance": "موجودی شما",
+      "buy_premium": "باز کردن پریمیوم",
+      "get_ypoints": "خرید وای‌پوینت",
+      "premium_owned": "مسیر پریمیوم این فصل برای تو باز است.",
+      "premium_confirm": "مسیر پریمیوم با {price} وای‌پوینت باز شود؟",
+      "premium_toast": "مسیر پریمیوم باز شد",
+      "rewards_title": "جایزه‌ها",
+      "claim": "دریافت",
+      "claim_all": "دریافت همه ({count})",
+      "claimed_toast": "جایزه دریافت شد",
+      "claimed_all_toast": "{count} جایزه دریافت شد",
+      "free_track": "رایگان",
+      "premium_track": "پریمیوم",
+      "xp_rules": "هر مسابقه تمام‌شده ۱۰۰ XP دارد و برد ۵۰ XP بیشتر (برای ۶ مسابقه اول هر روز). ماموریت‌های روزانه و هفتگی XP اضافه می‌دهند. هر ۱۰۰۰ XP یک لول است.",
+      "daily_title": "ماموریت‌های روزانه",
+      "weekly_title": "ماموریت‌های هفتگی",
+      "resets": "ماموریت‌های جدید {time}",
+      "subscriber_title": "چلنج‌های پریمیوم",
+      "subscriber_help": "این‌ها خودکار وای‌پوینت می‌دهند و {xp} XP هم به بتل پس اضافه می‌کنند.",
+      "subscriber_locked": "مشترک‌های Premium چلنج‌های روزانه اضافه دارند که وای‌پوینت می‌دهند و در بتل پس هم XP حساب می‌شوند.",
+      "reward": {
+        "subscription": "{tier} {days} روزه"
+      },
+      "badge": {
+        "veteran": "نشان Veteran",
+        "elite": "نشان Elite",
+        "legend": "نشان Legend"
+      },
+      "missions": {
+        "d_play_1": "{target} مسابقه بازی کن",
+        "d_play_2": "{target} مسابقه بازی کن",
+        "d_win_1": "{target} مسابقه ببر",
+        "d_kills_15": "امروز {target} کیل بگیر",
+        "d_kills_30": "امروز {target} کیل بگیر",
+        "d_hs_8": "امروز {target} کیل هدشات بگیر",
+        "d_dmg_1500": "امروز {target} دمیج بزن",
+        "d_assists_6": "امروز {target} اسیست بگیر",
+        "d_flash_6": "امروز {target} حریف را فلش کن",
+        "d_he_150": "امروز {target} دمیج نارنجک بزن",
+        "d_3k_1": "در یک مسابقه یک راند سه‌کیل (3K) بگیر",
+        "w_play_10": "این هفته {target} مسابقه بازی کن",
+        "w_win_5": "این هفته {target} مسابقه ببر",
+        "w_duel_3": "این هفته {target} مسابقه ۱ به ۱ بازی کن",
+        "w_kills_100": "این هفته {target} کیل بگیر",
+        "w_hs_40": "این هفته {target} کیل هدشات بگیر",
+        "w_dmg_8000": "این هفته {target} دمیج بزن",
+        "w_3k_5": "این هفته {target} راند سه‌کیل (3K) بگیر",
+        "w_flash_30": "این هفته {target} حریف را فلش کن",
+        "w_trade_15": "این هفته {target} ترید کیل بگیر"
+      }
     }
   },
   "ypoint": {
@@ -6500,7 +6573,8 @@
         "store": "فروشگاه",
         "challenges": "چلنج",
         "hosting": "خرید سرور",
-        "game_servers": "سرورها"
+        "game_servers": "سرورها",
+        "battle_pass": "بتل پس"
       },
       "community": {
         "title": "جامعه"
@@ -6580,7 +6654,8 @@
         "store": "فروشگاه",
         "finance": "مدیریت مالی — پرداخت‌ها، VIP، Ypoint",
         "challenges": "چالش‌های روزانه",
-        "game_servers": "سرورها بر اساس مود بازی"
+        "game_servers": "سرورها بر اساس مود بازی",
+        "battle_pass": "بتل پس"
       },
       "logout_dialog": {
         "title": "خروج",
