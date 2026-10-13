@@ -5,21 +5,22 @@ import PlaySchedule from "~/components/play/PlaySchedule.vue";
 import PlayDraftRooms from "~/components/play/PlayDraftRooms.vue";
 import { tacticalSectionSeparatorClasses } from "~/utilities/tacticalClasses";
 
-// Each section renders nothing when it has nothing to offer, so the
-// separator rule only ever sits between sections that are actually shown.
+// Matchmaking and the schedule render nothing when they have nothing to
+// offer, so the separator rule only ever sits between sections that are
+// actually shown. Draft rooms always render (the host bar), so they lead.
 const sectionClasses = ["mt-8", tacticalSectionSeparatorClasses];
 </script>
 
 <template>
   <PageTransition>
-    <PlayMatchmaking />
+    <PlayDraftRooms />
   </PageTransition>
 
   <PageTransition :delay="50">
-    <PlaySchedule :class="sectionClasses" />
+    <PlayMatchmaking :class="sectionClasses" />
   </PageTransition>
 
   <PageTransition :delay="100">
-    <PlayDraftRooms :class="sectionClasses" />
+    <PlaySchedule :class="sectionClasses" />
   </PageTransition>
 </template>

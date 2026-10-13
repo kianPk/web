@@ -226,6 +226,18 @@ const loginArrowClasses =
             </NavigationMenuItem>
 
             <NavigationMenuItem
+              v-if="utilityLibraryEnabled"
+              class="hidden md:block"
+            >
+              <NavigationMenuLink as-child>
+                <NuxtLink to="/utility" :class="navLinkClasses">
+                  <span :class="navTickClasses"></span>
+                  {{ $t("layouts.app_nav.navigation.utility") }}
+                </NuxtLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem
               v-for="plugin in plugins"
               :key="plugin.id"
               class="hidden md:block"
@@ -751,6 +763,9 @@ export default {
     },
     scrimFinderEnabled() {
       return useApplicationSettingsStore().scrimFinderEnabled;
+    },
+    utilityLibraryEnabled() {
+      return useApplicationSettingsStore().utilityLibraryEnabled;
     },
     leaguesEnabled() {
       return useApplicationSettingsStore().leaguesEnabled;

@@ -425,6 +425,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
+            <SidebarMenuItem v-if="utilityLibraryEnabled">
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.utility')"
+              >
+                <NuxtLink
+                  to="/utility"
+                  :class="{
+                    'router-link-active': isRouteActive('utility'),
+                  }"
+                >
+                  <Bomb />
+                  {{ $t("layouts.app_nav.navigation.utility") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
             <SidebarMenuItem
               v-for="plugin in ungroupedPlugins"
               :key="plugin.id"
@@ -549,23 +566,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Trophy />
                   {{ $t("layouts.app_nav.navigation.leaderboard") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem v-if="utilityLibraryEnabled">
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.utility')"
-              >
-                <NuxtLink
-                  to="/utility"
-                  :class="{
-                    'router-link-active': isRouteActive('utility'),
-                  }"
-                >
-                  <Bomb />
-                  {{ $t("layouts.app_nav.navigation.utility") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
