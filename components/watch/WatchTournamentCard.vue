@@ -1,28 +1,40 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, Eye, MapPin, Trophy, Users } from "lucide-vue-next";
+import {
+  CalendarDays,
+  Check,
+  Eye,
+  MapPin,
+  Trophy,
+  Users,
+} from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { e_tournament_status_enum } from "~/generated/zeus";
 import { useAuthStore } from "~/stores/AuthStore";
 import { loginLinks } from "~/utilities/loginLinks";
 import { formatPrizePool } from "~/utilities/prizePool";
 import { tournamentMapPosters } from "~/utilities/tournamentMapPosters";
+import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
 import { rememberTournaments } from "~/composables/useTournamentPreview";
 import {
   matchTypeLabel,
   tournamentChampion,
   tournamentRowState,
 } from "~/utilities/watchEventCard";
+import { dateLocale } from "~/utilities/dateLocale";
 
 // `stacked` puts the banner on top from lg up, for a grid column too narrow
 // to sit it beside the details; the banner then takes any extra height the
 // row hands the card. `quickLook` turns the banner and the card's empty space
 // into a quick-look trigger instead of a link.
+// `hideChampion` drops the winner line for callers that put their own facts
+// in the `facts` slot (the player profile shows that player's finish instead).
 const props = defineProps<{
   tournament: any;
   stacked?: boolean;
   quickLook?: boolean;
+  hideChampion?: boolean;
 }>();
 const emit = defineEmits<{ (e: "quick-look"): void }>();
 
@@ -44,6 +56,23 @@ const registrationOpen = computed(
   () => props.tournament.status === e_tournament_status_enum.RegistrationOpen,
 );
 const isGuest = computed(() => !useAuthStore().me?.steam_id);
+
+// Already in: say how, instead of offering to register again.
+const joinedLabel = computed(() => {
+  if (state.value !== "upcoming" || !props.tournament.joined_tournament) {
+    return null;
+  }
+  const steamId = useAuthStore().me?.steam_id;
+  const freeAgent = (props.tournament.free_agents || []).find(
+    (agent: any) => String(agent.player_steam_id) === String(steamId),
+  );
+  if (freeAgent?.status === "waitlisted") {
+    return t("pages.watch.tournaments.joined_waitlisted");
+  }
+  return freeAgent
+    ? t("pages.watch.tournaments.joined_free_agent")
+    : t("pages.watch.tournaments.joined_team");
+});
 
 const bannerSrc = computed(() => {
   if (props.tournament.banner) {
@@ -100,36 +129,41 @@ const sub = computed(() => {
 const startsAt = computed(() => {
   if (!props.tournament.start) return null;
   const start = new Date(props.tournament.start);
-  const day = new Intl.DateTimeFormat(undefined, {
+  const day = new Intl.DateTimeFormat(dateLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(start);
-  const time = new Intl.DateTimeFormat(undefined, {
+  const time = new Intl.DateTimeFormat(dateLocale(), {
     hour: "numeric",
     minute: "2-digit",
   }).format(start);
   return `${day} · ${time}`;
 });
 
-const teams = computed(
-  () => props.tournament.teams_aggregate?.aggregate?.count ?? 0,
+const registration = computed(() =>
+  tournamentRegistrationCount(props.tournament),
 );
-const maxTeams = computed(() => props.tournament.stages?.[0]?.max_teams ?? 0);
+const teams = computed(() => registration.value.count);
+const maxTeams = computed(() => registration.value.max ?? 0);
 const teamsLabel = computed(() => {
+  const unitKey =
+    registration.value.unit === "players"
+      ? "pages.watch.events.count_players"
+      : "pages.watch.events.count_teams";
   if (maxTeams.value > 0) {
     return `${t("pages.watch.tournaments.registered_count", {
       count: teams.value,
       max: maxTeams.value,
-    })} ${t("pages.watch.events.count_teams", maxTeams.value)}`;
+    })} ${t(unitKey, maxTeams.value)}`;
   }
-  return teams.value > 0
-    ? `${teams.value} ${t("pages.watch.events.count_teams", teams.value)}`
-    : null;
+  return teams.value > 0 ? `${teams.value} ${t(unitKey, teams.value)}` : null;
 });
 const prizePool = computed(() => formatPrizePool(props.tournament.prizes));
 const champion = computed(() =>
-  state.value === "finished" ? tournamentChampion(props.tournament) : null,
+  state.value === "finished" && !props.hideChampion
+    ? tournamentChampion(props.tournament)
+    : null,
 );
 
 function signIn() {
@@ -250,6 +284,7 @@ const primaryClasses =
             <CalendarDays class="h-3.5 w-3.5 text-muted-foreground" />
             {{ startsAt }}
           </li>
+          <slot name="facts" />
           <li
             v-if="tournament.location && state !== 'finished'"
             class="flex min-w-0 items-center gap-1.5"
@@ -287,7 +322,14 @@ const primaryClasses =
       </div>
 
       <div class="mt-auto flex flex-wrap gap-2 pt-1">
-        <template v-if="registrationOpen">
+        <span
+          v-if="joinedLabel"
+          class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[hsl(var(--tac-amber)/0.5)] px-3 text-xs font-semibold text-[hsl(var(--tac-amber))]"
+        >
+          <Check class="h-3.5 w-3.5" />
+          {{ joinedLabel }}
+        </span>
+        <template v-else-if="registrationOpen">
           <Button
             v-if="isGuest"
             size="sm"

@@ -1,11 +1,25 @@
 import { watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useChatTabs } from "~/composables/useChatTabs";
+import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { useChatReadState } from "~/composables/useChatReadState";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 import socket, { type Lobby } from "~/web-sockets/Socket";
+
+export function tournamentChatTab(tournament: {
+  id: string;
+  name: string;
+}): ChatTab {
+  return {
+    id: `tournament:${tournament.id}`,
+    label: tournament.name,
+    instance: "tournament",
+    type: "tournament",
+    lobbyId: tournament.id,
+    pinned: true,
+  };
+}
 
 export function useChatTabSetup() {
   const { t } = useI18n();

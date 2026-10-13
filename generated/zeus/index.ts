@@ -28578,6 +28578,7 @@ acceptInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: s
 addCustomGamePlugin?: [{	description?: string | undefined | null | Variable<any, string>,	installPath?: string | undefined | null | Variable<any, string>,	layout?: string | undefined | null | Variable<any, string>,	name?: string | undefined | null | Variable<any, string>,	runtime: string | Variable<any, string>,	slug?: string | undefined | null | Variable<any, string>,	url: string | Variable<any, string>,	version?: string | undefined | null | Variable<any, string>},ValueTypes["AddCustomGamePluginOutput"]],
 addDraftPlayer?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	lineup?: number | undefined | null | Variable<any, string>,	steamId: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string | Variable<any, string>,	friend_capacity?: number | undefined | null | Variable<any, string>,	username: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+addTournamentFreeAgent?: [{	steam_id: ValueTypes["bigint"] | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approveNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
 	args: ValueTypes["approve_league_season_movements_args"] | Variable<any, string>,	/** distinct select on columns */
@@ -30495,7 +30496,7 @@ installGamePlugin?: [{	slug: string | Variable<any, string>,	version?: string | 
 inviteToUtilityPractice?: [{	session_id: ValueTypes["uuid"] | Variable<any, string>,	steam_ids: Array<string> | Variable<any, string>},ValueTypes["SuccessOutput"]],
 joinDraftGame?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	inviteCode?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 joinDraftGameAsParty?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	inviteCode?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
-joinTournamentAsFreeAgent?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>,	with_party?: boolean | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
+joinTournamentAsFreeAgent?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 joinUtilityPractice?: [{	invite_code?: string | undefined | null | Variable<any, string>,	session_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>},ValueTypes["UtilityPracticeSessionOutput"]],
 kickServerPlayer?: [{	reason?: string | undefined | null | Variable<any, string>,	serverId: string | Variable<any, string>,	steam_id: string | Variable<any, string>},ValueTypes["KickResult"]],
 league_award_forfeit?: [{	/** input parameters for function "league_award_forfeit" */
@@ -30539,6 +30540,7 @@ recalculate_tournament_awards?: [{	/** input parameters for function "recalculat
 	recomputePlayerEloStatus?:ValueTypes["RecomputeEloStatusOutput"],
 reconcileNodePlugins?: [{	nodeId: string | Variable<any, string>},ValueTypes["ReconcileNodePluginsOutput"]],
 reconnectLive?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+recreateTournamentBracketMatch?: [{	tournament_bracket_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 redeemTournamentInviteCode?: [{	code: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	/** Reindex every player into the Typesense search index (admin only). Runs in the background; track via refreshAllPlayersStatus. */
 	refreshAllPlayers?:ValueTypes["ReindexStartedOutput"],
@@ -30559,6 +30561,7 @@ remove_league_team_from_season?: [{	/** input parameters for function "remove_le
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["league_team_seasons_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["league_team_seasons_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["league_team_seasons"]],
+removeTournamentFreeAgent?: [{	steam_id: ValueTypes["bigint"] | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 renameServerItem?: [{	new_path: string | Variable<any, string>,	node_id: string | Variable<any, string>,	old_path: string | Variable<any, string>,	server_id?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 renderUtilityLineupPreview?: [{	utility_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["UtilityRenderQueueOutput"]],
 reorder_league_divisions?: [{	/** input parameters for function "reorder_league_divisions" */
@@ -64539,6 +64542,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_invites_select_column"]> 
 	/** An object relationship */
 	tournament_team?:ValueTypes["tournament_teams"],
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "tournament_team_roster" */
@@ -64614,7 +64618,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	tournament?: ValueTypes["tournaments_bool_exp"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_bool_exp"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>
 };
 	/** unique or primary key constraints on table "tournament_team_roster" */
 ["tournament_team_roster_constraint"]:tournament_team_roster_constraint;
@@ -64632,7 +64637,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	tournament?: ValueTypes["tournaments_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
 };
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: AliasType<{
@@ -64640,6 +64646,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "tournament_team_roster" */
@@ -64647,7 +64654,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: AliasType<{
@@ -64655,6 +64663,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "tournament_team_roster" */
@@ -64662,7 +64671,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** response of any mutation on the table "tournament_team_roster" */
 ["tournament_team_roster_mutation_response"]: AliasType<{
@@ -64689,7 +64699,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	tournament?: ValueTypes["tournaments_order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_order_by"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** primary key columns input for table: tournament_team_roster */
 ["tournament_team_roster_pk_columns_input"]: {
@@ -64704,7 +64715,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev on columns */
 ["tournament_team_roster_stddev_fields"]: AliasType<{
@@ -64746,7 +64758,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
-	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
 };
 	/** aggregate sum on columns */
 ["tournament_team_roster_sum_fields"]: AliasType<{
@@ -65331,6 +65344,8 @@ categories_aggregate?: [{	/** distinct select on columns */
 	/** A computed field, executes function "tournament_check_in_started" */
 	check_in_started?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_notifications_enabled?:boolean | `@${string}`,
@@ -65351,6 +65366,7 @@ categories_aggregate?: [{	/** distinct select on columns */
 	discord_webhook?:boolean | `@${string}`,
 	/** An object relationship */
 	e_tournament_status?:ValueTypes["e_tournament_status"],
+	finished_at?:boolean | `@${string}`,
 free_agents?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["tournament_free_agents_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -65443,8 +65459,6 @@ prizes_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["tournament_prizes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["tournament_prizes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["tournament_prizes_aggregate"]],
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	registration_type?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_registration_unlocked_for_session" */
 	registration_unlocked?:boolean | `@${string}`,
@@ -65487,6 +65501,8 @@ stages_aggregate?: [{	/** distinct select on columns */
 	where?: ValueTypes["tournament_stages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["tournament_stages_aggregate"]],
 	start?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?:boolean | `@${string}`,
 teams?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["tournament_teams_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -65633,6 +65649,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_avg_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -65690,6 +65708,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	check_in_setting?: ValueTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	check_in_started?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	current_stage?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	description?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	discord_guild_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	discord_notifications_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -65709,6 +65728,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_voice_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	discord_webhook?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	e_tournament_status?: ValueTypes["e_tournament_status_bool_exp"] | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	free_agents?: ValueTypes["tournament_free_agents_bool_exp"] | undefined | null | Variable<any, string>,
 	free_agents_aggregate?: ValueTypes["tournament_free_agents_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	has_min_teams?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -65742,7 +65762,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	player_stats_aggregate?: ValueTypes["v_tournament_player_stats_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	prizes?: ValueTypes["tournament_prizes_bool_exp"] | undefined | null | Variable<any, string>,
 	prizes_aggregate?: ValueTypes["tournament_prizes_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
-	regions?: ValueTypes["String_array_comparison_exp"] | undefined | null | Variable<any, string>,
 	registration_type?: ValueTypes["e_tournament_registration_types_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	registration_unlocked?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	results?: ValueTypes["v_team_tournament_results_bool_exp"] | undefined | null | Variable<any, string>,
@@ -65754,6 +65773,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	stages_aggregate?: ValueTypes["tournament_stages_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	start?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["e_tournament_status_enum_comparison_exp"] | undefined | null | Variable<any, string>,
+	substitutes_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	teams?: ValueTypes["tournament_teams_bool_exp"] | undefined | null | Variable<any, string>,
 	teams_aggregate?: ValueTypes["tournament_teams_aggregate_bool_exp"] | undefined | null | Variable<any, string>
 };
@@ -65809,6 +65829,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_voice_enabled?: boolean | undefined | null | Variable<any, string>,
 	discord_webhook?: string | undefined | null | Variable<any, string>,
 	e_tournament_status?: ValueTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	free_agents?: ValueTypes["tournament_free_agents_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
@@ -65830,8 +65851,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	organizers?: ValueTypes["tournament_organizers_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	player_stats?: ValueTypes["v_tournament_player_stats_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	prizes?: ValueTypes["tournament_prizes_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null | Variable<any, string>,
 	registration_type?: ValueTypes["e_tournament_registration_types_enum"] | undefined | null | Variable<any, string>,
 	results?: ValueTypes["v_team_tournament_results_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	rosters?: ValueTypes["tournament_team_roster_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -65839,6 +65858,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	stages?: ValueTypes["tournament_stages_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	start?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["e_tournament_status_enum"] | undefined | null | Variable<any, string>,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null | Variable<any, string>,
 	teams?: ValueTypes["tournament_teams_arr_rel_insert_input"] | undefined | null | Variable<any, string>
 };
 	/** aggregate max on columns */
@@ -65853,10 +65874,13 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	check_in_ends_at?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_role_id?:boolean | `@${string}`,
 	discord_webhook?:boolean | `@${string}`,
+	finished_at?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
@@ -65874,8 +65898,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	missed_check_in_count?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	organizer_steam_id?:boolean | `@${string}`,
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	scheduling_mode?:boolean | `@${string}`,
 	start?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -65896,6 +65918,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_guild_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_role_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_webhook?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -65907,8 +65930,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	min_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	/** Preferred server regions for hosted matches */
-	regions?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	scheduling_mode?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	start?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
@@ -65924,10 +65945,13 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	check_in_ends_at?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_role_id?:boolean | `@${string}`,
 	discord_webhook?:boolean | `@${string}`,
+	finished_at?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
@@ -65945,8 +65969,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	missed_check_in_count?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	organizer_steam_id?:boolean | `@${string}`,
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	scheduling_mode?:boolean | `@${string}`,
 	start?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -65967,6 +65989,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_guild_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_role_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_webhook?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -65978,8 +66001,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	min_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	/** Preferred server regions for hosted matches */
-	regions?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	scheduling_mode?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	start?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
@@ -66031,6 +66052,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	check_in_setting?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	check_in_started?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	current_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	description?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_guild_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_notifications_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -66050,6 +66072,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_voice_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_webhook?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	e_tournament_status?: ValueTypes["e_tournament_status_order_by"] | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	free_agents_aggregate?: ValueTypes["tournament_free_agents_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	has_min_teams?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -66078,7 +66101,6 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	organizers_aggregate?: ValueTypes["tournament_organizers_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	player_stats_aggregate?: ValueTypes["v_tournament_player_stats_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	prizes_aggregate?: ValueTypes["tournament_prizes_aggregate_order_by"] | undefined | null | Variable<any, string>,
-	regions?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	registration_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	registration_unlocked?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	results_aggregate?: ValueTypes["v_team_tournament_results_aggregate_order_by"] | undefined | null | Variable<any, string>,
@@ -66087,6 +66109,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	stages_aggregate?: ValueTypes["tournament_stages_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	start?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	substitutes_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	teams_aggregate?: ValueTypes["tournament_teams_aggregate_order_by"] | undefined | null | Variable<any, string>
 };
 	/** primary key columns input for table: tournaments */
@@ -66150,6 +66173,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_role_id?: string | undefined | null | Variable<any, string>,
 	discord_voice_enabled?: boolean | undefined | null | Variable<any, string>,
 	discord_webhook?: string | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	invite_only?: boolean | undefined | null | Variable<any, string>,
@@ -66164,17 +66188,19 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	min_role?: ValueTypes["e_player_roles_enum"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null | Variable<any, string>,
 	registration_type?: ValueTypes["e_tournament_registration_types_enum"] | undefined | null | Variable<any, string>,
 	scheduling_mode?: string | undefined | null | Variable<any, string>,
 	start?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	status?: ValueTypes["e_tournament_status_enum"] | undefined | null | Variable<any, string>
+	status?: ValueTypes["e_tournament_status_enum"] | undefined | null | Variable<any, string>,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66202,6 +66228,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_stddev_pop_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66229,6 +66257,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_stddev_samp_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66294,6 +66324,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_role_id?: string | undefined | null | Variable<any, string>,
 	discord_voice_enabled?: boolean | undefined | null | Variable<any, string>,
 	discord_webhook?: string | undefined | null | Variable<any, string>,
+	finished_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	invite_only?: boolean | undefined | null | Variable<any, string>,
@@ -66308,17 +66339,19 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	min_role?: ValueTypes["e_player_roles_enum"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null | Variable<any, string>,
 	registration_type?: ValueTypes["e_tournament_registration_types_enum"] | undefined | null | Variable<any, string>,
 	scheduling_mode?: string | undefined | null | Variable<any, string>,
 	start?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	status?: ValueTypes["e_tournament_status_enum"] | undefined | null | Variable<any, string>
+	status?: ValueTypes["e_tournament_status_enum"] | undefined | null | Variable<any, string>,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null | Variable<any, string>
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66356,6 +66389,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_var_pop_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66383,6 +66418,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_var_samp_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -66410,6 +66447,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_variance_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -110839,6 +110878,7 @@ acceptInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverI
 addCustomGamePlugin?: [{	description?: string | undefined | null,	installPath?: string | undefined | null,	layout?: string | undefined | null,	name?: string | undefined | null,	runtime: string,	slug?: string | undefined | null,	url: string,	version?: string | undefined | null},ResolverInputTypes["AddCustomGamePluginOutput"]],
 addDraftPlayer?: [{	draftGameId: ResolverInputTypes["uuid"],	lineup?: number | undefined | null,	steamId: string},ResolverInputTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string,	friend_capacity?: number | undefined | null,	username: string},ResolverInputTypes["SuccessOutput"]],
+addTournamentFreeAgent?: [{	steam_id: ResolverInputTypes["bigint"],	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 approveNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
 	args: ResolverInputTypes["approve_league_season_movements_args"],	/** distinct select on columns */
@@ -112756,7 +112796,7 @@ installGamePlugin?: [{	slug: string,	version?: string | undefined | null},Resolv
 inviteToUtilityPractice?: [{	session_id: ResolverInputTypes["uuid"],	steam_ids: Array<string>},ResolverInputTypes["SuccessOutput"]],
 joinDraftGame?: [{	draftGameId: ResolverInputTypes["uuid"],	inviteCode?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 joinDraftGameAsParty?: [{	draftGameId: ResolverInputTypes["uuid"],	inviteCode?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
-joinTournamentAsFreeAgent?: [{	tournament_id: ResolverInputTypes["uuid"],	with_party?: boolean | undefined | null},ResolverInputTypes["SuccessOutput"]],
+joinTournamentAsFreeAgent?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 joinUtilityPractice?: [{	invite_code?: string | undefined | null,	session_id?: ResolverInputTypes["uuid"] | undefined | null},ResolverInputTypes["UtilityPracticeSessionOutput"]],
 kickServerPlayer?: [{	reason?: string | undefined | null,	serverId: string,	steam_id: string},ResolverInputTypes["KickResult"]],
 league_award_forfeit?: [{	/** input parameters for function "league_award_forfeit" */
@@ -112800,6 +112840,7 @@ recalculate_tournament_awards?: [{	/** input parameters for function "recalculat
 	recomputePlayerEloStatus?:ResolverInputTypes["RecomputeEloStatusOutput"],
 reconcileNodePlugins?: [{	nodeId: string},ResolverInputTypes["ReconcileNodePluginsOutput"]],
 reconnectLive?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+recreateTournamentBracketMatch?: [{	tournament_bracket_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 redeemTournamentInviteCode?: [{	code: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 	/** Reindex every player into the Typesense search index (admin only). Runs in the background; track via refreshAllPlayersStatus. */
 	refreshAllPlayers?:ResolverInputTypes["ReindexStartedOutput"],
@@ -112820,6 +112861,7 @@ remove_league_team_from_season?: [{	/** input parameters for function "remove_le
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["league_team_seasons_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["league_team_seasons_bool_exp"] | undefined | null},ResolverInputTypes["league_team_seasons"]],
+removeTournamentFreeAgent?: [{	steam_id: ResolverInputTypes["bigint"],	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 renameServerItem?: [{	new_path: string,	node_id: string,	old_path: string,	server_id?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 renderUtilityLineupPreview?: [{	utility_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["UtilityRenderQueueOutput"]],
 reorder_league_divisions?: [{	/** input parameters for function "reorder_league_divisions" */
@@ -146800,6 +146842,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_invites_select_co
 	/** An object relationship */
 	tournament_team?:ResolverInputTypes["tournament_teams"],
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "tournament_team_roster" */
@@ -146875,7 +146918,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	tournament?: ResolverInputTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_bool_exp"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "tournament_team_roster" */
 ["tournament_team_roster_constraint"]:tournament_team_roster_constraint;
@@ -146893,7 +146937,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	tournament?: ResolverInputTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null
 };
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: AliasType<{
@@ -146901,6 +146946,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "tournament_team_roster" */
@@ -146908,7 +146954,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: AliasType<{
@@ -146916,6 +146963,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "tournament_team_roster" */
@@ -146923,7 +146971,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "tournament_team_roster" */
 ["tournament_team_roster_mutation_response"]: AliasType<{
@@ -146950,7 +146999,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	tournament?: ResolverInputTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_order_by"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournament_team_roster */
 ["tournament_team_roster_pk_columns_input"]: {
@@ -146965,7 +147015,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournament_team_roster_stddev_fields"]: AliasType<{
@@ -147007,7 +147058,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
-	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournament_team_roster_sum_fields"]: AliasType<{
@@ -147592,6 +147644,8 @@ categories_aggregate?: [{	/** distinct select on columns */
 	/** A computed field, executes function "tournament_check_in_started" */
 	check_in_started?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_notifications_enabled?:boolean | `@${string}`,
@@ -147612,6 +147666,7 @@ categories_aggregate?: [{	/** distinct select on columns */
 	discord_webhook?:boolean | `@${string}`,
 	/** An object relationship */
 	e_tournament_status?:ResolverInputTypes["e_tournament_status"],
+	finished_at?:boolean | `@${string}`,
 free_agents?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["tournament_free_agents_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -147704,8 +147759,6 @@ prizes_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["tournament_prizes_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["tournament_prizes_bool_exp"] | undefined | null},ResolverInputTypes["tournament_prizes_aggregate"]],
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	registration_type?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_registration_unlocked_for_session" */
 	registration_unlocked?:boolean | `@${string}`,
@@ -147748,6 +147801,8 @@ stages_aggregate?: [{	/** distinct select on columns */
 	where?: ResolverInputTypes["tournament_stages_bool_exp"] | undefined | null},ResolverInputTypes["tournament_stages_aggregate"]],
 	start?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?:boolean | `@${string}`,
 teams?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["tournament_teams_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -147894,6 +147949,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_avg_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -147951,6 +148008,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	check_in_setting?: ResolverInputTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	check_in_started?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	current_stage?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	description?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	discord_guild_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	discord_notifications_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
@@ -147970,6 +148028,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_voice_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	discord_webhook?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	e_tournament_status?: ResolverInputTypes["e_tournament_status_bool_exp"] | undefined | null,
+	finished_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	free_agents?: ResolverInputTypes["tournament_free_agents_bool_exp"] | undefined | null,
 	free_agents_aggregate?: ResolverInputTypes["tournament_free_agents_aggregate_bool_exp"] | undefined | null,
 	has_min_teams?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
@@ -148003,7 +148062,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	player_stats_aggregate?: ResolverInputTypes["v_tournament_player_stats_aggregate_bool_exp"] | undefined | null,
 	prizes?: ResolverInputTypes["tournament_prizes_bool_exp"] | undefined | null,
 	prizes_aggregate?: ResolverInputTypes["tournament_prizes_aggregate_bool_exp"] | undefined | null,
-	regions?: ResolverInputTypes["String_array_comparison_exp"] | undefined | null,
 	registration_type?: ResolverInputTypes["e_tournament_registration_types_enum_comparison_exp"] | undefined | null,
 	registration_unlocked?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	results?: ResolverInputTypes["v_team_tournament_results_bool_exp"] | undefined | null,
@@ -148015,6 +148073,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	stages_aggregate?: ResolverInputTypes["tournament_stages_aggregate_bool_exp"] | undefined | null,
 	start?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	status?: ResolverInputTypes["e_tournament_status_enum_comparison_exp"] | undefined | null,
+	substitutes_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	teams?: ResolverInputTypes["tournament_teams_bool_exp"] | undefined | null,
 	teams_aggregate?: ResolverInputTypes["tournament_teams_aggregate_bool_exp"] | undefined | null
 };
@@ -148070,6 +148129,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
 	e_tournament_status?: ResolverInputTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
+	finished_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	free_agents?: ResolverInputTypes["tournament_free_agents_arr_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
@@ -148091,8 +148151,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	organizers?: ResolverInputTypes["tournament_organizers_arr_rel_insert_input"] | undefined | null,
 	player_stats?: ResolverInputTypes["v_tournament_player_stats_arr_rel_insert_input"] | undefined | null,
 	prizes?: ResolverInputTypes["tournament_prizes_arr_rel_insert_input"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ResolverInputTypes["e_tournament_registration_types_enum"] | undefined | null,
 	results?: ResolverInputTypes["v_team_tournament_results_arr_rel_insert_input"] | undefined | null,
 	rosters?: ResolverInputTypes["tournament_team_roster_arr_rel_insert_input"] | undefined | null,
@@ -148100,6 +148158,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	stages?: ResolverInputTypes["tournament_stages_arr_rel_insert_input"] | undefined | null,
 	start?: ResolverInputTypes["timestamptz"] | undefined | null,
 	status?: ResolverInputTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null,
 	teams?: ResolverInputTypes["tournament_teams_arr_rel_insert_input"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -148114,10 +148174,13 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	check_in_ends_at?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_role_id?:boolean | `@${string}`,
 	discord_webhook?:boolean | `@${string}`,
+	finished_at?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
@@ -148135,8 +148198,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	missed_check_in_count?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	organizer_steam_id?:boolean | `@${string}`,
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	scheduling_mode?:boolean | `@${string}`,
 	start?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -148157,6 +148218,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_guild_id?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_role_id?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_webhook?: ResolverInputTypes["order_by"] | undefined | null,
+	finished_at?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -148168,8 +148230,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	min_elo?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: ResolverInputTypes["order_by"] | undefined | null,
 	scheduling_mode?: ResolverInputTypes["order_by"] | undefined | null,
 	start?: ResolverInputTypes["order_by"] | undefined | null
 };
@@ -148185,10 +148245,13 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	check_in_ends_at?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
 	discord_guild_id?:boolean | `@${string}`,
 	discord_role_id?:boolean | `@${string}`,
 	discord_webhook?:boolean | `@${string}`,
+	finished_at?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
@@ -148206,8 +148269,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	missed_check_in_count?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	organizer_steam_id?:boolean | `@${string}`,
-	/** Preferred server regions for hosted matches */
-	regions?:boolean | `@${string}`,
 	scheduling_mode?:boolean | `@${string}`,
 	start?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -148228,6 +148289,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_guild_id?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_role_id?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_webhook?: ResolverInputTypes["order_by"] | undefined | null,
+	finished_at?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -148239,8 +148301,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	min_elo?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: ResolverInputTypes["order_by"] | undefined | null,
 	scheduling_mode?: ResolverInputTypes["order_by"] | undefined | null,
 	start?: ResolverInputTypes["order_by"] | undefined | null
 };
@@ -148292,6 +148352,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	check_in_setting?: ResolverInputTypes["order_by"] | undefined | null,
 	check_in_started?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	current_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	description?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_guild_id?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_notifications_enabled?: ResolverInputTypes["order_by"] | undefined | null,
@@ -148311,6 +148372,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_voice_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_webhook?: ResolverInputTypes["order_by"] | undefined | null,
 	e_tournament_status?: ResolverInputTypes["e_tournament_status_order_by"] | undefined | null,
+	finished_at?: ResolverInputTypes["order_by"] | undefined | null,
 	free_agents_aggregate?: ResolverInputTypes["tournament_free_agents_aggregate_order_by"] | undefined | null,
 	has_min_teams?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
@@ -148339,7 +148401,6 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	organizers_aggregate?: ResolverInputTypes["tournament_organizers_aggregate_order_by"] | undefined | null,
 	player_stats_aggregate?: ResolverInputTypes["v_tournament_player_stats_aggregate_order_by"] | undefined | null,
 	prizes_aggregate?: ResolverInputTypes["tournament_prizes_aggregate_order_by"] | undefined | null,
-	regions?: ResolverInputTypes["order_by"] | undefined | null,
 	registration_type?: ResolverInputTypes["order_by"] | undefined | null,
 	registration_unlocked?: ResolverInputTypes["order_by"] | undefined | null,
 	results_aggregate?: ResolverInputTypes["v_team_tournament_results_aggregate_order_by"] | undefined | null,
@@ -148348,6 +148409,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	stages_aggregate?: ResolverInputTypes["tournament_stages_aggregate_order_by"] | undefined | null,
 	start?: ResolverInputTypes["order_by"] | undefined | null,
 	status?: ResolverInputTypes["order_by"] | undefined | null,
+	substitutes_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	teams_aggregate?: ResolverInputTypes["tournament_teams_aggregate_order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournaments */
@@ -148411,6 +148473,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -148425,17 +148488,19 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	min_role?: ResolverInputTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ResolverInputTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ResolverInputTypes["timestamptz"] | undefined | null,
-	status?: ResolverInputTypes["e_tournament_status_enum"] | undefined | null
+	status?: ResolverInputTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148463,6 +148528,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_stddev_pop_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148490,6 +148557,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_stddev_samp_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148555,6 +148624,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -148569,17 +148639,19 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	min_role?: ResolverInputTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ResolverInputTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ResolverInputTypes["timestamptz"] | undefined | null,
-	status?: ResolverInputTypes["e_tournament_status_enum"] | undefined | null
+	status?: ResolverInputTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148617,6 +148689,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_var_pop_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148644,6 +148718,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_var_samp_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -148671,6 +148747,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_variance_fields"]: AliasType<{
 	check_in_closes_before_minutes?:boolean | `@${string}`,
 	check_in_opens_before_minutes?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	max_elo?:boolean | `@${string}`,
@@ -190668,6 +190746,7 @@ export type ModelTypes = {
 	addDraftPlayer?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
+	addTournamentFreeAgent?: ModelTypes["SuccessOutput"] | undefined | null,
 	approveNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "approve_league_season_movements" which returns "league_team_movements" */
 	approve_league_season_movements: Array<ModelTypes["league_team_movements"]>,
@@ -192463,6 +192542,7 @@ export type ModelTypes = {
 	/** Re-read which plugins are actually on a node */
 	reconcileNodePlugins?: ModelTypes["ReconcileNodePluginsOutput"] | undefined | null,
 	reconnectLive?: ModelTypes["SuccessOutput"] | undefined | null,
+	recreateTournamentBracketMatch?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Spend a tournament invite link for an unlock on an invite only tournament */
 	redeemTournamentInviteCode?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Reindex every player into the Typesense search index (admin only). Runs in the background; track via refreshAllPlayersStatus. */
@@ -192480,6 +192560,7 @@ export type ModelTypes = {
 	removeSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
 	remove_league_team_from_season: Array<ModelTypes["league_team_seasons"]>,
+	removeTournamentFreeAgent?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Rename file or directory on game server */
 	renameServerItem?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Re-film a public lineup's preview clip */
@@ -220264,7 +220345,8 @@ export type ModelTypes = {
 	tournament_id: ModelTypes["uuid"],
 	/** An object relationship */
 	tournament_team: ModelTypes["tournament_teams"],
-	tournament_team_id: ModelTypes["uuid"]
+	tournament_team_id: ModelTypes["uuid"],
+	created_at: ModelTypes["timestamptz"]
 };
 	/** aggregated selection of "tournament_team_roster" */
 ["tournament_team_roster_aggregate"]: {
@@ -220336,7 +220418,8 @@ export type ModelTypes = {
 	tournament?: ModelTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_bool_exp"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null
 };
 	["tournament_team_roster_constraint"]:tournament_team_roster_constraint;
 	/** input type for incrementing numeric columns in table "tournament_team_roster" */
@@ -220353,35 +220436,40 @@ export type ModelTypes = {
 	tournament?: ModelTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null
 };
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: {
 		checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null
 };
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
-	tournament_team_id?: ModelTypes["order_by"] | undefined | null
+	tournament_team_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: {
 		checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null
 };
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
-	tournament_team_id?: ModelTypes["order_by"] | undefined | null
+	tournament_team_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "tournament_team_roster" */
 ["tournament_team_roster_mutation_response"]: {
@@ -220407,7 +220495,8 @@ export type ModelTypes = {
 	tournament?: ModelTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_order_by"] | undefined | null,
-	tournament_team_id?: ModelTypes["order_by"] | undefined | null
+	tournament_team_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournament_team_roster */
 ["tournament_team_roster_pk_columns_input"]: {
@@ -220421,7 +220510,8 @@ export type ModelTypes = {
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournament_team_roster_stddev_fields"]: {
@@ -220460,7 +220550,8 @@ export type ModelTypes = {
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
-	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournament_team_roster_sum_fields"]: {
@@ -220973,6 +221064,8 @@ export type ModelTypes = {
 	/** A computed field, executes function "tournament_check_in_started" */
 	check_in_started?: boolean | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_notifications_enabled?: boolean | undefined | null,
@@ -220993,6 +221086,7 @@ export type ModelTypes = {
 	discord_webhook?: string | undefined | null,
 	/** An object relationship */
 	e_tournament_status: ModelTypes["e_tournament_status"],
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	free_agents: Array<ModelTypes["tournament_free_agents"]>,
 	/** An aggregate relationship */
@@ -221045,8 +221139,6 @@ export type ModelTypes = {
 	prizes: Array<ModelTypes["tournament_prizes"]>,
 	/** An aggregate relationship */
 	prizes_aggregate: ModelTypes["tournament_prizes_aggregate"],
-	/** Preferred server regions for hosted matches */
-	regions: Array<string>,
 	registration_type: ModelTypes["e_tournament_registration_types_enum"],
 	/** A computed field, executes function "tournament_registration_unlocked_for_session" */
 	registration_unlocked?: boolean | undefined | null,
@@ -221065,6 +221157,8 @@ export type ModelTypes = {
 	stages_aggregate: ModelTypes["tournament_stages_aggregate"],
 	start: ModelTypes["timestamptz"],
 	status: ModelTypes["e_tournament_status_enum"],
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled: boolean,
 	/** An array relationship */
 	teams: Array<ModelTypes["tournament_teams"]>,
 	/** An aggregate relationship */
@@ -221200,6 +221294,8 @@ export type ModelTypes = {
 ["tournaments_avg_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221256,6 +221352,7 @@ export type ModelTypes = {
 	check_in_setting?: ModelTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	check_in_started?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	current_stage?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	description?: ModelTypes["String_comparison_exp"] | undefined | null,
 	discord_guild_id?: ModelTypes["String_comparison_exp"] | undefined | null,
 	discord_notifications_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
@@ -221275,6 +221372,7 @@ export type ModelTypes = {
 	discord_voice_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	discord_webhook?: ModelTypes["String_comparison_exp"] | undefined | null,
 	e_tournament_status?: ModelTypes["e_tournament_status_bool_exp"] | undefined | null,
+	finished_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	free_agents?: ModelTypes["tournament_free_agents_bool_exp"] | undefined | null,
 	free_agents_aggregate?: ModelTypes["tournament_free_agents_aggregate_bool_exp"] | undefined | null,
 	has_min_teams?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
@@ -221308,7 +221406,6 @@ export type ModelTypes = {
 	player_stats_aggregate?: ModelTypes["v_tournament_player_stats_aggregate_bool_exp"] | undefined | null,
 	prizes?: ModelTypes["tournament_prizes_bool_exp"] | undefined | null,
 	prizes_aggregate?: ModelTypes["tournament_prizes_aggregate_bool_exp"] | undefined | null,
-	regions?: ModelTypes["String_array_comparison_exp"] | undefined | null,
 	registration_type?: ModelTypes["e_tournament_registration_types_enum_comparison_exp"] | undefined | null,
 	registration_unlocked?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	results?: ModelTypes["v_team_tournament_results_bool_exp"] | undefined | null,
@@ -221320,6 +221417,7 @@ export type ModelTypes = {
 	stages_aggregate?: ModelTypes["tournament_stages_aggregate_bool_exp"] | undefined | null,
 	start?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	status?: ModelTypes["e_tournament_status_enum_comparison_exp"] | undefined | null,
+	substitutes_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	teams?: ModelTypes["tournament_teams_bool_exp"] | undefined | null,
 	teams_aggregate?: ModelTypes["tournament_teams_aggregate_bool_exp"] | undefined | null
 };
@@ -221374,6 +221472,7 @@ export type ModelTypes = {
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
 	e_tournament_status?: ModelTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	free_agents?: ModelTypes["tournament_free_agents_arr_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -221395,8 +221494,6 @@ export type ModelTypes = {
 	organizers?: ModelTypes["tournament_organizers_arr_rel_insert_input"] | undefined | null,
 	player_stats?: ModelTypes["v_tournament_player_stats_arr_rel_insert_input"] | undefined | null,
 	prizes?: ModelTypes["tournament_prizes_arr_rel_insert_input"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ModelTypes["e_tournament_registration_types_enum"] | undefined | null,
 	results?: ModelTypes["v_team_tournament_results_arr_rel_insert_input"] | undefined | null,
 	rosters?: ModelTypes["tournament_team_roster_arr_rel_insert_input"] | undefined | null,
@@ -221404,6 +221501,8 @@ export type ModelTypes = {
 	stages?: ModelTypes["tournament_stages_arr_rel_insert_input"] | undefined | null,
 	start?: ModelTypes["timestamptz"] | undefined | null,
 	status?: ModelTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null,
 	teams?: ModelTypes["tournament_teams_arr_rel_insert_input"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -221418,10 +221517,13 @@ export type ModelTypes = {
 	check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_role_id?: string | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
@@ -221439,8 +221541,6 @@ export type ModelTypes = {
 	missed_check_in_count?: number | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ModelTypes["timestamptz"] | undefined | null
 };
@@ -221460,6 +221560,7 @@ export type ModelTypes = {
 	discord_guild_id?: ModelTypes["order_by"] | undefined | null,
 	discord_role_id?: ModelTypes["order_by"] | undefined | null,
 	discord_webhook?: ModelTypes["order_by"] | undefined | null,
+	finished_at?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
@@ -221471,8 +221572,6 @@ export type ModelTypes = {
 	min_elo?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: ModelTypes["order_by"] | undefined | null,
 	scheduling_mode?: ModelTypes["order_by"] | undefined | null,
 	start?: ModelTypes["order_by"] | undefined | null
 };
@@ -221488,10 +221587,13 @@ export type ModelTypes = {
 	check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_role_id?: string | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
@@ -221509,8 +221611,6 @@ export type ModelTypes = {
 	missed_check_in_count?: number | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ModelTypes["timestamptz"] | undefined | null
 };
@@ -221530,6 +221630,7 @@ export type ModelTypes = {
 	discord_guild_id?: ModelTypes["order_by"] | undefined | null,
 	discord_role_id?: ModelTypes["order_by"] | undefined | null,
 	discord_webhook?: ModelTypes["order_by"] | undefined | null,
+	finished_at?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
@@ -221541,8 +221642,6 @@ export type ModelTypes = {
 	min_elo?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: ModelTypes["order_by"] | undefined | null,
 	scheduling_mode?: ModelTypes["order_by"] | undefined | null,
 	start?: ModelTypes["order_by"] | undefined | null
 };
@@ -221593,6 +221692,7 @@ export type ModelTypes = {
 	check_in_setting?: ModelTypes["order_by"] | undefined | null,
 	check_in_started?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
+	current_stage?: ModelTypes["order_by"] | undefined | null,
 	description?: ModelTypes["order_by"] | undefined | null,
 	discord_guild_id?: ModelTypes["order_by"] | undefined | null,
 	discord_notifications_enabled?: ModelTypes["order_by"] | undefined | null,
@@ -221612,6 +221712,7 @@ export type ModelTypes = {
 	discord_voice_enabled?: ModelTypes["order_by"] | undefined | null,
 	discord_webhook?: ModelTypes["order_by"] | undefined | null,
 	e_tournament_status?: ModelTypes["e_tournament_status_order_by"] | undefined | null,
+	finished_at?: ModelTypes["order_by"] | undefined | null,
 	free_agents_aggregate?: ModelTypes["tournament_free_agents_aggregate_order_by"] | undefined | null,
 	has_min_teams?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
@@ -221640,7 +221741,6 @@ export type ModelTypes = {
 	organizers_aggregate?: ModelTypes["tournament_organizers_aggregate_order_by"] | undefined | null,
 	player_stats_aggregate?: ModelTypes["v_tournament_player_stats_aggregate_order_by"] | undefined | null,
 	prizes_aggregate?: ModelTypes["tournament_prizes_aggregate_order_by"] | undefined | null,
-	regions?: ModelTypes["order_by"] | undefined | null,
 	registration_type?: ModelTypes["order_by"] | undefined | null,
 	registration_unlocked?: ModelTypes["order_by"] | undefined | null,
 	results_aggregate?: ModelTypes["v_team_tournament_results_aggregate_order_by"] | undefined | null,
@@ -221649,6 +221749,7 @@ export type ModelTypes = {
 	stages_aggregate?: ModelTypes["tournament_stages_aggregate_order_by"] | undefined | null,
 	start?: ModelTypes["order_by"] | undefined | null,
 	status?: ModelTypes["order_by"] | undefined | null,
+	substitutes_enabled?: ModelTypes["order_by"] | undefined | null,
 	teams_aggregate?: ModelTypes["tournament_teams_aggregate_order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournaments */
@@ -221701,6 +221802,7 @@ export type ModelTypes = {
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -221715,17 +221817,19 @@ export type ModelTypes = {
 	min_role?: ModelTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ModelTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ModelTypes["timestamptz"] | undefined | null,
-	status?: ModelTypes["e_tournament_status_enum"] | undefined | null
+	status?: ModelTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221752,6 +221856,8 @@ export type ModelTypes = {
 ["tournaments_stddev_pop_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221778,6 +221884,8 @@ export type ModelTypes = {
 ["tournaments_stddev_samp_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221842,6 +221950,7 @@ export type ModelTypes = {
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: ModelTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -221856,17 +221965,19 @@ export type ModelTypes = {
 	min_role?: ModelTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: ModelTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: ModelTypes["timestamptz"] | undefined | null,
-	status?: ModelTypes["e_tournament_status_enum"] | undefined | null
+	status?: ModelTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	longitude?: ModelTypes["float8"] | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221902,6 +222013,8 @@ export type ModelTypes = {
 ["tournaments_var_pop_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221928,6 +222041,8 @@ export type ModelTypes = {
 ["tournaments_var_samp_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -221954,6 +222069,8 @@ export type ModelTypes = {
 ["tournaments_variance_fields"]: {
 		check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -264643,6 +264760,7 @@ export type GraphQLTypes = {
 	addDraftPlayer?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	addTournamentFreeAgent?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	approveNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "approve_league_season_movements" which returns "league_team_movements" */
 	approve_league_season_movements: Array<GraphQLTypes["league_team_movements"]>,
@@ -266438,6 +266556,7 @@ export type GraphQLTypes = {
 	/** Re-read which plugins are actually on a node */
 	reconcileNodePlugins?: GraphQLTypes["ReconcileNodePluginsOutput"] | undefined | null,
 	reconnectLive?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	recreateTournamentBracketMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Spend a tournament invite link for an unlock on an invite only tournament */
 	redeemTournamentInviteCode?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Reindex every player into the Typesense search index (admin only). Runs in the background; track via refreshAllPlayersStatus. */
@@ -266455,6 +266574,7 @@ export type GraphQLTypes = {
 	removeSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
 	remove_league_team_from_season: Array<GraphQLTypes["league_team_seasons"]>,
+	removeTournamentFreeAgent?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Rename file or directory on game server */
 	renameServerItem?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Re-film a public lineup's preview clip */
@@ -295343,7 +295463,8 @@ export type GraphQLTypes = {
 	tournament_id: GraphQLTypes["uuid"],
 	/** An object relationship */
 	tournament_team: GraphQLTypes["tournament_teams"],
-	tournament_team_id: GraphQLTypes["uuid"]
+	tournament_team_id: GraphQLTypes["uuid"],
+	created_at: GraphQLTypes["timestamptz"]
 };
 	/** aggregated selection of "tournament_team_roster" */
 ["tournament_team_roster_aggregate"]: {
@@ -295418,7 +295539,8 @@ export type GraphQLTypes = {
 	tournament?: GraphQLTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_bool_exp"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "tournament_team_roster" */
 ["tournament_team_roster_constraint"]: tournament_team_roster_constraint;
@@ -295436,7 +295558,8 @@ export type GraphQLTypes = {
 	tournament?: GraphQLTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null
 };
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: {
@@ -295444,14 +295567,16 @@ export type GraphQLTypes = {
 	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null
 };
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 		checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null
+	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: {
@@ -295459,14 +295584,16 @@ export type GraphQLTypes = {
 	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null
 };
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 		checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null
+	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "tournament_team_roster" */
 ["tournament_team_roster_mutation_response"]: {
@@ -295493,7 +295620,8 @@ export type GraphQLTypes = {
 	tournament?: GraphQLTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_order_by"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null
+	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournament_team_roster */
 ["tournament_team_roster_pk_columns_input"]: {
@@ -295508,7 +295636,8 @@ export type GraphQLTypes = {
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournament_team_roster_stddev_fields"]: {
@@ -295550,7 +295679,8 @@ export type GraphQLTypes = {
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
-	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournament_team_roster_sum_fields"]: {
@@ -296088,6 +296218,8 @@ export type GraphQLTypes = {
 	/** A computed field, executes function "tournament_check_in_started" */
 	check_in_started?: boolean | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_notifications_enabled?: boolean | undefined | null,
@@ -296108,6 +296240,7 @@ export type GraphQLTypes = {
 	discord_webhook?: string | undefined | null,
 	/** An object relationship */
 	e_tournament_status: GraphQLTypes["e_tournament_status"],
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	free_agents: Array<GraphQLTypes["tournament_free_agents"]>,
 	/** An aggregate relationship */
@@ -296160,8 +296293,6 @@ export type GraphQLTypes = {
 	prizes: Array<GraphQLTypes["tournament_prizes"]>,
 	/** An aggregate relationship */
 	prizes_aggregate: GraphQLTypes["tournament_prizes_aggregate"],
-	/** Preferred server regions for hosted matches */
-	regions: Array<string>,
 	registration_type: GraphQLTypes["e_tournament_registration_types_enum"],
 	/** A computed field, executes function "tournament_registration_unlocked_for_session" */
 	registration_unlocked?: boolean | undefined | null,
@@ -296180,6 +296311,8 @@ export type GraphQLTypes = {
 	stages_aggregate: GraphQLTypes["tournament_stages_aggregate"],
 	start: GraphQLTypes["timestamptz"],
 	status: GraphQLTypes["e_tournament_status_enum"],
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled: boolean,
 	/** An array relationship */
 	teams: Array<GraphQLTypes["tournament_teams"]>,
 	/** An aggregate relationship */
@@ -296318,6 +296451,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_avg_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -296374,6 +296509,7 @@ export type GraphQLTypes = {
 	check_in_setting?: GraphQLTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	check_in_started?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	current_stage?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	description?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	discord_guild_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	discord_notifications_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
@@ -296393,6 +296529,7 @@ export type GraphQLTypes = {
 	discord_voice_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	discord_webhook?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	e_tournament_status?: GraphQLTypes["e_tournament_status_bool_exp"] | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	free_agents?: GraphQLTypes["tournament_free_agents_bool_exp"] | undefined | null,
 	free_agents_aggregate?: GraphQLTypes["tournament_free_agents_aggregate_bool_exp"] | undefined | null,
 	has_min_teams?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
@@ -296426,7 +296563,6 @@ export type GraphQLTypes = {
 	player_stats_aggregate?: GraphQLTypes["v_tournament_player_stats_aggregate_bool_exp"] | undefined | null,
 	prizes?: GraphQLTypes["tournament_prizes_bool_exp"] | undefined | null,
 	prizes_aggregate?: GraphQLTypes["tournament_prizes_aggregate_bool_exp"] | undefined | null,
-	regions?: GraphQLTypes["String_array_comparison_exp"] | undefined | null,
 	registration_type?: GraphQLTypes["e_tournament_registration_types_enum_comparison_exp"] | undefined | null,
 	registration_unlocked?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	results?: GraphQLTypes["v_team_tournament_results_bool_exp"] | undefined | null,
@@ -296438,6 +296574,7 @@ export type GraphQLTypes = {
 	stages_aggregate?: GraphQLTypes["tournament_stages_aggregate_bool_exp"] | undefined | null,
 	start?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	status?: GraphQLTypes["e_tournament_status_enum_comparison_exp"] | undefined | null,
+	substitutes_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	teams?: GraphQLTypes["tournament_teams_bool_exp"] | undefined | null,
 	teams_aggregate?: GraphQLTypes["tournament_teams_aggregate_bool_exp"] | undefined | null
 };
@@ -296493,6 +296630,7 @@ export type GraphQLTypes = {
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
 	e_tournament_status?: GraphQLTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	free_agents?: GraphQLTypes["tournament_free_agents_arr_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
@@ -296514,8 +296652,6 @@ export type GraphQLTypes = {
 	organizers?: GraphQLTypes["tournament_organizers_arr_rel_insert_input"] | undefined | null,
 	player_stats?: GraphQLTypes["v_tournament_player_stats_arr_rel_insert_input"] | undefined | null,
 	prizes?: GraphQLTypes["tournament_prizes_arr_rel_insert_input"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: GraphQLTypes["e_tournament_registration_types_enum"] | undefined | null,
 	results?: GraphQLTypes["v_team_tournament_results_arr_rel_insert_input"] | undefined | null,
 	rosters?: GraphQLTypes["tournament_team_roster_arr_rel_insert_input"] | undefined | null,
@@ -296523,6 +296659,8 @@ export type GraphQLTypes = {
 	stages?: GraphQLTypes["tournament_stages_arr_rel_insert_input"] | undefined | null,
 	start?: GraphQLTypes["timestamptz"] | undefined | null,
 	status?: GraphQLTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null,
 	teams?: GraphQLTypes["tournament_teams_arr_rel_insert_input"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -296538,10 +296676,13 @@ export type GraphQLTypes = {
 	check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_role_id?: string | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
@@ -296559,8 +296700,6 @@ export type GraphQLTypes = {
 	missed_check_in_count?: number | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: GraphQLTypes["timestamptz"] | undefined | null
 };
@@ -296580,6 +296719,7 @@ export type GraphQLTypes = {
 	discord_guild_id?: GraphQLTypes["order_by"] | undefined | null,
 	discord_role_id?: GraphQLTypes["order_by"] | undefined | null,
 	discord_webhook?: GraphQLTypes["order_by"] | undefined | null,
+	finished_at?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
@@ -296591,8 +296731,6 @@ export type GraphQLTypes = {
 	min_elo?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: GraphQLTypes["order_by"] | undefined | null,
 	scheduling_mode?: GraphQLTypes["order_by"] | undefined | null,
 	start?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -296609,10 +296747,13 @@ export type GraphQLTypes = {
 	check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
 	discord_role_id?: string | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
@@ -296630,8 +296771,6 @@ export type GraphQLTypes = {
 	missed_check_in_count?: number | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: GraphQLTypes["timestamptz"] | undefined | null
 };
@@ -296651,6 +296790,7 @@ export type GraphQLTypes = {
 	discord_guild_id?: GraphQLTypes["order_by"] | undefined | null,
 	discord_role_id?: GraphQLTypes["order_by"] | undefined | null,
 	discord_webhook?: GraphQLTypes["order_by"] | undefined | null,
+	finished_at?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
@@ -296662,8 +296802,6 @@ export type GraphQLTypes = {
 	min_elo?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: GraphQLTypes["order_by"] | undefined | null,
 	scheduling_mode?: GraphQLTypes["order_by"] | undefined | null,
 	start?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -296715,6 +296853,7 @@ export type GraphQLTypes = {
 	check_in_setting?: GraphQLTypes["order_by"] | undefined | null,
 	check_in_started?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	current_stage?: GraphQLTypes["order_by"] | undefined | null,
 	description?: GraphQLTypes["order_by"] | undefined | null,
 	discord_guild_id?: GraphQLTypes["order_by"] | undefined | null,
 	discord_notifications_enabled?: GraphQLTypes["order_by"] | undefined | null,
@@ -296734,6 +296873,7 @@ export type GraphQLTypes = {
 	discord_voice_enabled?: GraphQLTypes["order_by"] | undefined | null,
 	discord_webhook?: GraphQLTypes["order_by"] | undefined | null,
 	e_tournament_status?: GraphQLTypes["e_tournament_status_order_by"] | undefined | null,
+	finished_at?: GraphQLTypes["order_by"] | undefined | null,
 	free_agents_aggregate?: GraphQLTypes["tournament_free_agents_aggregate_order_by"] | undefined | null,
 	has_min_teams?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
@@ -296762,7 +296902,6 @@ export type GraphQLTypes = {
 	organizers_aggregate?: GraphQLTypes["tournament_organizers_aggregate_order_by"] | undefined | null,
 	player_stats_aggregate?: GraphQLTypes["v_tournament_player_stats_aggregate_order_by"] | undefined | null,
 	prizes_aggregate?: GraphQLTypes["tournament_prizes_aggregate_order_by"] | undefined | null,
-	regions?: GraphQLTypes["order_by"] | undefined | null,
 	registration_type?: GraphQLTypes["order_by"] | undefined | null,
 	registration_unlocked?: GraphQLTypes["order_by"] | undefined | null,
 	results_aggregate?: GraphQLTypes["v_team_tournament_results_aggregate_order_by"] | undefined | null,
@@ -296771,6 +296910,7 @@ export type GraphQLTypes = {
 	stages_aggregate?: GraphQLTypes["tournament_stages_aggregate_order_by"] | undefined | null,
 	start?: GraphQLTypes["order_by"] | undefined | null,
 	status?: GraphQLTypes["order_by"] | undefined | null,
+	substitutes_enabled?: GraphQLTypes["order_by"] | undefined | null,
 	teams_aggregate?: GraphQLTypes["tournament_teams_aggregate_order_by"] | undefined | null
 };
 	/** primary key columns input for table: tournaments */
@@ -296834,6 +296974,7 @@ export type GraphQLTypes = {
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -296848,18 +296989,20 @@ export type GraphQLTypes = {
 	min_role?: GraphQLTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: GraphQLTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: GraphQLTypes["timestamptz"] | undefined | null,
-	status?: GraphQLTypes["e_tournament_status_enum"] | undefined | null
+	status?: GraphQLTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
 	__typename: "tournaments_stddev_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -296887,6 +297030,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_stddev_pop_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -296914,6 +297059,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_stddev_samp_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -296978,6 +297125,7 @@ export type GraphQLTypes = {
 	discord_role_id?: string | undefined | null,
 	discord_voice_enabled?: boolean | undefined | null,
 	discord_webhook?: string | undefined | null,
+	finished_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	invite_only?: boolean | undefined | null,
@@ -296992,18 +297140,20 @@ export type GraphQLTypes = {
 	min_role?: GraphQLTypes["e_player_roles_enum"] | undefined | null,
 	name?: string | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	/** Preferred server regions for hosted matches */
-	regions?: Array<string> | undefined | null,
 	registration_type?: GraphQLTypes["e_tournament_registration_types_enum"] | undefined | null,
 	scheduling_mode?: string | undefined | null,
 	start?: GraphQLTypes["timestamptz"] | undefined | null,
-	status?: GraphQLTypes["e_tournament_status_enum"] | undefined | null
+	status?: GraphQLTypes["e_tournament_status_enum"] | undefined | null,
+	/** Whether teams may roster and field substitutes beyond the starting lineup */
+	substitutes_enabled?: boolean | undefined | null
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
 	__typename: "tournaments_sum_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	longitude?: GraphQLTypes["float8"] | undefined | null,
 	max_elo?: number | undefined | null,
@@ -297041,6 +297191,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_var_pop_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -297068,6 +297220,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_var_samp_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -297095,6 +297249,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments_variance_fields",
 	check_in_closes_before_minutes?: number | undefined | null,
 	check_in_opens_before_minutes?: number | undefined | null,
+	/** A computed field, executes function "tournament_current_stage" */
+	current_stage?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	max_elo?: number | undefined | null,
@@ -314886,7 +315042,6 @@ export enum e_notification_types_enum {
 	TournamentCheckInOpen = "TournamentCheckInOpen",
 	TournamentCreated = "TournamentCreated",
 	TournamentInvite = "TournamentInvite",
-	TournamentPartySignup = "TournamentPartySignup",
 	TournamentReminder = "TournamentReminder",
 	TournamentTeamInvite = "TournamentTeamInvite",
 	UtilityDriftScanFinished = "UtilityDriftScanFinished",
@@ -319305,7 +319460,8 @@ export enum tournament_team_roster_select_column {
 	player_steam_id = "player_steam_id",
 	role = "role",
 	tournament_id = "tournament_id",
-	tournament_team_id = "tournament_team_id"
+	tournament_team_id = "tournament_team_id",
+	created_at = "created_at"
 }
 /** update columns of table "tournament_team_roster" */
 export enum tournament_team_roster_update_column {
@@ -319313,11 +319469,11 @@ export enum tournament_team_roster_update_column {
 	player_steam_id = "player_steam_id",
 	role = "role",
 	tournament_id = "tournament_id",
-	tournament_team_id = "tournament_team_id"
+	tournament_team_id = "tournament_team_id",
+	created_at = "created_at"
 }
 /** unique or primary key constraints on table "tournament_teams" */
 export enum tournament_teams_constraint {
-	tournament_teams_creator_steam_id_tournament_id_key = "tournament_teams_creator_steam_id_tournament_id_key",
 	tournament_teams_pkey = "tournament_teams_pkey",
 	tournament_teams_tournament_id_name_key = "tournament_teams_tournament_id_name_key",
 	tournament_teams_tournament_id_seed_key = "tournament_teams_tournament_id_seed_key",
@@ -319397,6 +319553,7 @@ export enum tournaments_select_column {
 	discord_role_id = "discord_role_id",
 	discord_voice_enabled = "discord_voice_enabled",
 	discord_webhook = "discord_webhook",
+	finished_at = "finished_at",
 	homepage = "homepage",
 	id = "id",
 	invite_only = "invite_only",
@@ -319411,11 +319568,11 @@ export enum tournaments_select_column {
 	min_role = "min_role",
 	name = "name",
 	organizer_steam_id = "organizer_steam_id",
-	regions = "regions",
 	registration_type = "registration_type",
 	scheduling_mode = "scheduling_mode",
 	start = "start",
-	status = "status"
+	status = "status",
+	substitutes_enabled = "substitutes_enabled"
 }
 /** select "tournaments_aggregate_bool_exp_avg_arguments_columns" columns of table "tournaments" */
 export enum tournaments_select_column_tournaments_aggregate_bool_exp_avg_arguments_columns {
@@ -319442,7 +319599,8 @@ export enum tournaments_select_column_tournaments_aggregate_bool_exp_bool_and_ar
 	discord_notify_WaitingForServer = "discord_notify_WaitingForServer",
 	discord_voice_enabled = "discord_voice_enabled",
 	invite_only = "invite_only",
-	is_league = "is_league"
+	is_league = "is_league",
+	substitutes_enabled = "substitutes_enabled"
 }
 /** select "tournaments_aggregate_bool_exp_bool_or_arguments_columns" columns of table "tournaments" */
 export enum tournaments_select_column_tournaments_aggregate_bool_exp_bool_or_arguments_columns {
@@ -319464,7 +319622,8 @@ export enum tournaments_select_column_tournaments_aggregate_bool_exp_bool_or_arg
 	discord_notify_WaitingForServer = "discord_notify_WaitingForServer",
 	discord_voice_enabled = "discord_voice_enabled",
 	invite_only = "invite_only",
-	is_league = "is_league"
+	is_league = "is_league",
+	substitutes_enabled = "substitutes_enabled"
 }
 /** select "tournaments_aggregate_bool_exp_corr_arguments_columns" columns of table "tournaments" */
 export enum tournaments_select_column_tournaments_aggregate_bool_exp_corr_arguments_columns {
@@ -319532,6 +319691,7 @@ export enum tournaments_update_column {
 	discord_role_id = "discord_role_id",
 	discord_voice_enabled = "discord_voice_enabled",
 	discord_webhook = "discord_webhook",
+	finished_at = "finished_at",
 	homepage = "homepage",
 	id = "id",
 	invite_only = "invite_only",
@@ -319546,11 +319706,11 @@ export enum tournaments_update_column {
 	min_role = "min_role",
 	name = "name",
 	organizer_steam_id = "organizer_steam_id",
-	regions = "regions",
 	registration_type = "registration_type",
 	scheduling_mode = "scheduling_mode",
 	start = "start",
-	status = "status"
+	status = "status",
+	substitutes_enabled = "substitutes_enabled"
 }
 /** unique or primary key constraints on table "utility_collection_items" */
 export enum utility_collection_items_constraint {

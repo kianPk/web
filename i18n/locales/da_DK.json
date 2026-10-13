@@ -1483,11 +1483,45 @@
         "date_6m": "Sidste 6 måneder",
         "date_1y": "Sidste år",
         "no_results_title": "Ingen turneringer matcher",
-        "no_results_description": "Prøv at rydde filtre eller udvide din søgning."
+        "no_results_description": "Prøv at rydde filtre eller udvide din søgning.",
+        "category": "Kategori",
+        "mine": "Kun turneringer jeg arrangerer"
       },
       "tabs": {
         "upcoming": "Kommende"
-      }
+      },
+      "bracket": "Turneringsskema",
+      "bracket_paused": "Turneringsskema · sat på pause af en admin",
+      "empty": {
+        "description": "Når en arrangør åbner tilmeldingen til en turnering, dukker den op her.",
+        "organizer": "Opret en, så dukker den op her, så snart tilmeldingen åbner.",
+        "title": "Ingen turneringer endnu"
+      },
+      "facts": {
+        "online": "Online",
+        "part_of": "Del af",
+        "players": "Spillere",
+        "teams": "Hold",
+        "where": "Sted",
+        "starts": "Starter",
+        "started": "Startede",
+        "played": "Spillet"
+      },
+      "next_lan": {
+        "in_days": "om {count} dag | om {count} dage",
+        "today": "i dag",
+        "tomorrow": "i morgen"
+      },
+      "prize_pool_total": "Præmiepulje · {amount}",
+      "sections": {
+        "live": "Live",
+        "next_lan": "Næste LAN",
+        "recent": "Seneste resultater",
+        "results": "Resultater",
+        "upcoming": "Kommende"
+      },
+      "spots_left": "{count} plads tilbage | {count} pladser tilbage",
+      "watch_live": "Se live"
     },
     "manage_tournaments": {
       "title": "Administrér turneringer",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "Turneringer",
         "channel_highlights": "Highlights",
         "channel_status": "Venter på signal"
+      },
+      "events": {
+        "count_players": "spiller | spillere",
+        "count_teams": "hold | hold",
+        "in_prizes": "{amount} i præmier"
+      },
+      "tournaments": {
+        "best_of": "Bedst af {count}",
+        "by": "af {name}",
+        "champion": "Vinder: {name}",
+        "details": "Detaljer",
+        "joined_free_agent": "Tilmeldt som free agent",
+        "joined_team": "Tilmeldt",
+        "joined_waitlisted": "Free agent · på venteliste",
+        "register": "Tilmeld et hold",
+        "registered_count": "{count} af {max}",
+        "results": "Resultater",
+        "sign_in_to_register": "Log ind for at tilmelde"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "Største enkeltgevinst",
           "worst_loss": "Største enkelttab",
           "view_match": "Se kamp"
-        }
+        },
+        "show_less": "Vis mindre",
+        "tournament_finish_of": "af {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "Om",
       "match_settings": "Kampindstillinger",
       "read_more": "Læs mere",
-      "read_less": "Læs mindre"
+      "read_less": "Læs mindre",
+      "bracket_tab": "Turneringstræ",
+      "chat_room_tab": "Chatrum",
+      "matches_tab": "Kampe"
     },
     "feature_card": {
       "teams": "Hold",
       "default_label": "Turnering",
-      "organized_by": "Af {team}"
+      "organized_by": "Af {team}",
+      "players": "Spillere"
     },
     "results_section": {
       "no_data": "INGEN DATA",
       "mvp": "MEST VÆRDIFULDE SPILLER",
-      "no_matches_played": "Ingen kampe spillet endnu"
+      "no_matches_played": "Ingen kampe spillet endnu",
+      "mvp_tooltip": {
+        "avg_impact": "Gns. impact",
+        "impact": "Impact vurderer hver kamp fra 0,80 til 1,20 ud fra (kills + assists) / dødsfald i forhold til holdet og andel af holdets skade.",
+        "manual": "Udvalgt af turneringsarrangøren.",
+        "matches": "Kampe",
+        "next_best": "Næstbedst: {name}",
+        "rule": "Spilleren på vinderholdet med den højeste gennemsnitlige impact på tværs af alle turneringens kampe.",
+        "title": "Sådan vælges MVP"
+      }
     },
     "swiss": {
       "advanced": "VIDERE",
@@ -6201,7 +6268,8 @@
       "champion": "Vinder",
       "second": "2.",
       "third": "3.",
-      "player_finished": "Spilleren sluttede som {rank}"
+      "player_finished": "Spilleren sluttede som {rank}",
+      "players": "Spillere"
     },
     "recent": {
       "see_all": "Se alle",
@@ -6227,7 +6295,8 @@
         "benched": "På bænken"
       },
       "already_rostered": "På et andet hold",
-      "owner_on_a_team": "Allerede på et holds trup i denne turnering."
+      "owner_on_a_team": "Allerede på et holds trup i denne turnering.",
+      "leaves_pool": "Du er tilmeldt som free agent. Tilmelder du et hold, bliver du fjernet fra free agent-puljen."
     },
     "tournament_team": {
       "remove": "Fjern hold",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "Kategorier"
+      },
+      "substitutes_enabled": {
+        "description": "Hold kan have reserver i truppen og stille med dem ud over startopstillingen. Når det er slået fra, er trupper og kampe begrænset til startopstillingen.",
+        "label": "Tillad reserver",
+        "locked": "Reserver kan ikke slås fra, når tilmeldingen er lukket."
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "Tilmeldte hold",
       "starts": "Starter",
       "no_tournaments_found": "Ingen turneringer fundet",
-      "maps_label": "Maps:"
+      "maps_label": "Maps:",
+      "players_joined": "Tilmeldte spillere"
     },
     "stage": {
       "title": "Fase",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "Mapfordel i finalen",
         "description": "Forspring i map-point, som holdet fra winner bracket tager med i grand final. Skal være mindre end antallet af maps, der kræves for at vinde."
-      }
+      },
+      "drawn_while_editing": "Turneringstræet blev lavet, mens du redigerede. Kassér dine ændringer af type, hold, grupper eller kampindstillinger, og gem så best of.",
+      "map_pool": {
+        "empty": "Turneringens map pool har ingen maps.",
+        "too_small": "Bedst af {best_of} kræver mindst {best_of} maps. Turneringens map pool har {count}.",
+        "too_small_stage": "Bedst af {best_of} kræver mindst {best_of} maps. Denne fases map pool har {count}."
+      },
+      "match_settings_drawn": "Denne fases kampe er allerede trukket, så kampindstillingerne kan ikke længere ændres.",
+      "match_settings_locked": "Kampindstillingerne er låst, når turneringstræet er lavet.",
+      "match_settings_locked_label": "Kampindstillinger",
+      "structure_locked": "Type, hold og grupper er låst, når turneringstræet er lavet. Best of kan stadig ændres.",
+      "structure_locked_label": "Type, hold og grupper"
     },
     "bracket": {
       "schedule_title": "Planlæg kamp",
@@ -6403,7 +6489,12 @@
       "main_path": "Hoved",
       "impact_source": "kilde",
       "impact_delete": "slet",
-      "impact_reset": "nulstil"
+      "impact_reset": "nulstil",
+      "follow_none": "Vis alle",
+      "follow_team": "Følg et hold",
+      "forfeit_short": "WO",
+      "match_short": "Kamp {match}",
+      "walkover_win": "V"
     },
     "match": {
       "reset_winner": "Nulstil vinder",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "Jeg forstår, at dette kan fjerne allerede spillede efterfølgende kampe.",
       "review_chain_hint": "Gennemgå den berørte kæde ovenfor, før du fortsætter.",
       "irreversible_action": "Uigenkaldelig handling",
-      "confirm_reset_chain_ack": "Jeg bekræfter, at jeg vil nulstille denne turneringskampkæde."
+      "confirm_reset_chain_ack": "Jeg bekræfter, at jeg vil nulstille denne turneringskampkæde.",
+      "recreate": "Genopret kamp",
+      "recreate_description": "{team_1} og {team_2} får en ny kamp på denne plads.",
+      "recreate_downstream_started": "Næste runde er gået i gang, så denne kamp kan ikke spilles om.",
+      "recreate_failed": "Kunne ikke genoprette kampen",
+      "recreate_orphaned": "Kampen på denne plads blev slettet. Genopret den for at spille den igen.",
+      "recreate_title": "Genopret kamp?",
+      "recreate_unwinds": "Holdet, der gik videre, tages ud af næste runde igen, indtil kampen er spillet.",
+      "recreated": "Kampen er genoprettet"
     },
     "round_labels": {
       "round": "Runde {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "Kvalificeret",
-      "not_eligible": "Mangler {count} spillere",
+      "not_eligible": "Ikke kvalificeret",
       "leave_tournament": "Forlad turnering",
       "leave_team": "Forlad hold",
       "slot": "Plads {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "Fjern medlem",
       "confirm_remove_member": "Fjern dette medlem?",
       "remove_member_description": "Dette fjerner medlemmet fra turneringsholdet",
-      "min_roster_locked": "Turneringen er startet — tilføj en reserve, før du fjerner en spiller; truppen må ikke komme under minimumsopstillingen",
+      "min_roster_locked": "Turneringstræet er seedet, så truppen kan ikke komme under {count}. Tilføj en reserve først.",
       "cancel_invite": "Annuller invitation",
       "confirm_cancel_invite": "Annuller denne invitation?",
       "cancel_invite_description": "Dette annullerer invitationen til dette medlem",
       "seed_label": "Seedning",
-      "seed_display": "Seedning #{seed}"
+      "seed_display": "Seedning #{seed}",
+      "free_agent_tag": "Free agent",
+      "missed_check_in": "Misset check-in",
+      "need_players": "Mangler {count} spiller | Mangler {count} spillere"
     },
     "teams": {
       "count": "{count} hold",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "Sæt turnering på pause",
       "pause_description": "Sæt denne turnering på pause? Der planlægges ikke nye kampe automatisk, før den genoptages.",
       "resume_description": "Genoptag denne turnering? Alle afventende kampe planlægges med det samme.",
-      "update_status_failed": "Turneringens status kunne ikke opdateres"
+      "update_status_failed": "Turneringens status kunne ikke opdateres",
+      "open_registration_full": "Turneringstræet er fuldt.",
+      "open_registration_no_stages": "Tilføj en fase først.",
+      "open_registration_start_passed": "Starttidspunktet er passeret. Vælg et senere starttidspunkt for at genåbne tilmeldingen."
     },
     "server": {
       "remove": "Fjern server",
@@ -6855,7 +6960,23 @@
       "draft_locked": "Bracketen er i gang, så puljen kan ikke længere draftes.",
       "nothing_drafted": "Der blev ikke draftet nogen hold",
       "nothing_drafted_hint": "Der er ikke nok free agents tilbage til at fylde et hold på {size}, eller også er der ikke plads i bracketen.",
-      "nothing_drafted_parties": "Ingen kombination af tilmeldingerne i puljen giver et hold på {size}, og et party bliver aldrig delt for at få det til at passe."
+      "nothing_drafted_parties": "Ingen kombination af tilmeldingerne i puljen giver et hold på {size}, og et party bliver aldrig delt for at få det til at passe.",
+      "add": "Tilføj free agent",
+      "add_failed": "Kunne ikke tilføje free agent",
+      "added": "{name} er tilføjet til free agents",
+      "ineligible_in_pool": "Er allerede i free agent-puljen.",
+      "invite": "Inviter",
+      "invited": "Inviteret",
+      "nobody_waiting_description": "Alle, der tilmeldte sig, er blevet draftet ind på et hold.",
+      "nobody_waiting_title": "Ingen venter",
+      "pool_locked": "Free agents kan ændres, mens tilmeldingen er åben eller under check-in-gennemgangen.",
+      "remove": "Fjern",
+      "remove_agent": "Fjern {name}",
+      "remove_description": "De kan tilmelde sig igen, mens tilmeldingen er åben.",
+      "remove_failed": "Kunne ikke fjerne free agent",
+      "remove_title": "Fjern {name} fra free agents?",
+      "removed": "{name} er fjernet fra free agents",
+      "waitlisted_count": "{count} på venteliste"
     },
     "entry": {
       "title": "Adgangskrav",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "For mange invitationsforsøg. Prøv igen om et minut.",
         "invite_not_allowed": "Denne konto kan ikke acceptere denne invitation."
       }
+    },
+    "manage": {
+      "add_first_stage": "Tilføj den første fase",
+      "back": "Tilbage til siden",
+      "button": "Administrér",
+      "details": "Detaljer og udseende",
+      "discord": "Discord",
+      "groups": "{count} grupper",
+      "invite_teams": "Invitér hold",
+      "match_rules": "Kampregler",
+      "needs_attention": "Kræver opmærksomhed",
+      "no_stages": "Ingen faser endnu",
+      "no_stages_hint": "Tilføj en fase for at fastlægge formatet. Turneringstræet laves ud fra den, når tilmeldingen lukker.",
+      "no_status_actions": "Intet at ændre lige nu.",
+      "organizers": "Arrangører",
+      "prizes_awards": "Præmier og priser",
+      "registration": "Tilmelding",
+      "set_up_stages": "Opsæt faser",
+      "stage_summary": "{min}–{max} hold",
+      "stages": "Faser",
+      "stages_after_create": "Derefter opsætter du faserne, som bestemmer format og turneringstræ.",
+      "stages_drawn": "Faser kan ikke ændres, når turneringstræet er lavet. Nulstil turneringen til opsætning for at redigere dem.",
+      "stages_locked": "Faser kan ikke ændres, når turneringen er startet.",
+      "status_actions": "Turneringsstatus",
+      "teams": "Hold og invitationer",
+      "title": "Administrér turnering"
+    },
+    "negotiation": {
+      "history": "Historik",
+      "no_time": "Intet tidspunkt aftalt endnu",
+      "outside_two_weeks": "Det foreslåede tidspunkt skal ligge inden for de næste to uger.",
+      "outside_window": "Det foreslåede tidspunkt ligger uden for denne rundes planlægningsvindue.",
+      "schedule": "Planlæg",
+      "teams_only": "Kun holdenes ejere, kaptajner og roster-admins kan foreslå et tidspunkt.",
+      "two_weeks": "Tidspunkter skal ligge inden for de næste to uger.",
+      "window": "Tidspunkter skal ligge inden for denne rundes vindue: {from} til {to}."
+    },
+    "matches_filter": {
+      "live": "Live",
+      "upcoming": "Kommende",
+      "results": "Resultater",
+      "all": "Alle",
+      "empty": {
+        "live": "Intet er live lige nu.",
+        "upcoming": "Ingen kommende kampe.",
+        "results": "Ingen resultater endnu.",
+        "all": "Ingen kampe endnu. De vises, når turneringstræet er lagt."
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} er inviteret til at tilmelde sig en turnering"
     },
     "roles": {
-      "captain": "Anfører"
+      "captain": "Anfører",
+      "admin": "Admin",
+      "invite": "Invitere",
+      "member": "Medlem"
     },
     "leave": "Forlad hold",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "Allerede tilmeldt denne sæson.",
         "tournament_organizer": "Allerede arrangør af denne turnering.",
         "in_event": "Allerede knyttet til denne begivenhed.",
-        "other_side": "Allerede valgt som det andet hold."
+        "other_side": "Allerede valgt som det andet hold.",
+        "owner_in_tournament": "Ejeren har allerede et hold i denne turnering."
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "holdnavn er påkrævet",
     "short_name_required": "kort navn er påkrævet",
     "team_required": "hold er påkrævet",
-    "rcon_password_required": "RCON-password er påkrævet"
+    "rcon_password_required": "RCON-password er påkrævet",
+    "groups_next_stage_min": "min. antal hold i fase {stage} skal kunne fordeles ligeligt i {groups} grupper",
+    "max_teams_next_stage": "denne fase skal rumme mindst {count} hold for at fylde fase {stage}",
+    "max_teams_previous_stage": "fase {stage} kan højst sende {count} hold videre",
+    "min_teams_min_value": "denne fase skal have mindst {count} hold"
   },
   "ui_extras": {
     "mute": "Slå lyd fra",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "Hurtigt overblik over {name}",
+    "cancelled": "Arrangøren aflyste den, før den startede.",
+    "cancelled_min_teams": "Der tilmeldte sig ikke nok hold, så den blev aflyst.",
+    "check_in": {
+      "opens": "åbner {minutes} min før start",
+      "captains": "Anførere checker deres hold ind",
+      "players": "Hver spiller checker ind",
+      "admin": "En admin checker holdene ind"
+    },
+    "elo": {
+      "max": "Alle spillere med højst {max} ELO",
+      "min": "Alle spillere med mindst {min} ELO",
+      "range": "Alle spillere med {min}–{max} ELO"
+    },
+    "final_standings": "Endelig stilling",
+    "join": {
+      "invite": "Kun med invitation. Spørg arrangøren om en plads.",
+      "teams": "Hold tilmelder sig med en fuld {type}-trup.",
+      "both": "Hold og free agents kan tilmelde sig. Free agents bliver draftet ind på hold.",
+      "free_agents": "Spillere tilmelder sig alene og bliver draftet ind på hold."
+    },
+    "join_free_agent": "Tilmeld dig som free agent",
+    "map_pool": "Map pool",
+    "open_tournament": "Åbn turnering",
+    "position": "{index} af {total}",
+    "registration": "Tilmelding",
+    "title": "Hurtigt overblik"
   }
 }

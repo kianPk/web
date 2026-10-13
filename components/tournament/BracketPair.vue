@@ -20,6 +20,8 @@ const props = defineProps<{
   embed?: boolean;
   pageScroll?: boolean;
   hideFinishedRounds?: boolean;
+  /** Height to fit both brackets into, instead of the viewport. */
+  availableHeight?: number | null;
   /** Stable key for persisting manual split ratio (e.g. "stage-id:division") */
   persistenceKey?: string;
 }>();
@@ -127,8 +129,10 @@ const effectiveRatio = computed(() => {
   return manualRatio.value ?? proportionalRatio.value;
 });
 
-const totalAvailable = computed(() =>
-  Math.max(360, viewportHeight.value - verticalReserve.value),
+const totalAvailable = computed(
+  () =>
+    props.availableHeight ??
+    Math.max(360, viewportHeight.value - verticalReserve.value),
 );
 
 const wbHeight = computed(() => {
@@ -198,11 +202,15 @@ const resetRatio = () => {
       <!-- Upper bracket header -->
       <div
         v-if="hasLB && focused !== 'lb'"
-        class="mb-2 flex items-center justify-between gap-2 rounded-md border-l-2 border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.06)] px-3 py-1.5"
-        :class="pageScroll ? 'sticky top-0 z-30 backdrop-blur-sm' : ''"
+        class="mb-2 flex h-[1.875rem] items-center justify-between gap-2 rounded-md bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.1),transparent_60%)] pl-2.5 pr-1"
+        :class="
+          pageScroll
+            ? 'sticky top-0 z-30 bg-background/95 backdrop-blur-sm'
+            : ''
+        "
       >
         <div
-          class="inline-flex items-center gap-2 font-mono text-[0.7rem] font-bold uppercase tracking-[0.24em] text-[hsl(var(--tac-amber))]"
+          class="inline-flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
         >
           <ArrowUpToLine class="h-3.5 w-3.5" />
           {{ $t("tournament.match.upper_bracket") }}
@@ -210,7 +218,7 @@ const resetRatio = () => {
         <button
           v-if="!embed && !pageScroll"
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))] transition-colors hover:bg-[hsl(var(--tac-amber)/0.2)]"
+          class="inline-flex h-6 w-6 items-center justify-center rounded-md text-[hsl(var(--tac-amber))] transition-colors hover:bg-[hsl(var(--tac-amber)/0.15)]"
           @click="focusWB"
           :title="
             focused === 'wb'
@@ -229,12 +237,12 @@ const resetRatio = () => {
       <button
         v-if="hasLB && focused === 'lb'"
         type="button"
-        class="group mb-2 flex h-[44px] w-full items-center justify-between gap-2 rounded-md border-l-2 border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)] px-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.15)]"
+        class="group mb-2 flex h-[44px] w-full items-center justify-between gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)] px-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.15)]"
         @click="focused = null"
         :title="$t('tournament.bracket.expand_button')"
       >
         <div
-          class="inline-flex items-center gap-2 font-mono text-[0.7rem] font-bold uppercase tracking-[0.24em] text-[hsl(var(--tac-amber))]"
+          class="inline-flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
         >
           <ArrowUpToLine class="h-3.5 w-3.5" />
           {{ $t("tournament.match.upper_bracket") }}
@@ -264,6 +272,7 @@ const resetRatio = () => {
         :hide-finished-rounds="hideFinishedRounds"
         :page-scroll="pageScroll"
         :fit-height="pageScroll ? null : wbHeight"
+        :shrink-to-content="availableHeight != null"
         :sticky-top-offset="hasLB ? 44 : 0"
       />
     </div>
@@ -289,12 +298,12 @@ const resetRatio = () => {
     <button
       v-if="hasLB && focused === 'wb'"
       type="button"
-      class="group mt-2 flex h-[44px] w-full items-center justify-between gap-2 rounded-md border-l-2 border border-destructive/55 bg-destructive/5 px-3 transition-colors hover:bg-destructive/10"
+      class="group mt-2 flex h-[44px] w-full items-center justify-between gap-2 rounded-md border border-destructive/55 bg-destructive/5 px-3 transition-colors hover:bg-destructive/10"
       @click="focused = null"
       :title="$t('tournament.bracket.expand_button')"
     >
       <div
-        class="inline-flex items-center gap-2 font-mono text-[0.7rem] font-bold uppercase tracking-[0.24em] text-destructive"
+        class="inline-flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-destructive"
       >
         <ArrowDownToLine class="h-3.5 w-3.5" />
         {{ $t("tournament.match.lower_bracket") }}
@@ -316,11 +325,15 @@ const resetRatio = () => {
       <!-- LB header (when LB is visible) -->
       <div
         v-if="hasLB && focused !== 'wb'"
-        class="mb-2 flex items-center justify-between gap-2 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-1.5"
-        :class="pageScroll ? 'mt-10 sticky top-0 z-30 backdrop-blur-sm' : ''"
+        class="mb-2 flex h-[1.875rem] items-center justify-between gap-2 rounded-md bg-[linear-gradient(90deg,hsl(var(--destructive)/0.1),transparent_60%)] pl-2.5 pr-1"
+        :class="
+          pageScroll
+            ? 'mt-10 sticky top-0 z-30 bg-background/95 backdrop-blur-sm'
+            : ''
+        "
       >
         <div
-          class="inline-flex items-center gap-2 font-mono text-[0.7rem] font-bold uppercase tracking-[0.24em] text-destructive"
+          class="inline-flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-destructive"
         >
           <ArrowDownToLine class="h-3.5 w-3.5" />
           {{ $t("tournament.match.lower_bracket") }}
@@ -328,7 +341,7 @@ const resetRatio = () => {
         <button
           v-if="!embed && !pageScroll"
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20"
+          class="inline-flex h-6 w-6 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/15"
           @click="focusLB"
           :title="
             focused === 'lb'
@@ -356,6 +369,7 @@ const resetRatio = () => {
         :hide-finished-rounds="hideFinishedRounds"
         :page-scroll="pageScroll"
         :fit-height="pageScroll ? null : lbHeight"
+        :shrink-to-content="availableHeight != null"
         :sticky-top-offset="44"
       />
     </div>

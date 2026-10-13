@@ -1483,11 +1483,45 @@
         "date_6m": "6 ماه گذشته",
         "date_1y": "سال گذشته",
         "no_results_title": "هیچ مسابقاتی مسابقه ای ندارد",
-        "no_results_description": "سعی کنید فیلترها را پاک کنید یا جستجوی خود را گسترش دهید."
+        "no_results_description": "سعی کنید فیلترها را پاک کنید یا جستجوی خود را گسترش دهید.",
+        "category": "دسته‌بندی",
+        "mine": "فقط تورنمنت‌هایی که برگزار می‌کنم"
       },
       "tabs": {
         "upcoming": "آینده"
-      }
+      },
+      "bracket": "برکت",
+      "bracket_paused": "برکت · توسط ادمین متوقف شده",
+      "empty": {
+        "description": "وقتی برگزارکننده‌ای ثبت‌نام یک تورنمنت را باز کند، اینجا نمایش داده می‌شود.",
+        "organizer": "یکی بسازید؛ به محض باز شدن ثبت‌نام اینجا نمایش داده می‌شود.",
+        "title": "هنوز تورنمنتی نیست"
+      },
+      "facts": {
+        "online": "آنلاین",
+        "part_of": "بخشی از",
+        "players": "بازیکنان",
+        "teams": "تیم‌ها",
+        "where": "مکان",
+        "starts": "شروع",
+        "started": "شروع شده",
+        "played": "برگزار شده"
+      },
+      "next_lan": {
+        "in_days": "{count} روز دیگر | {count} روز دیگر",
+        "today": "امروز",
+        "tomorrow": "فردا"
+      },
+      "prize_pool_total": "مجموع جوایز · {amount}",
+      "sections": {
+        "live": "زنده",
+        "next_lan": "LAN بعدی",
+        "recent": "نتایج اخیر",
+        "results": "نتایج",
+        "upcoming": "پیش رو"
+      },
+      "spots_left": "{count} جای خالی | {count} جای خالی",
+      "watch_live": "تماشای زنده"
     },
     "manage_tournaments": {
       "title": "مسابقات را مدیریت کنید",
@@ -3005,6 +3039,24 @@
         "channel_tournaments": "مسابقات",
         "channel_highlights": "نکات برجسته",
         "channel_status": "در انتظار سیگنال"
+      },
+      "events": {
+        "count_players": "بازیکن | بازیکن",
+        "count_teams": "تیم | تیم",
+        "in_prizes": "{amount} جایزه"
+      },
+      "tournaments": {
+        "best_of": "Best of {count}",
+        "by": "توسط {name}",
+        "champion": "قهرمان: {name}",
+        "details": "جزئیات",
+        "joined_free_agent": "به‌عنوان بازیکن آزاد ثبت‌نام کرده‌اید",
+        "joined_team": "ثبت‌نام شده",
+        "joined_waitlisted": "بازیکن آزاد · در لیست انتظار",
+        "register": "ثبت‌نام تیم",
+        "registered_count": "{count} از {max}",
+        "results": "نتایج",
+        "sign_in_to_register": "برای ثبت‌نام وارد شوید"
       }
     },
     "highlights": {
@@ -3438,7 +3490,9 @@
           "best_gain": "بهترین سود تک",
           "worst_loss": "بدترین باخت",
           "view_match": "مشاهده مسابقه"
-        }
+        },
+        "show_less": "نمایش کمتر",
+        "tournament_finish_of": "از {count}"
       }
     },
     "play": {
@@ -6988,17 +7042,30 @@
       "about_section": "درباره",
       "match_settings": "تنظیمات مچ",
       "read_more": "بیشتر بخوانید",
-      "read_less": "کمتر"
+      "read_less": "کمتر",
+      "bracket_tab": "برکت",
+      "chat_room_tab": "اتاق گفتگو",
+      "matches_tab": "مسابقات"
     },
     "feature_card": {
       "teams": "تیم ها",
       "default_label": "مسابقات",
-      "organized_by": "از {team}"
+      "organized_by": "از {team}",
+      "players": "بازیکنان"
     },
     "results_section": {
       "no_data": "بدون داده",
       "mvp": "ارزشمندترین بازیکن",
-      "no_matches_played": "هنوز مچی برگزار نشده"
+      "no_matches_played": "هنوز مچی برگزار نشده",
+      "mvp_tooltip": {
+        "avg_impact": "میانگین تأثیر",
+        "impact": "تأثیر هر مسابقه را از 0.80 تا 1.20 امتیاز می‌دهد، بر اساس (کیل + اسیست) / مرگ در مقایسه با تیم و سهم از دمیج تیم.",
+        "manual": "به انتخاب برگزارکننده تورنمنت.",
+        "matches": "مسابقات",
+        "next_best": "نفر بعدی: {name}",
+        "rule": "بازیکنی از تیم برنده که بالاترین میانگین تأثیر را در همه مسابقات تورنمنت داشته باشد.",
+        "title": "MVP چطور انتخاب می‌شود"
+      }
     },
     "swiss": {
       "advanced": "صعودکرده",
@@ -7017,7 +7084,8 @@
       "champion": "قهرمان",
       "second": "دوم",
       "third": "سوم",
-      "player_finished": "بازیکن مقام {rank} را گرفت"
+      "player_finished": "بازیکن مقام {rank} را گرفت",
+      "players": "بازیکنان"
     },
     "recent": {
       "see_all": "مشاهدهٔ همه",
@@ -7043,7 +7111,8 @@
         "benched": "ذخیره"
       },
       "already_rostered": "در تیم دیگر",
-      "owner_on_a_team": "قبلاً در تیمی از این تورنمنت roster شده‌اید."
+      "owner_on_a_team": "قبلاً در تیمی از این تورنمنت roster شده‌اید.",
+      "leaves_pool": "شما به‌عنوان بازیکن آزاد ثبت‌نام کرده‌اید. ثبت‌نام تیم شما را از استخر بازیکنان آزاد خارج می‌کند."
     },
     "tournament_team": {
       "remove": "حذف تیم",
@@ -7092,6 +7161,11 @@
       },
       "categories": {
         "label": "دسته‌ها"
+      },
+      "substitutes_enabled": {
+        "description": "تیم‌ها می‌توانند فراتر از ترکیب اصلی، بازیکن ذخیره در رستر داشته باشند و به بازی بفرستند. اگر غیرفعال باشد، رسترها و مسابقات به ترکیب اصلی محدود می‌شوند.",
+        "label": "اجازه بازیکن ذخیره",
+        "locked": "بعد از بسته شدن ثبت‌نام، نمی‌توان بازیکن ذخیره را غیرفعال کرد."
       }
     },
     "notifications": {
@@ -7132,7 +7206,8 @@
       "teams_joined": "تیم‌های پیوسته",
       "starts": "شروع",
       "no_tournaments_found": "تورنمنتی پیدا نشد",
-      "maps_label": "مپ‌ها:"
+      "maps_label": "مپ‌ها:",
+      "players_joined": "بازیکنان ثبت‌نام‌شده"
     },
     "stage": {
       "title": "مرحله",
@@ -7175,7 +7250,18 @@
       "final_map_advantage": {
         "label": "مزیت مپ نهایی",
         "description": "شروع نقاط مپ که تیم برندهٔ بخش upper به فینال می‌برد. باید کمتر از تعداد مپ لازم برای برد باشد."
-      }
+      },
+      "drawn_while_editing": "برکت در حین ویرایش شما چیده شد. تغییرات نوع، تیم‌ها، گروه‌ها یا تنظیمات مسابقه را کنار بگذارید و بعد best-of را ذخیره کنید.",
+      "map_pool": {
+        "empty": "مپ پول تورنمنت هیچ مپی ندارد.",
+        "too_small": "Best of {best_of} حداقل {best_of} مپ لازم دارد. مپ پول تورنمنت {count} مپ دارد.",
+        "too_small_stage": "Best of {best_of} حداقل {best_of} مپ لازم دارد. مپ پول این مرحله {count} مپ دارد."
+      },
+      "match_settings_drawn": "مسابقات این مرحله از قبل چیده شده‌اند، پس تنظیمات مسابقه آن قابل تغییر نیست.",
+      "match_settings_locked": "بعد از چیده شدن برکت، تنظیمات مسابقه قفل می‌شود.",
+      "match_settings_locked_label": "تنظیمات مسابقه",
+      "structure_locked": "نوع، تیم‌ها و گروه‌ها بعد از چیده شدن برکت قفل می‌شوند. Best-of هنوز قابل تغییر است.",
+      "structure_locked_label": "نوع، تیم‌ها و گروه‌ها"
     },
     "bracket": {
       "schedule_title": "زمانبندی مسابقه",
@@ -7219,7 +7305,12 @@
       "main_path": "اصلی",
       "impact_source": "منبع",
       "impact_delete": "حذف",
-      "impact_reset": "بازنشانی"
+      "impact_reset": "بازنشانی",
+      "follow_none": "نمایش همه",
+      "follow_team": "دنبال کردن یک تیم",
+      "forfeit_short": "FF",
+      "match_short": "مسابقه {match}",
+      "walkover_win": "W"
     },
     "match": {
       "reset_winner": "بازنشانی برنده",
@@ -7269,7 +7360,15 @@
       "remove_downstream_ack": "می‌دانم این کار ممکن است مسابقات پایین‌دستی که قبلاً برگزار شده‌اند را حذف کند.",
       "review_chain_hint": "قبل از ادامه، زنجیره تحت تأثیر بالا را مرور کنید.",
       "irreversible_action": "اقدام غیرقابل بازگشت",
-      "confirm_reset_chain_ack": "تأیید می‌کنم که می‌خواهم این زنجیره مسابقه تورنمنت را بازنشانی کنم."
+      "confirm_reset_chain_ack": "تأیید می‌کنم که می‌خواهم این زنجیره مسابقه تورنمنت را بازنشانی کنم.",
+      "recreate": "ساخت دوباره مسابقه",
+      "recreate_description": "{team_1} و {team_2} در این جایگاه یک مسابقه جدید می‌گیرند.",
+      "recreate_downstream_started": "دور بعد شروع شده، پس این مسابقه دوباره برگزار نمی‌شود.",
+      "recreate_failed": "ساخت دوباره مسابقه ممکن نشد",
+      "recreate_orphaned": "مسابقه این جایگاه حذف شده است. برای برگزاری دوباره، آن را دوباره بسازید.",
+      "recreate_title": "مسابقه دوباره ساخته شود؟",
+      "recreate_unwinds": "تیمی که صعود کرده بود تا برگزاری این مسابقه از دور بعد خارج می‌شود.",
+      "recreated": "مسابقه دوباره ساخته شد"
     },
     "round_labels": {
       "round": "دور {number}",
@@ -7322,7 +7421,7 @@
     },
     "team": {
       "eligible": "واجد شرایط",
-      "not_eligible": "{count} بازیکن دیگر لازم است",
+      "not_eligible": "واجد شرایط نیست",
       "leave_tournament": "ترک تورنمنت",
       "leave_team": "ترک تیم",
       "slot": "جایگاه {number}",
@@ -7345,12 +7444,15 @@
       "remove_member": "حذف عضو",
       "confirm_remove_member": "مطمئنید می‌خواهید این عضو را حذف کنید؟",
       "remove_member_description": "عضو از تیم تورنمنت حذف می‌شود",
-      "min_roster_locked": "تورنمنت شروع شده — قبل از حذف بازیکن یک جانشین اضافه کنید؛ فهرست نمی‌تواند کمتر از حداقل ترکیب خطی شود",
+      "min_roster_locked": "برکت سیدبندی شده، پس رستر نمی‌تواند کمتر از {count} نفر شود. اول یک بازیکن ذخیره اضافه کنید.",
       "cancel_invite": "لغو دعوت",
       "confirm_cancel_invite": "مطمئنید می‌خواهید این دعوت را لغو کنید؟",
       "cancel_invite_description": "دعوت این عضو لغو می‌شود",
       "seed_label": "سید",
-      "seed_display": "سید #{seed}"
+      "seed_display": "سید #{seed}",
+      "free_agent_tag": "بازیکن آزاد",
+      "missed_check_in": "چک‌این از دست رفت",
+      "need_players": "{count} بازیکن دیگر لازم است | {count} بازیکن دیگر لازم است"
     },
     "teams": {
       "count": "{count} تیم",
@@ -7372,7 +7474,10 @@
       "confirm_pause": "توقف تورنمنت",
       "pause_description": "مطمئنید می‌خواهید این تورنمنت را متوقف کنید؟ تا از سر گرفته شود، مسابقه جدیدی خودکار زمان‌بندی نمی‌شود.",
       "resume_description": "مطمئنید می‌خواهید این تورنمنت را از سر بگیرید؟ همه مسابقات در انتظار فوراً زمان‌بندی می‌شوند.",
-      "update_status_failed": "به‌روزرسانی وضعیت تورنمنت ناموفق بود"
+      "update_status_failed": "به‌روزرسانی وضعیت تورنمنت ناموفق بود",
+      "open_registration_full": "برکت پر است.",
+      "open_registration_no_stages": "اول یک مرحله اضافه کنید.",
+      "open_registration_start_passed": "زمان شروع گذشته است. برای باز کردن دوباره ثبت‌نام، زمان شروع دیرتری تعیین کنید."
     },
     "server": {
       "remove": "حذف سرور",
@@ -7671,7 +7776,23 @@
       "draft_locked": "برکت در جریان است؛ دیگر نمی‌توان استخر را draft کرد.",
       "nothing_drafted": "هیچ تیمی draft نشد",
       "nothing_drafted_hint": "بازیکن آزاد کافی برای پر کردن تیم {size} نفره نیست، یا جایی در برکت نیست.",
-      "nothing_drafted_parties": "هیچ ترکیبی از ثبت‌نام‌های استخر به تیم {size} نفره نمی‌رسد و گروه هرگز برای جا شدن شکسته نمی‌شود."
+      "nothing_drafted_parties": "هیچ ترکیبی از ثبت‌نام‌های استخر به تیم {size} نفره نمی‌رسد و گروه هرگز برای جا شدن شکسته نمی‌شود.",
+      "add": "افزودن بازیکن آزاد",
+      "add_failed": "افزودن بازیکن آزاد ناموفق بود",
+      "added": "{name} به بازیکنان آزاد اضافه شد",
+      "ineligible_in_pool": "از قبل در استخر بازیکنان آزاد است.",
+      "invite": "دعوت",
+      "invited": "دعوت شد",
+      "nobody_waiting_description": "همه کسانی که ثبت‌نام کردند در تیمی draft شدند.",
+      "nobody_waiting_title": "کسی در انتظار نیست",
+      "pool_locked": "بازیکنان آزاد فقط وقتی ثبت‌نام باز است یا در بازبینی چک‌این قابل تغییرند.",
+      "remove": "حذف",
+      "remove_agent": "حذف {name}",
+      "remove_description": "تا وقتی ثبت‌نام باز است می‌توانند دوباره ثبت‌نام کنند.",
+      "remove_failed": "حذف بازیکن آزاد ناموفق بود",
+      "remove_title": "{name} از بازیکنان آزاد حذف شود؟",
+      "removed": "{name} از بازیکنان آزاد حذف شد",
+      "waitlisted_count": "{count} نفر در لیست انتظار"
     },
     "entry": {
       "title": "شرایط ورود",
@@ -7760,6 +7881,54 @@
         "invite_rate_limited": "تلاش دعوت زیاد بود. یک دقیقه دیگر دوباره امتحان کنید.",
         "invite_not_allowed": "این حساب نمی‌تواند این دعوت را بپذیرد."
       }
+    },
+    "manage": {
+      "add_first_stage": "افزودن اولین مرحله",
+      "back": "بازگشت به صفحه",
+      "button": "مدیریت",
+      "details": "جزئیات و برندینگ",
+      "discord": "دیسکورد",
+      "groups": "{count} گروه",
+      "invite_teams": "دعوت تیم‌ها",
+      "match_rules": "قوانین مسابقه",
+      "needs_attention": "نیاز به رسیدگی",
+      "no_stages": "هنوز مرحله‌ای نیست",
+      "no_stages_hint": "برای تعیین فرمت یک مرحله اضافه کنید. برکت با بسته شدن ثبت‌نام از روی آن چیده می‌شود.",
+      "no_status_actions": "فعلاً چیزی برای تغییر نیست.",
+      "organizers": "برگزارکنندگان",
+      "prizes_awards": "جوایز و افتخارات",
+      "registration": "ثبت‌نام",
+      "set_up_stages": "تنظیم مراحل",
+      "stage_summary": "{min} تا {max} تیم",
+      "stages": "مراحل",
+      "stages_after_create": "در قدم بعد مراحل را تنظیم می‌کنید که فرمت و برکت را مشخص می‌کنند.",
+      "stages_drawn": "بعد از چیده شدن برکت، مراحل قابل تغییر نیستند. برای ویرایش، تورنمنت را به Setup برگردانید.",
+      "stages_locked": "بعد از شروع تورنمنت، مراحل قابل تغییر نیستند.",
+      "status_actions": "وضعیت تورنمنت",
+      "teams": "تیم‌ها و دعوت‌ها",
+      "title": "مدیریت تورنمنت"
+    },
+    "negotiation": {
+      "history": "تاریخچه",
+      "no_time": "هنوز زمانی توافق نشده",
+      "outside_two_weeks": "زمان پیشنهادی باید در دو هفته آینده باشد.",
+      "outside_window": "زمان پیشنهادی خارج از بازه زمان‌بندی این دور است.",
+      "schedule": "زمان‌بندی",
+      "teams_only": "فقط مالکان، کاپیتان‌ها و ادمین‌های رستر تیم‌ها می‌توانند زمان پیشنهاد دهند.",
+      "two_weeks": "زمان‌ها باید در دو هفته آینده باشند.",
+      "window": "زمان‌ها باید در بازه این دور باشند: {from} تا {to}."
+    },
+    "matches_filter": {
+      "live": "زنده",
+      "upcoming": "پیش رو",
+      "results": "نتایج",
+      "all": "همه",
+      "empty": {
+        "live": "الان چیزی زنده نیست.",
+        "upcoming": "مسابقه پیش رویی نیست.",
+        "results": "هنوز نتیجه‌ای نیست.",
+        "all": "هنوز مسابقه‌ای نیست. بعد از چیده شدن برکت نمایش داده می‌شوند."
+      }
     }
   },
   "team": {
@@ -7819,7 +7988,10 @@
       "tournament_team_registration_message": "{team} برای ثبت‌نام در تورنمنت دعوت شده است"
     },
     "roles": {
-      "captain": "کاپیتان"
+      "captain": "کاپیتان",
+      "admin": "ادمین",
+      "invite": "دعوت",
+      "member": "عضو"
     },
     "leave": "ترک تیم",
     "management": {
@@ -7877,7 +8049,8 @@
         "in_season": "از قبل برای این فصل ثبت‌نام کرده‌اید.",
         "tournament_organizer": "از قبل برگزارکننده این تورنمنت هستید.",
         "in_event": "از قبل به این رویداد پیوسته‌اید.",
-        "other_side": "از قبل به‌عنوان تیم مقابل انتخاب شده‌اید."
+        "other_side": "از قبل به‌عنوان تیم مقابل انتخاب شده‌اید.",
+        "owner_in_tournament": "مالک آن از قبل در این تورنمنت تیم دارد."
       }
     },
     "member": {
@@ -9712,7 +9885,11 @@
     "team_name_required": "نام تیم الزامی است",
     "short_name_required": "نام کوتاه الزامی است",
     "team_required": "تیم الزامی است",
-    "rcon_password_required": "رمز RCON الزامی است"
+    "rcon_password_required": "رمز RCON الزامی است",
+    "groups_next_stage_min": "حداقل تیم‌های مرحله {stage} باید به‌طور مساوی به {groups} گروه تقسیم شود",
+    "max_teams_next_stage": "این مرحله باید حداقل {count} تیم داشته باشد تا مرحله {stage} پر شود",
+    "max_teams_previous_stage": "مرحله {stage} حداکثر {count} تیم را صعود می‌دهد",
+    "min_teams_min_value": "این مرحله حداقل {count} تیم لازم دارد"
   },
   "ui_extras": {
     "mute": "بی‌صدا",
@@ -11428,5 +11605,34 @@
       "player_blocked": "You can't do that with this player.",
       "player_blocked_bulk": "One or more of these players can't be added."
     }
+  },
+  "quick_look": {
+    "at": "نگاه سریع به {name}",
+    "cancelled": "برگزارکننده آن را پیش از شروع لغو کرد.",
+    "cancelled_min_teams": "تیم کافی ثبت‌نام نکرد، بنابراین لغو شد.",
+    "check_in": {
+      "opens": "{minutes} دقیقه پیش از شروع باز می‌شود",
+      "captains": "کاپیتان‌ها تیمشان را چک‌این می‌کنند",
+      "players": "همه بازیکنان چک‌این می‌کنند",
+      "admin": "ادمین تیم‌ها را چک‌این می‌کند"
+    },
+    "elo": {
+      "max": "ELO همه بازیکنان حداکثر {max}",
+      "min": "ELO همه بازیکنان حداقل {min}",
+      "range": "ELO همه بازیکنان بین {min} تا {max}"
+    },
+    "final_standings": "رده‌بندی نهایی",
+    "join": {
+      "invite": "فقط با دعوت. برای گرفتن جا از برگزارکننده بپرسید.",
+      "teams": "تیم‌ها با رستر کامل {type} ثبت‌نام می‌کنند.",
+      "both": "تیم‌ها و بازیکنان آزاد می‌توانند ثبت‌نام کنند. بازیکنان آزاد در تیم‌ها draft می‌شوند.",
+      "free_agents": "بازیکنان تکی ثبت‌نام می‌کنند و در تیم‌ها draft می‌شوند."
+    },
+    "join_free_agent": "پیوستن به‌عنوان بازیکن آزاد",
+    "map_pool": "مپ پول",
+    "open_tournament": "باز کردن تورنمنت",
+    "position": "{index} از {total}",
+    "registration": "ثبت‌نام",
+    "title": "نگاه سریع"
   }
 }

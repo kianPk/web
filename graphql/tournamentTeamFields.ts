@@ -31,10 +31,14 @@ export default {
   team_id: true,
   seed: true,
   eligible_at: true,
+  is_drafted: true,
   can_manage: true,
+  // captain_steam_id is the only captain signal anything reads -- the roster
+  // row it points at is already in `roster` below. A `captain: playerFields`
+  // here would re-fetch that player, elo and sanction lookups included, once
+  // per team on every poll, for nothing.
   captain_steam_id: true,
   owner_steam_id: true,
-  captain: playerFields,
   team: {
     id: true,
     name: true,

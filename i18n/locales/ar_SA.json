@@ -1483,11 +1483,45 @@
         "date_6m": "آخر 6 أشهر",
         "date_1y": "آخر سنة",
         "no_results_title": "لا توجد بطولات مطابقة",
-        "no_results_description": "جرّب مسح عوامل التصفية أو توسيع البحث."
+        "no_results_description": "جرّب مسح عوامل التصفية أو توسيع البحث.",
+        "category": "الفئة",
+        "mine": "البطولات التي أنظمها فقط"
       },
       "tabs": {
         "upcoming": "قادمة"
-      }
+      },
+      "bracket": "جدول المواجهات",
+      "bracket_paused": "جدول المواجهات · أوقفه مشرف مؤقتًا",
+      "empty": {
+        "description": "عندما يفتح منظم التسجيل في بطولة، ستظهر هنا.",
+        "organizer": "أنشئ بطولة وستظهر هنا فور فتح التسجيل.",
+        "title": "لا توجد بطولات بعد"
+      },
+      "facts": {
+        "online": "عبر الإنترنت",
+        "part_of": "ضمن",
+        "players": "اللاعبون",
+        "teams": "الفرق",
+        "where": "المكان",
+        "starts": "تبدأ",
+        "started": "بدأت",
+        "played": "أُقيمت"
+      },
+      "next_lan": {
+        "in_days": "بعد {count} يوم | بعد {count} أيام",
+        "today": "اليوم",
+        "tomorrow": "غدًا"
+      },
+      "prize_pool_total": "مجموع الجوائز · {amount}",
+      "sections": {
+        "live": "مباشرة",
+        "next_lan": "بطولة LAN القادمة",
+        "recent": "أحدث النتائج",
+        "results": "النتائج",
+        "upcoming": "قادمة"
+      },
+      "spots_left": "بقي {count} مكان | بقيت {count} أماكن",
+      "watch_live": "شاهد مباشرة"
     },
     "manage_tournaments": {
       "title": "إدارة البطولات",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "البطولات",
         "channel_highlights": "أبرز اللقطات",
         "channel_status": "بانتظار الإشارة"
+      },
+      "events": {
+        "count_players": "لاعب | لاعبين",
+        "count_teams": "فريق | فرق",
+        "in_prizes": "جوائز بقيمة {amount}"
+      },
+      "tournaments": {
+        "best_of": "نظام Best Of {count}",
+        "by": "بواسطة {name}",
+        "champion": "البطل: {name}",
+        "details": "التفاصيل",
+        "joined_free_agent": "منضم كلاعب حر",
+        "joined_team": "مسجّل",
+        "joined_waitlisted": "لاعب حر · في قائمة الانتظار",
+        "register": "سجّل فريقًا",
+        "registered_count": "{count} من {max}",
+        "results": "النتائج",
+        "sign_in_to_register": "سجّل الدخول للتسجيل"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "أكبر مكسب في مباراة",
           "worst_loss": "أكبر خسارة في مباراة",
           "view_match": "اعرض المباراة"
-        }
+        },
+        "show_less": "اعرض أقل",
+        "tournament_finish_of": "من {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "نبذة",
       "match_settings": "إعدادات المباراة",
       "read_more": "اقرأ المزيد",
-      "read_less": "اعرض أقل"
+      "read_less": "اعرض أقل",
+      "bracket_tab": "شجرة البطولة",
+      "chat_room_tab": "غرفة الدردشة",
+      "matches_tab": "المباريات"
     },
     "feature_card": {
       "teams": "فرق",
       "default_label": "بطولة",
-      "organized_by": "بواسطة {team}"
+      "organized_by": "بواسطة {team}",
+      "players": "اللاعبون"
     },
     "results_section": {
       "no_data": "لا توجد بيانات",
       "mvp": "أفضل لاعب",
-      "no_matches_played": "لم تُلعب أي مباراة بعد"
+      "no_matches_played": "لم تُلعب أي مباراة بعد",
+      "mvp_tooltip": {
+        "avg_impact": "متوسط التأثير",
+        "impact": "يقيّم التأثير كل مباراة من 0.80 إلى 1.20 بناءً على (القتلات + المساعدات) / الوفيات مقارنةً بالفريق، وحصة اللاعب من ضرر الفريق.",
+        "manual": "اختاره منظم البطولة.",
+        "matches": "المباريات",
+        "next_best": "التالي: {name}",
+        "rule": "لاعب الفريق الفائز صاحب أعلى متوسط تأثير عبر جميع مباريات البطولة.",
+        "title": "كيف يتم اختيار أفضل لاعب"
+      }
     },
     "swiss": {
       "advanced": "تأهل",
@@ -6201,7 +6268,8 @@
       "champion": "البطل",
       "second": "الثاني",
       "third": "الثالث",
-      "player_finished": "أنهى اللاعب في المركز {rank}"
+      "player_finished": "أنهى اللاعب في المركز {rank}",
+      "players": "اللاعبون"
     },
     "recent": {
       "see_all": "عرض الكل",
@@ -6227,7 +6295,8 @@
         "benched": "خارج التشكيلة"
       },
       "already_rostered": "في فريق آخر",
-      "owner_on_a_team": "مسجَّل بالفعل ضمن تشكيلة فريق في هذه البطولة."
+      "owner_on_a_team": "مسجَّل بالفعل ضمن تشكيلة فريق في هذه البطولة.",
+      "leaves_pool": "أنت مسجّل كلاعب حر. تسجيل فريق سيُخرجك من قائمة اللاعبين الأحرار."
     },
     "tournament_team": {
       "remove": "احذف الفريق",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "الفئات"
+      },
+      "substitutes_enabled": {
+        "description": "يمكن للفرق إضافة لاعبين بدلاء إلى القائمة وإشراكهم إلى جانب التشكيلة الأساسية. عند التعطيل، تقتصر القوائم والمباريات على التشكيلة الأساسية.",
+        "label": "السماح باللاعبين البدلاء",
+        "locked": "لا يمكن إيقاف اللاعبين البدلاء بعد إغلاق التسجيل."
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "فرق منضمة",
       "starts": "تبدأ",
       "no_tournaments_found": "لا توجد بطولات",
-      "maps_label": "خرائط:"
+      "maps_label": "خرائط:",
+      "players_joined": "لاعبون منضمون"
     },
     "stage": {
       "title": "مرحلة",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "أفضلية الخريطة في النهائي",
         "description": "أفضلية بنقاط خرائط يدخل بها فريق شجرة الفائزين إلى النهائي الكبير. يجب أن تبقى أقل من عدد الخرائط اللازمة للفوز."
-      }
+      },
+      "drawn_while_editing": "تم سحب شجرة البطولة أثناء التعديل. تجاهل تغييراتك على النوع أو الفرق أو المجموعات أو إعدادات المباراة، ثم احفظ نظام Best Of.",
+      "map_pool": {
+        "empty": "قائمة خرائط البطولة لا تحتوي على أي خريطة.",
+        "too_small": "نظام Best Of {best_of} يحتاج إلى {best_of} خرائط على الأقل. قائمة خرائط البطولة فيها {count}.",
+        "too_small_stage": "نظام Best Of {best_of} يحتاج إلى {best_of} خرائط على الأقل. قائمة خرائط هذه المرحلة فيها {count}."
+      },
+      "match_settings_drawn": "سُحبت مباريات هذه المرحلة بالفعل، لذا لا يمكن تغيير إعدادات مبارياتها.",
+      "match_settings_locked": "تُقفل إعدادات المباراة بعد سحب شجرة البطولة.",
+      "match_settings_locked_label": "إعدادات المباراة",
+      "structure_locked": "النوع والفرق والمجموعات مقفلة بعد سحب شجرة البطولة. لا يزال بالإمكان تغيير نظام Best Of.",
+      "structure_locked_label": "النوع والفرق والمجموعات"
     },
     "bracket": {
       "schedule_title": "جدولة مباراة",
@@ -6403,7 +6489,12 @@
       "main_path": "الرئيسي",
       "impact_source": "المصدر",
       "impact_delete": "حذف",
-      "impact_reset": "إعادة ضبط"
+      "impact_reset": "إعادة ضبط",
+      "follow_none": "عرض الجميع",
+      "follow_team": "تتبّع فريقًا",
+      "forfeit_short": "ا",
+      "match_short": "المباراة {match}",
+      "walkover_win": "ف"
     },
     "match": {
       "reset_winner": "إعادة تعيين الفائز",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "أفهم أن هذا قد يحذف مباريات لاحقة لُعبت بالفعل.",
       "review_chain_hint": "راجع السلسلة المتأثرة أعلاه قبل المتابعة.",
       "irreversible_action": "إجراء لا يمكن التراجع عنه",
-      "confirm_reset_chain_ack": "أؤكد رغبتي في إعادة تعيين سلسلة مباريات البطولة هذه."
+      "confirm_reset_chain_ack": "أؤكد رغبتي في إعادة تعيين سلسلة مباريات البطولة هذه.",
+      "recreate": "أعد إنشاء المباراة",
+      "recreate_description": "يحصل {team_1} و{team_2} على مباراة جديدة في هذه الخانة.",
+      "recreate_downstream_started": "بدأت الجولة التالية، لذا لا يمكن إعادة لعب هذه المباراة.",
+      "recreate_failed": "تعذّرت إعادة إنشاء المباراة",
+      "recreate_orphaned": "حُذفت مباراة هذه الخانة. أعد إنشاءها لتُلعب من جديد.",
+      "recreate_title": "إعادة إنشاء المباراة؟",
+      "recreate_unwinds": "يُعاد الفريق المتأهل من الجولة التالية حتى تُلعب هذه المباراة.",
+      "recreated": "أُعيد إنشاء المباراة"
     },
     "round_labels": {
       "round": "الجولة {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "مؤهل",
-      "not_eligible": "تحتاج إلى {count} لاعبين إضافيين",
+      "not_eligible": "غير مؤهل",
       "leave_tournament": "غادر البطولة",
       "leave_team": "غادر الفريق",
       "slot": "الخانة {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "احذف العضو",
       "confirm_remove_member": "هل تريد حذف هذا العضو؟",
       "remove_member_description": "سيؤدي هذا إلى حذف العضو من فريق البطولة",
-      "min_roster_locked": "بدأت البطولة — أضف لاعبًا بديلًا قبل حذف لاعب، فلا يمكن أن تقل قائمة اللاعبين عن الحد الأدنى للتشكيلة",
+      "min_roster_locked": "تم توزيع الفرق في شجرة البطولة، لذا لا يمكن أن تقل القائمة عن {count}. أضف لاعبًا بديلًا أولًا.",
       "cancel_invite": "ألغِ الدعوة",
       "confirm_cancel_invite": "هل تريد إلغاء هذه الدعوة؟",
       "cancel_invite_description": "سيؤدي هذا إلى إلغاء الدعوة لهذا العضو",
       "seed_label": "التصنيف الأولي",
-      "seed_display": "التصنيف #{seed}"
+      "seed_display": "التصنيف #{seed}",
+      "free_agent_tag": "لاعب حر",
+      "missed_check_in": "تأكيد حضور فائت",
+      "need_players": "تحتاج إلى {count} لاعب إضافي | تحتاج إلى {count} لاعبين إضافيين"
     },
     "teams": {
       "count": "{count} فرق",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "أوقف البطولة مؤقتًا",
       "pause_description": "هل تريد إيقاف هذه البطولة مؤقتًا؟ لن تُجدول أي مباريات جديدة تلقائيًا حتى استئنافها.",
       "resume_description": "هل تريد استئناف هذه البطولة؟ ستُجدول كل المباريات المعلّقة فورًا.",
-      "update_status_failed": "تعذّر تحديث حالة البطولة"
+      "update_status_failed": "تعذّر تحديث حالة البطولة",
+      "open_registration_full": "شجرة البطولة ممتلئة.",
+      "open_registration_no_stages": "أضف مرحلة أولًا.",
+      "open_registration_start_passed": "انقضى وقت البدء. حدّد وقت بدء لاحقًا لإعادة فتح التسجيل."
     },
     "server": {
       "remove": "احذف السيرفر",
@@ -6855,7 +6960,23 @@
       "draft_locked": "انطلقت شجرة البطولة، لذا لم يعد بالإمكان توزيع المجموعة.",
       "nothing_drafted": "لم يتم توزيع أي فريق",
       "nothing_drafted_hint": "لم يتبقَّ عدد كافٍ من اللاعبين الأحرار لتكوين فريق من {size}، أو لا يوجد متسع في شجرة البطولة.",
-      "nothing_drafted_parties": "لا توجد تركيبة من التسجيلات تكوّن فريقًا من {size}، والمجموعة لا تُقسَّم أبدًا لتناسب."
+      "nothing_drafted_parties": "لا توجد تركيبة من التسجيلات تكوّن فريقًا من {size}، والمجموعة لا تُقسَّم أبدًا لتناسب.",
+      "add": "أضف لاعبًا حرًا",
+      "add_failed": "تعذّرت إضافة اللاعب الحر",
+      "added": "أُضيف {name} إلى اللاعبين الأحرار",
+      "ineligible_in_pool": "موجود بالفعل في مجموعة اللاعبين الأحرار.",
+      "invite": "دعوة",
+      "invited": "تمت الدعوة",
+      "nobody_waiting_description": "تم توزيع كل من سجّل على الفرق.",
+      "nobody_waiting_title": "لا أحد في الانتظار",
+      "pool_locked": "يمكن تعديل اللاعبين الأحرار ما دام التسجيل مفتوحًا أو أثناء مراجعة تسجيل الحضور.",
+      "remove": "إزالة",
+      "remove_agent": "أزل {name}",
+      "remove_description": "يمكنه التسجيل مجددًا ما دام التسجيل مفتوحًا.",
+      "remove_failed": "تعذّرت إزالة اللاعب الحر",
+      "remove_title": "إزالة {name} من اللاعبين الأحرار؟",
+      "removed": "أُزيل {name} من اللاعبين الأحرار",
+      "waitlisted_count": "{count} في قائمة الانتظار"
     },
     "entry": {
       "title": "شروط المشاركة",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "محاولات كثيرة جدًا لاستخدام الدعوة. حاول مجددًا بعد دقيقة.",
         "invite_not_allowed": "لا يمكن لهذا الحساب قبول هذه الدعوة."
       }
+    },
+    "manage": {
+      "add_first_stage": "إضافة المرحلة الأولى",
+      "back": "العودة إلى الصفحة",
+      "button": "إدارة",
+      "details": "التفاصيل والهوية",
+      "discord": "Discord",
+      "groups": "{count} مجموعات",
+      "invite_teams": "دعوة الفرق",
+      "match_rules": "قواعد المباريات",
+      "needs_attention": "يحتاج إلى انتباه",
+      "no_stages": "لا توجد مراحل بعد",
+      "no_stages_hint": "أضف مرحلة لتحديد الصيغة. تُسحب شجرة البطولة منها عند إغلاق التسجيل.",
+      "no_status_actions": "لا يوجد ما يمكن تغييره الآن.",
+      "organizers": "المنظمون",
+      "prizes_awards": "الجوائز والأوسمة",
+      "registration": "التسجيل",
+      "set_up_stages": "إعداد المراحل",
+      "stage_summary": "{min}–{max} فرق",
+      "stages": "المراحل",
+      "stages_after_create": "بعد ذلك ستُعدّ المراحل التي تحدد الصيغة وشجرة البطولة.",
+      "stages_drawn": "لا يمكن تغيير المراحل بعد سحب شجرة البطولة. أعد البطولة إلى الإعداد لتعديلها.",
+      "stages_locked": "لا يمكن تغيير المراحل بعد بدء البطولة.",
+      "status_actions": "حالة البطولة",
+      "teams": "الفرق والدعوات",
+      "title": "إدارة البطولة"
+    },
+    "negotiation": {
+      "history": "السجل",
+      "no_time": "لم يُتفق على وقت بعد",
+      "outside_two_weeks": "يجب أن يكون الوقت المقترح خلال الأسبوعين القادمين.",
+      "outside_window": "الوقت المقترح خارج نافذة جدولة هذه الجولة.",
+      "schedule": "جدولة",
+      "teams_only": "يمكن لمالكي الفريقين وقادتهما ومشرفي القوائم فقط اقتراح وقت.",
+      "two_weeks": "يجب أن تكون الأوقات خلال الأسبوعين القادمين.",
+      "window": "يجب أن تقع الأوقات ضمن نافذة هذه الجولة: من {from} إلى {to}."
+    },
+    "matches_filter": {
+      "live": "مباشر",
+      "upcoming": "قادمة",
+      "results": "النتائج",
+      "all": "الكل",
+      "empty": {
+        "live": "لا يوجد شيء مباشر الآن.",
+        "upcoming": "لا توجد مباريات قادمة.",
+        "results": "لا نتائج بعد.",
+        "all": "لا توجد مباريات بعد. ستظهر بمجرد إنشاء شجرة البطولة."
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "تمت دعوة {team} للتسجيل في بطولة"
     },
     "roles": {
-      "captain": "قائد الفريق"
+      "captain": "قائد الفريق",
+      "admin": "مشرف",
+      "invite": "دعوة",
+      "member": "عضو"
     },
     "leave": "غادر الفريق",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "مسجَّل بالفعل في هذا الموسم.",
         "tournament_organizer": "منظِّم بالفعل لهذه البطولة.",
         "in_event": "مرتبط بالفعل بهذه الفعالية.",
-        "other_side": "مختار بالفعل كالفريق الآخر."
+        "other_side": "مختار بالفعل كالفريق الآخر.",
+        "owner_in_tournament": "مالكه لديه فريق بالفعل في هذه البطولة."
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "اسم الفريق مطلوب",
     "short_name_required": "الاسم المختصر مطلوب",
     "team_required": "الفريق مطلوب",
-    "rcon_password_required": "كلمة مرور RCON مطلوبة"
+    "rcon_password_required": "كلمة مرور RCON مطلوبة",
+    "groups_next_stage_min": "يجب أن ينقسم الحد الأدنى لفرق المرحلة {stage} بالتساوي على {groups} مجموعات",
+    "max_teams_next_stage": "يجب أن تضم هذه المرحلة {count} فرق على الأقل لملء المرحلة {stage}",
+    "max_teams_previous_stage": "يمكن للمرحلة {stage} تأهيل {count} فرق كحد أقصى",
+    "min_teams_min_value": "تحتاج هذه المرحلة إلى {count} فرق على الأقل"
   },
   "ui_extras": {
     "mute": "اكتم",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "نظرة سريعة على {name}",
+    "cancelled": "ألغاها المنظم قبل أن تبدأ.",
+    "cancelled_min_teams": "لم يسجّل عدد كافٍ من الفرق، لذا أُلغيت.",
+    "check_in": {
+      "opens": "يُفتح قبل البداية بـ {minutes} دقيقة",
+      "captains": "يؤكّد القادة حضور فرقهم",
+      "players": "يؤكّد كل لاعب حضوره",
+      "admin": "يؤكّد مشرف حضور الفرق"
+    },
+    "elo": {
+      "max": "تصنيف كل لاعب {max} ELO على الأكثر",
+      "min": "تصنيف كل لاعب {min} ELO على الأقل",
+      "range": "تصنيف كل لاعب {min}–{max} ELO"
+    },
+    "final_standings": "الترتيب النهائي",
+    "join": {
+      "invite": "بالدعوة فقط. اطلب مكانًا من المنظم.",
+      "teams": "تسجّل الفرق بتشكيلة {type} كاملة.",
+      "both": "يمكن للفرق واللاعبين الأحرار التسجيل. يُوزَّع اللاعبون الأحرار على الفرق.",
+      "free_agents": "يسجّل اللاعبون بمفردهم ويُوزَّعون على الفرق."
+    },
+    "join_free_agent": "انضم كلاعب حر",
+    "map_pool": "قائمة الخرائط",
+    "open_tournament": "افتح البطولة",
+    "position": "{index} من {total}",
+    "registration": "التسجيل",
+    "title": "نظرة سريعة"
   }
 }

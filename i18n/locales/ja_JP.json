@@ -1483,11 +1483,45 @@
         "date_6m": "過去6ヶ月",
         "date_1y": "過去1年",
         "no_results_title": "該当するトーナメントがありません",
-        "no_results_description": "フィルターを解除するか、検索範囲を広げてください。"
+        "no_results_description": "フィルターを解除するか、検索範囲を広げてください。",
+        "category": "カテゴリー",
+        "mine": "自分が主催するトーナメントのみ"
       },
       "tabs": {
         "upcoming": "開催予定"
-      }
+      },
+      "bracket": "ブラケット",
+      "bracket_paused": "ブラケット · 管理者が一時停止中",
+      "empty": {
+        "description": "主催者がトーナメントの参加登録を開始すると、ここに表示されます。",
+        "organizer": "作成すると、参加登録の開始と同時にここに表示されます。",
+        "title": "まだトーナメントはありません"
+      },
+      "facts": {
+        "online": "オンライン",
+        "part_of": "所属イベント",
+        "players": "プレイヤー",
+        "teams": "チーム",
+        "where": "場所",
+        "starts": "開始予定",
+        "started": "開始",
+        "played": "開催日"
+      },
+      "next_lan": {
+        "in_days": "{count}日後 | {count}日後",
+        "today": "今日",
+        "tomorrow": "明日"
+      },
+      "prize_pool_total": "賞金総額 · {amount}",
+      "sections": {
+        "live": "ライブ",
+        "next_lan": "次のLAN",
+        "recent": "最近の結果",
+        "results": "結果",
+        "upcoming": "開催予定"
+      },
+      "spots_left": "残り{count}枠 | 残り{count}枠",
+      "watch_live": "ライブで観戦"
     },
     "manage_tournaments": {
       "title": "トーナメント管理",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "トーナメント",
         "channel_highlights": "ハイライト",
         "channel_status": "信号待機中"
+      },
+      "events": {
+        "count_players": "プレイヤー | プレイヤー",
+        "count_teams": "チーム | チーム",
+        "in_prizes": "賞金 {amount}"
+      },
+      "tournaments": {
+        "best_of": "BO{count}",
+        "by": "主催: {name}",
+        "champion": "優勝: {name}",
+        "details": "詳細",
+        "joined_free_agent": "フリーエージェントで参加済み",
+        "joined_team": "登録済み",
+        "joined_waitlisted": "フリーエージェント・補欠",
+        "register": "チームを登録",
+        "registered_count": "{count} / {max}",
+        "results": "結果",
+        "sign_in_to_register": "ログインして登録"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "最大の上昇",
           "worst_loss": "最大の下落",
           "view_match": "試合を表示"
-        }
+        },
+        "show_less": "表示を減らす",
+        "tournament_finish_of": "/ {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "概要",
       "match_settings": "試合設定",
       "read_more": "もっと見る",
-      "read_less": "折りたたむ"
+      "read_less": "折りたたむ",
+      "bracket_tab": "ブラケット",
+      "chat_room_tab": "チャットルーム",
+      "matches_tab": "試合"
     },
     "feature_card": {
       "teams": "チーム",
       "default_label": "トーナメント",
-      "organized_by": "主催：{team}"
+      "organized_by": "主催：{team}",
+      "players": "プレイヤー"
     },
     "results_section": {
       "no_data": "データなし",
       "mvp": "MVP",
-      "no_matches_played": "試合はまだありません"
+      "no_matches_played": "試合はまだありません",
+      "mvp_tooltip": {
+        "avg_impact": "平均インパクト",
+        "impact": "インパクトは、チームと比べた (キル + アシスト) / デス と、チームのダメージに占める割合から、各試合を 0.80〜1.20 で評価します。",
+        "manual": "大会主催者が選出しました。",
+        "matches": "試合数",
+        "next_best": "次点: {name}",
+        "rule": "優勝チームの中で、大会の全試合を通じて平均インパクトが最も高いプレイヤー。",
+        "title": "MVP の選出方法"
+      }
     },
     "swiss": {
       "advanced": "進出",
@@ -6201,7 +6268,8 @@
       "champion": "優勝",
       "second": "2位",
       "third": "3位",
-      "player_finished": "プレイヤー成績 {rank}"
+      "player_finished": "プレイヤー成績 {rank}",
+      "players": "プレイヤー"
     },
     "recent": {
       "see_all": "すべて表示",
@@ -6227,7 +6295,8 @@
         "benched": "ベンチ"
       },
       "already_rostered": "他チームに所属中",
-      "owner_on_a_team": "このトーナメントですでにいずれかのチームに登録されています。"
+      "owner_on_a_team": "このトーナメントですでにいずれかのチームに登録されています。",
+      "leaves_pool": "フリーエージェントとして登録済みです。チームを登録すると、フリーエージェントから外れます。"
     },
     "tournament_team": {
       "remove": "チームを削除",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "カテゴリ"
+      },
+      "substitutes_enabled": {
+        "description": "チームはスタメン以外に控えをロスターに登録し、出場させることができます。無効にすると、ロスターと試合はスタメンのみに制限されます。",
+        "label": "控えを許可",
+        "locked": "登録締め切り後は控えを無効にできません。"
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "参加チーム",
       "starts": "開始",
       "no_tournaments_found": "トーナメントが見つかりません",
-      "maps_label": "マップ："
+      "maps_label": "マップ：",
+      "players_joined": "参加プレイヤー"
     },
     "stage": {
       "title": "ステージ",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "決勝マップアドバンテージ",
         "description": "上位ブラケットのチームがグランドファイナルに持ち込むマップポイントのリード。勝利に必要なマップ数未満にする必要があります。"
-      }
+      },
+      "drawn_while_editing": "編集中にブラケットが作成されました。形式・チーム数・グループ・試合設定の変更を破棄してから Best Of を保存してください。",
+      "map_pool": {
+        "empty": "トーナメントのマッププールにマップがありません。",
+        "too_small": "Best of {best_of} には少なくとも {best_of} マップが必要です。トーナメントのマッププールは {count} マップです。",
+        "too_small_stage": "Best of {best_of} には少なくとも {best_of} マップが必要です。このステージのマッププールは {count} マップです。"
+      },
+      "match_settings_drawn": "このステージの試合はすでに組まれているため、試合設定は変更できません。",
+      "match_settings_locked": "ブラケット作成後は試合設定がロックされます。",
+      "match_settings_locked_label": "試合設定",
+      "structure_locked": "ブラケット作成後は形式・チーム数・グループがロックされます。Best Of は引き続き変更できます。",
+      "structure_locked_label": "形式・チーム数・グループ"
     },
     "bracket": {
       "schedule_title": "試合をスケジュール",
@@ -6403,7 +6489,12 @@
       "main_path": "メイン",
       "impact_source": "ソース",
       "impact_delete": "削除",
-      "impact_reset": "リセット"
+      "impact_reset": "リセット",
+      "follow_none": "すべて表示",
+      "follow_team": "チームを追う",
+      "forfeit_short": "棄",
+      "match_short": "第{match}試合",
+      "walkover_win": "勝"
     },
     "match": {
       "reset_winner": "勝者をリセット",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "既に行われた後続試合が削除される場合があることを理解しました。",
       "review_chain_hint": "続行する前に上記の影響範囲を確認してください。",
       "irreversible_action": "取り消せない操作",
-      "confirm_reset_chain_ack": "このトーナメント試合の連鎖をリセットすることを確認しました。"
+      "confirm_reset_chain_ack": "このトーナメント試合の連鎖をリセットすることを確認しました。",
+      "recreate": "試合を再作成",
+      "recreate_description": "{team_1} と {team_2} にこの枠で新しい試合が作成されます。",
+      "recreate_downstream_started": "次のラウンドが始まっているため、この試合はやり直せません。",
+      "recreate_failed": "試合を再作成できませんでした",
+      "recreate_orphaned": "この枠の試合は削除されました。再作成すると、もう一度プレイできます。",
+      "recreate_title": "試合を再作成しますか？",
+      "recreate_unwinds": "勝ち上がったチームは、この試合が行われるまで次のラウンドから外されます。",
+      "recreated": "試合を再作成しました"
     },
     "round_labels": {
       "round": "ラウンド {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "参加可能",
-      "not_eligible": "あと {count} 人必要",
+      "not_eligible": "参加不可",
       "leave_tournament": "トーナメントを離脱",
       "leave_team": "チームを離脱",
       "slot": "スロット {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "メンバーを削除",
       "confirm_remove_member": "このメンバーを削除しますか？",
       "remove_member_description": "メンバーをトーナメントチームから削除します",
-      "min_roster_locked": "トーナメントは開始済みです。ロスターは最小出場メンバー数を下回れないため、プレイヤーを外す前に控えを追加してください",
+      "min_roster_locked": "ブラケットのシードが確定しているため、ロスターは {count} 人未満にできません。先に控えを追加してください。",
       "cancel_invite": "招待を取り消す",
       "confirm_cancel_invite": "この招待を取り消しますか？",
       "cancel_invite_description": "このメンバーへの招待を取り消します",
       "seed_label": "シード",
-      "seed_display": "シード #{seed}"
+      "seed_display": "シード #{seed}",
+      "free_agent_tag": "フリーエージェント",
+      "missed_check_in": "チェックイン未完了",
+      "need_players": "あと {count} 人必要 | あと {count} 人必要"
     },
     "teams": {
       "count": "{count} チーム",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "トーナメントを一時停止",
       "pause_description": "このトーナメントを一時停止しますか？再開するまで新しい試合は自動でスケジュールされません。",
       "resume_description": "このトーナメントを再開しますか？保留中の試合はすべて直ちにスケジュールされます。",
-      "update_status_failed": "トーナメントのステータスを更新できませんでした。しばらくしてから再試行してください。"
+      "update_status_failed": "トーナメントのステータスを更新できませんでした。しばらくしてから再試行してください。",
+      "open_registration_full": "ブラケットは満員です。",
+      "open_registration_no_stages": "先にステージを追加してください。",
+      "open_registration_start_passed": "開始時刻を過ぎています。登録を再開するには、より遅い開始時刻を設定してください。"
     },
     "server": {
       "remove": "サーバーを削除",
@@ -6855,7 +6960,23 @@
       "draft_locked": "ブラケットが進行中のため、プールはもうドラフトできません。",
       "nothing_drafted": "チームは作成されませんでした",
       "nothing_drafted_hint": "{size}人編成のチームを組むだけのフリーエージェントが残っていないか、ブラケットに空きがありません。",
-      "nothing_drafted_parties": "プール内の登録をどう組み合わせても{size}人のチームにならず、パーティーが枠に合わせて分割されることはありません。"
+      "nothing_drafted_parties": "プール内の登録をどう組み合わせても{size}人のチームにならず、パーティーが枠に合わせて分割されることはありません。",
+      "add": "フリーエージェントを追加",
+      "add_failed": "フリーエージェントを追加できませんでした",
+      "added": "{name} をフリーエージェントに追加しました",
+      "ineligible_in_pool": "すでにフリーエージェントプールにいます。",
+      "invite": "招待",
+      "invited": "招待済み",
+      "nobody_waiting_description": "登録した全員がチームにドラフトされました。",
+      "nobody_waiting_title": "待機中のプレイヤーはいません",
+      "pool_locked": "フリーエージェントは、登録受付中またはチェックイン確認中のみ変更できます。",
+      "remove": "削除",
+      "remove_agent": "{name} を削除",
+      "remove_description": "登録受付中であれば、もう一度登録できます。",
+      "remove_failed": "フリーエージェントを削除できませんでした",
+      "remove_title": "{name} をフリーエージェントから削除しますか？",
+      "removed": "{name} をフリーエージェントから削除しました",
+      "waitlisted_count": "補欠 {count}人"
     },
     "entry": {
       "title": "参加条件",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "招待の試行回数が多すぎます。1分後にもう一度お試しください。",
         "invite_not_allowed": "このアカウントではこの招待を承諾できません。"
       }
+    },
+    "manage": {
+      "add_first_stage": "最初のステージを追加",
+      "back": "ページに戻る",
+      "button": "管理",
+      "details": "詳細とブランディング",
+      "discord": "Discord",
+      "groups": "{count} グループ",
+      "invite_teams": "チームを招待",
+      "match_rules": "試合ルール",
+      "needs_attention": "要対応",
+      "no_stages": "ステージはまだありません",
+      "no_stages_hint": "ステージを追加して形式を決めます。参加登録の締め切り時にブラケットが作成されます。",
+      "no_status_actions": "今は変更できる項目がありません。",
+      "organizers": "主催者",
+      "prizes_awards": "賞品とアワード",
+      "registration": "参加登録",
+      "set_up_stages": "ステージを設定",
+      "stage_summary": "{min}–{max} チーム",
+      "stages": "ステージ",
+      "stages_after_create": "次に、形式とブラケットを決めるステージを設定します。",
+      "stages_drawn": "ブラケット作成後はステージを変更できません。編集するには大会をセットアップに戻してください。",
+      "stages_locked": "大会開始後はステージを変更できません。",
+      "status_actions": "大会のステータス",
+      "teams": "チームと招待",
+      "title": "大会を管理"
+    },
+    "negotiation": {
+      "history": "履歴",
+      "no_time": "まだ時間が合意されていません",
+      "outside_two_weeks": "提案する時間は今後2週間以内にしてください。",
+      "outside_window": "提案された時間はこのラウンドの日程調整期間外です。",
+      "schedule": "日程調整",
+      "teams_only": "時間を提案できるのは、両チームのオーナー、キャプテン、ロスター管理者のみです。",
+      "two_weeks": "時間は今後2週間以内で指定してください。",
+      "window": "時間はこのラウンドの期間内で指定してください: {from}〜{to}。"
+    },
+    "matches_filter": {
+      "live": "ライブ",
+      "upcoming": "予定",
+      "results": "結果",
+      "all": "すべて",
+      "empty": {
+        "live": "現在ライブ中の試合はありません。",
+        "upcoming": "予定されている試合はありません。",
+        "results": "結果はまだありません。",
+        "all": "試合はまだありません。ブラケットが作成されると表示されます。"
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} がトーナメントへの参加登録に招待されました"
     },
     "roles": {
-      "captain": "キャプテン"
+      "captain": "キャプテン",
+      "admin": "管理者",
+      "invite": "招待",
+      "member": "メンバー"
     },
     "leave": "チームを脱退",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "すでにこのシーズンに登録済みです。",
         "tournament_organizer": "すでにこのトーナメントの主催者です。",
         "in_event": "すでにこのイベントに紐づいています。",
-        "other_side": "すでに対戦相手として選択されています。"
+        "other_side": "すでに対戦相手として選択されています。",
+        "owner_in_tournament": "オーナーはすでにこのトーナメントにチームを登録しています。"
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "チーム名は必須です",
     "short_name_required": "略称は必須です",
     "team_required": "チームは必須です",
-    "rcon_password_required": "RCON パスワードは必須です"
+    "rcon_password_required": "RCON パスワードは必須です",
+    "groups_next_stage_min": "ステージ {stage} の最小チーム数は {groups} グループに均等に分けられる必要があります",
+    "max_teams_next_stage": "ステージ {stage} を埋めるには、このステージに{count}チーム以上が必要です",
+    "max_teams_previous_stage": "ステージ {stage} から進出できるのは最大{count}チームです",
+    "min_teams_min_value": "このステージには{count}チーム以上が必要です"
   },
   "ui_extras": {
     "mute": "ミュート",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "{name}のクイックビュー",
+    "cancelled": "開始前に主催者が中止しました。",
+    "cancelled_min_teams": "参加チームが足りなかったため、中止になりました。",
+    "check_in": {
+      "opens": "開始{minutes}分前に受付開始",
+      "captains": "キャプテンがチームをチェックイン",
+      "players": "全プレイヤーがチェックイン",
+      "admin": "管理者がチームをチェックイン"
+    },
+    "elo": {
+      "max": "全プレイヤーのELOが{max}以下",
+      "min": "全プレイヤーのELOが{min}以上",
+      "range": "全プレイヤーのELOが{min}–{max}"
+    },
+    "final_standings": "最終順位",
+    "join": {
+      "invite": "招待制です。参加枠は主催者に問い合わせてください。",
+      "teams": "チームは{type}のフルロスターで登録します。",
+      "both": "チームとフリーエージェントが登録できます。フリーエージェントはチームにドラフトされます。",
+      "free_agents": "プレイヤーが個人で登録し、チームにドラフトされます。"
+    },
+    "join_free_agent": "フリーエージェントで参加",
+    "map_pool": "マッププール",
+    "open_tournament": "トーナメントを開く",
+    "position": "{index} / {total}",
+    "registration": "参加登録",
+    "title": "クイックビュー"
   }
 }

@@ -1483,11 +1483,45 @@
         "date_6m": "最近 6 个月",
         "date_1y": "最近一年",
         "no_results_title": "没有匹配的赛事",
-        "no_results_description": "尝试清除筛选条件或扩大搜索范围。"
+        "no_results_description": "尝试清除筛选条件或扩大搜索范围。",
+        "category": "类别",
+        "mine": "仅显示我组织的赛事"
       },
       "tabs": {
         "upcoming": "即将开始"
-      }
+      },
+      "bracket": "对阵表",
+      "bracket_paused": "对阵表 · 已被管理员暂停",
+      "empty": {
+        "description": "主办方开放赛事报名后，赛事会显示在这里。",
+        "organizer": "创建一个赛事，开放报名后就会显示在这里。",
+        "title": "暂无赛事"
+      },
+      "facts": {
+        "online": "线上",
+        "part_of": "所属活动",
+        "players": "玩家",
+        "teams": "队伍",
+        "where": "地点",
+        "starts": "开始",
+        "started": "已开始",
+        "played": "举办日期"
+      },
+      "next_lan": {
+        "in_days": "{count} 天后 | {count} 天后",
+        "today": "今天",
+        "tomorrow": "明天"
+      },
+      "prize_pool_total": "总奖金 · {amount}",
+      "sections": {
+        "live": "进行中",
+        "next_lan": "下一场 LAN",
+        "recent": "近期结果",
+        "results": "结果",
+        "upcoming": "即将开始"
+      },
+      "spots_left": "剩余 {count} 个名额 | 剩余 {count} 个名额",
+      "watch_live": "观看直播"
     },
     "manage_tournaments": {
       "title": "管理赛事",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "锦标赛",
         "channel_highlights": "集锦",
         "channel_status": "等待信号"
+      },
+      "events": {
+        "count_players": "名玩家 | 名玩家",
+        "count_teams": "支队伍 | 支队伍",
+        "in_prizes": "奖金 {amount}"
+      },
+      "tournaments": {
+        "best_of": "BO{count}",
+        "by": "{name} 主办",
+        "champion": "冠军：{name}",
+        "details": "详情",
+        "joined_free_agent": "已以自由选手身份报名",
+        "joined_team": "已报名",
+        "joined_waitlisted": "自由选手 · 候补",
+        "register": "报名队伍",
+        "registered_count": "{count} / {max}",
+        "results": "结果",
+        "sign_in_to_register": "登录后报名"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "单次最大增益",
           "worst_loss": "单次最大损失",
           "view_match": "查看比赛"
-        }
+        },
+        "show_less": "显示更少",
+        "tournament_finish_of": "/ {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "简介",
       "match_settings": "比赛设置",
       "read_more": "展开",
-      "read_less": "收起"
+      "read_less": "收起",
+      "bracket_tab": "对阵图",
+      "chat_room_tab": "聊天室",
+      "matches_tab": "比赛"
     },
     "feature_card": {
       "teams": "队伍",
       "default_label": "赛事",
-      "organized_by": "由 {team} 主办"
+      "organized_by": "由 {team} 主办",
+      "players": "玩家"
     },
     "results_section": {
       "no_data": "无数据",
       "mvp": "最有价值玩家",
-      "no_matches_played": "尚未进行任何比赛"
+      "no_matches_played": "尚未进行任何比赛",
+      "mvp_tooltip": {
+        "avg_impact": "平均影响力",
+        "impact": "影响力根据相对于队伍的（击杀 + 助攻）/ 死亡以及在队伍伤害中的占比，为每场比赛给出 0.80–1.20 的评分。",
+        "manual": "由赛事主办方选定。",
+        "matches": "场次",
+        "next_best": "次佳：{name}",
+        "rule": "冠军队伍中，在本次赛事所有比赛里平均影响力最高的选手。",
+        "title": "MVP 评选方式"
+      }
     },
     "swiss": {
       "advanced": "晋级",
@@ -6201,7 +6268,8 @@
       "champion": "冠军",
       "second": "亚军",
       "third": "季军",
-      "player_finished": "玩家获得第 {rank} 名"
+      "player_finished": "玩家获得第 {rank} 名",
+      "players": "玩家"
     },
     "recent": {
       "see_all": "查看全部",
@@ -6227,7 +6295,8 @@
         "benched": "替补席"
       },
       "already_rostered": "已在其他队伍",
-      "owner_on_a_team": "已在这场锦标赛的某支战队名单中。"
+      "owner_on_a_team": "已在这场锦标赛的某支战队名单中。",
+      "leaves_pool": "你已以自由选手身份报名。注册队伍会让你退出自由选手名单。"
     },
     "tournament_team": {
       "remove": "移除队伍",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "分类"
+      },
+      "substitutes_enabled": {
+        "description": "队伍可以在首发阵容之外登记并派出替补。关闭后，阵容和比赛仅限首发阵容。",
+        "label": "允许替补",
+        "locked": "报名截止后无法关闭替补。"
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "已加入队伍",
       "starts": "开始",
       "no_tournaments_found": "未找到赛事",
-      "maps_label": "地图："
+      "maps_label": "地图：",
+      "players_joined": "已加入玩家"
     },
     "stage": {
       "title": "阶段",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "决赛地图优势",
         "description": "胜者组队伍带入总决赛的地图分优势。必须小于取胜所需的地图数。"
-      }
+      },
+      "drawn_while_editing": "你编辑期间对阵图已生成。请放弃对类型、队伍、小组或比赛设置的更改，然后保存赛制。",
+      "map_pool": {
+        "empty": "赛事地图池中没有地图。",
+        "too_small": "BO{best_of} 至少需要 {best_of} 张地图。赛事地图池有 {count} 张。",
+        "too_small_stage": "BO{best_of} 至少需要 {best_of} 张地图。本阶段的地图池有 {count} 张。"
+      },
+      "match_settings_drawn": "本阶段的比赛已经排定，因此比赛设置无法再更改。",
+      "match_settings_locked": "对阵图生成后，比赛设置将被锁定。",
+      "match_settings_locked_label": "比赛设置",
+      "structure_locked": "对阵图生成后，类型、队伍和小组将被锁定。赛制仍可更改。",
+      "structure_locked_label": "类型、队伍和小组"
     },
     "bracket": {
       "schedule_title": "安排比赛",
@@ -6403,7 +6489,12 @@
       "main_path": "主线",
       "impact_source": "来源",
       "impact_delete": "删除",
-      "impact_reset": "重置"
+      "impact_reset": "重置",
+      "follow_none": "显示全部",
+      "follow_team": "关注队伍",
+      "forfeit_short": "弃",
+      "match_short": "第 {match} 场",
+      "walkover_win": "胜"
     },
     "match": {
       "reset_winner": "重置胜者",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "我了解这可能会移除已进行的下游比赛。",
       "review_chain_hint": "在继续之前查看上面的受影响链条。",
       "irreversible_action": "不可逆操作",
-      "confirm_reset_chain_ack": "我确认我要重置此赛事比赛链条。"
+      "confirm_reset_chain_ack": "我确认我要重置此赛事比赛链条。",
+      "recreate": "重新创建比赛",
+      "recreate_description": "{team_1} 和 {team_2} 将在此位置进行一场新比赛。",
+      "recreate_downstream_started": "下一轮已经开始，因此这场比赛无法重赛。",
+      "recreate_failed": "无法重新创建比赛",
+      "recreate_orphaned": "此位置的比赛已被删除。重新创建即可再次进行。",
+      "recreate_title": "重新创建比赛？",
+      "recreate_unwinds": "晋级的队伍会被移出下一轮，直到这场比赛打完。",
+      "recreated": "比赛已重新创建"
     },
     "round_labels": {
       "round": "第 {number} 轮",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "符合条件",
-      "not_eligible": "还需要 {count} 名玩家",
+      "not_eligible": "不符合条件",
       "leave_tournament": "离开赛事",
       "leave_team": "离开队伍",
       "slot": "第 {number} 号位",
@@ -6529,12 +6628,15 @@
       "remove_member": "移除成员",
       "confirm_remove_member": "您确定要移除此成员吗？",
       "remove_member_description": "这将从赛事队伍中移除该成员",
-      "min_roster_locked": "赛事已开始——先添加替补再移除玩家，阵容不能低于最低人数",
+      "min_roster_locked": "对阵图已完成种子排位，阵容不能少于 {count} 人。请先添加替补。",
       "cancel_invite": "取消邀请",
       "confirm_cancel_invite": "您确定要取消此邀请吗？",
       "cancel_invite_description": "这将取消对该成员的邀请",
       "seed_label": "种子排名",
-      "seed_display": "种子 #{seed}"
+      "seed_display": "种子 #{seed}",
+      "free_agent_tag": "自由选手",
+      "missed_check_in": "错过签到",
+      "need_players": "还需要 {count} 名玩家 | 还需要 {count} 名玩家"
     },
     "teams": {
       "count": "{count} 支队伍",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "暂停赛事",
       "pause_description": "您确定要暂停此赛事吗？在恢复之前，不会自动安排新比赛。",
       "resume_description": "您确定要恢复此赛事吗？所有待处理比赛将立即安排。",
-      "update_status_failed": "更新赛事状态失败"
+      "update_status_failed": "更新赛事状态失败",
+      "open_registration_full": "对阵图已满。",
+      "open_registration_no_stages": "请先添加一个阶段。",
+      "open_registration_start_passed": "开始时间已过。请设置一个更晚的开始时间以重新开放报名。"
     },
     "server": {
       "remove": "移除服务器",
@@ -6855,7 +6960,23 @@
       "draft_locked": "对阵表已经开打，选手池无法再分队。",
       "nothing_drafted": "没有组成任何队伍",
       "nothing_drafted_hint": "剩下的自由选手不足以凑满一支 {size} 人的队伍，或者对阵表已没有空位。",
-      "nothing_drafted_parties": "选手池中报名的任何组合都凑不满 {size} 人的队伍，而小队绝不会为了凑数被拆开。"
+      "nothing_drafted_parties": "选手池中报名的任何组合都凑不满 {size} 人的队伍，而小队绝不会为了凑数被拆开。",
+      "add": "添加自由选手",
+      "add_failed": "添加自由选手失败",
+      "added": "已将 {name} 加入自由选手",
+      "ineligible_in_pool": "已在自由选手池中。",
+      "invite": "邀请",
+      "invited": "已邀请",
+      "nobody_waiting_description": "所有报名的选手都已被选入队伍。",
+      "nobody_waiting_title": "没有候补选手",
+      "pool_locked": "自由选手只能在报名开放期间或签到审核期间更改。",
+      "remove": "移除",
+      "remove_agent": "移除 {name}",
+      "remove_description": "报名开放期间，对方可以重新报名。",
+      "remove_failed": "移除自由选手失败",
+      "remove_title": "将 {name} 移出自由选手？",
+      "removed": "已将 {name} 移出自由选手",
+      "waitlisted_count": "候补 {count} 人"
     },
     "entry": {
       "title": "参赛条件",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "邀请尝试次数过多。请一分钟后再试。",
         "invite_not_allowed": "该账户无法接受此邀请。"
       }
+    },
+    "manage": {
+      "add_first_stage": "添加第一个阶段",
+      "back": "返回页面",
+      "button": "管理",
+      "details": "详情与品牌",
+      "discord": "Discord",
+      "groups": "{count} 个小组",
+      "invite_teams": "邀请队伍",
+      "match_rules": "比赛规则",
+      "needs_attention": "需要处理",
+      "no_stages": "暂无阶段",
+      "no_stages_hint": "添加阶段以设定赛制。报名截止时将据此生成对阵图。",
+      "no_status_actions": "目前没有可更改的内容。",
+      "organizers": "组织者",
+      "prizes_awards": "奖品与荣誉",
+      "registration": "报名",
+      "set_up_stages": "设置阶段",
+      "stage_summary": "{min}–{max} 支队伍",
+      "stages": "阶段",
+      "stages_after_create": "接下来你将设置阶段，用于决定赛制和对阵图。",
+      "stages_drawn": "对阵图生成后无法更改阶段。将赛事重置为设置状态后才能编辑。",
+      "stages_locked": "赛事开始后无法更改阶段。",
+      "status_actions": "赛事状态",
+      "teams": "队伍与邀请",
+      "title": "管理赛事"
+    },
+    "negotiation": {
+      "history": "历史记录",
+      "no_time": "尚未商定时间",
+      "outside_two_weeks": "建议时间必须在接下来的两周内。",
+      "outside_window": "建议时间超出本轮的排期窗口。",
+      "schedule": "安排时间",
+      "teams_only": "只有两队的所有者、队长和阵容管理员可以提议时间。",
+      "two_weeks": "时间必须在接下来的两周内。",
+      "window": "时间必须在本轮窗口内：{from} 至 {to}。"
+    },
+    "matches_filter": {
+      "live": "进行中",
+      "upcoming": "即将开始",
+      "results": "结果",
+      "all": "全部",
+      "empty": {
+        "live": "目前没有进行中的比赛。",
+        "upcoming": "没有即将开始的比赛。",
+        "results": "暂无结果。",
+        "all": "暂无比赛。对阵图生成后会显示在这里。"
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} 受邀报名参加赛事"
     },
     "roles": {
-      "captain": "队长"
+      "captain": "队长",
+      "admin": "管理员",
+      "invite": "邀请",
+      "member": "成员"
     },
     "leave": "离开队伍",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "已注册这个赛季。",
         "tournament_organizer": "已是这场锦标赛的主办方。",
         "in_event": "已与这个活动关联。",
-        "other_side": "已被选为另一支战队。"
+        "other_side": "已被选为另一支战队。",
+        "owner_in_tournament": "其所有者已在这场锦标赛中拥有战队。"
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "需要队伍名称",
     "short_name_required": "需要简称",
     "team_required": "需要队伍",
-    "rcon_password_required": "需要 RCON 密码"
+    "rcon_password_required": "需要 RCON 密码",
+    "groups_next_stage_min": "第 {stage} 阶段的最少队伍数必须能平均分成 {groups} 个小组",
+    "max_teams_next_stage": "此阶段至少需要容纳 {count} 支队伍才能填满第 {stage} 阶段",
+    "max_teams_previous_stage": "第 {stage} 阶段最多只能晋级 {count} 支队伍",
+    "min_teams_min_value": "此阶段至少需要 {count} 支队伍"
   },
   "ui_extras": {
     "mute": "静音",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "快速预览：{name}",
+    "cancelled": "主办方在开赛前取消了此赛事。",
+    "cancelled_min_teams": "报名队伍不足，赛事已取消。",
+    "check_in": {
+      "opens": "开赛前 {minutes} 分钟开放",
+      "captains": "由队长为队伍签到",
+      "players": "每位选手各自签到",
+      "admin": "由管理员为队伍签到"
+    },
+    "elo": {
+      "max": "每位选手的 ELO 至多为 {max}",
+      "min": "每位选手的 ELO 至少为 {min}",
+      "range": "每位选手的 ELO 均在 {min}–{max}"
+    },
+    "final_standings": "最终排名",
+    "join": {
+      "invite": "仅限邀请。请向主办方申请名额。",
+      "teams": "队伍以完整的 {type} 阵容报名。",
+      "both": "队伍和自由选手均可报名。自由选手会被选入队伍。",
+      "free_agents": "选手单独报名，之后被选入队伍。"
+    },
+    "join_free_agent": "以自由选手身份报名",
+    "map_pool": "地图池",
+    "open_tournament": "打开赛事",
+    "position": "{index} / {total}",
+    "registration": "报名",
+    "title": "快速预览"
   }
 }

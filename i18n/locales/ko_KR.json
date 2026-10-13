@@ -1483,11 +1483,45 @@
         "date_6m": "최근 6개월",
         "date_1y": "최근 1년",
         "no_results_title": "일치하는 토너먼트가 없습니다",
-        "no_results_description": "필터를 초기화하거나 검색 범위를 넓혀보세요."
+        "no_results_description": "필터를 초기화하거나 검색 범위를 넓혀보세요.",
+        "category": "카테고리",
+        "mine": "내가 주최한 토너먼트만"
       },
       "tabs": {
         "upcoming": "예정"
-      }
+      },
+      "bracket": "대진표",
+      "bracket_paused": "대진표 · 관리자가 일시정지함",
+      "empty": {
+        "description": "주최자가 토너먼트 참가 신청을 열면 여기에 표시됩니다.",
+        "organizer": "토너먼트를 만들면 참가 신청이 열리는 즉시 여기에 표시됩니다.",
+        "title": "아직 토너먼트가 없습니다"
+      },
+      "facts": {
+        "online": "온라인",
+        "part_of": "소속 이벤트",
+        "players": "플레이어",
+        "teams": "팀",
+        "where": "장소",
+        "starts": "시작 예정",
+        "started": "시작됨",
+        "played": "진행일"
+      },
+      "next_lan": {
+        "in_days": "{count}일 후 | {count}일 후",
+        "today": "오늘",
+        "tomorrow": "내일"
+      },
+      "prize_pool_total": "상금 규모 · {amount}",
+      "sections": {
+        "live": "라이브",
+        "next_lan": "다음 LAN",
+        "recent": "최근 결과",
+        "results": "결과",
+        "upcoming": "예정"
+      },
+      "spots_left": "{count}자리 남음 | {count}자리 남음",
+      "watch_live": "라이브 시청"
     },
     "manage_tournaments": {
       "title": "토너먼트 관리",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "토너먼트",
         "channel_highlights": "하이라이트",
         "channel_status": "신호 대기 중"
+      },
+      "events": {
+        "count_players": "플레이어 | 플레이어",
+        "count_teams": "팀 | 팀",
+        "in_prizes": "상금 {amount}"
+      },
+      "tournaments": {
+        "best_of": "BO{count}",
+        "by": "주최: {name}",
+        "champion": "우승: {name}",
+        "details": "상세 정보",
+        "joined_free_agent": "프리 에이전트로 참가함",
+        "joined_team": "등록됨",
+        "joined_waitlisted": "프리 에이전트 · 대기 명단",
+        "register": "팀 등록",
+        "registered_count": "{count} / {max}",
+        "results": "결과",
+        "sign_in_to_register": "로그인하고 등록"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "최대 단일 상승폭",
           "worst_loss": "최대 단일 하락폭",
           "view_match": "매치 보기"
-        }
+        },
+        "show_less": "간략히 보기",
+        "tournament_finish_of": "/ {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "소개",
       "match_settings": "매치 설정",
       "read_more": "더 보기",
-      "read_less": "접기"
+      "read_less": "접기",
+      "bracket_tab": "대진표",
+      "chat_room_tab": "채팅방",
+      "matches_tab": "경기"
     },
     "feature_card": {
       "teams": "팀",
       "default_label": "토너먼트",
-      "organized_by": "{team} 주최"
+      "organized_by": "{team} 주최",
+      "players": "플레이어"
     },
     "results_section": {
       "no_data": "데이터 없음",
       "mvp": "최우수 선수",
-      "no_matches_played": "아직 진행된 매치가 없습니다"
+      "no_matches_played": "아직 진행된 매치가 없습니다",
+      "mvp_tooltip": {
+        "avg_impact": "평균 임팩트",
+        "impact": "임팩트는 팀 대비 (킬 + 어시스트) / 데스와 팀 피해량 중 비중을 바탕으로 각 경기를 0.80~1.20으로 평가합니다.",
+        "manual": "대회 주최자가 선정했습니다.",
+        "matches": "경기 수",
+        "next_best": "차순위: {name}",
+        "rule": "우승 팀에서 대회 전체 경기의 평균 임팩트가 가장 높은 선수입니다.",
+        "title": "MVP 선정 방식"
+      }
     },
     "swiss": {
       "advanced": "진출",
@@ -6201,7 +6268,8 @@
       "champion": "우승",
       "second": "2위",
       "third": "3위",
-      "player_finished": "{rank}위로 마감"
+      "player_finished": "{rank}위로 마감",
+      "players": "플레이어"
     },
     "recent": {
       "see_all": "전체 보기",
@@ -6227,7 +6295,8 @@
         "benched": "벤치"
       },
       "already_rostered": "다른 팀 소속",
-      "owner_on_a_team": "이 토너먼트에서 이미 어떤 팀의 로스터에 등록되어 있습니다."
+      "owner_on_a_team": "이 토너먼트에서 이미 어떤 팀의 로스터에 등록되어 있습니다.",
+      "leaves_pool": "프리 에이전트로 신청되어 있습니다. 팀을 등록하면 프리 에이전트 목록에서 빠집니다."
     },
     "tournament_team": {
       "remove": "팀 제거",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "카테고리"
+      },
+      "substitutes_enabled": {
+        "description": "팀이 주전 외에 교체 선수를 로스터에 등록하고 출전시킬 수 있습니다. 비활성화하면 로스터와 경기가 주전 라인업으로 제한됩니다.",
+        "label": "교체 선수 허용",
+        "locked": "등록이 마감된 후에는 교체 선수를 끌 수 없습니다."
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "참가 팀",
       "starts": "시작",
       "no_tournaments_found": "토너먼트를 찾을 수 없습니다",
-      "maps_label": "맵:"
+      "maps_label": "맵:",
+      "players_joined": "참가 플레이어"
     },
     "stage": {
       "title": "스테이지",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "결승 맵 어드밴티지",
         "description": "승자조 팀이 그랜드 파이널에 진출할 때 갖는 맵 점수 어드밴티지입니다. 우승에 필요한 맵 수보다 적어야 합니다."
-      }
+      },
+      "drawn_while_editing": "수정하는 동안 대진표가 만들어졌습니다. 유형, 팀, 그룹, 매치 설정 변경 사항을 취소한 뒤 승수제를 저장하세요.",
+      "map_pool": {
+        "empty": "토너먼트 맵 풀에 맵이 없습니다.",
+        "too_small": "{best_of}판에는 최소 {best_of}개의 맵이 필요합니다. 토너먼트 맵 풀에는 {count}개가 있습니다.",
+        "too_small_stage": "{best_of}판에는 최소 {best_of}개의 맵이 필요합니다. 이 스테이지의 맵 풀에는 {count}개가 있습니다."
+      },
+      "match_settings_drawn": "이 스테이지의 경기가 이미 편성되어 경기 설정을 더 이상 바꿀 수 없습니다.",
+      "match_settings_locked": "대진표가 만들어지면 매치 설정이 잠깁니다.",
+      "match_settings_locked_label": "매치 설정",
+      "structure_locked": "대진표가 만들어지면 유형, 팀, 그룹이 잠깁니다. 승수제는 계속 바꿀 수 있습니다.",
+      "structure_locked_label": "유형, 팀, 그룹"
     },
     "bracket": {
       "schedule_title": "매치 예약",
@@ -6403,7 +6489,12 @@
       "main_path": "메인",
       "impact_source": "출처",
       "impact_delete": "삭제",
-      "impact_reset": "초기화"
+      "impact_reset": "초기화",
+      "follow_none": "모두 보기",
+      "follow_team": "팀 따라가기",
+      "forfeit_short": "기권",
+      "match_short": "{match}경기",
+      "walkover_win": "승"
     },
     "match": {
       "reset_winner": "승자 초기화",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "이미 진행된 후속 매치가 제거될 수 있음을 이해합니다.",
       "review_chain_hint": "계속하기 전에 위의 영향받는 체인을 검토하세요.",
       "irreversible_action": "되돌릴 수 없는 작업",
-      "confirm_reset_chain_ack": "이 토너먼트 매치 체인을 초기화하는 것을 확인합니다."
+      "confirm_reset_chain_ack": "이 토너먼트 매치 체인을 초기화하는 것을 확인합니다.",
+      "recreate": "매치 다시 만들기",
+      "recreate_description": "{team_1}와(과) {team_2}이(가) 이 슬롯에서 새 매치를 치릅니다.",
+      "recreate_downstream_started": "다음 라운드가 이미 시작되어 이 매치를 다시 치를 수 없습니다.",
+      "recreate_failed": "매치를 다시 만들지 못했습니다",
+      "recreate_orphaned": "이 슬롯의 매치가 삭제되었습니다. 다시 만들어 다시 플레이하세요.",
+      "recreate_title": "매치를 다시 만들까요?",
+      "recreate_unwinds": "진출한 팀은 이 매치가 끝날 때까지 다음 라운드에서 빠집니다.",
+      "recreated": "매치를 다시 만들었습니다"
     },
     "round_labels": {
       "round": "라운드 {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "참가 가능",
-      "not_eligible": "{count}명의 플레이어가 더 필요합니다",
+      "not_eligible": "참가 불가",
       "leave_tournament": "토너먼트 탈퇴",
       "leave_team": "팀 탈퇴",
       "slot": "슬롯 {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "멤버 제거",
       "confirm_remove_member": "정말 이 멤버를 제거하시겠습니까?",
       "remove_member_description": "토너먼트 팀에서 이 멤버가 제거됩니다",
-      "min_roster_locked": "토너먼트가 이미 시작되었습니다 — 플레이어를 제거하기 전에 교체 선수를 먼저 추가하세요. 로스터는 최소 라인업 이하로 줄일 수 없습니다",
+      "min_roster_locked": "대진표 시드가 확정되어 로스터를 {count}명 미만으로 줄일 수 없습니다. 먼저 교체 선수를 추가하세요.",
       "cancel_invite": "초대 취소",
       "confirm_cancel_invite": "정말 이 초대를 취소하시겠습니까?",
       "cancel_invite_description": "이 멤버에 대한 초대가 취소됩니다",
       "seed_label": "시드",
-      "seed_display": "시드 #{seed}"
+      "seed_display": "시드 #{seed}",
+      "free_agent_tag": "프리 에이전트",
+      "missed_check_in": "체크인 누락",
+      "need_players": "{count}명의 플레이어가 더 필요합니다 | {count}명의 플레이어가 더 필요합니다"
     },
     "teams": {
       "count": "{count}팀",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "토너먼트 일시중지",
       "pause_description": "정말 이 토너먼트를 일시중지하시겠습니까? 재개할 때까지 새 매치가 자동으로 예약되지 않습니다.",
       "resume_description": "정말 이 토너먼트를 재개하시겠습니까? 대기 중인 모든 매치가 즉시 예약됩니다.",
-      "update_status_failed": "토너먼트 상태를 업데이트하지 못했습니다"
+      "update_status_failed": "토너먼트 상태를 업데이트하지 못했습니다",
+      "open_registration_full": "대진표가 가득 찼습니다.",
+      "open_registration_no_stages": "먼저 스테이지를 추가하세요.",
+      "open_registration_start_passed": "시작 시간이 지났습니다. 등록을 다시 열려면 더 늦은 시작 시간을 설정하세요."
     },
     "server": {
       "remove": "서버 제거",
@@ -6855,7 +6960,23 @@
       "draft_locked": "대진표가 진행 중이라 풀을 더 이상 드래프트할 수 없습니다.",
       "nothing_drafted": "구성된 팀이 없습니다",
       "nothing_drafted_hint": "{size}명 팀을 채울 만큼 프리 에이전트가 남지 않았거나, 대진표에 자리가 없습니다.",
-      "nothing_drafted_parties": "풀에 있는 신청들을 어떻게 조합해도 {size}명 팀이 되지 않으며, 파티는 맞추기 위해 나뉘지 않습니다."
+      "nothing_drafted_parties": "풀에 있는 신청들을 어떻게 조합해도 {size}명 팀이 되지 않으며, 파티는 맞추기 위해 나뉘지 않습니다.",
+      "add": "프리 에이전트 추가",
+      "add_failed": "프리 에이전트를 추가하지 못했습니다",
+      "added": "{name}님을 프리 에이전트에 추가했습니다",
+      "ineligible_in_pool": "이미 프리 에이전트 풀에 있습니다.",
+      "invite": "초대",
+      "invited": "초대됨",
+      "nobody_waiting_description": "신청한 모든 선수가 팀으로 드래프트되었습니다.",
+      "nobody_waiting_title": "대기 중인 선수가 없습니다",
+      "pool_locked": "프리 에이전트는 등록이 열려 있거나 체크인 검토 중에만 변경할 수 있습니다.",
+      "remove": "제거",
+      "remove_agent": "{name} 제거",
+      "remove_description": "등록이 열려 있는 동안 다시 신청할 수 있습니다.",
+      "remove_failed": "프리 에이전트를 제거하지 못했습니다",
+      "remove_title": "{name}님을 프리 에이전트에서 제거할까요?",
+      "removed": "{name}님을 프리 에이전트에서 제거했습니다",
+      "waitlisted_count": "대기 명단 {count}명"
     },
     "entry": {
       "title": "참가 조건",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "초대 시도가 너무 많습니다. 1분 후에 다시 시도하세요.",
         "invite_not_allowed": "이 계정으로는 이 초대를 수락할 수 없습니다."
       }
+    },
+    "manage": {
+      "add_first_stage": "첫 스테이지 추가",
+      "back": "페이지로 돌아가기",
+      "button": "관리",
+      "details": "세부 정보 및 브랜딩",
+      "discord": "Discord",
+      "groups": "{count}개 그룹",
+      "invite_teams": "팀 초대",
+      "match_rules": "경기 규칙",
+      "needs_attention": "확인 필요",
+      "no_stages": "아직 스테이지가 없습니다",
+      "no_stages_hint": "스테이지를 추가해 형식을 정하세요. 참가 신청이 마감되면 이를 바탕으로 대진표가 만들어집니다.",
+      "no_status_actions": "지금은 바꿀 것이 없습니다.",
+      "organizers": "주최자",
+      "prizes_awards": "상금 및 어워드",
+      "registration": "참가 신청",
+      "set_up_stages": "스테이지 설정",
+      "stage_summary": "{min}–{max}팀",
+      "stages": "스테이지",
+      "stages_after_create": "다음으로 형식과 대진표를 정하는 스테이지를 설정합니다.",
+      "stages_drawn": "대진표가 만들어지면 스테이지를 바꿀 수 없습니다. 수정하려면 대회를 설정 단계로 초기화하세요.",
+      "stages_locked": "대회가 시작되면 스테이지를 바꿀 수 없습니다.",
+      "status_actions": "대회 상태",
+      "teams": "팀 및 초대",
+      "title": "대회 관리"
+    },
+    "negotiation": {
+      "history": "기록",
+      "no_time": "아직 합의된 시간이 없습니다",
+      "outside_two_weeks": "제안한 시간은 앞으로 2주 이내여야 합니다.",
+      "outside_window": "제안한 시간이 이번 라운드 일정 조율 기간을 벗어났습니다.",
+      "schedule": "일정 조율",
+      "teams_only": "두 팀의 소유자, 주장, 로스터 관리자만 시간을 제안할 수 있습니다.",
+      "two_weeks": "시간은 앞으로 2주 이내여야 합니다.",
+      "window": "시간은 이번 라운드 기간 안이어야 합니다: {from} ~ {to}."
+    },
+    "matches_filter": {
+      "live": "라이브",
+      "upcoming": "예정",
+      "results": "결과",
+      "all": "전체",
+      "empty": {
+        "live": "지금 진행 중인 경기가 없습니다.",
+        "upcoming": "예정된 경기가 없습니다.",
+        "results": "아직 결과가 없습니다.",
+        "all": "아직 경기가 없습니다. 대진표가 만들어지면 표시됩니다."
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} 팀이 토너먼트 참가 신청에 초대되었습니다"
     },
     "roles": {
-      "captain": "팀장"
+      "captain": "팀장",
+      "admin": "관리자",
+      "invite": "초대",
+      "member": "멤버"
     },
     "leave": "팀 탈퇴",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "이미 이 시즌에 등록되어 있습니다.",
         "tournament_organizer": "이미 이 토너먼트의 주최자입니다.",
         "in_event": "이미 이 이벤트에 연결되어 있습니다.",
-        "other_side": "이미 상대 팀으로 선택되었습니다."
+        "other_side": "이미 상대 팀으로 선택되었습니다.",
+        "owner_in_tournament": "소유자가 이미 이 토너먼트에 팀을 등록했습니다."
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "팀 이름은 필수입니다",
     "short_name_required": "짧은 이름은 필수입니다",
     "team_required": "팀은 필수입니다",
-    "rcon_password_required": "RCON 비밀번호는 필수입니다"
+    "rcon_password_required": "RCON 비밀번호는 필수입니다",
+    "groups_next_stage_min": "스테이지 {stage}의 최소 팀 수는 {groups}개 그룹으로 균등하게 나뉘어야 합니다",
+    "max_teams_next_stage": "스테이지 {stage}를 채우려면 이 스테이지에 최소 {count}개 팀이 있어야 합니다",
+    "max_teams_previous_stage": "스테이지 {stage}에서는 최대 {count}개 팀만 진출할 수 있습니다",
+    "min_teams_min_value": "이 스테이지에는 최소 {count}개 팀이 필요합니다"
   },
   "ui_extras": {
     "mute": "음소거",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "{name} 빠른 보기",
+    "cancelled": "시작 전에 주최자가 취소했습니다.",
+    "cancelled_min_teams": "신청한 팀이 부족해 취소되었습니다.",
+    "check_in": {
+      "opens": "시작 {minutes}분 전에 열림",
+      "captains": "팀장이 팀을 체크인",
+      "players": "모든 선수가 직접 체크인",
+      "admin": "관리자가 팀을 체크인"
+    },
+    "elo": {
+      "max": "모든 선수 ELO {max} 이하",
+      "min": "모든 선수 ELO {min} 이상",
+      "range": "모든 선수 ELO {min}–{max}"
+    },
+    "final_standings": "최종 순위",
+    "join": {
+      "invite": "초대 전용입니다. 자리는 주최자에게 문의하세요.",
+      "teams": "팀은 {type} 정원을 모두 채운 로스터로 신청합니다.",
+      "both": "팀과 프리 에이전트 모두 신청할 수 있습니다. 프리 에이전트는 팀으로 드래프트됩니다.",
+      "free_agents": "선수가 개인으로 신청하고 팀으로 드래프트됩니다."
+    },
+    "join_free_agent": "프리 에이전트로 참가",
+    "map_pool": "맵 풀",
+    "open_tournament": "토너먼트 열기",
+    "position": "{index} / {total}",
+    "registration": "참가 신청",
+    "title": "빠른 보기"
   }
 }

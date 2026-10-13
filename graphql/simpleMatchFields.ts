@@ -40,6 +40,7 @@ export const simpleMatchFields = Selector("matches")({
       lineup_1_score: true,
       lineup_2_score: true,
       winning_lineup_id: true,
+      clips_count: true,
       public_clips_count: true,
       vetos: {
         side: true,
@@ -131,4 +132,27 @@ export const simpleMatchFields = Selector("matches")({
       },
     },
   ],
+});
+
+// A PlayerMatchRow list's lineup: who played and for which team -- never each
+// player's elo, which via playerFields runs get_player_elo() for every player
+// on the page.
+export const matchRowLineup = Selector("match_lineups")({
+  id: true,
+  name: true,
+  team_id: true,
+  team: { name: true, short_name: true, avatar_url: true },
+  lineup_players: [
+    {},
+    {
+      steam_id: true,
+      player: { steam_id: true, name: true, avatar_url: true },
+    },
+  ],
+});
+
+export const matchRowFields = Selector("matches")({
+  ...simpleMatchFields,
+  lineup_1: matchRowLineup,
+  lineup_2: matchRowLineup,
 });

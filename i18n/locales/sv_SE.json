@@ -1483,11 +1483,45 @@
         "date_6m": "Senaste 6 måutilityrna",
         "date_1y": "Senaste året",
         "no_results_title": "Inga turneringar matchar",
-        "no_results_description": "Prova att rensa filter eller bredda din sökning."
+        "no_results_description": "Prova att rensa filter eller bredda din sökning.",
+        "category": "Kategori",
+        "mine": "Endast mina arrangerade turneringar"
       },
       "tabs": {
         "upcoming": "Kommande"
-      }
+      },
+      "bracket": "Slutspelsträd",
+      "bracket_paused": "Slutspelsträd · pausat av en admin",
+      "empty": {
+        "description": "När en arrangör öppnar anmälan till en turnering dyker den upp här.",
+        "organizer": "Skapa en så dyker den upp här så fort anmälan öppnar.",
+        "title": "Inga turneringar än"
+      },
+      "facts": {
+        "online": "Online",
+        "part_of": "Del av",
+        "players": "Spelare",
+        "teams": "Lag",
+        "where": "Plats",
+        "starts": "Startar",
+        "started": "Startade",
+        "played": "Spelad"
+      },
+      "next_lan": {
+        "in_days": "om {count} dag | om {count} dagar",
+        "today": "idag",
+        "tomorrow": "i morgon"
+      },
+      "prize_pool_total": "Prispott · {amount}",
+      "sections": {
+        "live": "Live",
+        "next_lan": "Nästa LAN",
+        "recent": "Senaste resultat",
+        "results": "Resultat",
+        "upcoming": "Kommande"
+      },
+      "spots_left": "{count} plats kvar | {count} platser kvar",
+      "watch_live": "Titta live"
     },
     "manage_tournaments": {
       "title": "Hantera turneringar",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "Turneringar",
         "channel_highlights": "Höjdpunkter",
         "channel_status": "Väntar på signal"
+      },
+      "events": {
+        "count_players": "spelare | spelare",
+        "count_teams": "lag | lag",
+        "in_prizes": "{amount} i priser"
+      },
+      "tournaments": {
+        "best_of": "Bäst av {count}",
+        "by": "av {name}",
+        "champion": "Mästare: {name}",
+        "details": "Detaljer",
+        "joined_free_agent": "Anmäld som free agent",
+        "joined_team": "Anmäld",
+        "joined_waitlisted": "Free agent · väntelista",
+        "register": "Anmäl ett lag",
+        "registered_count": "{count} av {max}",
+        "results": "Resultat",
+        "sign_in_to_register": "Logga in för att anmäla"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "Bästa enskilda vinst",
           "worst_loss": "Sämsta enskilda förlust",
           "view_match": "Visa match"
-        }
+        },
+        "show_less": "Visa färre",
+        "tournament_finish_of": "av {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "Om",
       "match_settings": "Matchinställningar",
       "read_more": "Läs mer",
-      "read_less": "Visa mindre"
+      "read_less": "Visa mindre",
+      "bracket_tab": "Slutspelsträd",
+      "chat_room_tab": "Chattrum",
+      "matches_tab": "Matcher"
     },
     "feature_card": {
       "teams": "Lag",
       "default_label": "Turnering",
-      "organized_by": "Av {team}"
+      "organized_by": "Av {team}",
+      "players": "Spelare"
     },
     "results_section": {
       "no_data": "INGEN DATA",
       "mvp": "MEST VÄRDEFULLA SPELARE",
-      "no_matches_played": "Inga matcher spelade ännu"
+      "no_matches_played": "Inga matcher spelade ännu",
+      "mvp_tooltip": {
+        "avg_impact": "Snitt-impact",
+        "impact": "Impact betygsätter varje match från 0,80 till 1,20 utifrån (kills + assists) / dödsfall jämfört med laget och andel av lagets skada.",
+        "manual": "Utvald av turneringsarrangören.",
+        "matches": "Matcher",
+        "next_best": "Näst bäst: {name}",
+        "rule": "Spelaren i det vinnande laget med högst genomsnittlig impact över alla turneringens matcher.",
+        "title": "Så väljs MVP"
+      }
     },
     "swiss": {
       "advanced": "AVANCERADE",
@@ -6201,7 +6268,8 @@
       "champion": "Mästare",
       "second": "2:a",
       "third": "3:a",
-      "player_finished": "Spelaren slutade {rank}"
+      "player_finished": "Spelaren slutade {rank}",
+      "players": "Spelare"
     },
     "recent": {
       "see_all": "Visa alla",
@@ -6227,7 +6295,8 @@
         "benched": "Avbänkade"
       },
       "already_rostered": "I ett annat lag",
-      "owner_on_a_team": "Redan i ett lags trupp i den här turneringen."
+      "owner_on_a_team": "Redan i ett lags trupp i den här turneringen.",
+      "leaves_pool": "Du är anmäld som free agent. Registrerar du ett lag tas du bort från free agent-poolen."
     },
     "tournament_team": {
       "remove": "Ta bort lag",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "Kategorier"
+      },
+      "substitutes_enabled": {
+        "description": "Lag kan ha reserver i truppen och ställa upp dem utöver startuppställningen. När det är avstängt begränsas trupper och matcher till startuppställningen.",
+        "label": "Tillåt reserver",
+        "locked": "Reserver kan inte stängas av när anmälan har stängt."
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "Anmälda lag",
       "starts": "Startar",
       "no_tournaments_found": "Inga turneringar hittades",
-      "maps_label": "Kartor:"
+      "maps_label": "Kartor:",
+      "players_joined": "Anmälda spelare"
     },
     "stage": {
       "title": "Fas",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "Kartfördel i final",
         "description": "Kartpoängsförsprång som vinnarträdets lag tar med sig in i finalen. Måste vara lägre än antalet kartor som krävs för vinst."
-      }
+      },
+      "drawn_while_editing": "Slutspelsträdet skapades medan du redigerade. Förkasta dina ändringar av typ, lag, grupper eller matchinställningar och spara sedan best of.",
+      "map_pool": {
+        "empty": "Turneringens kartpool har inga kartor.",
+        "too_small": "Bäst av {best_of} kräver minst {best_of} kartor. Turneringens kartpool har {count}.",
+        "too_small_stage": "Bäst av {best_of} kräver minst {best_of} kartor. Det här stegets kartpool har {count}."
+      },
+      "match_settings_drawn": "Matcherna i det här steget är redan lottade, så deras matchinställningar kan inte ändras längre.",
+      "match_settings_locked": "Matchinställningarna är låsta när slutspelsträdet har skapats.",
+      "match_settings_locked_label": "Matchinställningar",
+      "structure_locked": "Typ, lag och grupper är låsta när slutspelsträdet har skapats. Best of kan fortfarande ändras.",
+      "structure_locked_label": "Typ, lag och grupper"
     },
     "bracket": {
       "schedule_title": "Schemalägg match",
@@ -6403,7 +6489,12 @@
       "main_path": "Huvud",
       "impact_source": "källa",
       "impact_delete": "radera",
-      "impact_reset": "återställ"
+      "impact_reset": "återställ",
+      "follow_none": "Visa alla",
+      "follow_team": "Följ ett lag",
+      "forfeit_short": "WO",
+      "match_short": "Match {match}",
+      "walkover_win": "V"
     },
     "match": {
       "reset_winner": "Återställ vinnare",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "Jag förstår att detta kan ta bort redan spelade efterföljande matcher.",
       "review_chain_hint": "Granska den påverkade kedjan ovan innan du fortsätter.",
       "irreversible_action": "Oåterkallelig åtgärd",
-      "confirm_reset_chain_ack": "Jag bekräftar att jag vill återställa denna matchkedja i turneringen."
+      "confirm_reset_chain_ack": "Jag bekräftar att jag vill återställa denna matchkedja i turneringen.",
+      "recreate": "Återskapa match",
+      "recreate_description": "{team_1} och {team_2} får en ny match på den här platsen.",
+      "recreate_downstream_started": "Nästa omgång har börjat, så den här matchen kan inte spelas om.",
+      "recreate_failed": "Kunde inte återskapa matchen",
+      "recreate_orphaned": "Matchen på den här platsen togs bort. Återskapa den för att spela den igen.",
+      "recreate_title": "Återskapa match?",
+      "recreate_unwinds": "Laget som gick vidare plockas ut ur nästa omgång tills matchen är spelad.",
+      "recreated": "Matchen återskapad"
     },
     "round_labels": {
       "round": "Rond {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "Kvalificerat",
-      "not_eligible": "Behöver {count} spelare till",
+      "not_eligible": "Inte kvalificerat",
       "leave_tournament": "Lämna turneringen",
       "leave_team": "Lämna laget",
       "slot": "Plats {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "Ta bort medlem",
       "confirm_remove_member": "Ta bort denna medlem?",
       "remove_member_description": "Detta tar bort medlemmen från turneringslaget",
-      "min_roster_locked": "Turneringen har startat — lägg till en reserv innan du tar bort en spelare, truppen kan inte gå under minsta laguppställning",
+      "min_roster_locked": "Slutspelsträdet är seedat, så truppen kan inte gå under {count}. Lägg till en reserv först.",
       "cancel_invite": "Avbryt inbjudan",
       "confirm_cancel_invite": "Avbryta denna inbjudan?",
       "cancel_invite_description": "Detta avbryter inbjudan för denna medlem",
       "seed_label": "Seedning",
-      "seed_display": "Seedning #{seed}"
+      "seed_display": "Seedning #{seed}",
+      "free_agent_tag": "Free agent",
+      "missed_check_in": "Missad incheckning",
+      "need_players": "Behöver {count} spelare till | Behöver {count} spelare till"
     },
     "teams": {
       "count": "{count} lag",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "Pausa turnering",
       "pause_description": "Pausa denna turnering? Inga nya matcher schemaläggs automatiskt förrän den återupptas.",
       "resume_description": "Återuppta denna turnering? Alla väntande matcher schemaläggs omedelbart.",
-      "update_status_failed": "Kunde inte uppdatera turneringsstatus"
+      "update_status_failed": "Kunde inte uppdatera turneringsstatus",
+      "open_registration_full": "Slutspelsträdet är fullt.",
+      "open_registration_no_stages": "Lägg till en fas först.",
+      "open_registration_start_passed": "Starttiden har passerat. Välj en senare starttid för att öppna anmälan igen."
     },
     "server": {
       "remove": "Ta bort server",
@@ -6855,7 +6960,23 @@
       "draft_locked": "Slutspelsträdet är i gång, så poolen kan inte längre draftas.",
       "nothing_drafted": "Inga lag draftades",
       "nothing_drafted_hint": "Det finns inte tillräckligt många free agents kvar för att fylla ett lag på {size}, eller så finns det ingen plats i slutspelsträdet.",
-      "nothing_drafted_parties": "Ingen kombination av anmälningarna i poolen blir ett lag på {size}, och ett party delas aldrig upp för att det ska gå ihop."
+      "nothing_drafted_parties": "Ingen kombination av anmälningarna i poolen blir ett lag på {size}, och ett party delas aldrig upp för att det ska gå ihop.",
+      "add": "Lägg till free agent",
+      "add_failed": "Kunde inte lägga till free agent",
+      "added": "{name} har lagts till bland free agents",
+      "ineligible_in_pool": "Finns redan i free agent-poolen.",
+      "invite": "Bjud in",
+      "invited": "Inbjuden",
+      "nobody_waiting_description": "Alla som anmälde sig har draftats in i ett lag.",
+      "nobody_waiting_title": "Ingen väntar",
+      "pool_locked": "Free agents kan ändras medan anmälan är öppen eller under incheckningsgranskningen.",
+      "remove": "Ta bort",
+      "remove_agent": "Ta bort {name}",
+      "remove_description": "De kan anmäla sig igen medan anmälan är öppen.",
+      "remove_failed": "Kunde inte ta bort free agent",
+      "remove_title": "Ta bort {name} från free agents?",
+      "removed": "{name} har tagits bort från free agents",
+      "waitlisted_count": "{count} på väntelistan"
     },
     "entry": {
       "title": "Deltagarkrav",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "För många inbjudningsförsök. Försök igen om en minut.",
         "invite_not_allowed": "Det här kontot kan inte acceptera den här inbjudan."
       }
+    },
+    "manage": {
+      "add_first_stage": "Lägg till första fasen",
+      "back": "Tillbaka till sidan",
+      "button": "Hantera",
+      "details": "Detaljer och utseende",
+      "discord": "Discord",
+      "groups": "{count} grupper",
+      "invite_teams": "Bjud in lag",
+      "match_rules": "Matchregler",
+      "needs_attention": "Behöver åtgärdas",
+      "no_stages": "Inga faser än",
+      "no_stages_hint": "Lägg till en fas för att bestämma formatet. Slutspelsträdet skapas från den när anmälan stänger.",
+      "no_status_actions": "Inget att ändra just nu.",
+      "organizers": "Arrangörer",
+      "prizes_awards": "Priser och utmärkelser",
+      "registration": "Anmälan",
+      "set_up_stages": "Ställ in faser",
+      "stage_summary": "{min}–{max} lag",
+      "stages": "Faser",
+      "stages_after_create": "Därefter ställer du in faserna, som avgör format och slutspelsträd.",
+      "stages_drawn": "Faser kan inte ändras när slutspelsträdet har skapats. Återställ turneringen till setup för att redigera dem.",
+      "stages_locked": "Faser kan inte ändras när turneringen har startat.",
+      "status_actions": "Turneringsstatus",
+      "teams": "Lag och inbjudningar",
+      "title": "Hantera turnering"
+    },
+    "negotiation": {
+      "history": "Historik",
+      "no_time": "Ingen tid överenskommen än",
+      "outside_two_weeks": "Den föreslagna tiden måste ligga inom de närmaste två veckorna.",
+      "outside_window": "Den föreslagna tiden ligger utanför den här rondens tidsram för schemaläggning.",
+      "schedule": "Schemalägg",
+      "teams_only": "Endast lagens ägare, kaptener och roster-admins kan föreslå en tid.",
+      "two_weeks": "Tider måste ligga inom de närmaste två veckorna.",
+      "window": "Tider måste ligga inom den här rondens tidsram: {from} till {to}."
+    },
+    "matches_filter": {
+      "live": "Live",
+      "upcoming": "Kommande",
+      "results": "Resultat",
+      "all": "Alla",
+      "empty": {
+        "live": "Inget är live just nu.",
+        "upcoming": "Inga kommande matcher.",
+        "results": "Inga resultat ännu.",
+        "all": "Inga matcher ännu. De visas när slutspelsträdet är klart."
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} har bjudits in att anmäla sig till en turnering"
     },
     "roles": {
-      "captain": "Lagkapten"
+      "captain": "Lagkapten",
+      "admin": "Admin",
+      "invite": "Bjuda in",
+      "member": "Medlem"
     },
     "leave": "Lämna laget",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "Redan registrerat för den här säsongen.",
         "tournament_organizer": "Redan arrangör för den här turneringen.",
         "in_event": "Redan kopplat till det här evenemanget.",
-        "other_side": "Redan valt som det andra laget."
+        "other_side": "Redan valt som det andra laget.",
+        "owner_in_tournament": "Ägaren har redan ett lag i den här turneringen."
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "lagnamn krävs",
     "short_name_required": "kortnamn krävs",
     "team_required": "lag krävs",
-    "rcon_password_required": "RCON-lösenord krävs"
+    "rcon_password_required": "RCON-lösenord krävs",
+    "groups_next_stage_min": "minsta antal lag i fas {stage} måste kunna delas jämnt i {groups} grupper",
+    "max_teams_next_stage": "den här fasen måste rymma minst {count} lag för att fylla fas {stage}",
+    "max_teams_previous_stage": "fas {stage} kan skicka vidare högst {count} lag",
+    "min_teams_min_value": "den här fasen behöver minst {count} lag"
   },
   "ui_extras": {
     "mute": "Ljud av",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "Snabbtitt på {name}",
+    "cancelled": "Arrangören ställde in den innan den startade.",
+    "cancelled_min_teams": "För få lag anmälde sig, så den ställdes in.",
+    "check_in": {
+      "opens": "öppnar {minutes} min före start",
+      "captains": "Lagkaptener checkar in sitt lag",
+      "players": "Varje spelare checkar in",
+      "admin": "En admin checkar in lagen"
+    },
+    "elo": {
+      "max": "Alla spelare med högst {max} ELO",
+      "min": "Alla spelare med minst {min} ELO",
+      "range": "Alla spelare med {min}–{max} ELO"
+    },
+    "final_standings": "Slutställning",
+    "join": {
+      "invite": "Endast med inbjudan. Be arrangören om en plats.",
+      "teams": "Lag anmäler sig med en fullständig {type}-trupp.",
+      "both": "Lag och free agents kan anmäla sig. Free agents draftas in i lag.",
+      "free_agents": "Spelare anmäler sig ensamma och draftas in i lag."
+    },
+    "join_free_agent": "Anmäl dig som free agent",
+    "map_pool": "Kartpool",
+    "open_tournament": "Öppna turnering",
+    "position": "{index} av {total}",
+    "registration": "Anmälan",
+    "title": "Snabbtitt"
   }
 }

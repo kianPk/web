@@ -40,7 +40,9 @@ import {
   Split,
   RotateCw,
   Shuffle,
+  TriangleAlert,
 } from "lucide-vue-next";
+import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 
 const stageTypeIcons: Record<string, any> = {
   SingleElimination: Trophy,
@@ -65,6 +67,33 @@ import { $ } from "~/generated/zeus";
 
 <template>
   <form @submit.prevent="updateCreateStage" class="grid gap-4">
+    <Fold :open="structureLocked">
+      <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span>{{ $t("tournament.stage.structure_locked_label") }}</span>
+        <FiveStackToolTip as-child :delay-duration="120">
+          <template #trigger>
+            <span
+              class="inline-flex cursor-help text-[hsl(var(--tac-amber))]"
+              tabindex="0"
+              role="img"
+              :aria-label="$t('tournament.stage.structure_locked')"
+              @click.prevent
+            >
+              <TriangleAlert class="h-3.5 w-3.5" />
+            </span>
+          </template>
+          <p class="max-w-[16rem]">
+            {{ $t("tournament.stage.structure_locked") }}
+          </p>
+        </FiveStackToolTip>
+      </div>
+    </Fold>
+
+    <fieldset
+      :disabled="structureLocked"
+      class="grid min-w-0 gap-4 transition-opacity duration-200 motion-reduce:transition-none"
+      :class="structureLocked && 'pointer-events-none opacity-50'"
+    >
     <FormField v-slot="{ value, handleChange }" name="stage_type">
       <FormItem>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -73,11 +102,14 @@ import { $ } from "~/generated/zeus";
             :key="type.value"
             type="button"
             :class="[
-              'group/tile relative flex flex-col items-center justify-center gap-[0.55rem] min-h-[8.5rem] px-[0.85rem] py-4 border border-border [background:linear-gradient(180deg,hsl(var(--card)/0.5)_0%,hsl(var(--card)/0.2)_100%)] backdrop-blur-[6px] text-muted-foreground cursor-pointer [transition:color_160ms_ease,border-color_160ms_ease,background_160ms_ease,transform_160ms_ease] hover:border-[hsl(var(--tac-amber)/0.45)] hover:text-foreground hover:-translate-y-px',
+              'group/tile relative flex flex-col items-center justify-center gap-[0.55rem] min-h-[8.5rem] rounded-md px-[0.85rem] py-4 border border-border [background:linear-gradient(180deg,hsl(var(--card)/0.5)_0%,hsl(var(--card)/0.2)_100%)] backdrop-blur-[6px] text-muted-foreground cursor-pointer [transition:color_160ms_ease,border-color_160ms_ease,background_160ms_ease,transform_160ms_ease] hover:border-[hsl(var(--tac-amber)/0.45)] hover:text-foreground hover:-translate-y-px',
               value === type.value &&
                 '!border-[hsl(var(--tac-amber))] ![background:linear-gradient(180deg,hsl(var(--tac-amber)/0.12)_0%,hsl(var(--tac-amber)/0.04)_100%)] !text-foreground !shadow-[inset_0_1px_0_hsl(var(--tac-amber)/0.08)] hover:!translate-y-0',
             ]"
-            @click="handleChange(type.value)"
+            @click="
+              pruneRoundBestOf(type.value);
+              handleChange(type.value);
+            "
           >
             <span
               aria-hidden="true"
@@ -113,20 +145,6 @@ import { $ } from "~/generated/zeus";
             >
               {{ type.description }}
             </span>
-            <span
-              aria-hidden="true"
-              :class="[
-                'absolute -top-px -left-px w-[10px] h-[10px] border-solid border-[hsl(var(--tac-amber))] border-t-2 border-l-2 pointer-events-none transition-opacity [transition-duration:160ms]',
-                value === type.value ? 'opacity-100' : 'opacity-0',
-              ]"
-            />
-            <span
-              aria-hidden="true"
-              :class="[
-                'absolute -bottom-px -right-px w-[10px] h-[10px] border-solid border-[hsl(var(--tac-amber))] border-b-2 border-r-2 pointer-events-none transition-opacity [transition-duration:160ms]',
-                value === type.value ? 'opacity-100' : 'opacity-0',
-              ]"
-            />
           </button>
         </div>
         <FormMessage />
@@ -293,6 +311,7 @@ import { $ } from "~/generated/zeus";
       </Fold>
     </div>
     </Fold>
+    </fieldset>
 
     <!-- Section A: Default Best Of -->
     <Card>
@@ -316,12 +335,14 @@ import { $ } from "~/generated/zeus";
                   <SelectItem value="1">{{
                     $t("match.options.best_of.option", { count: 1 })
                   }}</SelectItem>
-                  <SelectItem value="3">{{
-                    $t("match.options.best_of.option", { count: 3 })
-                  }}</SelectItem>
-                  <SelectItem value="5">{{
-                    $t("match.options.best_of.option", { count: 5 })
-                  }}</SelectItem>
+                  <template v-if="!isRush">
+                    <SelectItem value="3">{{
+                      $t("match.options.best_of.option", { count: 3 })
+                    }}</SelectItem>
+                    <SelectItem value="5">{{
+                      $t("match.options.best_of.option", { count: 5 })
+                    }}</SelectItem>
+                  </template>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -337,6 +358,11 @@ import { $ } from "~/generated/zeus";
         form.values.stage_type === 'SingleElimination' &&
         !!form.values.max_teams
       "
+    >
+    <fieldset
+      :disabled="structureLocked"
+      class="grid min-w-0 gap-4 transition-opacity duration-200 motion-reduce:transition-none"
+      :class="structureLocked && 'pointer-events-none opacity-50'"
     >
     <Card>
       <div class="p-4 space-y-4">
@@ -389,12 +415,14 @@ import { $ } from "~/generated/zeus";
                   <SelectItem value="1">{{
                     $t("match.options.best_of.option", { count: 1 })
                   }}</SelectItem>
-                  <SelectItem value="3">{{
-                    $t("match.options.best_of.option", { count: 3 })
-                  }}</SelectItem>
-                  <SelectItem value="5">{{
-                    $t("match.options.best_of.option", { count: 5 })
-                  }}</SelectItem>
+                  <template v-if="!isRush">
+                    <SelectItem value="3">{{
+                      $t("match.options.best_of.option", { count: 3 })
+                    }}</SelectItem>
+                    <SelectItem value="5">{{
+                      $t("match.options.best_of.option", { count: 5 })
+                    }}</SelectItem>
+                  </template>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -404,10 +432,16 @@ import { $ } from "~/generated/zeus";
         </Fold>
       </div>
     </Card>
+    </fieldset>
     </Fold>
 
     <!-- Section B2: Final Map Advantage (DE only) -->
     <Fold :open="form.values.stage_type === 'DoubleElimination'">
+    <fieldset
+      :disabled="structureLocked"
+      class="grid min-w-0 gap-4 transition-opacity duration-200 motion-reduce:transition-none"
+      :class="structureLocked && 'pointer-events-none opacity-50'"
+    >
     <Card>
       <div class="flex flex-col space-y-3 p-4">
         <FormField v-slot="{ value }" name="final_map_advantage">
@@ -446,6 +480,7 @@ import { $ } from "~/generated/zeus";
         </FormField>
       </div>
     </Card>
+    </fieldset>
     </Fold>
 
     <!-- Section C: Advanced Settings (collapsible) -->
@@ -492,6 +527,7 @@ import { $ } from "~/generated/zeus";
           <!-- Per-Round Best Of -->
           <Fold
             :open="
+              !isRush &&
               !!form.values.stage_type &&
               form.values.stage_type !== 'RoundRobin' &&
               !!form.values.max_teams
@@ -511,6 +547,37 @@ import { $ } from "~/generated/zeus";
           </Card>
           </Fold>
 
+          <Fold :open="structureLocked">
+            <div
+              class="flex items-center gap-1.5 text-xs text-muted-foreground"
+            >
+              <span>{{
+                $t("tournament.stage.match_settings_locked_label")
+              }}</span>
+              <FiveStackToolTip as-child :delay-duration="120">
+                <template #trigger>
+                  <span
+                    class="inline-flex cursor-help text-[hsl(var(--tac-amber))]"
+                    tabindex="0"
+                    role="img"
+                    :aria-label="$t('tournament.stage.match_settings_locked')"
+                    @click.prevent
+                  >
+                    <TriangleAlert class="h-3.5 w-3.5" />
+                  </span>
+                </template>
+                <p class="max-w-[16rem]">
+                  {{ $t("tournament.stage.match_settings_locked") }}
+                </p>
+              </FiveStackToolTip>
+            </div>
+          </Fold>
+
+          <fieldset
+            :disabled="structureLocked"
+            class="flex min-w-0 flex-col gap-4 transition-opacity duration-200 motion-reduce:transition-none"
+            :class="structureLocked && 'pointer-events-none opacity-50'"
+          >
           <!-- TV Delay -->
           <Card>
             <div class="flex flex-col space-y-3 p-4">
@@ -611,14 +678,31 @@ import { $ } from "~/generated/zeus";
           <Fold :open="availableRegions.length > 1">
           <Card>
             <div class="p-6 space-y-6">
-              <SettingHeader>
-                {{ $t("match.options.advanced.region.title") }}
-              </SettingHeader>
+              <div class="flex justify-between items-center">
+                <SettingHeader>
+                  {{ $t("match.options.advanced.region.title") }}
+                </SettingHeader>
+                <div class="flex items-center gap-4" v-if="canSetLan">
+                  <span>{{
+                    $t("match.options.advanced.region.lan_match")
+                  }}</span>
+                  <Switch
+                    :model-value="form.values.lan"
+                    @update:model-value="
+                      (checked) => form.setFieldValue('lan', checked)
+                    "
+                  />
+                </div>
+              </div>
 
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <FormField v-slot="{ value, handleChange }" name="region_veto">
                   <FormItem>
-                    <Card class="cursor-pointer" @click="handleChange(!value)">
+                    <Card
+                      class="cursor-pointer"
+                      :class="{ 'cursor-not-allowed': form.values.lan }"
+                      @click="!form.values.lan && handleChange(!value)"
+                    >
                       <div class="flex flex-col space-y-3 p-4">
                         <div class="flex justify-between items-center">
                           <SettingHeader>{{
@@ -629,6 +713,7 @@ import { $ } from "~/generated/zeus";
                               class="pointer-events-none"
                               :model-value="value"
                               @update:model-value="handleChange"
+                              :disabled="form.values.lan"
                             />
                           </FormControl>
                         </div>
@@ -654,7 +739,9 @@ import { $ } from "~/generated/zeus";
                     </FormLabel>
 
                     <FormControl>
-                      <template v-if="!form.values.region_veto">
+                      <template
+                        v-if="form.values.lan || !form.values.region_veto"
+                      >
                         <Select v-model="select_single_region">
                           <FormControl>
                             <SelectTrigger>
@@ -664,7 +751,14 @@ import { $ } from "~/generated/zeus";
                                     'match.options.advanced.region.placeholder',
                                   )
                                 "
-                              />
+                              >
+                                <span v-if="selectedRegionDetails">
+                                  {{
+                                    selectedRegionDetails.description ||
+                                    selectedRegionDetails.value
+                                  }}
+                                </span>
+                              </SelectValue>
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -915,12 +1009,28 @@ import { $ } from "~/generated/zeus";
               </FormField>
             </div>
           </Card>
+          </fieldset>
         </div>
       </div>
     </Collapsible>
 
+    <FiveStackToolTip
+      v-if="!stage && mapPoolShortfall"
+      as-child
+      :delay-duration="120"
+    >
+      <template #trigger>
+        <span class="grid" tabindex="0">
+          <Button type="submit" disabled>
+            {{ $t("tournament.stage.create") }}
+          </Button>
+        </span>
+      </template>
+      <span class="block max-w-[18rem]">{{ mapPoolShortfallText }}</span>
+    </FiveStackToolTip>
+
     <Button
-      v-if="!stage"
+      v-else-if="!stage"
       type="submit"
       :disabled="Object.keys(form.errors).length > 0"
       :loading="submitting"
@@ -932,6 +1042,8 @@ import { $ } from "~/generated/zeus";
       v-else
       contained
       :dirty="isDirty"
+      :invalid="!!mapPoolShortfall"
+      :invalid-reason="mapPoolShortfallText"
       :submitting="submitting"
       @save="updateCreateStage"
       @discard="discardChanges"
@@ -944,6 +1056,7 @@ import * as z from "zod";
 import { useForm } from "vee-validate";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import {
+  e_match_types_enum,
   e_tournament_stage_types_enum,
   e_ready_settings_enum,
   e_timeout_settings_enum,
@@ -959,7 +1072,18 @@ import { useAuthStore } from "~/stores/AuthStore";
 // name when the template resolves it. This returns a boolean, so the template
 // was reading a function -- always truthy, and a v-if that never hid anything.
 import { canSetVetoPickTimeout as allowsVetoPickTimeout } from "~/utilities/setupOptions";
+import {
+  advancingTeams,
+  groupsSplitNextStage,
+  stageTeamLimits,
+  teamCountOptions,
+} from "~/utilities/tournamentStageTeams";
 import { toast } from "@/components/ui/toast";
+import {
+  stageHighestBestOf,
+  stageMapPoolShortfall,
+  stageRoundKeys,
+} from "~/utilities/stageMapPool";
 
 interface Region {
   value: string;
@@ -986,6 +1110,10 @@ export default {
     tournament: {
       type: Object,
       required: false,
+    },
+    structureLocked: {
+      type: Boolean,
+      default: false,
     },
   },
   apollo: {
@@ -1050,6 +1178,7 @@ export default {
               // Advanced settings (5 overridable fields)
               tv_delay: z.number().min(0).max(120).default(115),
               veto_pick_timeout: z.number().min(0).max(600).default(60),
+              lan: z.boolean().default(false),
               region_veto: z.boolean().default(true),
               regions: z.string().array().default([]),
               check_in_setting: z
@@ -1070,18 +1199,64 @@ export default {
             )
             .refine(
               (data) => {
-                const min =
-                  data.stage_type === e_tournament_stage_types_enum.RoundRobin
-                    ? 3
-                    : 4;
+                const { min } = this.teamLimitsFor(data);
                 return (
                   parseInt(data.min_teams) >= min &&
                   parseInt(data.max_teams) >= min
                 );
               },
               {
-                message: this.$t("validation_extras.min_max_teams_min_value"),
+                error: () =>
+                  this.$t("validation_extras.min_teams_min_value", {
+                    count: this.teamLimits.min,
+                  }),
                 path: ["min_teams"],
+              },
+            )
+            .refine(
+              (data) => {
+                const advancing = advancingTeams(this.previousStage);
+                return (
+                  advancing === null || parseInt(data.max_teams) <= advancing
+                );
+              },
+              {
+                error: () =>
+                  this.$t("validation_extras.max_teams_previous_stage", {
+                    stage: this.order - 1,
+                    count: advancingTeams(this.previousStage),
+                  }),
+                path: ["max_teams"],
+              },
+            )
+            .refine(
+              (data) =>
+                parseInt(data.max_teams) >=
+                this.teamLimitsFor(data).maxTeamsFloor,
+              {
+                error: () =>
+                  this.$t("validation_extras.max_teams_next_stage", {
+                    stage: this.order + 1,
+                    count: this.teamLimits.maxTeamsFloor,
+                  }),
+                path: ["max_teams"],
+              },
+            )
+            .refine(
+              (data) =>
+                groupsSplitNextStage({
+                  type: data.stage_type,
+                  groups: data.groups,
+                  minTeams: data.min_teams,
+                  nextStage: this.nextStage,
+                }),
+              {
+                error: () =>
+                  this.$t("validation_extras.groups_next_stage_min", {
+                    stage: this.order + 1,
+                    groups: this.form.values.groups,
+                  }),
+                path: ["groups"],
               },
             ),
         ),
@@ -1125,9 +1300,27 @@ export default {
     },
     select_single_region: {
       handler(select_single_region) {
-        if (!this.form.values.region_veto) {
+        if (this.form.values.lan || !this.form.values.region_veto) {
           this.form.setFieldValue("regions", [select_single_region]);
         }
+      },
+    },
+    ["form.values.lan"]: {
+      handler(lan: boolean) {
+        this.form.setFieldValue("region_veto", !lan);
+        this.setDefaultRegion();
+      },
+    },
+    ["form.values.regions"]: {
+      immediate: true,
+      handler() {
+        this.syncLanFromRegions();
+      },
+    },
+    availableRegions: {
+      immediate: true,
+      handler() {
+        this.syncLanFromRegions();
       },
     },
     ["form.values.third_place_match"]: {
@@ -1162,6 +1355,9 @@ export default {
     },
   },
   computed: {
+    isRush(): boolean {
+      return this.tournament?.options?.type === e_match_types_enum.Rush;
+    },
     canSetVetoPickTimeout() {
       return allowsVetoPickTimeout();
     },
@@ -1176,61 +1372,73 @@ export default {
         (a, b) => order.indexOf(a.value as any) - order.indexOf(b.value as any),
       );
     },
+    previousStage() {
+      return (
+        this.tournament?.stages?.find(
+          (stage: any) => stage.order === this.order - 1,
+        ) ?? null
+      );
+    },
+    nextStage() {
+      return (
+        this.tournament?.stages?.find(
+          (stage: any) => stage.order === this.order + 1,
+        ) ?? null
+      );
+    },
+    teamLimits() {
+      return this.teamLimitsFor(this.form.values);
+    },
     minTeamOptions() {
-      return this.baseNumberOfTeamsOptions;
+      return teamCountOptions(this.teamLimits).map((count) => ({
+        value: count.toString(),
+        display: count,
+      }));
     },
     maxTeamOptions() {
       if (!this.form.values.min_teams) {
         return;
       }
-      return this.baseNumberOfTeamsOptions.filter((option) => {
-        return parseInt(option.value) >= parseInt(this.form.values.min_teams);
-      });
-    },
-    baseNumberOfTeamsOptions() {
-      let max = 256;
-      let options = [];
-
-      switch (this.form.values.stage_type) {
-        case e_tournament_stage_types_enum.SingleElimination:
-        case e_tournament_stage_types_enum.DoubleElimination:
-          while (max > 3) {
-            options.push({
-              value: max.toString(),
-              display: max,
-            });
-
-            max--;
-          }
-
-          break;
-        case e_tournament_stage_types_enum.RoundRobin:
-          for (let i = 32; i >= 3; i--) {
-            options.push({
-              value: i.toString(),
-              display: i,
-            });
-          }
-          break;
-        case e_tournament_stage_types_enum.Swiss:
-          for (let i = 64; i >= 10; i -= 2) {
-            options.push({
-              value: i.toString(),
-              display: i,
-            });
-          }
-          break;
-      }
-
-      return options.reverse();
+      return teamCountOptions(
+        this.teamLimits,
+        Math.max(
+          parseInt(this.form.values.min_teams),
+          this.teamLimits.maxTeamsFloor,
+        ),
+      ).map((count) => ({
+        value: count.toString(),
+        display: count,
+      }));
     },
     availableRegions(): Region[] {
       return useApplicationSettingsStore().availableRegions;
     },
+    lanRegions(): Region[] {
+      return this.availableRegions.filter((region: Region) => {
+        return region.is_lan === true;
+      });
+    },
     regions(): Region[] {
       return this.availableRegions.filter((region: Region) => {
-        return region.is_lan === false;
+        return this.form.values.lan
+          ? region.is_lan === true
+          : region.is_lan === false;
       });
+    },
+    selectedRegionDetails(): Region | undefined {
+      if (!this.select_single_region) {
+        return undefined;
+      }
+      return this.availableRegions.find(
+        (region: Region) => region.value === this.select_single_region,
+      );
+    },
+    canSetLan(): boolean {
+      if (this.lanRegions.length === 0) {
+        return false;
+      }
+
+      return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
     canSetCheckInSettings() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
@@ -1322,6 +1530,51 @@ export default {
         },
       ];
     },
+    // A locked save leaves the stage's options row alone, so a stage still
+    // holding a pool of its own goes on playing that one.
+    keptOwnMapPool(): any {
+      const pool = this.structureLocked ? this.stage?.options?.map_pool : null;
+      return pool && pool.id !== this.tournament?.options?.map_pool?.id
+        ? pool
+        : null;
+    },
+    mapPoolShortfall(): { bestOf: number; size: number } | null {
+      if (this.isRush) {
+        return null;
+      }
+      const values = this.form.values;
+      const pool = this.keptOwnMapPool ?? this.tournament?.options?.map_pool;
+      return stageMapPoolShortfall(
+        pool?.maps?.length ?? 0,
+        stageHighestBestOf({
+          stageType: values.stage_type,
+          maxTeams: parseInt(values.max_teams) || 0,
+          groups: values.groups || 1,
+          swissNoElimination: !!values.swiss_no_elimination,
+          defaultBestOf: values.default_best_of,
+          roundBestOf: this.roundBestOf,
+        }),
+      );
+    },
+    mapPoolShortfallText(): string {
+      const shortfall = this.mapPoolShortfall;
+      if (!shortfall) {
+        return "";
+      }
+      if (this.keptOwnMapPool) {
+        return this.$t("tournament.stage.map_pool.too_small_stage", {
+          best_of: shortfall.bestOf,
+          count: shortfall.size,
+        });
+      }
+      if (shortfall.size === 0) {
+        return this.$t("tournament.stage.map_pool.empty");
+      }
+      return this.$t("tournament.stage.map_pool.too_small", {
+        best_of: shortfall.bestOf,
+        count: shortfall.size,
+      });
+    },
     finalMapAdvantageMax() {
       // Must stay strictly below the maps needed to win the grand final;
       // at/above ceil(best_of / 2) the winner-bracket team wins on map one.
@@ -1330,6 +1583,16 @@ export default {
     },
   },
   methods: {
+    teamLimitsFor(values: any) {
+      return stageTeamLimits({
+        type: values.stage_type,
+        order: this.order,
+        groups: values.groups,
+        swissNoElimination: !!values.swiss_no_elimination,
+        previousStage: this.previousStage,
+        nextStage: this.nextStage,
+      });
+    },
     toggleVetoTimer(enabled: boolean) {
       if (!enabled) {
         const current = this.form.values.veto_pick_timeout;
@@ -1441,6 +1704,19 @@ export default {
     discardChanges() {
       this.populateStage(this.stage);
     },
+    structureChanged(): boolean {
+      if (this.baseline === null) {
+        return false;
+      }
+      const before = JSON.parse(this.baseline).values;
+      const after = this.form.values;
+      const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+      return [...keys].some(
+        (key) =>
+          key !== "default_best_of" &&
+          JSON.stringify(before[key]) !== JSON.stringify(after[key]),
+      );
+    },
     animateAdvanced(open: boolean) {
       const wrap = this.$refs.advWrapRef as HTMLElement | undefined;
       if (!wrap) {
@@ -1493,15 +1769,52 @@ export default {
       });
     },
     setDefaultRegion() {
-      const { region_veto } = this.form.values;
+      if (this.availableRegions.length === 0) {
+        return;
+      }
 
-      if (!region_veto && this.regions.length > 0) {
-        this.select_single_region = this.regions[0]?.value || null;
+      const { lan, region_veto } = this.form.values;
+
+      if ((lan || !region_veto) && this.regions.length > 0) {
+        const existing = this.form.values.regions?.[0];
+        const existingMatch = this.regions.find(
+          (region: Region) => region.value === existing,
+        );
+
+        this.select_single_region =
+          existingMatch?.value || this.regions[0]?.value || null;
+
         return;
       }
 
       this.select_single_region = null;
       this.form.setFieldValue("regions", []);
+    },
+    syncLanFromRegions() {
+      if (this.availableRegions.length === 0) {
+        return;
+      }
+
+      const selectedRegions = this.form.values.regions || [];
+      if (selectedRegions.length === 0) {
+        return;
+      }
+
+      const hasLan = selectedRegions.some((value: string) =>
+        this.lanRegions.some((lanRegion: Region) => lanRegion.value === value),
+      );
+
+      if (hasLan && !this.form.values.lan) {
+        this.form.setFieldValue("lan", true);
+        return;
+      }
+
+      if (
+        (this.form.values.lan || !this.form.values.region_veto) &&
+        !this.select_single_region
+      ) {
+        this.select_single_region = selectedRegions[0];
+      }
     },
     hasAdvancedSettingsChanged() {
       if (!this.tournament) {
@@ -1535,6 +1848,37 @@ export default {
       }
 
       return false;
+    },
+    pruneRoundBestOf(stageType: string) {
+      if (stageType === this.form.values.stage_type) {
+        return;
+      }
+      const keys = stageRoundKeys(
+        stageType,
+        parseInt(this.form.values.max_teams) || 0,
+        this.form.values.groups || 1,
+      );
+      this.roundBestOf = Object.fromEntries(
+        Object.entries(this.roundBestOf).filter(([key]) => keys.includes(key)),
+      );
+    },
+    async stageHasDrawnMatches(): Promise<boolean> {
+      const { data } = await (this as any).$apollo.query({
+        fetchPolicy: "network-only",
+        query: generateQuery({
+          tournament_brackets: [
+            {
+              where: {
+                tournament_stage_id: { _eq: this.stage.id },
+                match_id: { _is_null: false },
+              },
+              limit: 1,
+            },
+            { id: true },
+          ],
+        }),
+      });
+      return (data?.tournament_brackets?.length ?? 0) > 0;
     },
     async updateMatchOptions(
       matchOptionsId: string,
@@ -1730,10 +2074,71 @@ export default {
           return;
         }
 
+        if (this.mapPoolShortfall) {
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: this.mapPoolShortfallText,
+          });
+          return;
+        }
+
         this.submitting = true;
         const form = this.form.values;
         const customAdvancedSettings = this.hasAdvancedSettingsChanged();
         const settings = this.buildSettings();
+
+        if (this.stage && this.structureLocked) {
+          if (this.structureChanged()) {
+            toast({
+              variant: "destructive",
+              title: this.$t("common.error"),
+              description: this.$t("tournament.stage.drawn_while_editing"),
+            });
+            return;
+          }
+
+          await (this as any).$apollo.mutate({
+            variables: {
+              settings: settings,
+            },
+            mutation: generateMutation({
+              update_tournament_stages_by_pk: [
+                {
+                  pk_columns: {
+                    id: this.stage.id,
+                  },
+                  _set: {
+                    default_best_of: parseInt(form.default_best_of),
+                    settings: $("settings", "jsonb"),
+                  },
+                },
+                {
+                  __typename: true,
+                },
+              ],
+            }),
+          });
+
+          this.takeSnapshot();
+          this.$emit("updated");
+          return;
+        }
+
+        // tbu_tournament_stages refuses a new or dropped options row once a
+        // match is drawn; ask first so nothing is inserted for a refused save.
+        if (
+          this.stage &&
+          !!this.stage.options?.id !== customAdvancedSettings &&
+          (await this.stageHasDrawnMatches())
+        ) {
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: this.$t("tournament.stage.match_settings_drawn"),
+          });
+          return;
+        }
 
         if (this.stage) {
           // Handle match options for advanced settings

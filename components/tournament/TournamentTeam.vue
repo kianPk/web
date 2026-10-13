@@ -199,16 +199,15 @@ import { toast } from "~/components/ui/toast";
               "
             >
               <span class="w-[5px] h-[5px] bg-current rounded-full"></span>
-              <template v-if="team.eligible_at">
-                {{ $t("tournament.team.eligible") }}
-              </template>
-              <template v-else>
-                {{
-                  $t("tournament.team.not_eligible", {
-                    count: requiredPlayers - team.roster.length,
-                  })
-                }}
-              </template>
+              <Transition
+                mode="out-in"
+                enter-active-class="transition-opacity duration-150 ease-out motion-reduce:!duration-0"
+                leave-active-class="transition-opacity duration-100 ease-in motion-reduce:!duration-0"
+                enter-from-class="opacity-0"
+                leave-to-class="opacity-0"
+              >
+                <span :key="eligibilityLabel">{{ eligibilityLabel }}</span>
+              </Transition>
             </span>
 
             <span
@@ -375,6 +374,7 @@ import { toast } from "~/components/ui/toast";
                   :label="$t('tournament.team.add_player')"
                   :self="true"
                   :ineligible="ineligiblePlayers"
+                  :tags="freeAgentTags"
                   :team-id="team.team_id"
                   @selected="addMember"
                 >
@@ -448,6 +448,7 @@ import { toast } from "~/components/ui/toast";
 import { e_team_roles_enum, e_tournament_status_enum } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateMutation } from "~/graphql/graphqlGen";
+import { playerBlockErrorKey } from "~/utilities/playerBlocks";
 
 export default {
   emits: ["toggle-collapsed"],
@@ -467,6 +468,14 @@ export default {
     collapsed: {
       type: Boolean,
       default: false,
+    },
+    freeAgentSteamIds: {
+      type: Array as () => Array<string>,
+      default: () => [],
+    },
+    registration: {
+      type: Object,
+      default: null,
     },
   },
   data() {
@@ -535,6 +544,12 @@ export default {
         e_tournament_status_enum.CancelledMinTeams,
       ].includes(status);
     },
+    freeAgentTags() {
+      const tag = this.$t("tournament.team.free_agent_tag");
+      return Object.fromEntries(
+        this.freeAgentSteamIds.map((steamId) => [steamId, tag]),
+      );
+    },
     // Layered so the most specific fact wins: another team's roster first,
     // then this team's roster, then this team's pending invites.
     //
@@ -597,6 +612,34 @@ export default {
     },
     minPlayers() {
       return this.tournament.min_players_per_lineup;
+    },
+    missingPlayers() {
+      return Math.max(0, this.minPlayers - this.team.roster.length);
+    },
+    // Same gate as the api's tournament_check_in_window_opened: a team is only
+    // a no-show once a check-in window actually opened.
+    missedCheckIn() {
+      return (
+        !!this.registration?.check_in_required &&
+        !!this.registration?.check_in_ends_at &&
+        !this.team.checked_in_at
+      );
+    },
+    eligibilityLabel() {
+      if (this.team.eligible_at) {
+        return this.$t("tournament.team.eligible");
+      }
+      if (this.missingPlayers > 0) {
+        return this.$t(
+          "tournament.team.need_players",
+          { count: this.missingPlayers },
+          this.missingPlayers,
+        );
+      }
+      if (this.missedCheckIn) {
+        return this.$t("tournament.team.missed_check_in");
+      }
+      return this.$t("tournament.team.not_eligible");
     },
     rosterLocked() {
       // Once the bracket has been seeded the roster is locked to its minimum;
@@ -921,12 +964,15 @@ export default {
         // ones we can see, but pending invites on other teams aren't readable
         // from here, so that case only surfaces as this error.
         const alreadyInTournament = /already.*(tournament|team)/i.test(message);
+        const blockedKey = playerBlockErrorKey(message);
 
         toast({
           title: this.$t("tournament.team.add_player"),
           description: alreadyInTournament
             ? this.$t("tournament.team.already_in_tournament")
-            : message,
+            : blockedKey
+              ? this.$t(blockedKey)
+              : message,
           variant: "destructive",
         });
       }

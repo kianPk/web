@@ -13605,6 +13605,10 @@ export const AllTypesProps: Record<string,any> = {
 		addSteamPresenceBotAccount:{
 
 		},
+		addTournamentFreeAgent:{
+			steam_id:"bigint",
+			tournament_id:"uuid"
+		},
 		approveNameChange:{
 			steam_id:"bigint"
 		},
@@ -16747,6 +16751,9 @@ export const AllTypesProps: Record<string,any> = {
 		reconnectLive:{
 			match_id:"uuid"
 		},
+		recreateTournamentBracketMatch:{
+			tournament_bracket_id:"uuid"
+		},
 		redeemTournamentInviteCode:{
 			tournament_id:"uuid"
 		},
@@ -16767,6 +16774,10 @@ export const AllTypesProps: Record<string,any> = {
 			distinct_on:"league_team_seasons_select_column",
 			order_by:"league_team_seasons_order_by",
 			where:"league_team_seasons_bool_exp"
+		},
+		removeTournamentFreeAgent:{
+			steam_id:"bigint",
+			tournament_id:"uuid"
 		},
 		renameServerItem:{
 
@@ -38413,7 +38424,8 @@ export const AllTypesProps: Record<string,any> = {
 		tournament:"tournaments_bool_exp",
 		tournament_id:"uuid_comparison_exp",
 		tournament_team:"tournament_teams_bool_exp",
-		tournament_team_id:"uuid_comparison_exp"
+		tournament_team_id:"uuid_comparison_exp",
+		created_at:"timestamptz_comparison_exp"
 	},
 	tournament_team_roster_constraint: "enum" as const,
 	tournament_team_roster_inc_input:{
@@ -38428,19 +38440,22 @@ export const AllTypesProps: Record<string,any> = {
 		tournament:"tournaments_obj_rel_insert_input",
 		tournament_id:"uuid",
 		tournament_team:"tournament_teams_obj_rel_insert_input",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_max_order_by:{
 		checked_in_at:"order_by",
 		player_steam_id:"order_by",
 		tournament_id:"order_by",
-		tournament_team_id:"order_by"
+		tournament_team_id:"order_by",
+		created_at:"order_by"
 	},
 	tournament_team_roster_min_order_by:{
 		checked_in_at:"order_by",
 		player_steam_id:"order_by",
 		tournament_id:"order_by",
-		tournament_team_id:"order_by"
+		tournament_team_id:"order_by",
+		created_at:"order_by"
 	},
 	tournament_team_roster_on_conflict:{
 		constraint:"tournament_team_roster_constraint",
@@ -38457,7 +38472,8 @@ export const AllTypesProps: Record<string,any> = {
 		tournament:"tournaments_order_by",
 		tournament_id:"order_by",
 		tournament_team:"tournament_teams_order_by",
-		tournament_team_id:"order_by"
+		tournament_team_id:"order_by",
+		created_at:"order_by"
 	},
 	tournament_team_roster_pk_columns_input:{
 		player_steam_id:"bigint",
@@ -38469,7 +38485,8 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_id:"bigint",
 		role:"e_team_roles_enum",
 		tournament_id:"uuid",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_stddev_order_by:{
 		player_steam_id:"order_by"
@@ -38489,7 +38506,8 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_id:"bigint",
 		role:"e_team_roles_enum",
 		tournament_id:"uuid",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_sum_order_by:{
 		player_steam_id:"order_by"
@@ -39033,6 +39051,7 @@ export const AllTypesProps: Record<string,any> = {
 		check_in_setting:"e_check_in_settings_enum_comparison_exp",
 		check_in_started:"Boolean_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
+		current_stage:"Int_comparison_exp",
 		description:"String_comparison_exp",
 		discord_guild_id:"String_comparison_exp",
 		discord_notifications_enabled:"Boolean_comparison_exp",
@@ -39052,6 +39071,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_voice_enabled:"Boolean_comparison_exp",
 		discord_webhook:"String_comparison_exp",
 		e_tournament_status:"e_tournament_status_bool_exp",
+		finished_at:"timestamptz_comparison_exp",
 		free_agents:"tournament_free_agents_bool_exp",
 		free_agents_aggregate:"tournament_free_agents_aggregate_bool_exp",
 		has_min_teams:"Boolean_comparison_exp",
@@ -39085,7 +39105,6 @@ export const AllTypesProps: Record<string,any> = {
 		player_stats_aggregate:"v_tournament_player_stats_aggregate_bool_exp",
 		prizes:"tournament_prizes_bool_exp",
 		prizes_aggregate:"tournament_prizes_aggregate_bool_exp",
-		regions:"String_array_comparison_exp",
 		registration_type:"e_tournament_registration_types_enum_comparison_exp",
 		registration_unlocked:"Boolean_comparison_exp",
 		results:"v_team_tournament_results_bool_exp",
@@ -39097,6 +39116,7 @@ export const AllTypesProps: Record<string,any> = {
 		stages_aggregate:"tournament_stages_aggregate_bool_exp",
 		start:"timestamptz_comparison_exp",
 		status:"e_tournament_status_enum_comparison_exp",
+		substitutes_enabled:"Boolean_comparison_exp",
 		teams:"tournament_teams_bool_exp",
 		teams_aggregate:"tournament_teams_aggregate_bool_exp"
 	},
@@ -39117,6 +39137,7 @@ export const AllTypesProps: Record<string,any> = {
 		check_in_setting:"e_check_in_settings_enum",
 		created_at:"timestamptz",
 		e_tournament_status:"e_tournament_status_obj_rel_insert_input",
+		finished_at:"timestamptz",
 		free_agents:"tournament_free_agents_arr_rel_insert_input",
 		id:"uuid",
 		latitude:"float8",
@@ -39150,6 +39171,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_guild_id:"order_by",
 		discord_role_id:"order_by",
 		discord_webhook:"order_by",
+		finished_at:"order_by",
 		homepage:"order_by",
 		id:"order_by",
 		latitude:"order_by",
@@ -39161,7 +39183,6 @@ export const AllTypesProps: Record<string,any> = {
 		min_elo:"order_by",
 		name:"order_by",
 		organizer_steam_id:"order_by",
-		regions:"order_by",
 		scheduling_mode:"order_by",
 		start:"order_by"
 	},
@@ -39177,6 +39198,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_guild_id:"order_by",
 		discord_role_id:"order_by",
 		discord_webhook:"order_by",
+		finished_at:"order_by",
 		homepage:"order_by",
 		id:"order_by",
 		latitude:"order_by",
@@ -39188,7 +39210,6 @@ export const AllTypesProps: Record<string,any> = {
 		min_elo:"order_by",
 		name:"order_by",
 		organizer_steam_id:"order_by",
-		regions:"order_by",
 		scheduling_mode:"order_by",
 		start:"order_by"
 	},
@@ -39228,6 +39249,7 @@ export const AllTypesProps: Record<string,any> = {
 		check_in_setting:"order_by",
 		check_in_started:"order_by",
 		created_at:"order_by",
+		current_stage:"order_by",
 		description:"order_by",
 		discord_guild_id:"order_by",
 		discord_notifications_enabled:"order_by",
@@ -39247,6 +39269,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_voice_enabled:"order_by",
 		discord_webhook:"order_by",
 		e_tournament_status:"e_tournament_status_order_by",
+		finished_at:"order_by",
 		free_agents_aggregate:"tournament_free_agents_aggregate_order_by",
 		has_min_teams:"order_by",
 		homepage:"order_by",
@@ -39275,7 +39298,6 @@ export const AllTypesProps: Record<string,any> = {
 		organizers_aggregate:"tournament_organizers_aggregate_order_by",
 		player_stats_aggregate:"v_tournament_player_stats_aggregate_order_by",
 		prizes_aggregate:"tournament_prizes_aggregate_order_by",
-		regions:"order_by",
 		registration_type:"order_by",
 		registration_unlocked:"order_by",
 		results_aggregate:"v_team_tournament_results_aggregate_order_by",
@@ -39284,6 +39306,7 @@ export const AllTypesProps: Record<string,any> = {
 		stages_aggregate:"tournament_stages_aggregate_order_by",
 		start:"order_by",
 		status:"order_by",
+		substitutes_enabled:"order_by",
 		teams_aggregate:"tournament_teams_aggregate_order_by"
 	},
 	tournaments_pk_columns_input:{
@@ -39306,6 +39329,7 @@ export const AllTypesProps: Record<string,any> = {
 		check_in_ends_at:"timestamptz",
 		check_in_setting:"e_check_in_settings_enum",
 		created_at:"timestamptz",
+		finished_at:"timestamptz",
 		id:"uuid",
 		latitude:"float8",
 		longitude:"float8",
@@ -39353,6 +39377,7 @@ export const AllTypesProps: Record<string,any> = {
 		check_in_ends_at:"timestamptz",
 		check_in_setting:"e_check_in_settings_enum",
 		created_at:"timestamptz",
+		finished_at:"timestamptz",
 		id:"uuid",
 		latitude:"float8",
 		longitude:"float8",
@@ -54804,6 +54829,7 @@ export const ReturnTypes: Record<string,any> = {
 		addCustomGamePlugin:"AddCustomGamePluginOutput",
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
+		addTournamentFreeAgent:"SuccessOutput",
 		approveNameChange:"SuccessOutput",
 		approve_league_season_movements:"league_team_movements",
 		assignSteamPresenceBot:"SteamPresenceBotAssignment",
@@ -55710,6 +55736,7 @@ export const ReturnTypes: Record<string,any> = {
 		recomputePlayerEloStatus:"RecomputeEloStatusOutput",
 		reconcileNodePlugins:"ReconcileNodePluginsOutput",
 		reconnectLive:"SuccessOutput",
+		recreateTournamentBracketMatch:"SuccessOutput",
 		redeemTournamentInviteCode:"SuccessOutput",
 		refreshAllPlayers:"ReindexStartedOutput",
 		refreshAllPlayersStatus:"ReindexStatusOutput",
@@ -55720,6 +55747,7 @@ export const ReturnTypes: Record<string,any> = {
 		removeFixtures:"SuccessOutput",
 		removeSteamPresenceBotAccount:"SuccessOutput",
 		remove_league_team_from_season:"league_team_seasons",
+		removeTournamentFreeAgent:"SuccessOutput",
 		renameServerItem:"SuccessOutput",
 		renderUtilityLineupPreview:"UtilityRenderQueueOutput",
 		reorder_league_divisions:"league_divisions",
@@ -66500,7 +66528,8 @@ export const ReturnTypes: Record<string,any> = {
 		tournament:"tournaments",
 		tournament_id:"uuid",
 		tournament_team:"tournament_teams",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_aggregate:{
 		aggregate:"tournament_team_roster_aggregate_fields",
@@ -66526,13 +66555,15 @@ export const ReturnTypes: Record<string,any> = {
 		checked_in_at:"timestamptz",
 		player_steam_id:"bigint",
 		tournament_id:"uuid",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_min_fields:{
 		checked_in_at:"timestamptz",
 		player_steam_id:"bigint",
 		tournament_id:"uuid",
-		tournament_team_id:"uuid"
+		tournament_team_id:"uuid",
+		created_at:"timestamptz"
 	},
 	tournament_team_roster_mutation_response:{
 		affected_rows:"Int",
@@ -66703,6 +66734,7 @@ export const ReturnTypes: Record<string,any> = {
 		check_in_setting:"e_check_in_settings_enum",
 		check_in_started:"Boolean",
 		created_at:"timestamptz",
+		current_stage:"Int",
 		description:"String",
 		discord_guild_id:"String",
 		discord_notifications_enabled:"Boolean",
@@ -66722,6 +66754,7 @@ export const ReturnTypes: Record<string,any> = {
 		discord_voice_enabled:"Boolean",
 		discord_webhook:"String",
 		e_tournament_status:"e_tournament_status",
+		finished_at:"timestamptz",
 		free_agents:"tournament_free_agents",
 		free_agents_aggregate:"tournament_free_agents_aggregate",
 		has_min_teams:"Boolean",
@@ -66755,7 +66788,6 @@ export const ReturnTypes: Record<string,any> = {
 		player_stats_aggregate:"v_tournament_player_stats_aggregate",
 		prizes:"tournament_prizes",
 		prizes_aggregate:"tournament_prizes_aggregate",
-		regions:"String",
 		registration_type:"e_tournament_registration_types_enum",
 		registration_unlocked:"Boolean",
 		results:"v_team_tournament_results",
@@ -66767,6 +66799,7 @@ export const ReturnTypes: Record<string,any> = {
 		stages_aggregate:"tournament_stages_aggregate",
 		start:"timestamptz",
 		status:"e_tournament_status_enum",
+		substitutes_enabled:"Boolean",
 		teams:"tournament_teams",
 		teams_aggregate:"tournament_teams_aggregate"
 	},
@@ -66790,6 +66823,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_avg_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66807,10 +66841,12 @@ export const ReturnTypes: Record<string,any> = {
 		check_in_ends_at:"timestamptz",
 		check_in_opens_before_minutes:"Int",
 		created_at:"timestamptz",
+		current_stage:"Int",
 		description:"String",
 		discord_guild_id:"String",
 		discord_role_id:"String",
 		discord_webhook:"String",
+		finished_at:"timestamptz",
 		homepage:"String",
 		id:"uuid",
 		latitude:"float8",
@@ -66825,7 +66861,6 @@ export const ReturnTypes: Record<string,any> = {
 		missed_check_in_count:"Int",
 		name:"String",
 		organizer_steam_id:"bigint",
-		regions:"String",
 		scheduling_mode:"String",
 		start:"timestamptz"
 	},
@@ -66837,10 +66872,12 @@ export const ReturnTypes: Record<string,any> = {
 		check_in_ends_at:"timestamptz",
 		check_in_opens_before_minutes:"Int",
 		created_at:"timestamptz",
+		current_stage:"Int",
 		description:"String",
 		discord_guild_id:"String",
 		discord_role_id:"String",
 		discord_webhook:"String",
+		finished_at:"timestamptz",
 		homepage:"String",
 		id:"uuid",
 		latitude:"float8",
@@ -66855,7 +66892,6 @@ export const ReturnTypes: Record<string,any> = {
 		missed_check_in_count:"Int",
 		name:"String",
 		organizer_steam_id:"bigint",
-		regions:"String",
 		scheduling_mode:"String",
 		start:"timestamptz"
 	},
@@ -66866,6 +66902,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_stddev_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66878,6 +66915,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_stddev_pop_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66890,6 +66928,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_stddev_samp_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66902,6 +66941,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_sum_fields:{
 		check_in_closes_before_minutes:"Int",
 		check_in_opens_before_minutes:"Int",
+		current_stage:"Int",
 		latitude:"float8",
 		longitude:"float8",
 		max_elo:"Int",
@@ -66914,6 +66954,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_var_pop_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66926,6 +66967,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_var_samp_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",
@@ -66938,6 +66980,7 @@ export const ReturnTypes: Record<string,any> = {
 	tournaments_variance_fields:{
 		check_in_closes_before_minutes:"Float",
 		check_in_opens_before_minutes:"Float",
+		current_stage:"Int",
 		latitude:"Float",
 		longitude:"Float",
 		max_elo:"Float",

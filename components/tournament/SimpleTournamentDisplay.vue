@@ -2,6 +2,7 @@
 import { ArrowRight, UsersIcon } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import MapDisplay from "~/components/MapDisplay.vue";
+import AnimatedStat from "~/components/AnimatedStat.vue";
 </script>
 
 <template>
@@ -66,7 +67,14 @@ import MapDisplay from "~/components/MapDisplay.vue";
             variant="outline"
             class="text-xs bg-black/70 text-white border-white/30 backdrop-blur-sm"
           >
-            {{ stageCount }} {{ $t("tournament.stage.stages") }}
+            <template v-if="currentStage">
+              {{
+                $t("tournament.stage.stage_tab", { stage: currentStage.order })
+              }}
+            </template>
+            <template v-else>
+              {{ stageCount }} {{ $t("tournament.stage.stages") }}
+            </template>
           </Badge>
           <Badge
             v-if="singleStageType"
@@ -86,17 +94,21 @@ import MapDisplay from "~/components/MapDisplay.vue";
           <div class="flex items-center space-x-2">
             <TimeAgo
               :date="tournament.start"
-              class="text-sm text-gray-600 dark:text-gray-400"
+              class="text-sm text-gray-400"
             ></TimeAgo>
           </div>
           <div
             v-if="tournament.teams_aggregate?.aggregate?.count !== undefined"
-            class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
+            class="flex items-center gap-1.5 text-xs text-gray-400"
           >
             <UsersIcon class="h-3.5 w-3.5" />
             <span>
-              {{ tournament.teams_aggregate.aggregate.count }}
-              {{ $t("tournament.table.teams_joined") }}
+              <AnimatedStat :value="registrationValue" />
+              {{
+                registration.unit === "players"
+                  ? $t("tournament.table.players_joined")
+                  : $t("tournament.table.teams_joined")
+              }}
             </span>
           </div>
         </div>
@@ -108,6 +120,8 @@ import MapDisplay from "~/components/MapDisplay.vue";
 <script lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
 import { tournamentPlayerRankLabel } from "~/utilities/tournamentPlayerRank";
+import { tournamentCurrentStage } from "~/utilities/tournamentCurrentStage";
+import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
 
 export default {
   props: {
@@ -148,6 +162,16 @@ export default {
     },
     stageCount() {
       return this.tournament?.stages?.length || 0;
+    },
+    registration() {
+      return tournamentRegistrationCount(this.tournament);
+    },
+    registrationValue() {
+      const { unit, count, max } = this.registration;
+      return unit === "players" && max ? `${count} / ${max}` : String(count);
+    },
+    currentStage() {
+      return tournamentCurrentStage(this.tournament);
     },
     singleStageType() {
       if (

@@ -4,6 +4,7 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
+import { LOGO_FRAMES, TOURNAMENT_BANNER_FRAMES } from "~/utilities/cropFrames";
 import AddressSearch from "~/components/AddressSearch.vue";
 import CategorySelect from "~/components/tournament/CategorySelect.vue";
 import DateTimePicker from "~/components/tournament/DateTimePicker.vue";
@@ -20,7 +21,7 @@ import {
 <template>
   <form @submit.prevent="save" class="mx-auto grid max-w-3xl gap-8">
     <!-- Branding -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.branding") }}
@@ -31,10 +32,16 @@ import {
           <ImageUploadTile
             aspect="square"
             fit="contain"
+            allow-fit-whole
+            allow-bg-removal
+            crop
+            :crop-frames="LOGO_FRAMES"
             :upload-url="`https://${apiDomain}/avatars/tournaments/${tournament.id}`"
             :delete-url="`https://${apiDomain}/avatars/tournaments/${tournament.id}`"
             :has-custom="!!tournament.logo"
             :current-src="tournamentLogoSrc"
+            @uploaded="onBrandingChanged"
+            @removed="onBrandingChanged"
           />
         </div>
         <div class="grid gap-1.5">
@@ -44,18 +51,24 @@ import {
             fit="contain"
             allow-fit-whole
             filename="banner.webp"
+            :crop-output="{ w: 2400, h: 800 }"
+            crop
+            :crop-frames="TOURNAMENT_BANNER_FRAMES"
+            :crop-recommended-width="2400"
             :hint="$t('tournament.banner.hint')"
             :upload-url="`https://${apiDomain}/avatars/tournaments/${tournament.id}/banner`"
             :delete-url="`https://${apiDomain}/avatars/tournaments/${tournament.id}/banner`"
             :has-custom="!!tournament.banner"
             :current-src="tournamentBannerSrc"
+            @uploaded="onBrandingChanged"
+            @removed="onBrandingChanged"
           />
         </div>
       </div>
     </section>
 
     <!-- Details -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.details") }}
@@ -105,7 +118,7 @@ import {
     </section>
 
     <!-- Schedule -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.schedule") }}
@@ -136,7 +149,7 @@ import {
     </section>
 
     <!-- Classification & Venue -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.classification") }}
@@ -179,7 +192,7 @@ import {
          first would show "check-in off" on a tournament that requires it, and
          a toggle flipped in that window would be overwritten a tick later. -->
     <TournamentRegistrationForm
-      v-if="registrationSettings"
+      v-if="registrationSettings && part !== 'details'"
       :form="form"
       :tournament="registrationSettings"
       :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
@@ -213,9 +226,20 @@ import { toast } from "@/components/ui/toast";
 
 export default {
   props: {
+    // "details" | "registration" | "all": Manage shows the halves as two
+    // sections; either one still saves the whole form.
+    part: {
+      type: String,
+      default: "all",
+    },
     tournament: {
       type: Object,
       required: true,
+    },
+  },
+  inject: {
+    refetchTournamentStatic: {
+      default: () => () => {},
     },
   },
   data() {
@@ -321,6 +345,9 @@ export default {
     },
   },
   methods: {
+    onBrandingChanged() {
+      void (this.refetchTournamentStatic as () => unknown)();
+    },
     populate() {
       this.form.setValues({
         name: this.tournament.name,
@@ -498,7 +525,6 @@ export default {
             min_elo: $("min_elo", "Int"),
             max_elo: $("max_elo", "Int"),
             invite_only: $("invite_only", "Boolean!"),
-            regions: $("regions", "[String!]!"),
             check_in_required: $("check_in_required", "Boolean!"),
             check_in_setting: $(
               "check_in_setting",
@@ -539,6 +565,7 @@ export default {
         });
 
         await this.syncCategories();
+        await this.refetchTournamentStatic();
 
         toast({ title: this.$t("tournament.updated") as string });
 

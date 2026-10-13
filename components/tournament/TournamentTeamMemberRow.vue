@@ -38,6 +38,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import BlockedMenuItem from "~/components/common/BlockedMenuItem.vue";
 import Separator from "../ui/separator/Separator.vue";
 </script>
 
@@ -64,9 +65,10 @@ import Separator from "../ui/separator/Separator.vue";
             <Button
               variant="outline"
               size="sm"
-              class="h-8 -mr-px !rounded-r-none hover:z-10 focus:z-10"
+              class="h-8 hover:z-10 focus:z-10"
+              :class="hasMenuActions && '-mr-px !rounded-r-none'"
             >
-              {{ member.role }}
+              {{ roleLabel(member.role) }}
               <ChevronDownIcon class="ml-2 h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
@@ -84,7 +86,7 @@ import Separator from "../ui/separator/Separator.vue";
                     :value="role.value"
                     class="flex flex-col items-start px-4 py-2 cursor-pointer"
                   >
-                    <p>{{ role.value }}</p>
+                    <p>{{ roleLabel(role.value) }}</p>
                     <p class="text-sm text-muted-foreground">
                       {{ role.description }}
                     </p>
@@ -98,10 +100,10 @@ import Separator from "../ui/separator/Separator.vue";
           v-else
           class="inline-flex h-8 items-center border border-border bg-muted/30 px-3 font-mono text-[0.7rem] tracking-[0.18em] uppercase text-muted-foreground rounded-l-md rounded-r-none -mr-px"
         >
-          {{ member.role }}
+          {{ roleLabel(member.role) }}
         </span>
 
-        <DropdownMenu>
+        <DropdownMenu v-if="hasMenuActions">
           <DropdownMenuTrigger as-child>
             <Button
               variant="outline"
@@ -118,7 +120,7 @@ import Separator from "../ui/separator/Separator.vue";
               {{ $t("match.overview.promote_captain") }}
             </DropdownMenuItem>
             <DropdownMenuSeparator
-              v-if="canPromoteCaptain && (canLeaveSelf || canUpdateRole)"
+              v-if="canPromoteCaptain && (canLeaveSelf || canRemoveMember)"
             />
             <DropdownMenuItem
               v-if="canLeaveSelf"
@@ -128,15 +130,18 @@ import Separator from "../ui/separator/Separator.vue";
               <LogOut />
               {{ $t("tournament.team.leave_team") }}
             </DropdownMenuItem>
+            <BlockedMenuItem
+              v-if="canRemoveMember && rosterLockedAtMin"
+              :reasons="[minRosterLockedReason]"
+            >
+              <UserMinus class="text-destructive" />
+              <span class="text-destructive">{{
+                $t("tournament.team.remove_member")
+              }}</span>
+            </BlockedMenuItem>
             <DropdownMenuItem
-              v-if="canUpdateRole"
+              v-else-if="canRemoveMember"
               class="text-destructive"
-              :disabled="rosterLockedAtMin"
-              :title="
-                rosterLockedAtMin
-                  ? $t('tournament.team.min_roster_locked')
-                  : undefined
-              "
               @click="removeMemberDialog = true"
             >
               <UserMinus />
@@ -149,7 +154,7 @@ import Separator from "../ui/separator/Separator.vue";
         v-else
         class="font-mono text-[0.7rem] tracking-[0.18em] uppercase text-muted-foreground"
       >
-        {{ member.role }}
+        {{ roleLabel(member.role) }}
       </span>
     </div>
 
@@ -183,6 +188,11 @@ import Separator from "../ui/separator/Separator.vue";
 
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
+import {
+  e_player_roles_enum,
+  e_tournament_status_enum,
+} from "~/generated/zeus";
+import { teamRoleLabel } from "~/utilities/teamRoleLabel";
 
 export default {
   emits: ["leave"],
@@ -216,6 +226,7 @@ export default {
     return {
       memberRole: undefined,
       removeMemberDialog: false,
+      removing: false,
       roleMenuOpen: false,
     };
   },
@@ -249,7 +260,37 @@ export default {
       return this.isCurrentUser && this.canLeave;
     },
     hasMenuActions() {
-      return this.canPromoteCaptain || this.canLeaveSelf || this.canUpdateRole;
+      return (
+        this.canPromoteCaptain || this.canLeaveSelf || this.canRemoveMember
+      );
+    },
+    // The roster delete permission: never once the tournament is over, and
+    // during Live only for a tournament_organizer session.
+    canRemoveMember() {
+      if (this.isCurrentUser || !this.canManageTeam) {
+        return false;
+      }
+      const status = this.tournament?.status;
+      if (
+        [
+          e_tournament_status_enum.Cancelled,
+          e_tournament_status_enum.CancelledMinTeams,
+          e_tournament_status_enum.Finished,
+        ].includes(status)
+      ) {
+        return false;
+      }
+      if (status === e_tournament_status_enum.Live) {
+        return useAuthStore().isRoleAbove(
+          e_player_roles_enum.tournament_organizer,
+        );
+      }
+      return true;
+    },
+    minRosterLockedReason() {
+      return this.$t("tournament.team.min_roster_locked", {
+        count: this.tournament?.min_players_per_lineup,
+      });
     },
     canUpdateRole() {
       const me = useAuthStore().me;
@@ -264,6 +305,9 @@ export default {
     },
   },
   methods: {
+    roleLabel(role: string) {
+      return teamRoleLabel(role, (key) => this.$t(key));
+    },
     async publishRole() {
       if (!this.canUpdateRole) return;
 
@@ -291,22 +335,29 @@ export default {
     },
     async removeMember() {
       this.removeMemberDialog = false;
-      if (!this.canUpdateRole || this.rosterLockedAtMin) return;
+      if (this.removing || !this.canRemoveMember || this.rosterLockedAtMin) {
+        return;
+      }
 
-      await this.$apollo.mutate({
-        mutation: generateMutation({
-          delete_tournament_team_roster_by_pk: [
-            {
-              player_steam_id: this.member.player.steam_id,
-              tournament_id:
-                this.$route.params.tournamentId || this.$route.params.id,
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
+      this.removing = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete_tournament_team_roster_by_pk: [
+              {
+                player_steam_id: this.member.player.steam_id,
+                tournament_id:
+                  this.$route.params.tournamentId || this.$route.params.id,
+              },
+              {
+                __typename: true,
+              },
+            ],
+          }),
+        });
+      } finally {
+        this.removing = false;
+      }
     },
     async promoteCaptain() {
       if (!this.canPromoteCaptain) return;

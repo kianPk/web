@@ -1483,11 +1483,45 @@
         "date_6m": "最近 6 個月",
         "date_1y": "最近一年",
         "no_results_title": "沒有相符的賽事",
-        "no_results_description": "請嘗試清除篩選條件或擴大搜尋範圍。"
+        "no_results_description": "請嘗試清除篩選條件或擴大搜尋範圍。",
+        "category": "類別",
+        "mine": "僅顯示我主辦的賽事"
       },
       "tabs": {
         "upcoming": "即將開始"
-      }
+      },
+      "bracket": "賽程表",
+      "bracket_paused": "賽程表 · 已被管理員暫停",
+      "empty": {
+        "description": "主辦方開放賽事報名後，賽事會顯示在這裡。",
+        "organizer": "建立一個賽事，開放報名後就會顯示在這裡。",
+        "title": "尚無賽事"
+      },
+      "facts": {
+        "online": "線上",
+        "part_of": "所屬活動",
+        "players": "玩家",
+        "teams": "隊伍",
+        "where": "地點",
+        "starts": "開始",
+        "started": "已開始",
+        "played": "舉辦日期"
+      },
+      "next_lan": {
+        "in_days": "{count} 天後 | {count} 天後",
+        "today": "今天",
+        "tomorrow": "明天"
+      },
+      "prize_pool_total": "總獎金 · {amount}",
+      "sections": {
+        "live": "進行中",
+        "next_lan": "下一場 LAN",
+        "recent": "近期結果",
+        "results": "結果",
+        "upcoming": "即將開始"
+      },
+      "spots_left": "剩餘 {count} 個名額 | 剩餘 {count} 個名額",
+      "watch_live": "觀看直播"
     },
     "manage_tournaments": {
       "title": "管理賽事",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "賽事",
         "channel_highlights": "精華片段",
         "channel_status": "等待訊號中"
+      },
+      "events": {
+        "count_players": "名玩家 | 名玩家",
+        "count_teams": "支隊伍 | 支隊伍",
+        "in_prizes": "獎金 {amount}"
+      },
+      "tournaments": {
+        "best_of": "BO{count}",
+        "by": "{name} 主辦",
+        "champion": "冠軍：{name}",
+        "details": "詳情",
+        "joined_free_agent": "已以自由選手身分報名",
+        "joined_team": "已報名",
+        "joined_waitlisted": "自由選手 · 候補",
+        "register": "報名隊伍",
+        "registered_count": "{count} / {max}",
+        "results": "結果",
+        "sign_in_to_register": "登入後報名"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "單次最大增益",
           "worst_loss": "單次最大損失",
           "view_match": "查看比賽"
-        }
+        },
+        "show_less": "顯示較少",
+        "tournament_finish_of": "/ {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "關於",
       "match_settings": "比賽設定",
       "read_more": "顯示更多",
-      "read_less": "顯示較少"
+      "read_less": "顯示較少",
+      "bracket_tab": "對陣圖",
+      "chat_room_tab": "聊天室",
+      "matches_tab": "比賽"
     },
     "feature_card": {
       "teams": "隊伍",
       "default_label": "賽事",
-      "organized_by": "由 {team} 主辦"
+      "organized_by": "由 {team} 主辦",
+      "players": "玩家"
     },
     "results_section": {
       "no_data": "無資料",
       "mvp": "最有價值選手",
-      "no_matches_played": "尚未進行任何比賽"
+      "no_matches_played": "尚未進行任何比賽",
+      "mvp_tooltip": {
+        "avg_impact": "平均影響力",
+        "impact": "影響力根據相對於隊伍的（擊殺 + 助攻）/ 死亡以及在隊伍傷害中的佔比，為每場比賽給出 0.80–1.20 的評分。",
+        "manual": "由賽事主辦方選定。",
+        "matches": "場次",
+        "next_best": "次佳：{name}",
+        "rule": "冠軍隊伍中，在本次賽事所有比賽裡平均影響力最高的選手。",
+        "title": "MVP 評選方式"
+      }
     },
     "swiss": {
       "advanced": "晉級",
@@ -6201,7 +6268,8 @@
       "champion": "冠軍",
       "second": "亞軍",
       "third": "季軍",
-      "player_finished": "選手獲得第 {rank} 名"
+      "player_finished": "選手獲得第 {rank} 名",
+      "players": "玩家"
     },
     "recent": {
       "see_all": "檢視全部",
@@ -6227,7 +6295,8 @@
         "benched": "板凳"
       },
       "already_rostered": "已在其他隊伍",
-      "owner_on_a_team": "已在這場錦標賽的某支隊伍名單中。"
+      "owner_on_a_team": "已在這場錦標賽的某支隊伍名單中。",
+      "leaves_pool": "你已以自由選手身分報名。註冊隊伍會讓你退出自由選手名單。"
     },
     "tournament_team": {
       "remove": "移除隊伍",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "分類"
+      },
+      "substitutes_enabled": {
+        "description": "隊伍可以在先發陣容之外登記並派出替補。關閉後，名單與比賽僅限先發陣容。",
+        "label": "允許替補",
+        "locked": "報名截止後無法關閉替補。"
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "已加入隊伍",
       "starts": "開始",
       "no_tournaments_found": "找不到賽事",
-      "maps_label": "地圖："
+      "maps_label": "地圖：",
+      "players_joined": "已加入玩家"
     },
     "stage": {
       "title": "階段",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "決賽地圖優勢",
         "description": "勝者組隊伍帶入總決賽的地圖分領先優勢。必須低於獲勝所需的地圖數。"
-      }
+      },
+      "drawn_while_editing": "你編輯期間對陣圖已產生。請捨棄對類型、隊伍、小組或比賽設定的變更，然後儲存賽制。",
+      "map_pool": {
+        "empty": "賽事地圖池中沒有地圖。",
+        "too_small": "BO{best_of} 至少需要 {best_of} 張地圖。賽事地圖池有 {count} 張。",
+        "too_small_stage": "BO{best_of} 至少需要 {best_of} 張地圖。本階段的地圖池有 {count} 張。"
+      },
+      "match_settings_drawn": "本階段的比賽已經排定，因此比賽設定無法再更改。",
+      "match_settings_locked": "對陣圖產生後，比賽設定將被鎖定。",
+      "match_settings_locked_label": "比賽設定",
+      "structure_locked": "對陣圖產生後，類型、隊伍和小組將被鎖定。賽制仍可變更。",
+      "structure_locked_label": "類型、隊伍和小組"
     },
     "bracket": {
       "schedule_title": "安排比賽",
@@ -6403,7 +6489,12 @@
       "main_path": "主線",
       "impact_source": "來源",
       "impact_delete": "刪除",
-      "impact_reset": "重設"
+      "impact_reset": "重設",
+      "follow_none": "顯示全部",
+      "follow_team": "追蹤隊伍",
+      "forfeit_short": "棄",
+      "match_short": "第 {match} 場",
+      "walkover_win": "勝"
     },
     "match": {
       "reset_winner": "重設勝者",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "我了解這可能會移除已進行的後續比賽。",
       "review_chain_hint": "請在繼續之前檢視上方受影響的比賽鏈。",
       "irreversible_action": "不可逆操作",
-      "confirm_reset_chain_ack": "我確認要重設此賽事比賽鏈。"
+      "confirm_reset_chain_ack": "我確認要重設此賽事比賽鏈。",
+      "recreate": "重新建立比賽",
+      "recreate_description": "{team_1} 和 {team_2} 將在此位置進行一場新比賽。",
+      "recreate_downstream_started": "下一輪已經開始，因此這場比賽無法重賽。",
+      "recreate_failed": "無法重新建立比賽",
+      "recreate_orphaned": "此位置的比賽已被刪除。重新建立即可再次進行。",
+      "recreate_title": "重新建立比賽？",
+      "recreate_unwinds": "晉級的隊伍會被移出下一輪，直到這場比賽打完。",
+      "recreated": "比賽已重新建立"
     },
     "round_labels": {
       "round": "第 {number} 輪",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "符合資格",
-      "not_eligible": "還需要 {count} 名選手",
+      "not_eligible": "不符合資格",
       "leave_tournament": "離開賽事",
       "leave_team": "離開隊伍",
       "slot": "第 {number} 號位",
@@ -6529,12 +6628,15 @@
       "remove_member": "移除成員",
       "confirm_remove_member": "您確定要移除此成員嗎？",
       "remove_member_description": "這將從賽事隊伍中移除該成員",
-      "min_roster_locked": "賽事已開始——請先加入替補再移除選手，陣容人數不能低於最低要求",
+      "min_roster_locked": "對陣圖已完成種子排位，陣容不能少於 {count} 人。請先加入替補。",
       "cancel_invite": "取消邀請",
       "confirm_cancel_invite": "您確定要取消此邀請嗎？",
       "cancel_invite_description": "這將取消對該成員的邀請",
       "seed_label": "種子序",
-      "seed_display": "種子 #{seed}"
+      "seed_display": "種子 #{seed}",
+      "free_agent_tag": "自由選手",
+      "missed_check_in": "錯過報到",
+      "need_players": "還需要 {count} 名選手 | 還需要 {count} 名選手"
     },
     "teams": {
       "count": "{count} 支隊伍",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "暫停賽事",
       "pause_description": "您確定要暫停此賽事嗎？在恢復之前，不會自動排程新比賽。",
       "resume_description": "您確定要恢復此賽事嗎？所有待處理的比賽將立即排程。",
-      "update_status_failed": "更新賽事狀態失敗"
+      "update_status_failed": "更新賽事狀態失敗",
+      "open_registration_full": "對陣圖已滿。",
+      "open_registration_no_stages": "請先新增一個階段。",
+      "open_registration_start_passed": "開始時間已過。請設定一個更晚的開始時間以重新開放報名。"
     },
     "server": {
       "remove": "移除伺服器",
@@ -6855,7 +6960,23 @@
       "draft_locked": "對戰表已經開打，選手池無法再分隊。",
       "nothing_drafted": "沒有組成任何隊伍",
       "nothing_drafted_hint": "剩下的自由選手不足以湊滿一支 {size} 人的隊伍，或者對戰表已沒有空位。",
-      "nothing_drafted_parties": "選手池中報名的任何組合都湊不滿 {size} 人的隊伍，而小隊絕不會為了湊數被拆開。"
+      "nothing_drafted_parties": "選手池中報名的任何組合都湊不滿 {size} 人的隊伍，而小隊絕不會為了湊數被拆開。",
+      "add": "新增自由選手",
+      "add_failed": "新增自由選手失敗",
+      "added": "已將 {name} 加入自由選手",
+      "ineligible_in_pool": "已在自由選手池中。",
+      "invite": "邀請",
+      "invited": "已邀請",
+      "nobody_waiting_description": "所有報名的選手都已被選入隊伍。",
+      "nobody_waiting_title": "沒有候補選手",
+      "pool_locked": "自由選手只能在報名開放期間或簽到審核期間變更。",
+      "remove": "移除",
+      "remove_agent": "移除 {name}",
+      "remove_description": "報名開放期間，對方可以重新報名。",
+      "remove_failed": "移除自由選手失敗",
+      "remove_title": "將 {name} 移出自由選手？",
+      "removed": "已將 {name} 移出自由選手",
+      "waitlisted_count": "候補 {count} 人"
     },
     "entry": {
       "title": "參賽條件",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "邀請嘗試次數過多。請一分鐘後再試。",
         "invite_not_allowed": "該帳戶無法接受此邀請。"
       }
+    },
+    "manage": {
+      "add_first_stage": "新增第一個階段",
+      "back": "返回頁面",
+      "button": "管理",
+      "details": "詳情與品牌",
+      "discord": "Discord",
+      "groups": "{count} 個小組",
+      "invite_teams": "邀請隊伍",
+      "match_rules": "比賽規則",
+      "needs_attention": "需要處理",
+      "no_stages": "尚無階段",
+      "no_stages_hint": "新增階段以設定賽制。報名截止時將據此產生對陣圖。",
+      "no_status_actions": "目前沒有可變更的內容。",
+      "organizers": "主辦者",
+      "prizes_awards": "獎品與榮譽",
+      "registration": "報名",
+      "set_up_stages": "設定階段",
+      "stage_summary": "{min}–{max} 支隊伍",
+      "stages": "階段",
+      "stages_after_create": "接下來你將設定階段，用於決定賽制和對陣圖。",
+      "stages_drawn": "對陣圖產生後無法變更階段。將賽事重設為設定狀態後才能編輯。",
+      "stages_locked": "賽事開始後無法變更階段。",
+      "status_actions": "賽事狀態",
+      "teams": "隊伍與邀請",
+      "title": "管理賽事"
+    },
+    "negotiation": {
+      "history": "歷史紀錄",
+      "no_time": "尚未商定時間",
+      "outside_two_weeks": "提議的時間必須在接下來的兩週內。",
+      "outside_window": "提議的時間超出本輪的排程範圍。",
+      "schedule": "安排時間",
+      "teams_only": "只有兩隊的擁有者、隊長和陣容管理員可以提議時間。",
+      "two_weeks": "時間必須在接下來的兩週內。",
+      "window": "時間必須在本輪範圍內：{from} 至 {to}。"
+    },
+    "matches_filter": {
+      "live": "進行中",
+      "upcoming": "即將開始",
+      "results": "結果",
+      "all": "全部",
+      "empty": {
+        "live": "目前沒有進行中的比賽。",
+        "upcoming": "沒有即將開始的比賽。",
+        "results": "尚無結果。",
+        "all": "尚無比賽。對陣圖產生後會顯示在這裡。"
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} 受邀報名參加賽事"
     },
     "roles": {
-      "captain": "隊長"
+      "captain": "隊長",
+      "admin": "管理員",
+      "invite": "邀請",
+      "member": "成員"
     },
     "leave": "離開隊伍",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "已註冊這個賽季。",
         "tournament_organizer": "已是這場錦標賽的主辦方。",
         "in_event": "已與這個活動連結。",
-        "other_side": "已被選為另一支隊伍。"
+        "other_side": "已被選為另一支隊伍。",
+        "owner_in_tournament": "其擁有者已在這場錦標賽中擁有隊伍。"
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "需要隊伍名稱",
     "short_name_required": "需要簡稱",
     "team_required": "需要隊伍",
-    "rcon_password_required": "需要 RCON 密碼"
+    "rcon_password_required": "需要 RCON 密碼",
+    "groups_next_stage_min": "第 {stage} 階段的最少隊伍數必須能平均分成 {groups} 個小組",
+    "max_teams_next_stage": "此階段至少需要容納 {count} 支隊伍才能填滿第 {stage} 階段",
+    "max_teams_previous_stage": "第 {stage} 階段最多只能晉級 {count} 支隊伍",
+    "min_teams_min_value": "此階段至少需要 {count} 支隊伍"
   },
   "ui_extras": {
     "mute": "靜音",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "快速預覽：{name}",
+    "cancelled": "主辦方在開賽前取消了此賽事。",
+    "cancelled_min_teams": "報名隊伍不足，賽事已取消。",
+    "check_in": {
+      "opens": "開賽前 {minutes} 分鐘開放",
+      "captains": "由隊長為隊伍報到",
+      "players": "每位選手各自報到",
+      "admin": "由管理員為隊伍報到"
+    },
+    "elo": {
+      "max": "每位選手的 ELO 至多為 {max}",
+      "min": "每位選手的 ELO 至少為 {min}",
+      "range": "每位選手的 ELO 皆在 {min}–{max}"
+    },
+    "final_standings": "最終排名",
+    "join": {
+      "invite": "僅限邀請。請向主辦方申請名額。",
+      "teams": "隊伍以完整的 {type} 陣容報名。",
+      "both": "隊伍與自由選手皆可報名。自由選手會被選入隊伍。",
+      "free_agents": "選手單獨報名，之後被選入隊伍。"
+    },
+    "join_free_agent": "以自由選手身分報名",
+    "map_pool": "地圖池",
+    "open_tournament": "開啟賽事",
+    "position": "{index} / {total}",
+    "registration": "報名",
+    "title": "快速預覽"
   }
 }

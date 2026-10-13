@@ -1483,11 +1483,45 @@
         "date_6m": "Ultimi 6 mesi",
         "date_1y": "Ultimo anno",
         "no_results_title": "Nessun torneo corrisponde",
-        "no_results_description": "Prova a rimuovere i filtri o ad ampliare la ricerca."
+        "no_results_description": "Prova a rimuovere i filtri o ad ampliare la ricerca.",
+        "category": "Categoria",
+        "mine": "Solo i tornei che organizzo"
       },
       "tabs": {
         "upcoming": "In arrivo"
-      }
+      },
+      "bracket": "Tabellone",
+      "bracket_paused": "Tabellone · messo in pausa da un admin",
+      "empty": {
+        "description": "Quando un organizzatore apre le iscrizioni a un torneo, comparirà qui.",
+        "organizer": "Creane uno: comparirà qui appena si aprono le iscrizioni.",
+        "title": "Ancora nessun torneo"
+      },
+      "facts": {
+        "online": "Online",
+        "part_of": "Parte di",
+        "players": "Giocatori",
+        "teams": "Team",
+        "where": "Luogo",
+        "starts": "Inizia",
+        "started": "Iniziato",
+        "played": "Disputato"
+      },
+      "next_lan": {
+        "in_days": "tra {count} giorno | tra {count} giorni",
+        "today": "oggi",
+        "tomorrow": "domani"
+      },
+      "prize_pool_total": "Montepremi · {amount}",
+      "sections": {
+        "live": "Live",
+        "next_lan": "Prossima LAN",
+        "recent": "Risultati recenti",
+        "results": "Risultati",
+        "upcoming": "In arrivo"
+      },
+      "spots_left": "{count} posto libero | {count} posti liberi",
+      "watch_live": "Guarda live"
     },
     "manage_tournaments": {
       "title": "Gestisci tornei",
@@ -2915,6 +2949,24 @@
         "channel_tournaments": "Tornei",
         "channel_highlights": "Highlight",
         "channel_status": "In attesa di segnale"
+      },
+      "events": {
+        "count_players": "giocatore | giocatori",
+        "count_teams": "team | team",
+        "in_prizes": "{amount} di montepremi"
+      },
+      "tournaments": {
+        "best_of": "Al meglio di {count}",
+        "by": "di {name}",
+        "champion": "Campione: {name}",
+        "details": "Dettagli",
+        "joined_free_agent": "Iscritto come free agent",
+        "joined_team": "Iscritto",
+        "joined_waitlisted": "Free agent · in lista d'attesa",
+        "register": "Iscrivi un team",
+        "registered_count": "{count} su {max}",
+        "results": "Risultati",
+        "sign_in_to_register": "Accedi per iscriverti"
       }
     },
     "highlights": {
@@ -3337,7 +3389,9 @@
           "best_gain": "Miglior guadagno singolo",
           "worst_loss": "Peggior perdita singola",
           "view_match": "Vedi match"
-        }
+        },
+        "show_less": "Mostra meno",
+        "tournament_finish_of": "su {count}"
       }
     },
     "play": {
@@ -6172,17 +6226,30 @@
       "about_section": "Info",
       "match_settings": "Impostazioni match",
       "read_more": "Leggi di più",
-      "read_less": "Leggi meno"
+      "read_less": "Leggi meno",
+      "bracket_tab": "Tabellone",
+      "chat_room_tab": "Stanza chat",
+      "matches_tab": "Partite"
     },
     "feature_card": {
       "teams": "Team",
       "default_label": "Torneo",
-      "organized_by": "Di {team}"
+      "organized_by": "Di {team}",
+      "players": "Giocatori"
     },
     "results_section": {
       "no_data": "NESSUN DATO",
       "mvp": "GIOCATORE PIÙ VALIDO",
-      "no_matches_played": "Nessun match giocato ancora"
+      "no_matches_played": "Nessun match giocato ancora",
+      "mvp_tooltip": {
+        "avg_impact": "Impatto medio",
+        "impact": "L'impatto valuta ogni partita da 0,80 a 1,20 in base a (uccisioni + assist) / morti rispetto alla squadra e alla quota di danni della squadra.",
+        "manual": "Scelto dall'organizzatore del torneo.",
+        "matches": "Partite",
+        "next_best": "Secondo migliore: {name}",
+        "rule": "Il giocatore della squadra vincitrice con l'impatto medio più alto su tutte le partite del torneo.",
+        "title": "Come viene scelto l'MVP"
+      }
     },
     "swiss": {
       "advanced": "AVANZATO",
@@ -6201,7 +6268,8 @@
       "champion": "Campione",
       "second": "2°",
       "third": "3°",
-      "player_finished": "Il giocatore ha chiuso {rank}"
+      "player_finished": "Il giocatore ha chiuso {rank}",
+      "players": "Giocatori"
     },
     "recent": {
       "see_all": "Vedi tutti",
@@ -6227,7 +6295,8 @@
         "benched": "In panchina"
       },
       "already_rostered": "In un altro team",
-      "owner_on_a_team": "Già in rosa in una squadra di questo torneo."
+      "owner_on_a_team": "Già in rosa in una squadra di questo torneo.",
+      "leaves_pool": "Sei iscritto come free agent. Iscrivere una squadra ti toglie dal pool dei free agent."
     },
     "tournament_team": {
       "remove": "Rimuovi team",
@@ -6276,6 +6345,11 @@
       },
       "categories": {
         "label": "Categorie"
+      },
+      "substitutes_enabled": {
+        "description": "I team possono inserire nel roster e schierare riserve oltre ai titolari. Se disattivato, roster e match sono limitati ai titolari.",
+        "label": "Consenti riserve",
+        "locked": "Le riserve non possono essere disattivate dopo la chiusura delle iscrizioni."
       }
     },
     "notifications": {
@@ -6316,7 +6390,8 @@
       "teams_joined": "Team iscritti",
       "starts": "Inizia",
       "no_tournaments_found": "Nessun torneo trovato",
-      "maps_label": "Mappe:"
+      "maps_label": "Mappe:",
+      "players_joined": "Giocatori iscritti"
     },
     "stage": {
       "title": "Fase",
@@ -6359,7 +6434,18 @@
       "final_map_advantage": {
         "label": "Vantaggio mappe finale",
         "description": "Vantaggio in punti mappa che il team dell'upper bracket porta nella finale. Deve restare sotto le mappe necessarie per vincere."
-      }
+      },
+      "drawn_while_editing": "Il tabellone è stato generato mentre modificavi. Annulla le modifiche a tipo, squadre, gironi o impostazioni match, poi salva il formato Best Of.",
+      "map_pool": {
+        "empty": "Il map pool del torneo non ha mappe.",
+        "too_small": "Un best of {best_of} richiede almeno {best_of} mappe. Il map pool del torneo ne ha {count}.",
+        "too_small_stage": "Un best of {best_of} richiede almeno {best_of} mappe. Il map pool di questa fase ne ha {count}."
+      },
+      "match_settings_drawn": "Le partite di questa fase sono già state sorteggiate, quindi le loro impostazioni non possono più cambiare.",
+      "match_settings_locked": "Le impostazioni match sono bloccate dopo la generazione del tabellone.",
+      "match_settings_locked_label": "Impostazioni match",
+      "structure_locked": "Tipo, squadre e gironi sono bloccati dopo la generazione del tabellone. Il formato Best Of si può ancora cambiare.",
+      "structure_locked_label": "Tipo, squadre e gironi"
     },
     "bracket": {
       "schedule_title": "Pianifica match",
@@ -6403,7 +6489,12 @@
       "main_path": "Principale",
       "impact_source": "origine",
       "impact_delete": "elimina",
-      "impact_reset": "reimposta"
+      "impact_reset": "reimposta",
+      "follow_none": "Mostra tutti",
+      "follow_team": "Segui una squadra",
+      "forfeit_short": "FF",
+      "match_short": "Partita {match}",
+      "walkover_win": "V"
     },
     "match": {
       "reset_winner": "Reimposta vincitore",
@@ -6453,7 +6544,15 @@
       "remove_downstream_ack": "Capisco che questo può rimuovere match successivi già giocati.",
       "review_chain_hint": "Rivedi la catena interessata sopra prima di continuare.",
       "irreversible_action": "Azione irreversibile",
-      "confirm_reset_chain_ack": "Confermo di voler reimpostare questa catena di match del torneo."
+      "confirm_reset_chain_ack": "Confermo di voler reimpostare questa catena di match del torneo.",
+      "recreate": "Ricrea match",
+      "recreate_description": "{team_1} e {team_2} avranno un nuovo match in questo slot.",
+      "recreate_downstream_started": "Il turno successivo è iniziato, quindi questo match non può essere rigiocato.",
+      "recreate_failed": "Impossibile ricreare il match",
+      "recreate_orphaned": "Il match di questo slot è stato eliminato. Ricrealo per giocarlo di nuovo.",
+      "recreate_title": "Ricreare il match?",
+      "recreate_unwinds": "La squadra che è passata viene tolta dal turno successivo finché il match non viene giocato.",
+      "recreated": "Match ricreato"
     },
     "round_labels": {
       "round": "Round {number}",
@@ -6506,7 +6605,7 @@
     },
     "team": {
       "eligible": "Idoneo",
-      "not_eligible": "Servono altri {count} giocatori",
+      "not_eligible": "Non idoneo",
       "leave_tournament": "Abbandona torneo",
       "leave_team": "Lascia team",
       "slot": "Slot {number}",
@@ -6529,12 +6628,15 @@
       "remove_member": "Rimuovi membro",
       "confirm_remove_member": "Rimuovere questo membro?",
       "remove_member_description": "Questo rimuoverà il membro dal team del torneo",
-      "min_roster_locked": "Il torneo è già iniziato — aggiungi una riserva prima di rimuovere un giocatore, il roster non può scendere sotto il lineup minimo",
+      "min_roster_locked": "Il tabellone è già compilato, quindi il roster non può scendere sotto {count}. Aggiungi prima una riserva.",
       "cancel_invite": "Annulla invito",
       "confirm_cancel_invite": "Annullare questo invito?",
       "cancel_invite_description": "Questo annullerà l'invito per questo membro",
       "seed_label": "Seed",
-      "seed_display": "Seed #{seed}"
+      "seed_display": "Seed #{seed}",
+      "free_agent_tag": "Free agent",
+      "missed_check_in": "Check-in mancato",
+      "need_players": "Serve ancora {count} giocatore | Servono altri {count} giocatori"
     },
     "teams": {
       "count": "{count} team",
@@ -6556,7 +6658,10 @@
       "confirm_pause": "Metti in pausa il torneo",
       "pause_description": "Mettere in pausa questo torneo? Nessun nuovo match verrà pianificato automaticamente finché non riprende.",
       "resume_description": "Riprendere questo torneo? Tutti i match in sospeso verranno pianificati immediatamente.",
-      "update_status_failed": "Impossibile aggiornare lo stato del torneo"
+      "update_status_failed": "Impossibile aggiornare lo stato del torneo",
+      "open_registration_full": "Il tabellone è al completo.",
+      "open_registration_no_stages": "Aggiungi prima una fase.",
+      "open_registration_start_passed": "L'orario di inizio è passato. Imposta un orario di inizio successivo per riaprire le registrazioni."
     },
     "server": {
       "remove": "Rimuovi server",
@@ -6855,7 +6960,23 @@
       "draft_locked": "Il bracket è già in corso, quindi il pool non può più essere draftato.",
       "nothing_drafted": "Nessun team è stato draftato",
       "nothing_drafted_hint": "Non restano abbastanza free agent per completare un team da {size}, oppure il bracket non ha più posto.",
-      "nothing_drafted_parties": "Nessuna combinazione delle iscrizioni nel pool forma un team da {size}, e un party non viene mai diviso per farlo quadrare."
+      "nothing_drafted_parties": "Nessuna combinazione delle iscrizioni nel pool forma un team da {size}, e un party non viene mai diviso per farlo quadrare.",
+      "add": "Aggiungi free agent",
+      "add_failed": "Impossibile aggiungere il free agent",
+      "added": "{name} aggiunto ai free agent",
+      "ineligible_in_pool": "Già nel pool dei free agent.",
+      "invite": "Invita",
+      "invited": "Invitato",
+      "nobody_waiting_description": "Tutti gli iscritti sono stati draftati in un team.",
+      "nobody_waiting_title": "Nessuno in attesa",
+      "pool_locked": "I free agent si possono modificare finché le iscrizioni sono aperte o durante la revisione del check-in.",
+      "remove": "Rimuovi",
+      "remove_agent": "Rimuovi {name}",
+      "remove_description": "Potrà iscriversi di nuovo finché le iscrizioni sono aperte.",
+      "remove_failed": "Impossibile rimuovere il free agent",
+      "remove_title": "Rimuovere {name} dai free agent?",
+      "removed": "{name} rimosso dai free agent",
+      "waitlisted_count": "{count} in lista d'attesa"
     },
     "entry": {
       "title": "Requisiti di accesso",
@@ -6944,6 +7065,54 @@
         "invite_rate_limited": "Troppi tentativi di invito. Riprova tra un minuto.",
         "invite_not_allowed": "Questo account non può accettare questo invito."
       }
+    },
+    "manage": {
+      "add_first_stage": "Aggiungi la prima fase",
+      "back": "Torna alla pagina",
+      "button": "Gestisci",
+      "details": "Dettagli e grafica",
+      "discord": "Discord",
+      "groups": "{count} gruppi",
+      "invite_teams": "Invita squadre",
+      "match_rules": "Regole delle partite",
+      "needs_attention": "Richiede attenzione",
+      "no_stages": "Ancora nessuna fase",
+      "no_stages_hint": "Aggiungi una fase per definire il formato. Il tabellone viene generato da essa alla chiusura delle iscrizioni.",
+      "no_status_actions": "Niente da cambiare al momento.",
+      "organizers": "Organizzatori",
+      "prizes_awards": "Premi e riconoscimenti",
+      "registration": "Iscrizioni",
+      "set_up_stages": "Configura le fasi",
+      "stage_summary": "{min}–{max} squadre",
+      "stages": "Fasi",
+      "stages_after_create": "Poi configurerai le fasi, che definiscono il formato e il tabellone.",
+      "stages_drawn": "Le fasi non si possono modificare dopo la generazione del tabellone. Reimposta il torneo a setup per modificarle.",
+      "stages_locked": "Le fasi non si possono modificare dopo l'inizio del torneo.",
+      "status_actions": "Stato del torneo",
+      "teams": "Squadre e inviti",
+      "title": "Gestisci torneo"
+    },
+    "negotiation": {
+      "history": "Cronologia",
+      "no_time": "Nessun orario ancora concordato",
+      "outside_two_weeks": "L'orario proposto deve rientrare nelle prossime due settimane.",
+      "outside_window": "L'orario proposto è fuori dalla finestra di pianificazione di questo round.",
+      "schedule": "Pianifica",
+      "teams_only": "Solo proprietari, capitani e admin del roster delle squadre possono proporre un orario.",
+      "two_weeks": "Gli orari devono rientrare nelle prossime due settimane.",
+      "window": "Gli orari devono rientrare nella finestra di questo round: dal {from} al {to}."
+    },
+    "matches_filter": {
+      "live": "Live",
+      "upcoming": "In arrivo",
+      "results": "Risultati",
+      "all": "Tutti",
+      "empty": {
+        "live": "Nessuna partita live al momento.",
+        "upcoming": "Nessuna partita in arrivo.",
+        "results": "Nessun risultato ancora.",
+        "all": "Ancora nessuna partita. Appariranno quando il tabellone sarà generato."
+      }
     }
   },
   "team": {
@@ -7003,7 +7172,10 @@
       "tournament_team_registration_message": "{team} è stato invitato a iscriversi a un torneo"
     },
     "roles": {
-      "captain": "Capitano"
+      "captain": "Capitano",
+      "admin": "Admin",
+      "invite": "Invitare",
+      "member": "Membro"
     },
     "leave": "Lascia il team",
     "management": {
@@ -7061,7 +7233,8 @@
         "in_season": "Già registrata per questa stagione.",
         "tournament_organizer": "Già organizzatrice di questo torneo.",
         "in_event": "Già collegata a questo evento.",
-        "other_side": "Già scelta come squadra avversaria."
+        "other_side": "Già scelta come squadra avversaria.",
+        "owner_in_tournament": "Il proprietario ha già una squadra in questo torneo."
       }
     },
     "member": {
@@ -8790,7 +8963,11 @@
     "team_name_required": "il nome del team è obbligatorio",
     "short_name_required": "il nome breve è obbligatorio",
     "team_required": "il team è obbligatorio",
-    "rcon_password_required": "la password RCON è obbligatoria"
+    "rcon_password_required": "la password RCON è obbligatoria",
+    "groups_next_stage_min": "il numero minimo di team della fase {stage} deve dividersi equamente in {groups} gironi",
+    "max_teams_next_stage": "questa fase deve contenere almeno {count} team per riempire la fase {stage}",
+    "max_teams_previous_stage": "la fase {stage} può qualificare al massimo {count} team",
+    "min_teams_min_value": "questa fase richiede almeno {count} team"
   },
   "ui_extras": {
     "mute": "Muta",
@@ -10487,5 +10664,34 @@
     "queue_need_ac": "Open YGuard Anti-Cheat and keep it running, then try again.",
     "join_need_ac": "Open YGuard Anti-Cheat and keep it running to join the server.",
     "open_launcher": "Open Anti-Cheat"
+  },
+  "quick_look": {
+    "at": "Anteprima di {name}",
+    "cancelled": "L'organizzatore l'ha annullato prima dell'inizio.",
+    "cancelled_min_teams": "Non si sono iscritti abbastanza team, quindi è stato annullato.",
+    "check_in": {
+      "opens": "apre {minutes} min prima dell'inizio",
+      "captains": "I capitani fanno il check-in del team",
+      "players": "Ogni giocatore fa il check-in",
+      "admin": "Un admin fa il check-in dei team"
+    },
+    "elo": {
+      "max": "Ogni giocatore con al massimo {max} ELO",
+      "min": "Ogni giocatore con almeno {min} ELO",
+      "range": "Ogni giocatore con {min}–{max} ELO"
+    },
+    "final_standings": "Classifica finale",
+    "join": {
+      "invite": "Solo su invito. Chiedi un posto all'organizzatore.",
+      "teams": "I team si iscrivono con un roster {type} completo.",
+      "both": "Possono iscriversi team e free agent. I free agent vengono draftati nei team.",
+      "free_agents": "I giocatori si iscrivono da soli e vengono draftati nei team."
+    },
+    "join_free_agent": "Iscriviti come free agent",
+    "map_pool": "Map pool",
+    "open_tournament": "Apri torneo",
+    "position": "{index} di {total}",
+    "registration": "Iscrizione",
+    "title": "Anteprima"
   }
 }
