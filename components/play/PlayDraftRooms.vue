@@ -315,7 +315,7 @@ const listState = computed(() => {
       <PlayDraftIntro class="mb-3" @dismiss="dismissIntro" />
     </Fold>
 
-    <PlayDraftHostBar class="mb-3" :locked="inLobbyNotLeader" />
+    <PlayDraftHostBar class="mb-5" :locked="inLobbyNotLeader" />
 
     <FadeSwap>
       <div v-if="listState === 'loading'" key="loading" class="grid gap-2">

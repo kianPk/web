@@ -3553,90 +3553,90 @@
         "details": "Details"
       },
       "draft_rooms": {
-        "title": "Draft rooms",
-        "description": "Pick-up games other players host. Captains or the host split the teams.",
-        "format_label": "Format",
-        "search_placeholder": "Search players",
-        "clear_search": "Clear search",
-        "filters": "Filters",
-        "filters_title": "Filter and sort",
-        "has_space": "Only rooms with space",
-        "avg_rank": "Average rank",
-        "any_rank": "Any",
-        "sort_label": "Sort by",
+        "title": "روم‌های درفت",
+        "description": "بازی‌هایی که بازیکن‌های دیگه میزبانی می‌کنن. کاپیتان‌ها یا میزبان تیم‌ها رو می‌چینن.",
+        "format_label": "فرمت",
+        "search_placeholder": "جستجوی بازیکن",
+        "clear_search": "پاک کردن جستجو",
+        "filters": "فیلترها",
+        "filters_title": "فیلتر و مرتب‌سازی",
+        "has_space": "فقط روم‌هایی که جا دارن",
+        "avg_rank": "میانگین رنک",
+        "any_rank": "همه",
+        "sort_label": "مرتب‌سازی",
         "sort": {
-          "filling": "Filling up first",
-          "newest": "Newest",
-          "rank_high": "Highest average rank",
-          "rank_low": "Lowest average rank"
+          "filling": "نزدیک به پر شدن",
+          "newest": "جدیدترین",
+          "rank_high": "بالاترین میانگین رنک",
+          "rank_low": "پایین‌ترین میانگین رنک"
         },
-        "rehost": "Re-host last",
+        "rehost": "ساخت دوباره روم قبلی",
         "host_bar": {
-          "title": "Host a room",
-          "seats": "{count} seats",
-          "draft": "Draft style",
-          "access": "Who can join",
-          "open": "Open {format} Room",
-          "sign_in": "Sign in to host",
-          "back_to_room": "Back to your room",
-          "all_settings": "All settings",
-          "rehost_detail": "{format} {mode}, {access}",
+          "title": "ساخت روم",
+          "seats": "{count} نفر",
+          "draft": "نحوه چیدن تیم‌ها",
+          "access": "چه کسی می‌تونه بیاد",
+          "open": "باز کردن روم {format}",
+          "sign_in": "برای ساخت روم وارد حساب شو",
+          "back_to_room": "برگشت به روم خودت",
+          "all_settings": "همه تنظیمات",
+          "rehost_detail": "{format} {mode}، {access}",
           "phrase": {
-            "captains": "Top 2 by rank captain, snake order",
-            "host": "You put players on teams",
-            "pug": "Teams auto-balance when the room fills"
+            "captains": "دو نفر با بالاترین رنک کاپیتان میشن و به نوبت بازیکن انتخاب می‌کنن",
+            "host": "خودت بازیکن‌ها رو توی تیم‌ها می‌چینی",
+            "pug": "وقتی روم پر شد، تیم‌ها خودکار بالانس میشن"
           },
-          "open_lan": "Open {format} LAN Room"
+          "open_lan": "باز کردن روم LAN {format}"
         },
         "intro": {
-          "title": "Run your own pick-up game.",
-          "body": "Open a room, let players fill it, and captains draft the teams. Standard rules count toward ELO.",
+          "title": "بازی خودت رو راه بنداز.",
+          "body": "یه روم باز کن، بذار بازیکن‌ها پرش کنن و کاپیتان‌ها تیم‌ها رو انتخاب کنن. بازی با قوانین استاندارد روی ELO حساب میشه.",
           "steps": {
-            "open": "Open a room",
-            "join": "Players join",
-            "draft": "Captains draft",
-            "play": "Match starts"
+            "open": "روم رو باز کن",
+            "join": "بازیکن‌ها میان",
+            "draft": "کاپیتان‌ها انتخاب می‌کنن",
+            "play": "مسابقه شروع میشه"
           },
-          "board_label": "How a captains draft works",
-          "captain": "Captain",
-          "you": "You",
-          "your_pick": "Your pick",
-          "picking": "Picking",
-          "pool": "Still in the pool",
-          "dismiss": "Dismiss"
+          "board_label": "درفت کاپیتانی چطور کار می‌کنه",
+          "captain": "کاپیتان",
+          "you": "تو",
+          "your_pick": "نوبت انتخاب تو",
+          "picking": "در حال انتخاب",
+          "pool": "هنوز انتخاب نشده",
+          "dismiss": "بستن"
         },
         "types": {
-          "captains": "Captains draft",
-          "host": "Host assigns",
-          "pug": "Auto-split",
-          "teams": "Pre-made teams"
+          "captains": "درفت کاپیتانی",
+          "host": "چیدن توسط میزبان",
+          "pug": "تقسیم خودکار",
+          "teams": "تیم‌های آماده"
         },
         "access": {
-          "friends": "Friends only",
-          "invite": "Invite only",
-          "private": "Private"
+          "friends": "فقط دوستان",
+          "invite": "فقط با دعوت",
+          "private": "خصوصی"
         },
-        "avg": "Avg {rank}",
-        "custom_mode": "{mode} mode, unranked",
-        "teams_title": "{team1} vs {team2}",
-        "open_team": "open team",
-        "host_elo": "Host · {elo} ELO",
-        "subs": "+{count} subs",
-        "drafting": "Drafting",
-        "join_party": "Join with party ({count})",
-        "sign_in_to_join": "Sign in to join",
+        "avg": "میانگین {rank}",
+        "custom_mode": "مود {mode}، بدون رنک",
+        "teams_title": "{team1} در برابر {team2}",
+        "open_team": "تیم باز",
+        "host_elo": "میزبان · {elo} ELO",
+        "subs": "+{count} ذخیره",
+        "drafting": "در حال انتخاب",
+        "join_party": "ورود با پارتی ({count})",
+        "sign_in_to_join": "برای ورود، وارد حساب شو",
         "reasons": {
-          "spots_left": "{count} spot left | {count} spots left",
-          "no_room_for_party": "No room for your party",
-          "host_approves": "The host approves",
-          "subs_waiting": "{count} sub waiting | {count} subs waiting",
-          "full": "Full",
-          "youre_in": "You're in",
-          "waiting_for_host": "Waiting for the host"
+          "spots_left": "{count} جای خالی | {count} جای خالی",
+          "no_room_for_party": "برای پارتی تو جا نیست",
+          "host_approves": "میزبان تأیید می‌کنه",
+          "subs_waiting": "{count} ذخیره در انتظار | {count} ذخیره در انتظار",
+          "full": "پر",
+          "youre_in": "تو داخلی",
+          "waiting_for_host": "در انتظار میزبان"
         },
-        "empty": "No open draft rooms right now.",
-        "no_results": "No rooms match these filters.",
-        "clear_filters": "Clear filters"
+        "empty": "الان هیچ روم درفت بازی وجود نداره.",
+        "no_results": "هیچ رومی با این فیلترها پیدا نشد.",
+        "clear_filters": "پاک کردن فیلترها"
       }
     },
     "matches": {

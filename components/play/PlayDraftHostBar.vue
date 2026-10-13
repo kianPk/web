@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Lock, Play, Plus, RotateCcw, Settings2 } from "lucide-vue-next";
+import {
+  Info,
+  Lock,
+  Play,
+  Plus,
+  RotateCcw,
+  Settings2,
+  Users,
+} from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { Button } from "~/components/ui/button";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
@@ -164,89 +172,157 @@ function allSettings() {
 
 const linkClasses =
   "hit inline-flex items-center gap-1.5 font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]";
+
+// The strips fill their column and stand taller than the /watch filters.
+const segmentedClasses =
+  "w-full !h-10 [&>button]:flex-1 [&>button]:justify-center [&>button]:!px-3 [&>button]:!text-[13px]";
+const optionLabelClasses =
+  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
 </script>
 
 <template>
-  <div class="rounded-lg border border-border bg-muted/25 px-4 py-3.5">
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
-      <div class="flex shrink-0 items-center gap-2.5">
+  <div
+    class="relative isolate overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.11)_0%,hsl(var(--muted)/0.28)_42%,hsl(var(--muted)/0.08)_100%)] p-5 shadow-[0_22px_60px_-28px_hsl(var(--tac-amber)/0.5)] sm:p-6"
+  >
+    <div
+      aria-hidden="true"
+      class="host-grid pointer-events-none absolute inset-0 -z-10"
+    ></div>
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute -end-24 -top-28 -z-10 size-72 rounded-full bg-[hsl(var(--tac-amber)/0.16)] blur-3xl"
+    ></div>
+
+    <div class="flex flex-wrap items-start gap-x-5 gap-y-3">
+      <div class="flex min-w-0 flex-1 items-center gap-4">
         <span
-          class="grid size-8 place-items-center rounded-md bg-[hsl(var(--tac-amber)/0.12)] text-[hsl(var(--tac-amber))]"
+          class="relative grid size-12 shrink-0 place-items-center rounded-xl bg-[hsl(var(--tac-amber)/0.16)] text-[hsl(var(--tac-amber))] ring-1 ring-[hsl(var(--tac-amber)/0.45)] sm:size-14"
         >
-          <Plus class="size-4" />
+          <span
+            aria-hidden="true"
+            class="host-ping absolute inset-0 rounded-xl ring-2 ring-[hsl(var(--tac-amber)/0.5)]"
+          ></span>
+          <Plus class="size-6 sm:size-7" :stroke-width="2.5" />
         </span>
-        <span class="grid">
-          <b class="text-sm font-bold">
+        <div class="min-w-0">
+          <h3
+            class="m-0 text-xl font-bold leading-tight tracking-tight sm:text-2xl"
+          >
             {{ $t("pages.play.draft_rooms.host_bar.title") }}
-          </b>
-          <span class="text-xs tabular-nums text-muted-foreground">
-            {{ seatsLine }}
-          </span>
-        </span>
+          </h3>
+          <p
+            class="m-0 mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"
+          >
+            <Info class="size-3.5 shrink-0" />
+            <span class="truncate">
+              {{
+                $t(
+                  `pages.play.draft_rooms.host_bar.phrase.${mode.toLowerCase()}`,
+                )
+              }}
+            </span>
+          </p>
+        </div>
       </div>
 
-      <!-- Phones: every strip spans the card with equal-width options, so
-           the three rows share both edges. -->
-      <div class="flex min-w-0 flex-[1_1_520px] flex-wrap items-center gap-2">
+      <span
+        class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.1)] px-3 text-[13px] font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
+      >
+        <Users class="size-3.5" />
+        {{ seatsLine }}
+      </span>
+    </div>
+
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="min-w-0">
+        <span :class="optionLabelClasses">
+          {{ $t("pages.play.draft_rooms.format_label") }}
+        </span>
         <WatchSegmented
           v-model="type"
           :options="typeOptions"
           :label="$t('pages.play.draft_rooms.format_label')"
-          class="max-sm:w-full max-sm:[&>button]:flex-1 max-sm:[&>button]:justify-center"
+          :class="segmentedClasses"
         />
+      </div>
+      <div class="min-w-0">
+        <span :class="optionLabelClasses">
+          {{ $t("pages.play.draft_rooms.host_bar.draft") }}
+        </span>
         <WatchSegmented
           v-model="mode"
           :options="modeOptions"
           :label="$t('pages.play.draft_rooms.host_bar.draft')"
-          class="max-sm:w-full max-sm:[&>button]:flex-1 max-sm:[&>button]:justify-center"
+          :class="segmentedClasses"
         />
+      </div>
+      <div class="min-w-0 sm:col-span-2 lg:col-span-1">
+        <span :class="optionLabelClasses">
+          {{ $t("pages.play.draft_rooms.host_bar.access") }}
+        </span>
         <WatchSegmented
           v-model="access"
           :options="accessOptions"
           :label="$t('pages.play.draft_rooms.host_bar.access')"
-          class="max-sm:w-full max-sm:[&>button]:flex-1 max-sm:[&>button]:justify-center"
+          :class="segmentedClasses"
         />
       </div>
+    </div>
 
-      <div class="ml-auto flex items-center gap-1.5 max-sm:w-full">
+    <div
+      class="mt-5 flex flex-wrap items-center gap-3 border-t border-border/60 pt-4"
+    >
+      <button
+        v-if="rehostDetail && !locked && !myRoom && auth.me"
+        type="button"
+        class="text-[13px]"
+        :class="linkClasses"
+        :disabled="rehosting"
+        :title="$t('draft_games.rehost_hint')"
+        @click="rehost"
+      >
+        <RotateCcw class="size-3.5" />
+        {{ $t("pages.play.draft_rooms.rehost") }}
+        <span class="font-medium text-foreground">· {{ rehostDetail }}</span>
+      </button>
+
+      <div class="ms-auto flex items-center gap-2 max-sm:w-full">
         <FiveStackToolTip as-child :tap-toggle="false">
           <template #trigger>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              class="hit size-8 shrink-0 text-muted-foreground hover:text-foreground"
+              class="hit size-12 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
               :aria-label="$t('pages.play.draft_rooms.host_bar.all_settings')"
               @click="allSettings"
             >
-              <Settings2 class="size-4" />
+              <Settings2 class="size-5" />
             </Button>
           </template>
           {{ $t("pages.play.draft_rooms.host_bar.all_settings") }}
         </FiveStackToolTip>
         <span
           v-if="locked"
-          class="inline-flex h-8 items-center justify-center gap-2 rounded-md border border-border px-3 text-xs text-muted-foreground max-sm:flex-1"
+          class="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border px-5 text-sm text-muted-foreground max-sm:flex-1"
         >
-          <Lock class="size-3.5" />
+          <Lock class="size-4" />
           {{ $t("draft_games.leader_required") }}
         </span>
         <Button
           v-else-if="myRoom"
           variant="outline"
-          size="sm"
-          class="hit h-8 max-sm:flex-1"
+          class="hit h-12 rounded-lg px-6 text-[15px] font-semibold max-sm:flex-1"
           @click="navigateTo(`/draft-room/${myRoom.id}`)"
         >
           {{ $t("pages.play.draft_rooms.host_bar.back_to_room") }}
         </Button>
         <Button
           v-else
-          size="sm"
-          class="hit h-8 gap-1.5 px-3.5 text-[13px] font-semibold bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)] max-sm:flex-1"
+          class="hit host-cta h-12 gap-2 rounded-lg bg-[hsl(var(--tac-amber))] px-7 text-[15px] font-bold text-[hsl(var(--tac-amber-foreground))] shadow-[0_10px_30px_-10px_hsl(var(--tac-amber)/0.8)] transition-[transform,box-shadow,background-color] hover:-translate-y-px hover:bg-[hsl(var(--tac-amber)/0.92)] hover:shadow-[0_14px_36px_-10px_hsl(var(--tac-amber)/0.9)] active:translate-y-0 max-sm:flex-1"
           @click="host"
         >
           <template v-if="auth.me">
-            <Play class="size-3.5 fill-current" />
+            <Play class="size-4 fill-current" />
             {{
               $t(
                 hostsOnLan
@@ -262,32 +338,84 @@ const linkClasses =
         </Button>
       </div>
     </div>
-
-    <div
-      class="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t border-border/60 pt-2.5 text-xs text-muted-foreground"
-    >
-      <span>
-        {{ $t(`pages.play.draft_rooms.host_bar.phrase.${mode.toLowerCase()}`) }}
-      </span>
-      <button
-        v-if="rehostDetail && !locked && !myRoom && auth.me"
-        type="button"
-        :class="linkClasses"
-        :disabled="rehosting"
-        :title="$t('draft_games.rehost_hint')"
-        @click="rehost"
-      >
-        <RotateCcw class="size-3" />
-        {{ $t("pages.play.draft_rooms.rehost") }}
-        <span class="font-medium text-foreground">· {{ rehostDetail }}</span>
-      </button>
-    </div>
   </div>
 </template>
 
 <style scoped>
 .hit {
   position: relative;
+}
+
+.host-grid {
+  background-image:
+    linear-gradient(hsl(var(--tac-amber) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--tac-amber) / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(
+    ellipse 70% 90% at 100% 0%,
+    #000 0%,
+    transparent 75%
+  );
+}
+[dir="rtl"] .host-grid {
+  mask-image: radial-gradient(
+    ellipse 70% 90% at 0% 0%,
+    #000 0%,
+    transparent 75%
+  );
+}
+
+.host-ping {
+  animation: host-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes host-ping {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+.host-cta {
+  overflow: hidden;
+}
+.host-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  animation: host-shine 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes host-shine {
+  0%,
+  60% {
+    transform: translateX(-120%);
+  }
+  85%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .host-ping,
+  .host-cta::before {
+    animation: none;
+  }
+  .host-ping {
+    opacity: 0;
+  }
 }
 @media (pointer: coarse) {
   .hit::after {
