@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "افتح الفريق في تبويب جديد",
       "request_scrim": "اطلب Scrim",
       "available_teams": "الفرق المتاحة",
-      "no_teams_match": "لا توجد فرق تطابق عوامل التصفية."
+      "no_teams_match": "لا توجد فرق تطابق عوامل التصفية.",
+      "empty_title": "لا توجد فرق تبحث عن مباريات تدريبية"
     },
     "teams": {
       "title": "الفرق",
@@ -1578,6 +1579,14 @@
         "col_pick": "احتمال الاختيار",
         "col_play": "احتمال اللعب",
         "col_predicted_win": "% الفوز المتوقع"
+      },
+      "scrims": {
+        "any_time": "يقبل الطلبات في أي وقت",
+        "need_team": "تحتاج إلى فريق تملكه أو تديره لطلب Scrim.",
+        "see_all": "عرض الكل في باحث Scrim",
+        "subtitle": "فرق تقبل التحديات",
+        "title": "يبحثون عن Scrim",
+        "today": "اليوم {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "ترتيب",
     "vs_team": "ضد {name}",
     "default": "افتراضي",
-    "avg": "متوسط"
+    "avg": "متوسط",
+    "empty_filtered": {
+      "description": "جرّب مسح الفلاتر أو توسيع البحث.",
+      "title": "لا شيء يطابق هذه الفلاتر"
+    }
   },
   "spotlight_search": {
     "placeholder": "ابحث عن لاعبين...",

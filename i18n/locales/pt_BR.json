@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Abrir time em nova aba",
       "request_scrim": "Solicitar desafio",
       "available_teams": "Equipes disponíveis",
-      "no_teams_match": "Nenhum time corresponde aos seus filtros."
+      "no_teams_match": "Nenhum time corresponde aos seus filtros.",
+      "empty_title": "Nenhum time procurando scrims"
     },
     "teams": {
       "title": "Equipes",
@@ -1578,6 +1579,14 @@
         "col_pick": "Probabilidade de escolha",
         "col_play": "Probabilidade de jogo",
         "col_predicted_win": "Vitória prevista%"
+      },
+      "scrims": {
+        "any_time": "Aceita pedidos a qualquer hora",
+        "need_team": "Você precisa de um time que seja seu ou que você gerencie para solicitar um desafio.",
+        "see_all": "Ver tudo no Localizador de Desafios",
+        "subtitle": "Times que aceitam desafios",
+        "title": "Procurando desafios",
+        "today": "Hoje {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "ordenar",
     "vs_team": "vs {name}",
     "default": "Padrão",
-    "avg": "méd"
+    "avg": "méd",
+    "empty_filtered": {
+      "description": "Tente limpar os filtros ou ampliar a busca.",
+      "title": "Nada corresponde a esses filtros"
+    }
   },
   "spotlight_search": {
     "placeholder": "Procurar jogadores...",

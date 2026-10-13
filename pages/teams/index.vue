@@ -23,6 +23,7 @@ import FilterBar from "~/components/common/FilterBar.vue";
 import FilterMenu from "~/components/common/FilterMenu.vue";
 import FilterToggle from "~/components/common/FilterToggle.vue";
 import TeamsTable from "~/components/TeamsTable.vue";
+import TeamsLookingForScrims from "~/components/teams/TeamsLookingForScrims.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import Pagination from "@/components/Pagination.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
@@ -59,6 +60,10 @@ import {
         </NuxtLink>
       </template>
     </TacticalPageHeader>
+  </PageTransition>
+
+  <PageTransition :delay="50">
+    <TeamsLookingForScrims class="mt-6" :my-team-ids="myTeamIds" />
   </PageTransition>
 
   <!-- Filters -->
@@ -225,6 +230,10 @@ export default {
   computed: {
     me() {
       return useAuthStore().me;
+    },
+    // Left out of "Looking for scrims": you don't scrim your own team.
+    myTeamIds(): string[] {
+      return (this.myTeams ?? []).map((team: any) => team.id);
     },
     awardsByTeamId(): Record<string, any[]> {
       const map: Record<string, any[]> = {};

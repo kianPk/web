@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Takımı yeni sekmede aç",
       "request_scrim": "Scrim İste",
       "available_teams": "Uygun Takımlar",
-      "no_teams_match": "Filtrelerine uyan takım yok."
+      "no_teams_match": "Filtrelerine uyan takım yok.",
+      "empty_title": "Scrim arayan takım yok"
     },
     "teams": {
       "title": "Takımlar",
@@ -1578,6 +1579,14 @@
         "col_pick": "Pick İhtimali",
         "col_play": "Oynama İhtimali",
         "col_predicted_win": "Tahmini Galibiyet%"
+      },
+      "scrims": {
+        "any_time": "Her zaman istek kabul eder",
+        "need_team": "Scrim istemek için sahibi veya yöneticisi olduğun bir takım gerekir.",
+        "see_all": "Hepsini Scrim bulucuda gör",
+        "subtitle": "Meydan okumaları kabul eden takımlar",
+        "title": "Scrim arıyor",
+        "today": "Bugün {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "sırala",
     "vs_team": "{name} karşısında",
     "default": "Varsayılan",
-    "avg": "ort."
+    "avg": "ort.",
+    "empty_filtered": {
+      "description": "Filtreleri temizlemeyi veya aramayı genişletmeyi dene.",
+      "title": "Bu filtrelere uyan bir şey yok"
+    }
   },
   "spotlight_search": {
     "placeholder": "Oyuncu ara...",

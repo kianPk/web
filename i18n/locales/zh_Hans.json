@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "在新标签页中打开队伍",
       "request_scrim": "发起约战",
       "available_teams": "可约战队伍",
-      "no_teams_match": "没有符合您筛选条件的队伍。"
+      "no_teams_match": "没有符合您筛选条件的队伍。",
+      "empty_title": "暂无寻找训练赛的队伍"
     },
     "teams": {
       "title": "队伍",
@@ -1578,6 +1579,14 @@
         "col_pick": "选用可能性",
         "col_play": "进行可能性",
         "col_predicted_win": "预测胜率"
+      },
+      "scrims": {
+        "any_time": "随时接受请求",
+        "need_team": "你需要拥有或管理一支队伍才能发起约战请求。",
+        "see_all": "在约战查找器中查看全部",
+        "subtitle": "接受挑战的队伍",
+        "title": "寻找约战",
+        "today": "今天 {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "排序",
     "vs_team": "对阵 {name}",
     "default": "默认",
-    "avg": "平均"
+    "avg": "平均",
+    "empty_filtered": {
+      "description": "请尝试清除筛选条件或扩大搜索范围。",
+      "title": "没有符合这些筛选条件的内容"
+    }
   },
   "spotlight_search": {
     "placeholder": "搜索玩家...",

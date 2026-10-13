@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Team in neuem Tab öffnen",
       "request_scrim": "Scrim anfragen",
       "available_teams": "Verfügbare Teams",
-      "no_teams_match": "Keine Teams passen zu deinen Filtern."
+      "no_teams_match": "Keine Teams passen zu deinen Filtern.",
+      "empty_title": "Keine Teams suchen Scrims"
     },
     "teams": {
       "title": "Teams",
@@ -1578,6 +1579,14 @@
         "col_pick": "Pick-Wahrscheinlichkeit",
         "col_play": "Spiel-Wahrscheinlichkeit",
         "col_predicted_win": "Prognose Sieg%"
+      },
+      "scrims": {
+        "any_time": "Nimmt jederzeit Anfragen an",
+        "need_team": "Du brauchst ein Team, das du besitzt oder leitest, um einen Scrim anzufragen.",
+        "see_all": "Alle im Scrim-Finder ansehen",
+        "subtitle": "Teams, die Herausforderungen annehmen",
+        "title": "Suchen Scrims",
+        "today": "Heute {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "sortieren",
     "vs_team": "vs {name}",
     "default": "Standard",
-    "avg": "Ø"
+    "avg": "Ø",
+    "empty_filtered": {
+      "description": "Setze die Filter zurück oder erweitere deine Suche.",
+      "title": "Nichts entspricht diesen Filtern"
+    }
   },
   "spotlight_search": {
     "placeholder": "Spieler suchen...",

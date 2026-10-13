@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Öppna lag i ny flik",
       "request_scrim": "Begär scrim",
       "available_teams": "Tillgängliga lag",
-      "no_teams_match": "Inga lag matchar dina filter."
+      "no_teams_match": "Inga lag matchar dina filter.",
+      "empty_title": "Inga lag söker scrims"
     },
     "teams": {
       "title": "Lag",
@@ -1578,6 +1579,14 @@
         "col_pick": "Valsannolikhet",
         "col_play": "Spelsannolikhet",
         "col_predicted_win": "Förutspådd vinst%"
+      },
+      "scrims": {
+        "any_time": "Tar emot förfrågningar när som helst",
+        "need_team": "Du behöver ett lag du äger eller leder för att begära en scrim.",
+        "see_all": "Se alla i Scrim-finder",
+        "subtitle": "Lag som tar emot utmaningar",
+        "title": "Söker scrims",
+        "today": "Idag {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "sortera",
     "vs_team": "mot {name}",
     "default": "Standard",
-    "avg": "snitt"
+    "avg": "snitt",
+    "empty_filtered": {
+      "description": "Prova att rensa filtren eller bredda sökningen.",
+      "title": "Inget matchar dessa filter"
+    }
   },
   "spotlight_search": {
     "placeholder": "Sök spelare...",

@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "새 탭에서 팀 열기",
       "request_scrim": "스크림 요청",
       "available_teams": "가능한 팀",
-      "no_teams_match": "필터에 맞는 팀이 없습니다."
+      "no_teams_match": "필터에 맞는 팀이 없습니다.",
+      "empty_title": "스크림을 찾는 팀이 없습니다"
     },
     "teams": {
       "title": "팀",
@@ -1578,6 +1579,14 @@
         "col_pick": "픽 확률",
         "col_play": "플레이 확률",
         "col_predicted_win": "예상 승률"
+      },
+      "scrims": {
+        "any_time": "언제든 요청 가능",
+        "need_team": "스크림을 요청하려면 소유하거나 운영하는 팀이 필요합니다.",
+        "see_all": "스크림 찾기에서 모두 보기",
+        "subtitle": "도전을 받는 팀",
+        "title": "스크림 구하는 중",
+        "today": "오늘 {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "정렬",
     "vs_team": "vs {name}",
     "default": "기본값",
-    "avg": "평균"
+    "avg": "평균",
+    "empty_filtered": {
+      "description": "필터를 지우거나 검색 범위를 넓혀 보세요.",
+      "title": "필터와 일치하는 항목이 없습니다"
+    }
   },
   "spotlight_search": {
     "placeholder": "플레이어 검색...",

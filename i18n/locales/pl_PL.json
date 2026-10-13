@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Otwórz drużynę w nowej karcie",
       "request_scrim": "Poproś o scrima",
       "available_teams": "Dostępne drużyny",
-      "no_teams_match": "Żadna drużyna nie pasuje do twoich filtrów"
+      "no_teams_match": "Żadna drużyna nie pasuje do twoich filtrów",
+      "empty_title": "Żadna drużyna nie szuka scrimów"
     },
     "teams": {
       "title": "Drużyny",
@@ -1578,6 +1579,14 @@
         "col_pick": "Szansa na pick",
         "col_play": "Szansa na grę",
         "col_predicted_win": "Przewidywany Win%"
+      },
+      "scrims": {
+        "any_time": "Przyjmuje prośby o każdej porze",
+        "need_team": "Aby poprosić o scrim, potrzebujesz drużyny, którą posiadasz lub prowadzisz.",
+        "see_all": "Zobacz wszystkie w wyszukiwarce scrimów",
+        "subtitle": "Drużyny przyjmujące wyzwania",
+        "title": "Szukają scrimów",
+        "today": "Dziś {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "sortuj",
     "vs_team": "vs {name}",
     "default": "Domyślne",
-    "avg": "śr."
+    "avg": "śr.",
+    "empty_filtered": {
+      "description": "Wyczyść filtry lub poszerz wyszukiwanie.",
+      "title": "Nic nie pasuje do tych filtrów"
+    }
   },
   "spotlight_search": {
     "placeholder": "Szukaj graczy...",

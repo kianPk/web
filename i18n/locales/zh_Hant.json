@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "在新分頁開啟隊伍",
       "request_scrim": "發起練習賽",
       "available_teams": "可用隊伍",
-      "no_teams_match": "沒有符合您篩選條件的隊伍。"
+      "no_teams_match": "沒有符合您篩選條件的隊伍。",
+      "empty_title": "尚無尋找練習賽的隊伍"
     },
     "teams": {
       "title": "隊伍",
@@ -1578,6 +1579,14 @@
         "col_pick": "選用可能性",
         "col_play": "開打可能性",
         "col_predicted_win": "預測勝率"
+      },
+      "scrims": {
+        "any_time": "隨時接受請求",
+        "need_team": "你需要擁有或管理一支隊伍才能發起練習賽請求。",
+        "see_all": "在練習賽搜尋器中查看全部",
+        "subtitle": "接受挑戰的隊伍",
+        "title": "尋找練習賽",
+        "today": "今天 {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "排序",
     "vs_team": "對戰 {name}",
     "default": "預設",
-    "avg": "平均"
+    "avg": "平均",
+    "empty_filtered": {
+      "description": "請嘗試清除篩選條件或擴大搜尋範圍。",
+      "title": "沒有符合這些篩選條件的內容"
+    }
   },
   "spotlight_search": {
     "placeholder": "搜尋玩家...",

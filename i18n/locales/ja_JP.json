@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "チームを新しいタブで開く",
       "request_scrim": "スクリムを申請",
       "available_teams": "募集中のチーム",
-      "no_teams_match": "フィルター条件に一致するチームがありません。"
+      "no_teams_match": "フィルター条件に一致するチームがありません。",
+      "empty_title": "スクリムを募集しているチームはありません"
     },
     "teams": {
       "title": "チーム",
@@ -1578,6 +1579,14 @@
         "col_pick": "Pick確率",
         "col_play": "プレイ確率",
         "col_predicted_win": "予測勝率"
+      },
+      "scrims": {
+        "any_time": "いつでも申請を受け付けます",
+        "need_team": "スクリムを申請するには、自分が所有または運営するチームが必要です。",
+        "see_all": "スクリムファインダーですべて見る",
+        "subtitle": "挑戦を受け付けているチーム",
+        "title": "スクリム募集中",
+        "today": "本日 {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "並べ替え",
     "vs_team": "vs {name}",
     "default": "既定",
-    "avg": "平均"
+    "avg": "平均",
+    "empty_filtered": {
+      "description": "フィルターを解除するか、検索条件を広げてください。",
+      "title": "条件に一致する項目はありません"
+    }
   },
   "spotlight_search": {
     "placeholder": "プレイヤーを検索...",

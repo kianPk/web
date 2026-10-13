@@ -1527,7 +1527,8 @@
       "open_team_new_tab": "Åbn hold i ny fane",
       "request_scrim": "Anmod om scrim",
       "available_teams": "Ledige hold",
-      "no_teams_match": "Ingen hold matcher dine filtre."
+      "no_teams_match": "Ingen hold matcher dine filtre.",
+      "empty_title": "Ingen hold søger scrims"
     },
     "teams": {
       "title": "Hold",
@@ -1578,6 +1579,14 @@
         "col_pick": "Pick-sandsynlighed",
         "col_play": "Spil-sandsynlighed",
         "col_predicted_win": "Forventet sejr%"
+      },
+      "scrims": {
+        "any_time": "Tager imod anmodninger når som helst",
+        "need_team": "Du skal have et hold, du ejer eller leder, for at anmode om en scrim.",
+        "see_all": "Se alle i Scrim-finder",
+        "subtitle": "Hold der tager imod udfordringer",
+        "title": "Søger scrims",
+        "today": "I dag {from}–{to}"
       }
     },
     "settings": {
@@ -5978,7 +5987,11 @@
     "sort": "sortér",
     "vs_team": "mod {name}",
     "default": "Standard",
-    "avg": "gns."
+    "avg": "gns.",
+    "empty_filtered": {
+      "description": "Prøv at rydde filtrene eller udvide din søgning.",
+      "title": "Intet matcher disse filtre"
+    }
   },
   "spotlight_search": {
     "placeholder": "Søg spillere...",
