@@ -33,6 +33,7 @@ const throws = computed(() =>
 const { radarSrc, projectCalibrated, CANVAS } = useRadarProjection(
   () => props.mapName,
   {
+    retina: false,
     volumePoints: () =>
       throws.value.map((entry) => entry.landing ?? entry.origin),
   },

@@ -23,6 +23,7 @@ const props = withDefaults(
 const { radarSrc, projectCalibrated, CANVAS } = useRadarProjection(
   () => props.mapName,
   {
+    retina: false,
     volumePoints: () =>
       props.landing ? [props.origin, props.landing] : [props.origin],
   },

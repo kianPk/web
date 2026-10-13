@@ -1,10 +1,43 @@
+import stageRadars from "./stageRadars.json";
+
+// The map as played: lowercased, without any path in front of it.
+function playedMapName(name: string): string {
+  const played = (name || "").toLowerCase().trim();
+  return played.slice(played.lastIndexOf("/") + 1);
+}
+
 export function normalizeMapName(name: string): string {
-  let n = (name || "").toLowerCase().trim();
-  const slash = n.lastIndexOf("/");
-  if (slash >= 0) {
-    n = n.slice(slash + 1);
+  return playedMapName(name).replace(/_night$/, "");
+}
+
+// 5stack's own coloured radars, baked from their replay stage's 2D map
+// (upstream scripts/replay-stage/bake-radars.mjs --webp), by image name with a
+// hash of the pixels for the URL. Same calibration as /radars/metadata.json.
+const STAGE_RADARS: Record<string, string> = stageRadars;
+
+/**
+ * The radar image for a map: the coloured bake when there is one (a `_night`
+ * map in its moonlit palette), else the generic radar. `retina` asks for the
+ * 2048px bake, for a board shown large or zoomed.
+ */
+export function radarImageUrl(
+  mapName: string,
+  options: { retina?: boolean } = {},
+): string {
+  const played = playedMapName(mapName);
+  const day = normalizeMapName(mapName);
+  for (const name of [played, day]) {
+    const hash = STAGE_RADARS[name];
+    if (hash) {
+      return `/radars/stage/${name}${options.retina ? "@2x" : ""}.webp?v=${hash}`;
+    }
   }
-  return n.replace(/_night$/, "");
+  return `/radars/${day}.png`;
+}
+
+/** Which picture a radar URL is, whatever its resolution. */
+export function radarImageKey(src: string | null | undefined): string | null {
+  return src ? src.replace(/\?.*$/, "").replace(/@2x(?=\.\w+$)/, "") : null;
 }
 
 let radarSetPromise: Promise<Set<string>> | null = null;
