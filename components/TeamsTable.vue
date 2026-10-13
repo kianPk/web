@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import { dateLocale } from "~/utilities/dateLocale";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import AwardBadge from "~/components/award/AwardBadge.vue";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import TeamsAwardShelf from "~/components/teams/TeamsAwardShelf.vue";
 import { Users } from "lucide-vue-next";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 </script>
@@ -123,77 +116,11 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
           +{{ extraCount(team) }}
         </span>
 
-        <!-- Recent awards (last 5) -->
-        <div
-          v-if="recentAwards(team).length"
-          class="ml-auto flex items-center gap-1"
-        >
-          <TooltipProvider
-            v-for="grant in recentAwards(team)"
-            :key="grant.id"
-            :delay-duration="0"
-          >
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <button
-                  type="button"
-                  class="rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
-                  :aria-label="awardAriaLabel(grant)"
-                  @click.stop.prevent="goToTournament(grant.tournament_id)"
-                >
-                  <AwardBadge
-                    :award="grant.award"
-                    :seed-key="grant.tournament_id || grant.award?.id"
-                    :placement="grant.placement"
-                    :tournament-name="grant.tournament?.name"
-                    :tournament-start="grant.tournament?.start"
-                    :tournament-type="grant.tournament?.stages?.[0]?.type"
-                    :custom-name="grant.tournament_award?.custom_name"
-                    :silhouette-override="grant.tournament_award?.silhouette"
-                    :image-url="grant.tournament_award?.image_url"
-                    size="xs"
-                    :interactive="false"
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" class="max-w-[16rem]">
-                <div class="flex flex-col gap-0.5">
-                  <div class="font-semibold leading-tight">
-                    {{
-                      grant.tournament_award?.custom_name ||
-                      grant.tournament?.name ||
-                      "Tournament"
-                    }}
-                  </div>
-                  <div
-                    class="flex items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground"
-                  >
-                    <span :style="{ color: placementColor(grant.placement) }">
-                      {{ placementLabel(grant.placement) }}
-                    </span>
-                    <span v-if="grant.tournament?.start" class="opacity-50"
-                      >·</span
-                    >
-                    <span v-if="grant.tournament?.start">
-                      {{ formatAwardDate(grant.tournament.start) }}
-                    </span>
-                  </div>
-                  <div
-                    class="mt-0.5 text-[0.6rem] uppercase tracking-[0.18em] text-[hsl(var(--tac-amber))]"
-                  >
-                    {{ $t("ui.click_to_view_tournament") }}
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <span
-            v-if="extraAwards(team) > 0"
-            class="inline-flex items-center justify-center rounded border border-border bg-muted/40 px-1.5 h-7 text-[0.6rem] font-mono tabular-nums text-muted-foreground"
-          >
-            +{{ extraAwards(team) }}
-          </span>
-        </div>
+        <TeamsAwardShelf
+          v-if="teamAwards(team).length"
+          class="ml-auto"
+          :awards="teamAwards(team)"
+        />
       </div>
 
       <div v-else class="text-xs text-muted-foreground italic">
@@ -204,6 +131,8 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 </template>
 
 <script lang="ts">
+import type { TeamAwardEntry } from "~/components/teams/teamAwards";
+
 interface RosterPlayer {
   elo?: {
     competitive?: number | null;
@@ -218,32 +147,6 @@ interface RosterPlayer {
 interface RosterEntry {
   roster_image_url?: string | null;
   player?: RosterPlayer | null;
-}
-
-interface AwardEntry {
-  id: string;
-  placement?: number | null;
-  placement_tier?: string | null;
-  tournament_id?: string | null;
-  created_at?: string | null;
-  award?: {
-    id: string;
-    name?: string | null;
-    tier?: string | null;
-    silhouette?: number | null;
-    image_url?: string | null;
-  } | null;
-  tournament?: {
-    id?: string;
-    name?: string | null;
-    start?: string | null;
-    stages?: Array<{ type?: string | null }> | null;
-  } | null;
-  tournament_award?: {
-    custom_name?: string | null;
-    silhouette?: number | null;
-    image_url?: string | null;
-  } | null;
 }
 
 export default {
@@ -281,63 +184,10 @@ export default {
     rosterCount(team: { roster?: RosterEntry[] }): number {
       return team.roster?.length ?? 0;
     },
-    teamAwards(team: { id: string }): AwardEntry[] {
+    teamAwards(team: { id: string }): TeamAwardEntry[] {
       return (
-        (this.awardsByTeamId as Record<string, AwardEntry[]>)[team.id] ?? []
+        (this.awardsByTeamId as Record<string, TeamAwardEntry[]>)[team.id] ?? []
       );
-    },
-    recentAwards(team: { id: string }): AwardEntry[] {
-      return [...this.teamAwards(team)]
-        .sort((a, b) => {
-          const da = a.tournament?.start
-            ? new Date(a.tournament.start).getTime()
-            : 0;
-          const db = b.tournament?.start
-            ? new Date(b.tournament.start).getTime()
-            : 0;
-          return db - da;
-        })
-        .slice(0, 5);
-    },
-    extraAwards(team: { id: string }): number {
-      return Math.max(0, this.teamAwards(team).length - 5);
-    },
-    placementLabel(placement: number): string {
-      if (placement === 0) return "MVP";
-      if (placement === 1) return "1st Place";
-      if (placement === 2) return "2nd Place";
-      if (placement === 3) return "3rd Place";
-      return `#${placement}`;
-    },
-    placementColor(placement: number): string {
-      if (placement === 0) return "hsl(195 85% 60%)";
-      if (placement === 1) return "hsl(45 95% 60%)";
-      if (placement === 2) return "hsl(0 0% 78%)";
-      if (placement === 3) return "hsl(28 70% 52%)";
-      return "hsl(var(--muted-foreground))";
-    },
-    formatAwardDate(iso?: string | null): string {
-      if (!iso) return "";
-      const d = new Date(iso);
-      if (Number.isNaN(d.getTime())) return "";
-      return d
-        .toLocaleDateString(dateLocale(), {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-        .toUpperCase();
-    },
-    awardAriaLabel(grant: AwardEntry): string {
-      const name =
-        grant.tournament_award?.custom_name ||
-        grant.tournament?.name ||
-        "tournament";
-      return `${this.placementLabel(grant.placement)} — ${name}`;
-    },
-    goToTournament(tournamentId?: string | null) {
-      if (!tournamentId) return;
-      this.$router.push(`/tournaments/${tournamentId}`);
     },
     topStarters(team: { roster?: RosterEntry[] }): RosterEntry[] {
       const roster = team.roster ?? [];

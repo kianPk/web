@@ -238,14 +238,22 @@ export default {
     awardsByTeamId(): Record<string, any[]> {
       const map: Record<string, any[]> = {};
       for (const t of this.teamAwards) {
-        const teamId = t.tournament_team?.team_id;
+        const teamId = t.team_id ?? t.tournament_team?.team_id;
         if (!teamId) continue;
         (map[teamId] ??= []).push(t);
       }
       return map;
     },
+    // A hand-granted award doesn't make a team a tournament winner.
     winnerTeamIds(): string[] {
-      return Object.keys(this.awardsByTeamId);
+      return [
+        ...new Set(
+          this.teamAwards
+            .filter((t: any) => t.source === "tournament")
+            .map((t: any) => t.team_id ?? t.tournament_team?.team_id)
+            .filter(Boolean),
+        ),
+      ] as string[];
     },
     teamsFilterCount(): number {
       let n = 0;
@@ -373,9 +381,12 @@ export default {
               },
               {
                 id: true,
+                team_id: true,
+                source: true,
                 placement: true,
                 placement_tier: true,
                 tournament_id: true,
+                created_at: true,
                 award: {
                   id: true,
                   name: true,

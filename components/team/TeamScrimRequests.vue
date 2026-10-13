@@ -17,6 +17,10 @@ export default {
       type: String,
       required: true,
     },
+    compact: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -138,8 +142,14 @@ export default {
 
 <template>
   <div class="space-y-3">
+    <p
+      v-if="requests.length === 0 && compact"
+      class="text-sm text-muted-foreground"
+    >
+      {{ $t("scrim.no_active_requests") }}
+    </p>
     <div
-      v-if="requests.length === 0"
+      v-else-if="requests.length === 0"
       class="rounded-md border border-dashed border-border px-4 py-10 text-center"
     >
       <p class="text-sm text-muted-foreground">{{ $t("scrim.no_active_requests") }}</p>

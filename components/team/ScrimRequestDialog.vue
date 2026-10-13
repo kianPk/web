@@ -48,6 +48,8 @@ import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import TeamScrimAvailabilityPicker from "~/components/team/TeamScrimAvailabilityPicker.vue";
 import FadeSwap from "~/components/ui/transitions/FadeSwap.vue";
 
+const QUICK_EVENING_HOUR = 21;
+
 function localDateStr(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -107,7 +109,12 @@ export default {
       pickedSlot: null as { day: number; slot: number } | null,
       bestOf: "1",
       targetDate: localDateStr(new Date()),
-      freeMode: false,
+      timeMode: "soon" as
+        | "soon"
+        | "tonight"
+        | "tomorrow"
+        | "availability"
+        | "custom",
       freeTime: "19:00",
       submitting: false,
       sectionLabelClasses: tacticalSectionLabelClasses,
@@ -145,6 +152,23 @@ export default {
         this.posting?.allow_outside_availability === true ||
         !this.hasAvailability
       );
+    },
+    timeOptions(): string[] {
+      const options: string[] = [];
+      if (this.canRequestOutside) {
+        options.push("soon");
+        if (this.quickIso("tonight")) {
+          options.push("tonight");
+        }
+        options.push("tomorrow");
+      }
+      if (this.hasAvailability) {
+        options.push("availability");
+      }
+      if (this.canRequestOutside) {
+        options.push("custom");
+      }
+      return options;
     },
     wagersEnabled(): boolean {
       return (
@@ -217,7 +241,7 @@ export default {
       this.bestOf = "1";
       this.wager = "0";
       this.targetDate = localDateStr(new Date());
-      this.freeMode = !this.hasAvailability;
+      this.timeMode = this.canRequestOutside ? "soon" : "availability";
       this.selectedFromTeam = this.eligibleFromTeams.at(0)?.id ?? "";
       this.pickedSlot = firstFittingStart(
         this.opponentAvailableSet,
@@ -273,7 +297,10 @@ export default {
       return mapLabel(map);
     },
     proposedIso(): string | null {
-      if (this.freeMode) {
+      if (["soon", "tonight", "tomorrow"].includes(this.timeMode)) {
+        return this.quickIso(this.timeMode);
+      }
+      if (this.timeMode === "custom") {
         if (!this.targetDate || !this.freeTime) {
           return null;
         }
@@ -317,8 +344,20 @@ export default {
       });
       return `${startLabel} → ${endLabel}`;
     },
+    quickIso(mode: string): string | null {
+      const at = new Date();
+      if (mode === "soon") {
+        at.setMinutes(Math.ceil((at.getMinutes() + 30) / 5) * 5, 0, 0);
+      } else {
+        if (mode === "tomorrow") {
+          at.setDate(at.getDate() + 1);
+        }
+        at.setHours(QUICK_EVENING_HOUR, 0, 0, 0);
+      }
+      return at.getTime() > Date.now() ? at.toISOString() : null;
+    },
     bestOfFits(option: string): boolean {
-      if (this.freeMode) {
+      if (this.timeMode !== "availability") {
         return true;
       }
       if (this.opponentAvailableSet.size === 0) {
@@ -457,7 +496,17 @@ export default {
       </div>
 
       <div class="min-w-0 space-y-4">
-        <label class="space-y-1 block">
+        <div
+          v-if="eligibleFromTeams.length === 1"
+          class="flex items-center gap-2 text-sm"
+        >
+          <span :class="sectionLabelClasses">
+            <span :class="sectionTickClasses" />
+            {{ $t("scrim.your_team") }}
+          </span>
+          <span class="font-semibold">{{ eligibleFromTeams[0].name }}</span>
+        </div>
+        <label v-else class="space-y-1 block">
           <span :class="sectionLabelClasses">
             <span :class="sectionTickClasses" />
             {{ $t("scrim.your_team") }}
@@ -482,22 +531,32 @@ export default {
         </label>
 
         <div class="min-w-0 space-y-2">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span :class="sectionLabelClasses">
-              <span :class="sectionTickClasses" />
-              {{ $t("scrim.proposed_time") }}
-            </span>
+          <span :class="sectionLabelClasses">
+            <span :class="sectionTickClasses" />
+            {{ $t("scrim.proposed_time") }}
+          </span>
+
+          <div v-if="timeOptions.length > 1" class="flex flex-wrap gap-2">
             <button
-              v-if="canRequestOutside && hasAvailability"
+              v-for="option in timeOptions"
+              :key="option"
               type="button"
-              class="text-xs text-[hsl(var(--tac-amber))] hover:underline"
-              @click="freeMode = !freeMode"
+              class="rounded-md border px-3 py-1.5 text-sm transition-colors"
+              :class="
+                timeMode === option
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.1)] text-[hsl(var(--tac-amber))]'
+                  : 'border-border text-muted-foreground hover:bg-muted/40'
+              "
+              @click="timeMode = option as any"
             >
-              {{ freeMode ? $t("scrim.pick_from_availability") : $t("scrim.request_other_time") }}
+              {{ $t(`scrim.quick.${option}`) }}
             </button>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div
+            v-if="timeMode === 'custom' || timeMode === 'availability'"
+            class="flex flex-wrap items-center gap-2"
+          >
             <Popover>
               <PopoverTrigger as-child>
                 <Button
@@ -525,7 +584,7 @@ export default {
               leave-to-class="opacity-0"
             >
               <Input
-                v-if="freeMode"
+                v-if="timeMode === 'custom'"
                 v-model="freeTime"
                 type="time"
                 style="color-scheme: dark"
@@ -548,7 +607,11 @@ export default {
           </div>
 
           <FadeSwap>
-            <div v-if="!freeMode" key="availability" class="space-y-1">
+            <div
+              v-if="timeMode === 'availability'"
+              key="availability"
+              class="space-y-1"
+            >
               <TeamScrimAvailabilityPicker
                 v-model="pickedSlot"
                 :availability="posting?.team?.scrim_availability ?? []"

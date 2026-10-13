@@ -19,6 +19,7 @@ interface AwardGrant {
   id: string;
   placement?: number | null;
   placement_tier?: string | null;
+  source?: string | null;
   tournament_id?: string | null;
   team_id?: string | null;
   note?: string | null;
@@ -91,8 +92,12 @@ const placementLabelKey = computed(() => {
 
 const tierColor = computed(() => TIER_COLORS[tier.value]);
 
+const manual = computed(() => props.award.source === "manual");
+
 const formattedDate = computed(() => {
-  const iso = props.award.tournament?.start || props.award.created_at;
+  const iso = manual.value
+    ? props.award.created_at
+    : props.award.tournament?.start || props.award.created_at;
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
@@ -110,13 +115,22 @@ const tournamentType = computed(
   () => props.award.tournament?.stages?.[0]?.type || null,
 );
 
-const title = computed(
-  () =>
+const title = computed(() => {
+  if (manual.value) {
+    return (
+      props.award.tournament_award?.custom_name ||
+      props.award.award?.name ||
+      tournamentName.value ||
+      ""
+    );
+  }
+  return (
     props.award.tournament_award?.custom_name ||
     tournamentName.value ||
     props.award.award?.name ||
-    "",
-);
+    ""
+  );
+});
 
 const awardTeam = computed(() => {
   const team = props.award.team || props.award.tournament_team?.team || null;
@@ -161,7 +175,7 @@ const awardTeam = computed(() => {
       <NuxtLink
         v-if="awardTeam"
         :to="`/teams/${awardTeam.id}`"
-        class="group/team relative flex items-center justify-between gap-3 overflow-hidden rounded-sm border border-[hsl(var(--tac-amber)_/_0.35)] bg-[hsl(var(--tac-amber)_/_0.07)] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.11)]"
+        class="group/team relative flex items-center justify-between gap-3 overflow-hidden rounded-md border border-[hsl(var(--tac-amber)_/_0.35)] bg-[hsl(var(--tac-amber)_/_0.07)] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.11)]"
       >
         <span
           class="pointer-events-none absolute inset-0 [background-image:repeating-linear-gradient(90deg,transparent_0,transparent_11px,hsl(var(--tac-amber)_/_0.04)_11px,hsl(var(--tac-amber)_/_0.04)_12px)]"
@@ -277,7 +291,7 @@ const awardTeam = computed(() => {
         <NuxtLink
           v-if="award.tournament_id"
           :to="`/tournaments/${award.tournament_id}`"
-          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
+          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
           @click="emit('update:open', false)"
         >
           <span
@@ -294,7 +308,7 @@ const awardTeam = computed(() => {
         <NuxtLink
           v-if="award.award?.id"
           :to="`/awards/${award.award.id}`"
-          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
+          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
           @click="emit('update:open', false)"
         >
           <span

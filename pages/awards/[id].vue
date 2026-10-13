@@ -348,7 +348,7 @@ const chipClasses =
                 <button
                   v-if="canGrantAwards"
                   type="button"
-                  class="grid h-8 w-8 shrink-0 place-items-center rounded border border-border/80 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--destructive)/0.55)] hover:bg-[hsl(var(--destructive)/0.12)] hover:text-destructive"
+                  class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border/80 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--destructive)/0.55)] hover:bg-[hsl(var(--destructive)/0.12)] hover:text-destructive"
                   :title="$t('pages.award_detail.revoke')"
                   :aria-label="$t('pages.award_detail.revoke')"
                   @click="revokeTarget = row"
@@ -421,6 +421,8 @@ const chipClasses =
 </template>
 
 <script lang="ts">
+import { useRestoredData } from "~/composables/useRestoredState";
+import { isRestoringHistory } from "~/composables/useScrollRestoration";
 import { validate as validateUUID } from "uuid";
 import { $, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
@@ -441,11 +443,13 @@ const TIER_COLORS: Record<string, string> = {
 
 export default {
   data() {
+    // Back to the award lands on the same filter and page of its holders.
+    const restored = useRestoredData("award-holders", ["holderFilter", "page"]);
     return {
       award: undefined as any,
       loading: true,
-      holderFilter: "all",
-      page: 1,
+      holderFilter: restored?.holderFilter ?? "all",
+      page: restored?.page ?? 1,
       perPage: 20,
       grantOpen: false,
       revokeTarget: null as any,
@@ -523,7 +527,9 @@ export default {
     // Filtering to a smaller set must not strand the reader on a page that no
     // longer exists.
     holderFilter() {
-      this.page = 1;
+      if (!isRestoringHistory()) {
+        this.page = 1;
+      }
     },
   },
   computed: {

@@ -33,6 +33,10 @@ import {
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import ScrimRequestDialog from "~/components/team/ScrimRequestDialog.vue";
+import MyTeamScrimPanel from "~/components/scrims/MyTeamScrimPanel.vue";
+import DuelFinder from "~/components/scrims/DuelFinder.vue";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Swords } from "lucide-vue-next";
 import { dateLocale } from "~/utilities/dateLocale";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -71,9 +75,17 @@ export default {
     PageTransition,
     TeamRankSummary,
     ScrimRequestDialog,
+    MyTeamScrimPanel,
+    DuelFinder,
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    Users,
+    Swords,
   },
   data() {
     return {
+      mode: this.$route.query.mode === "1v1" ? "duel" : "team",
       postings: [] as any[],
       myTeams: [] as any[],
       myMemberTeamIds: [] as string[],
@@ -319,6 +331,21 @@ export default {
       },
     },
   },
+  watch: {
+    mode(value: string) {
+      // Replace rather than navigate so switching tabs doesn't re-render the page.
+      if (typeof window === "undefined") {
+        return;
+      }
+      const url = new URL(window.location.href);
+      if (value === "duel") {
+        url.searchParams.set("mode", "1v1");
+      } else {
+        url.searchParams.delete("mode");
+      }
+      window.history.replaceState(window.history.state, "", url.toString());
+    },
+  },
   mounted() {
     this.loadMaps();
   },
@@ -510,6 +537,51 @@ import {
     />
 
     <template v-else>
+      <Tabs v-model="mode" class="mb-6 block">
+        <TabsList>
+          <TabsTrigger value="team" class="gap-2">
+            <Users class="h-4 w-4" />
+            {{ $t("scrim.duel.team_tab") }}
+          </TabsTrigger>
+          <TabsTrigger value="duel" class="gap-2">
+            <Swords class="h-4 w-4" />
+            {{ $t("scrim.duel.tab") }}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <DuelFinder v-if="mode === 'duel'" />
+
+      <template v-else>
+      <PageTransition class="mb-6 block space-y-4">
+        <ol class="grid gap-3 sm:grid-cols-3">
+          <li
+            v-for="(step, index) in ['list', 'request', 'play']"
+            :key="step"
+            class="flex gap-3 rounded-lg border border-border bg-card/40 p-3"
+          >
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--tac-amber)/0.15)] text-sm font-bold text-[hsl(var(--tac-amber))]"
+            >
+              {{ index + 1 }}
+            </span>
+            <div class="min-w-0">
+              <div class="text-sm font-semibold">
+                {{ $t(`scrim.easy.step_${step}`) }}
+              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ $t(`scrim.easy.step_${step}_help`) }}
+              </p>
+            </div>
+          </li>
+        </ol>
+        <MyTeamScrimPanel
+          v-if="mySteamId"
+          :teams="myTeams"
+          @play-duel="mode = 'duel'"
+        />
+      </PageTransition>
+
       <PageTransition class="block">
         <FilterBar>
           <!-- Search (always visible — type instantly) -->
@@ -1065,6 +1137,7 @@ import {
           </FadeSwap>
         </DeferredLoading>
       </PageTransition>
+      </template>
     </template>
 
     <ScrimRequestDialog v-model:open="dialogOpen" :posting="selectedPosting" />
