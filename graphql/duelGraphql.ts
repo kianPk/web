@@ -28,7 +28,7 @@ export const MY_DUELS_SUBSCRIPTION = gql`
           { from_steam_id: { _eq: $steamId } }
           { to_steam_id: { _eq: $steamId } }
         ]
-        status: { _in: ["Pending", "Matched"] }
+        status: { _in: [Pending, Matched] }
       }
       order_by: { created_at: desc }
       limit: 30
@@ -69,7 +69,7 @@ export const MY_DUELS_SUBSCRIPTION = gql`
 
 export const DUEL_MAP_POOLS_QUERY = gql`
   query DuelMapPools {
-    map_pools(where: { type: { _eq: "Duel" }, enabled: { _eq: true } }) {
+    map_pools(where: { type: { _eq: Duel }, enabled: { _eq: true } }) {
       id
       seed
       maps {
