@@ -1117,7 +1117,24 @@
     "notes_section": "Notes",
     "notes_placeholder": "Tout ce que les adversaires doivent savoir — préférences de serveur, anti-cheat, vocal, etc.",
     "settings_saved": "Paramètres de scrim enregistrés",
-    "settings_save_error": "Impossible d'enregistrer les paramètres de scrim"
+    "settings_save_error": "Impossible d'enregistrer les paramètres de scrim",
+    "respond_error": "Couldn't respond to the scrim request",
+    "wager": {
+      "title": "Ypoint wager",
+      "your_balance": "Your balance: {balance} Ypoints",
+      "none": "None",
+      "amount_label": "Ypoints per team",
+      "summary": "{amount} Ypoints per team · pot {pot} · winner takes {payout}",
+      "split_help": "Each team's stake is split evenly across its first five roster players when the scrim is accepted, and the winnings are shared among the winning team's players the same way.",
+      "rules_help": "The site keeps {rake}% of the pot. A tie, or a scrim canceled by an admin, is refunded. A team that cancels after accepting or doesn't show up loses its stake to the other team.",
+      "optional_help": "Optional: put Ypoints on the line to raise the stakes.",
+      "invalid": "Enter a whole number of Ypoints.",
+      "per_team": "{amount} Ypoints per team",
+      "status_escrowed": "Held in escrow until the scrim is decided",
+      "status_pending": "Taken from both teams' players when the scrim is accepted",
+      "accept_warning": "Accepting takes your team's share from your players' wallets",
+      "cancel_confirm": "This scrim has a Ypoint wager. Canceling now forfeits your team's stake to the other team. Cancel anyway?"
+    }
   },
   "elo_chart_bucket": {
     "monthly": "Mensuel",
@@ -2324,7 +2341,11 @@
           "section": "Recherche de scrims",
           "enabled": "Activer la recherche de scrims",
           "enabled_description": "Permet aux équipes d'afficher leurs disponibilités, de trouver des adversaires et de planifier des scrims. Activé par défaut. Désactive cette option pour masquer partout la recherche de scrims et arrêter le matchmaking automatique.",
-          "updated": "Paramètres de recherche de scrims mis à jour"
+          "updated": "Paramètres de recherche de scrims mis à jour",
+          "wagers_section": "Ypoint wagers",
+          "wagers_description": "Let teams put Ypoints on their scrim requests. Stakes are held in escrow when a scrim is accepted and paid to the winning team's players. Enabled by default.",
+          "rake_label": "Site fee (% of the pot)",
+          "rake_help": "Kept from every pot that is paid out, never from refunds. 0 to 50, default 5."
         },
         "demo_settings": {
           "title": "Démos",

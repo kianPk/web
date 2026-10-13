@@ -29,7 +29,9 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Clock } from "lucide-vue-next";
+import { Calendar as CalendarIcon, Clock, Coins } from "lucide-vue-next";
+import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
+import { useYpoints } from "~/composables/useYpoints";
 import { parseDate } from "@internationalized/date";
 import {
   tacticalSectionLabelClasses,
@@ -75,6 +77,7 @@ export default {
     Input,
     CalendarIcon,
     Clock,
+    Coins,
     TeamRankSummary,
     TeamScrimAvailabilityPicker,
     FadeSwap,
@@ -90,8 +93,14 @@ export default {
     },
   },
   emits: ["update:open", "sent"],
+  setup() {
+    const { balance } = useYpoints();
+    return { ypointBalance: balance };
+  },
   data() {
     return {
+      wager: "0",
+      wagerPresets: [0, 50, 100, 250, 500],
       myTeams: [] as any[],
       mapsById: {} as Record<string, any>,
       selectedFromTeam: "",
@@ -136,6 +145,30 @@ export default {
         this.posting?.allow_outside_availability === true ||
         !this.hasAvailability
       );
+    },
+    wagersEnabled(): boolean {
+      return (
+        useApplicationSettingsStore().settings.find(
+          (s: { name: string }) => s.name === "public.scrim_wager_enabled",
+        )?.value !== "false"
+      );
+    },
+    wagerRakePercent(): number {
+      const raw = useApplicationSettingsStore().settings.find(
+        (s: { name: string }) => s.name === "public.scrim_wager_rake_percent",
+      )?.value;
+      const value = Math.floor(Number(raw));
+      return raw && Number.isFinite(value)
+        ? Math.min(50, Math.max(0, value))
+        : 5;
+    },
+    wagerAmount(): number {
+      const value = Number(this.wager);
+      return Number.isInteger(value) && value > 0 ? value : 0;
+    },
+    wagerInvalid(): boolean {
+      const value = Number(this.wager);
+      return this.wager !== "" && (!Number.isInteger(value) || value < 0);
     },
   },
   apollo: {
@@ -182,6 +215,7 @@ export default {
         return;
       }
       this.bestOf = "1";
+      this.wager = "0";
       this.targetDate = localDateStr(new Date());
       this.freeMode = !this.hasAvailability;
       this.selectedFromTeam = this.eligibleFromTeams.at(0)?.id ?? "";
@@ -327,6 +361,9 @@ export default {
                 to_team_id: this.posting.team_id,
                 proposed_scheduled_at: iso,
                 best_of: Number(this.bestOf),
+                ...(this.wagersEnabled && this.wagerAmount > 0
+                  ? { wager_ypoints: this.wagerAmount }
+                  : {}),
               },
               { success: true },
             ],
@@ -560,13 +597,83 @@ export default {
             </button>
           </div>
         </div>
+
+        <div v-if="wagersEnabled" class="space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span :class="sectionLabelClasses">
+              <span :class="sectionTickClasses" />
+              {{ $t("scrim.wager.title") }}
+            </span>
+            <span
+              v-if="ypointBalance !== null"
+              class="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              {{ $t("scrim.wager.your_balance", { balance: ypointBalance }) }}
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              v-for="preset in wagerPresets"
+              :key="preset"
+              type="button"
+              class="rounded-md border px-3 py-1.5 text-sm tabular-nums transition-colors"
+              :class="
+                wagerAmount === preset
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.1)] text-[hsl(var(--tac-amber))]'
+                  : 'border-border text-muted-foreground hover:bg-muted/40'
+              "
+              @click="wager = String(preset)"
+            >
+              {{ preset === 0 ? $t("scrim.wager.none") : preset }}
+            </button>
+            <div class="relative">
+              <Coins
+                class="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--tac-amber))]"
+              />
+              <Input
+                v-model="wager"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                class="h-8 w-[140px] pl-8 tabular-nums"
+                :aria-label="$t('scrim.wager.amount_label')"
+              />
+            </div>
+          </div>
+          <div
+            v-if="wagerAmount > 0"
+            class="flex items-start gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2"
+          >
+            <Coins class="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]" />
+            <div class="space-y-1 text-xs text-muted-foreground">
+              <p class="text-sm font-semibold text-foreground">
+                {{
+                  $t("scrim.wager.summary", {
+                    amount: wagerAmount,
+                    pot: wagerAmount * 2,
+                    payout: wagerAmount * 2 - Math.floor((wagerAmount * 2 * wagerRakePercent) / 100),
+                  })
+                }}
+              </p>
+              <p>{{ $t("scrim.wager.split_help") }}</p>
+              <p>{{ $t("scrim.wager.rules_help", { rake: wagerRakePercent }) }}</p>
+            </div>
+          </div>
+          <p v-else class="text-xs text-muted-foreground">
+            {{ $t("scrim.wager.optional_help") }}
+          </p>
+          <p v-if="wagerInvalid" class="text-xs text-destructive">
+            {{ $t("scrim.wager.invalid") }}
+          </p>
+        </div>
       </div>
 
       <DialogFooter>
         <Button
           class="tac-amber-cta"
           :loading="submitting"
-          :disabled="!selectedFromTeam || !proposedIso()"
+          :disabled="!selectedFromTeam || !proposedIso() || wagerInvalid"
           @click="sendRequest"
         >
           {{ $t("scrim.send_request") }}

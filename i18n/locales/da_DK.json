@@ -1117,7 +1117,24 @@
     "notes_section": "Noter",
     "notes_placeholder": "Alt modstandere bør vide — serverpræferencer, anti-cheat, voice osv.",
     "settings_saved": "Scrimindstillinger gemt",
-    "settings_save_error": "Scrimindstillingerne kunne ikke gemmes"
+    "settings_save_error": "Scrimindstillingerne kunne ikke gemmes",
+    "respond_error": "Couldn't respond to the scrim request",
+    "wager": {
+      "title": "Ypoint wager",
+      "your_balance": "Your balance: {balance} Ypoints",
+      "none": "None",
+      "amount_label": "Ypoints per team",
+      "summary": "{amount} Ypoints per team · pot {pot} · winner takes {payout}",
+      "split_help": "Each team's stake is split evenly across its first five roster players when the scrim is accepted, and the winnings are shared among the winning team's players the same way.",
+      "rules_help": "The site keeps {rake}% of the pot. A tie, or a scrim canceled by an admin, is refunded. A team that cancels after accepting or doesn't show up loses its stake to the other team.",
+      "optional_help": "Optional: put Ypoints on the line to raise the stakes.",
+      "invalid": "Enter a whole number of Ypoints.",
+      "per_team": "{amount} Ypoints per team",
+      "status_escrowed": "Held in escrow until the scrim is decided",
+      "status_pending": "Taken from both teams' players when the scrim is accepted",
+      "accept_warning": "Accepting takes your team's share from your players' wallets",
+      "cancel_confirm": "This scrim has a Ypoint wager. Canceling now forfeits your team's stake to the other team. Cancel anyway?"
+    }
   },
   "elo_chart_bucket": {
     "monthly": "Månedligt",
@@ -2324,7 +2341,11 @@
           "section": "Scrim finder",
           "enabled": "Aktivér scrim finder",
           "enabled_description": "Lad hold annoncere ledig tid, finde modstandere og planlægge scrims. Slået til som standard. Slå fra for at skjule scrim finder overalt og stoppe automatisk matchning.",
-          "updated": "Indstillinger for scrim finder opdateret"
+          "updated": "Indstillinger for scrim finder opdateret",
+          "wagers_section": "Ypoint wagers",
+          "wagers_description": "Let teams put Ypoints on their scrim requests. Stakes are held in escrow when a scrim is accepted and paid to the winning team's players. Enabled by default.",
+          "rake_label": "Site fee (% of the pot)",
+          "rake_help": "Kept from every pot that is paid out, never from refunds. 0 to 50, default 5."
         },
         "demo_settings": {
           "title": "Demoer",

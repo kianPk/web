@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import TimeAgo from "@/components/TimeAgo.vue";
 import DateTimePicker from "@/components/common/DateTimePicker.vue";
 import { dateLocale } from "~/utilities/dateLocale";
+import { Coins } from "lucide-vue-next";
 
 export default {
-  components: { Button, Badge, TimeAgo, DateTimePicker },
+  components: { Button, Badge, TimeAgo, DateTimePicker, Coins },
   props: {
     teamId: {
       type: String,
@@ -47,6 +48,8 @@ export default {
               proposed_scheduled_at: true,
               match_id: true,
               auto_generated: true,
+              wager_ypoints: true,
+              wager_status: true,
               created_at: true,
               from_team: { id: true, name: true },
               to_team: { id: true, name: true },
@@ -77,14 +80,23 @@ export default {
         : request.from_team?.name;
     },
     async respond(requestId: string, accept: boolean) {
-      await this.$apollo.mutate({
-        mutation: generateMutation({
-          respondToScrimRequest: [
-            { request_id: requestId, accept },
-            { success: true },
-          ],
-        }),
-      });
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            respondToScrimRequest: [
+              { request_id: requestId, accept },
+              { success: true },
+            ],
+          }),
+        });
+      } catch (error) {
+        toast({
+          title: this.$t("scrim.respond_error"),
+          description: error instanceof Error ? error.message : undefined,
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title: accept
           ? this.$t("scrim.scrim_accepted")
@@ -109,7 +121,10 @@ export default {
       });
       toast({ title: this.$t("scrim.new_time_proposed") });
     },
-    async cancel(requestId: string) {
+    async cancel(requestId: string, forfeitsWager = false) {
+      if (forfeitsWager && !window.confirm(this.$t("scrim.wager.cancel_confirm"))) {
+        return;
+      }
       await this.$apollo.mutate({
         mutation: generateMutation({
           cancelScrimRequest: [{ request_id: requestId }, { success: true }],
@@ -190,6 +205,25 @@ export default {
       </div>
 
       <div
+        v-if="request.wager_ypoints > 0"
+        class="flex flex-wrap items-center gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2 text-sm"
+      >
+        <Coins class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]" />
+        <span class="font-semibold text-foreground">
+          {{ $t("scrim.wager.per_team", { amount: request.wager_ypoints }) }}
+        </span>
+        <span class="text-xs text-muted-foreground">
+          {{
+            request.wager_status === "Escrowed"
+              ? $t("scrim.wager.status_escrowed")
+              : isAwaitingUs(request) && request.status !== "Matched"
+                ? $t("scrim.wager.accept_warning")
+                : $t("scrim.wager.status_pending")
+          }}
+        </span>
+      </div>
+
+      <div
         v-if="request.status === 'Matched' && request.match_id"
         class="flex items-center justify-between gap-2 text-sm"
       >
@@ -203,7 +237,7 @@ export default {
           size="sm"
           variant="ghost"
           class="text-muted-foreground hover:text-destructive"
-          @click="cancel(request.id)"
+          @click="cancel(request.id, request.wager_status === 'Escrowed')"
         >
           {{ $t("scrim.cancel_scrim") }}
         </Button>

@@ -30606,7 +30606,7 @@ saveUtilityPlaybook?: [{	description?: string | undefined | null | Variable<any,
 	/** Scan all players who have been on a lineup for Steam VAC/game bans */
 	scanSteamBans?:ValueTypes["SuccessOutput"],
 scheduleMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	time?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
-sendScrimRequest?: [{	best_of?: number | undefined | null | Variable<any, string>,	from_team_id: ValueTypes["uuid"] | Variable<any, string>,	proposed_scheduled_at: ValueTypes["timestamptz"] | Variable<any, string>,	region?: string | undefined | null | Variable<any, string>,	to_team_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+sendScrimRequest?: [{	best_of?: number | undefined | null | Variable<any, string>,	from_team_id: ValueTypes["uuid"] | Variable<any, string>,	proposed_scheduled_at: ValueTypes["timestamptz"] | Variable<any, string>,	region?: string | undefined | null | Variable<any, string>,	to_team_id: ValueTypes["uuid"] | Variable<any, string>,	wager_ypoints?: number | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 sendUtilityDrillToServer?: [{	lineup_ids: Array<string> | Variable<any, string>},ValueTypes["UtilityDrillLoadOutput"]],
 sendUtilityLineupToServer?: [{	lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["UtilityLoadOutput"]],
 sendUtilityScratchToServer?: [{	lineup: ValueTypes["UtilityScratchLineupInput"] | Variable<any, string>},ValueTypes["UtilityLoadOutput"]],
@@ -58685,6 +58685,7 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_request_proposals_select_colum
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 proposals?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["team_scrim_request_proposals_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -58708,6 +58709,12 @@ proposals_aggregate?: [{	/** distinct select on columns */
 	to_team?:ValueTypes["teams"],
 	to_team_checked_in?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "team_scrim_requests" */
@@ -58777,11 +58784,15 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	/** aggregate avg on columns */
 ["team_scrim_requests_avg_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_avg_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Boolean expression to filter rows from the table "team_scrim_requests". All fields are combined with a logical 'AND'. */
 ["team_scrim_requests_bool_exp"]: {
@@ -58804,6 +58815,7 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options?: ValueTypes["match_options_bool_exp"] | undefined | null | Variable<any, string>,
 	match_options_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	match_outcome?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	proposals?: ValueTypes["team_scrim_request_proposals_bool_exp"] | undefined | null | Variable<any, string>,
 	proposals_aggregate?: ValueTypes["team_scrim_request_proposals_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -58814,13 +58826,21 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	status?: ValueTypes["e_scrim_request_statuses_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	to_team?: ValueTypes["teams_bool_exp"] | undefined | null | Variable<any, string>,
 	to_team_checked_in?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_status?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>
 };
 	/** unique or primary key constraints on table "team_scrim_requests" */
 ["team_scrim_requests_constraint"]:team_scrim_requests_constraint;
 	/** input type for incrementing numeric columns in table "team_scrim_requests" */
 ["team_scrim_requests_inc_input"]: {
-	requested_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: number | undefined | null | Variable<any, string>,
+	wager_ypoints?: number | undefined | null | Variable<any, string>
 };
 	/** input type for inserting data into table "team_scrim_requests" */
 ["team_scrim_requests_insert_input"]: {
@@ -58841,6 +58861,7 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	proposals?: ValueTypes["team_scrim_request_proposals_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	region?: string | undefined | null | Variable<any, string>,
@@ -58850,7 +58871,13 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	status?: ValueTypes["e_scrim_request_statuses_enum"] | undefined | null | Variable<any, string>,
 	to_team?: ValueTypes["teams_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	to_team_checked_in?: boolean | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: number | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_status?: string | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: number | undefined | null | Variable<any, string>
 };
 	/** aggregate max on columns */
 ["team_scrim_requests_max_fields"]: AliasType<{
@@ -58864,11 +58891,18 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 	proposed_scheduled_at?:boolean | `@${string}`,
 	region?:boolean | `@${string}`,
 	requested_by_steam_id?:boolean | `@${string}`,
 	responded_at?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "team_scrim_requests" */
@@ -58883,11 +58917,18 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	region?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	responded_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate min on columns */
 ["team_scrim_requests_min_fields"]: AliasType<{
@@ -58901,11 +58942,18 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 	proposed_scheduled_at?:boolean | `@${string}`,
 	region?:boolean | `@${string}`,
 	requested_by_steam_id?:boolean | `@${string}`,
 	responded_at?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "team_scrim_requests" */
@@ -58920,11 +58968,18 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	region?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	responded_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** response of any mutation on the table "team_scrim_requests" */
 ["team_scrim_requests_mutation_response"]: AliasType<{
@@ -58964,6 +59019,7 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options?: ValueTypes["match_options_order_by"] | undefined | null | Variable<any, string>,
 	match_options_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_outcome?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	proposals_aggregate?: ValueTypes["team_scrim_request_proposals_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	region?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58973,7 +59029,13 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	to_team?: ValueTypes["teams_order_by"] | undefined | null | Variable<any, string>,
 	to_team_checked_in?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** primary key columns input for table: team_scrim_requests */
 ["team_scrim_requests_pk_columns_input"]: {
@@ -59000,40 +59062,59 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	region?: string | undefined | null | Variable<any, string>,
 	requested_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	responded_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["e_scrim_request_statuses_enum"] | undefined | null | Variable<any, string>,
 	to_team_checked_in?: boolean | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: number | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_status?: string | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: number | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev on columns */
 ["team_scrim_requests_stddev_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_pop on columns */
 ["team_scrim_requests_stddev_pop_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_pop_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_samp on columns */
 ["team_scrim_requests_stddev_samp_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_samp_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Streaming cursor of the table "team_scrim_requests" */
 ["team_scrim_requests_stream_cursor_input"]: {
@@ -59057,22 +59138,33 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	match_options_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null | Variable<any, string>,
+	match_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	proposed_scheduled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	region?: string | undefined | null | Variable<any, string>,
 	requested_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	responded_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["e_scrim_request_statuses_enum"] | undefined | null | Variable<any, string>,
 	to_team_checked_in?: boolean | undefined | null | Variable<any, string>,
-	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+	to_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_cancel_seen_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: number | undefined | null | Variable<any, string>,
+	wager_settled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	wager_status?: string | undefined | null | Variable<any, string>,
+	wager_winner_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: number | undefined | null | Variable<any, string>
 };
 	/** aggregate sum on columns */
 ["team_scrim_requests_sum_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_sum_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** update columns of table "team_scrim_requests" */
 ["team_scrim_requests_update_column"]:team_scrim_requests_update_column;
@@ -59087,29 +59179,41 @@ count?: [{	columns?: Array<ValueTypes["team_scrim_requests_select_column"]> | un
 	/** aggregate var_pop on columns */
 ["team_scrim_requests_var_pop_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_pop_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate var_samp on columns */
 ["team_scrim_requests_var_samp_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_samp_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate variance on columns */
 ["team_scrim_requests_variance_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_variance_order_by"]: {
-	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	requested_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_rake_percent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	wager_ypoints?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** columns and relationships of "team_scrim_settings" */
 ["team_scrim_settings"]: AliasType<{
@@ -112906,7 +113010,7 @@ saveUtilityPlaybook?: [{	description?: string | undefined | null,	map_name: stri
 	/** Scan all players who have been on a lineup for Steam VAC/game bans */
 	scanSteamBans?:ResolverInputTypes["SuccessOutput"],
 scheduleMatch?: [{	match_id: ResolverInputTypes["uuid"],	time?: ResolverInputTypes["timestamptz"] | undefined | null},ResolverInputTypes["SuccessOutput"]],
-sendScrimRequest?: [{	best_of?: number | undefined | null,	from_team_id: ResolverInputTypes["uuid"],	proposed_scheduled_at: ResolverInputTypes["timestamptz"],	region?: string | undefined | null,	to_team_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+sendScrimRequest?: [{	best_of?: number | undefined | null,	from_team_id: ResolverInputTypes["uuid"],	proposed_scheduled_at: ResolverInputTypes["timestamptz"],	region?: string | undefined | null,	to_team_id: ResolverInputTypes["uuid"],	wager_ypoints?: number | undefined | null},ResolverInputTypes["SuccessOutput"]],
 sendUtilityDrillToServer?: [{	lineup_ids: Array<string>},ResolverInputTypes["UtilityDrillLoadOutput"]],
 sendUtilityLineupToServer?: [{	lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["UtilityLoadOutput"]],
 sendUtilityScratchToServer?: [{	lineup: ResolverInputTypes["UtilityScratchLineupInput"]},ResolverInputTypes["UtilityLoadOutput"]],
@@ -140985,6 +141089,7 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_request_proposals_sele
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 proposals?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["team_scrim_request_proposals_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -141008,6 +141113,12 @@ proposals_aggregate?: [{	/** distinct select on columns */
 	to_team?:ResolverInputTypes["teams"],
 	to_team_checked_in?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "team_scrim_requests" */
@@ -141077,11 +141188,15 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	/** aggregate avg on columns */
 ["team_scrim_requests_avg_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_avg_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "team_scrim_requests". All fields are combined with a logical 'AND'. */
 ["team_scrim_requests_bool_exp"]: {
@@ -141104,6 +141219,7 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options?: ResolverInputTypes["match_options_bool_exp"] | undefined | null,
 	match_options_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	match_outcome?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	proposals?: ResolverInputTypes["team_scrim_request_proposals_bool_exp"] | undefined | null,
 	proposals_aggregate?: ResolverInputTypes["team_scrim_request_proposals_aggregate_bool_exp"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -141114,13 +141230,21 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	status?: ResolverInputTypes["e_scrim_request_statuses_enum_comparison_exp"] | undefined | null,
 	to_team?: ResolverInputTypes["teams_bool_exp"] | undefined | null,
 	to_team_checked_in?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
-	to_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null
+	to_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
+	wager_settled_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_status?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["Int_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "team_scrim_requests" */
 ["team_scrim_requests_constraint"]:team_scrim_requests_constraint;
 	/** input type for incrementing numeric columns in table "team_scrim_requests" */
 ["team_scrim_requests_inc_input"]: {
-	requested_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** input type for inserting data into table "team_scrim_requests" */
 ["team_scrim_requests_insert_input"]: {
@@ -141141,6 +141265,7 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?: ResolverInputTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	proposals?: ResolverInputTypes["team_scrim_request_proposals_arr_rel_insert_input"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
@@ -141150,7 +141275,13 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	status?: ResolverInputTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team?: ResolverInputTypes["teams_obj_rel_insert_input"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	to_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate max on columns */
 ["team_scrim_requests_max_fields"]: AliasType<{
@@ -141164,11 +141295,18 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 	proposed_scheduled_at?:boolean | `@${string}`,
 	region?:boolean | `@${string}`,
 	requested_by_steam_id?:boolean | `@${string}`,
 	responded_at?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "team_scrim_requests" */
@@ -141183,11 +141321,18 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?: ResolverInputTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ResolverInputTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["order_by"] | undefined | null,
 	region?: ResolverInputTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	responded_at?: ResolverInputTypes["order_by"] | undefined | null,
-	to_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	to_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_settled_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_status?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["team_scrim_requests_min_fields"]: AliasType<{
@@ -141201,11 +141346,18 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?:boolean | `@${string}`,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?:boolean | `@${string}`,
+	match_winner_team_id?:boolean | `@${string}`,
 	proposed_scheduled_at?:boolean | `@${string}`,
 	region?:boolean | `@${string}`,
 	requested_by_steam_id?:boolean | `@${string}`,
 	responded_at?:boolean | `@${string}`,
 	to_team_id?:boolean | `@${string}`,
+	wager_cancel_seen_at?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_settled_at?:boolean | `@${string}`,
+	wager_status?:boolean | `@${string}`,
+	wager_winner_team_id?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "team_scrim_requests" */
@@ -141220,11 +141372,18 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?: ResolverInputTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ResolverInputTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["order_by"] | undefined | null,
 	region?: ResolverInputTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	responded_at?: ResolverInputTypes["order_by"] | undefined | null,
-	to_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	to_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_settled_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_status?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "team_scrim_requests" */
 ["team_scrim_requests_mutation_response"]: AliasType<{
@@ -141264,6 +141423,7 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options?: ResolverInputTypes["match_options_order_by"] | undefined | null,
 	match_options_id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_outcome?: ResolverInputTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	proposals_aggregate?: ResolverInputTypes["team_scrim_request_proposals_aggregate_order_by"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["order_by"] | undefined | null,
 	region?: ResolverInputTypes["order_by"] | undefined | null,
@@ -141273,7 +141433,13 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	status?: ResolverInputTypes["order_by"] | undefined | null,
 	to_team?: ResolverInputTypes["teams_order_by"] | undefined | null,
 	to_team_checked_in?: ResolverInputTypes["order_by"] | undefined | null,
-	to_team_id?: ResolverInputTypes["order_by"] | undefined | null
+	to_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_settled_at?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_status?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: team_scrim_requests */
 ["team_scrim_requests_pk_columns_input"]: {
@@ -141300,40 +141466,59 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?: ResolverInputTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	responded_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	status?: ResolverInputTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	to_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate stddev on columns */
 ["team_scrim_requests_stddev_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["team_scrim_requests_stddev_pop_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_pop_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["team_scrim_requests_stddev_samp_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_samp_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "team_scrim_requests" */
 ["team_scrim_requests_stream_cursor_input"]: {
@@ -141357,22 +141542,33 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	match_options_id?: ResolverInputTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	responded_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	status?: ResolverInputTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ResolverInputTypes["uuid"] | undefined | null
+	to_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ResolverInputTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate sum on columns */
 ["team_scrim_requests_sum_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_sum_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** update columns of table "team_scrim_requests" */
 ["team_scrim_requests_update_column"]:team_scrim_requests_update_column;
@@ -141387,29 +141583,41 @@ count?: [{	columns?: Array<ResolverInputTypes["team_scrim_requests_select_column
 	/** aggregate var_pop on columns */
 ["team_scrim_requests_var_pop_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_pop_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["team_scrim_requests_var_samp_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_samp_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["team_scrim_requests_variance_fields"]: AliasType<{
 	requested_by_steam_id?:boolean | `@${string}`,
+	wager_rake_percent?:boolean | `@${string}`,
+	wager_ypoints?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_variance_order_by"]: {
-	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ResolverInputTypes["order_by"] | undefined | null,
+	wager_ypoints?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "team_scrim_settings" */
 ["team_scrim_settings"]: AliasType<{
@@ -214924,6 +215132,7 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	/** An array relationship */
 	proposals: Array<ModelTypes["team_scrim_request_proposals"]>,
 	/** An aggregate relationship */
@@ -214938,7 +215147,13 @@ export type ModelTypes = {
 	/** An object relationship */
 	to_team: ModelTypes["teams"],
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id: ModelTypes["uuid"]
+	to_team_id: ModelTypes["uuid"],
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints: number
 };
 	/** aggregated selection of "team_scrim_requests" */
 ["team_scrim_requests_aggregate"]: {
@@ -215004,11 +215219,15 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["team_scrim_requests_avg_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by avg() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_avg_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "team_scrim_requests". All fields are combined with a logical 'AND'. */
 ["team_scrim_requests_bool_exp"]: {
@@ -215031,6 +215250,7 @@ export type ModelTypes = {
 	match_options?: ModelTypes["match_options_bool_exp"] | undefined | null,
 	match_options_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	match_outcome?: ModelTypes["String_comparison_exp"] | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	proposals?: ModelTypes["team_scrim_request_proposals_bool_exp"] | undefined | null,
 	proposals_aggregate?: ModelTypes["team_scrim_request_proposals_aggregate_bool_exp"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -215041,12 +215261,20 @@ export type ModelTypes = {
 	status?: ModelTypes["e_scrim_request_statuses_enum_comparison_exp"] | undefined | null,
 	to_team?: ModelTypes["teams_bool_exp"] | undefined | null,
 	to_team_checked_in?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
-	to_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null
+	to_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_rake_percent?: ModelTypes["Int_comparison_exp"] | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_status?: ModelTypes["String_comparison_exp"] | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	wager_ypoints?: ModelTypes["Int_comparison_exp"] | undefined | null
 };
 	["team_scrim_requests_constraint"]:team_scrim_requests_constraint;
 	/** input type for incrementing numeric columns in table "team_scrim_requests" */
 ["team_scrim_requests_inc_input"]: {
-	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null
+	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** input type for inserting data into table "team_scrim_requests" */
 ["team_scrim_requests_insert_input"]: {
@@ -215067,6 +215295,7 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	proposals?: ModelTypes["team_scrim_request_proposals_arr_rel_insert_input"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
@@ -215076,7 +215305,13 @@ export type ModelTypes = {
 	status?: ModelTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team?: ModelTypes["teams_obj_rel_insert_input"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ModelTypes["uuid"] | undefined | null
+	to_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate max on columns */
 ["team_scrim_requests_max_fields"]: {
@@ -215090,11 +215325,18 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	responded_at?: ModelTypes["timestamptz"] | undefined | null,
-	to_team_id?: ModelTypes["uuid"] | undefined | null
+	to_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by max() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_max_order_by"]: {
@@ -215108,11 +215350,18 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ModelTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ModelTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["order_by"] | undefined | null,
 	region?: ModelTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
 	responded_at?: ModelTypes["order_by"] | undefined | null,
-	to_team_id?: ModelTypes["order_by"] | undefined | null
+	to_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_settled_at?: ModelTypes["order_by"] | undefined | null,
+	wager_status?: ModelTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["team_scrim_requests_min_fields"]: {
@@ -215126,11 +215375,18 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	responded_at?: ModelTypes["timestamptz"] | undefined | null,
-	to_team_id?: ModelTypes["uuid"] | undefined | null
+	to_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by min() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_min_order_by"]: {
@@ -215144,11 +215400,18 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: ModelTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ModelTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["order_by"] | undefined | null,
 	region?: ModelTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
 	responded_at?: ModelTypes["order_by"] | undefined | null,
-	to_team_id?: ModelTypes["order_by"] | undefined | null
+	to_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_settled_at?: ModelTypes["order_by"] | undefined | null,
+	wager_status?: ModelTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "team_scrim_requests" */
 ["team_scrim_requests_mutation_response"]: {
@@ -215187,6 +215450,7 @@ export type ModelTypes = {
 	match_options?: ModelTypes["match_options_order_by"] | undefined | null,
 	match_options_id?: ModelTypes["order_by"] | undefined | null,
 	match_outcome?: ModelTypes["order_by"] | undefined | null,
+	match_winner_team_id?: ModelTypes["order_by"] | undefined | null,
 	proposals_aggregate?: ModelTypes["team_scrim_request_proposals_aggregate_order_by"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["order_by"] | undefined | null,
 	region?: ModelTypes["order_by"] | undefined | null,
@@ -215196,7 +215460,13 @@ export type ModelTypes = {
 	status?: ModelTypes["order_by"] | undefined | null,
 	to_team?: ModelTypes["teams_order_by"] | undefined | null,
 	to_team_checked_in?: ModelTypes["order_by"] | undefined | null,
-	to_team_id?: ModelTypes["order_by"] | undefined | null
+	to_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_settled_at?: ModelTypes["order_by"] | undefined | null,
+	wager_status?: ModelTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: team_scrim_requests */
 ["team_scrim_requests_pk_columns_input"]: {
@@ -215220,37 +215490,56 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	responded_at?: ModelTypes["timestamptz"] | undefined | null,
 	status?: ModelTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ModelTypes["uuid"] | undefined | null
+	to_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate stddev on columns */
 ["team_scrim_requests_stddev_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["team_scrim_requests_stddev_pop_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_pop_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["team_scrim_requests_stddev_samp_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_samp_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "team_scrim_requests" */
 ["team_scrim_requests_stream_cursor_input"]: {
@@ -215274,21 +215563,32 @@ export type ModelTypes = {
 	match_options_id?: ModelTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: ModelTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: ModelTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	responded_at?: ModelTypes["timestamptz"] | undefined | null,
 	status?: ModelTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: ModelTypes["uuid"] | undefined | null
+	to_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: ModelTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: ModelTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate sum on columns */
 ["team_scrim_requests_sum_fields"]: {
-		requested_by_steam_id?: ModelTypes["bigint"] | undefined | null
+		requested_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by sum() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_sum_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	["team_scrim_requests_update_column"]:team_scrim_requests_update_column;
 	["team_scrim_requests_updates"]: {
@@ -215301,27 +215601,39 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["team_scrim_requests_var_pop_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_pop_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["team_scrim_requests_var_samp_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_samp_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["team_scrim_requests_variance_fields"]: {
-		requested_by_steam_id?: number | undefined | null
+		requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by variance() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_variance_order_by"]: {
-	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null
+	requested_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	wager_rake_percent?: ModelTypes["order_by"] | undefined | null,
+	wager_ypoints?: ModelTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "team_scrim_settings" */
 ["team_scrim_settings"]: {
@@ -289712,6 +290024,7 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** An array relationship */
 	proposals: Array<GraphQLTypes["team_scrim_request_proposals"]>,
 	/** An aggregate relationship */
@@ -289726,7 +290039,13 @@ export type GraphQLTypes = {
 	/** An object relationship */
 	to_team: GraphQLTypes["teams"],
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id: GraphQLTypes["uuid"]
+	to_team_id: GraphQLTypes["uuid"],
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints: number
 };
 	/** aggregated selection of "team_scrim_requests" */
 ["team_scrim_requests_aggregate"]: {
@@ -289795,11 +290114,15 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["team_scrim_requests_avg_fields"]: {
 	__typename: "team_scrim_requests_avg_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by avg() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_avg_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "team_scrim_requests". All fields are combined with a logical 'AND'. */
 ["team_scrim_requests_bool_exp"]: {
@@ -289822,6 +290145,7 @@ export type GraphQLTypes = {
 	match_options?: GraphQLTypes["match_options_bool_exp"] | undefined | null,
 	match_options_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	match_outcome?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	proposals?: GraphQLTypes["team_scrim_request_proposals_bool_exp"] | undefined | null,
 	proposals_aggregate?: GraphQLTypes["team_scrim_request_proposals_aggregate_bool_exp"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -289832,13 +290156,21 @@ export type GraphQLTypes = {
 	status?: GraphQLTypes["e_scrim_request_statuses_enum_comparison_exp"] | undefined | null,
 	to_team?: GraphQLTypes["teams_bool_exp"] | undefined | null,
 	to_team_checked_in?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
-	to_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	wager_status?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["Int_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "team_scrim_requests" */
 ["team_scrim_requests_constraint"]: team_scrim_requests_constraint;
 	/** input type for incrementing numeric columns in table "team_scrim_requests" */
 ["team_scrim_requests_inc_input"]: {
-		requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** input type for inserting data into table "team_scrim_requests" */
 ["team_scrim_requests_insert_input"]: {
@@ -289859,6 +290191,7 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	proposals?: GraphQLTypes["team_scrim_request_proposals_arr_rel_insert_input"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
@@ -289868,7 +290201,13 @@ export type GraphQLTypes = {
 	status?: GraphQLTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team?: GraphQLTypes["teams_obj_rel_insert_input"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: GraphQLTypes["uuid"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate max on columns */
 ["team_scrim_requests_max_fields"]: {
@@ -289883,11 +290222,18 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	responded_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	to_team_id?: GraphQLTypes["uuid"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by max() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_max_order_by"]: {
@@ -289901,11 +290247,18 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: GraphQLTypes["order_by"] | undefined | null,
+	match_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["order_by"] | undefined | null,
 	region?: GraphQLTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	responded_at?: GraphQLTypes["order_by"] | undefined | null,
-	to_team_id?: GraphQLTypes["order_by"] | undefined | null
+	to_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_settled_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_status?: GraphQLTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["team_scrim_requests_min_fields"]: {
@@ -289920,11 +290273,18 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	responded_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	to_team_id?: GraphQLTypes["uuid"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by min() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_min_order_by"]: {
@@ -289938,11 +290298,18 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["order_by"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: GraphQLTypes["order_by"] | undefined | null,
+	match_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["order_by"] | undefined | null,
 	region?: GraphQLTypes["order_by"] | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	responded_at?: GraphQLTypes["order_by"] | undefined | null,
-	to_team_id?: GraphQLTypes["order_by"] | undefined | null
+	to_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_settled_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_status?: GraphQLTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "team_scrim_requests" */
 ["team_scrim_requests_mutation_response"]: {
@@ -289982,6 +290349,7 @@ export type GraphQLTypes = {
 	match_options?: GraphQLTypes["match_options_order_by"] | undefined | null,
 	match_options_id?: GraphQLTypes["order_by"] | undefined | null,
 	match_outcome?: GraphQLTypes["order_by"] | undefined | null,
+	match_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
 	proposals_aggregate?: GraphQLTypes["team_scrim_request_proposals_aggregate_order_by"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["order_by"] | undefined | null,
 	region?: GraphQLTypes["order_by"] | undefined | null,
@@ -289991,7 +290359,13 @@ export type GraphQLTypes = {
 	status?: GraphQLTypes["order_by"] | undefined | null,
 	to_team?: GraphQLTypes["teams_order_by"] | undefined | null,
 	to_team_checked_in?: GraphQLTypes["order_by"] | undefined | null,
-	to_team_id?: GraphQLTypes["order_by"] | undefined | null
+	to_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_settled_at?: GraphQLTypes["order_by"] | undefined | null,
+	wager_status?: GraphQLTypes["order_by"] | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: team_scrim_requests */
 ["team_scrim_requests_pk_columns_input"]: {
@@ -290018,40 +290392,59 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	responded_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	status?: GraphQLTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: GraphQLTypes["uuid"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate stddev on columns */
 ["team_scrim_requests_stddev_fields"]: {
 	__typename: "team_scrim_requests_stddev_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["team_scrim_requests_stddev_pop_fields"]: {
 	__typename: "team_scrim_requests_stddev_pop_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_pop_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["team_scrim_requests_stddev_samp_fields"]: {
 	__typename: "team_scrim_requests_stddev_samp_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_stddev_samp_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "team_scrim_requests" */
 ["team_scrim_requests_stream_cursor_input"]: {
@@ -290075,22 +290468,33 @@ export type GraphQLTypes = {
 	match_options_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** Terminal match status captured by tbd_match_cancel_scrim before the match row is deleted, so v_team_reputation survives canceled-match GC. */
 	match_outcome?: string | undefined | null,
+	match_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
 	proposed_scheduled_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	region?: string | undefined | null,
 	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	responded_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	status?: GraphQLTypes["e_scrim_request_statuses_enum"] | undefined | null,
 	to_team_checked_in?: boolean | undefined | null,
-	to_team_id?: GraphQLTypes["uuid"] | undefined | null
+	to_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_cancel_seen_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_settled_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	wager_status?: string | undefined | null,
+	wager_winner_team_id?: GraphQLTypes["uuid"] | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** aggregate sum on columns */
 ["team_scrim_requests_sum_fields"]: {
 	__typename: "team_scrim_requests_sum_fields",
-	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null
+	requested_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by sum() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_sum_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** update columns of table "team_scrim_requests" */
 ["team_scrim_requests_update_column"]: team_scrim_requests_update_column;
@@ -290105,29 +290509,41 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["team_scrim_requests_var_pop_fields"]: {
 	__typename: "team_scrim_requests_var_pop_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_pop_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["team_scrim_requests_var_samp_fields"]: {
 	__typename: "team_scrim_requests_var_samp_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_var_samp_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["team_scrim_requests_variance_fields"]: {
 	__typename: "team_scrim_requests_variance_fields",
-	requested_by_steam_id?: number | undefined | null
+	requested_by_steam_id?: number | undefined | null,
+	wager_rake_percent?: number | undefined | null,
+	wager_ypoints?: number | undefined | null
 };
 	/** order by variance() on columns of table "team_scrim_requests" */
 ["team_scrim_requests_variance_order_by"]: {
-		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		requested_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	wager_rake_percent?: GraphQLTypes["order_by"] | undefined | null,
+	wager_ypoints?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "team_scrim_settings" */
 ["team_scrim_settings"]: {
@@ -315034,6 +315450,7 @@ export enum e_notification_types_enum {
 	ScrimRequestExpired = "ScrimRequestExpired",
 	ScrimRequestReceived = "ScrimRequestReceived",
 	ScrimTimeChanged = "ScrimTimeChanged",
+	ScrimWager = "ScrimWager",
 	SeasonEnded = "SeasonEnded",
 	StorageScan = "StorageScan",
 	TeamInvite = "TeamInvite",
@@ -318905,13 +319322,20 @@ export enum team_scrim_requests_select_column {
 	match_id = "match_id",
 	match_options_id = "match_options_id",
 	match_outcome = "match_outcome",
+	match_winner_team_id = "match_winner_team_id",
 	proposed_scheduled_at = "proposed_scheduled_at",
 	region = "region",
 	requested_by_steam_id = "requested_by_steam_id",
 	responded_at = "responded_at",
 	status = "status",
 	to_team_checked_in = "to_team_checked_in",
-	to_team_id = "to_team_id"
+	to_team_id = "to_team_id",
+	wager_cancel_seen_at = "wager_cancel_seen_at",
+	wager_rake_percent = "wager_rake_percent",
+	wager_settled_at = "wager_settled_at",
+	wager_status = "wager_status",
+	wager_winner_team_id = "wager_winner_team_id",
+	wager_ypoints = "wager_ypoints"
 }
 /** select "team_scrim_requests_aggregate_bool_exp_bool_and_arguments_columns" columns of table "team_scrim_requests" */
 export enum team_scrim_requests_select_column_team_scrim_requests_aggregate_bool_exp_bool_and_arguments_columns {
@@ -318941,13 +319365,20 @@ export enum team_scrim_requests_update_column {
 	match_id = "match_id",
 	match_options_id = "match_options_id",
 	match_outcome = "match_outcome",
+	match_winner_team_id = "match_winner_team_id",
 	proposed_scheduled_at = "proposed_scheduled_at",
 	region = "region",
 	requested_by_steam_id = "requested_by_steam_id",
 	responded_at = "responded_at",
 	status = "status",
 	to_team_checked_in = "to_team_checked_in",
-	to_team_id = "to_team_id"
+	to_team_id = "to_team_id",
+	wager_cancel_seen_at = "wager_cancel_seen_at",
+	wager_rake_percent = "wager_rake_percent",
+	wager_settled_at = "wager_settled_at",
+	wager_status = "wager_status",
+	wager_winner_team_id = "wager_winner_team_id",
+	wager_ypoints = "wager_ypoints"
 }
 /** unique or primary key constraints on table "team_scrim_settings" */
 export enum team_scrim_settings_constraint {

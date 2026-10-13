@@ -1117,7 +1117,24 @@
     "notes_section": "메모",
     "notes_placeholder": "서버 설정, 안티치트, 보이스 등 상대가 알아야 할 내용을 적어주세요.",
     "settings_saved": "스크림 설정을 저장했습니다",
-    "settings_save_error": "스크림 설정을 저장하지 못했습니다"
+    "settings_save_error": "스크림 설정을 저장하지 못했습니다",
+    "respond_error": "Couldn't respond to the scrim request",
+    "wager": {
+      "title": "Ypoint wager",
+      "your_balance": "Your balance: {balance} Ypoints",
+      "none": "None",
+      "amount_label": "Ypoints per team",
+      "summary": "{amount} Ypoints per team · pot {pot} · winner takes {payout}",
+      "split_help": "Each team's stake is split evenly across its first five roster players when the scrim is accepted, and the winnings are shared among the winning team's players the same way.",
+      "rules_help": "The site keeps {rake}% of the pot. A tie, or a scrim canceled by an admin, is refunded. A team that cancels after accepting or doesn't show up loses its stake to the other team.",
+      "optional_help": "Optional: put Ypoints on the line to raise the stakes.",
+      "invalid": "Enter a whole number of Ypoints.",
+      "per_team": "{amount} Ypoints per team",
+      "status_escrowed": "Held in escrow until the scrim is decided",
+      "status_pending": "Taken from both teams' players when the scrim is accepted",
+      "accept_warning": "Accepting takes your team's share from your players' wallets",
+      "cancel_confirm": "This scrim has a Ypoint wager. Canceling now forfeits your team's stake to the other team. Cancel anyway?"
+    }
   },
   "elo_chart_bucket": {
     "monthly": "월별",
@@ -2324,7 +2341,11 @@
           "section": "스크림 파인더",
           "enabled": "스크림 파인더 활성화",
           "enabled_description": "팀이 가능 시간을 공지하고, 상대를 찾고, 스크림 일정을 잡을 수 있게 합니다. 기본적으로 활성화되어 있습니다. 끄면 스크림 파인더가 전체적으로 숨겨지고 자동 매칭도 중단됩니다.",
-          "updated": "스크림 파인더 설정이 업데이트되었습니다"
+          "updated": "스크림 파인더 설정이 업데이트되었습니다",
+          "wagers_section": "Ypoint wagers",
+          "wagers_description": "Let teams put Ypoints on their scrim requests. Stakes are held in escrow when a scrim is accepted and paid to the winning team's players. Enabled by default.",
+          "rake_label": "Site fee (% of the pot)",
+          "rake_help": "Kept from every pot that is paid out, never from refunds. 0 to 50, default 5."
         },
         "demo_settings": {
           "title": "데모",

@@ -24,6 +24,7 @@ const SCRIM_TYPES = [
   "ScrimMatchScheduled",
   "ScrimMatchCanceled",
   "ScrimTimeChanged",
+  "ScrimWager",
 ];
 
 const TEAM_SUGGESTION_TYPES = ["FormTeamSuggestion"];
@@ -309,6 +310,7 @@ export default defineComponent({
             match_id: true,
             proposed_scheduled_at: true,
             expires_at: true,
+            wager_ypoints: true,
             match_options: { best_of: true },
             from_team: {
               id: true,
@@ -508,6 +510,12 @@ export default defineComponent({
       <span class="font-medium text-foreground">{{ scrimTime() }}</span>
       <span v-if="scrim.match_options">
         {{ $t("scrim.best_of_indicator", { bestOf: scrim.match_options.best_of }) }}
+      </span>
+      <span
+        v-if="scrim.wager_ypoints > 0"
+        class="font-semibold text-[hsl(var(--tac-amber))]"
+      >
+        · {{ $t("scrim.wager.per_team", { amount: scrim.wager_ypoints }) }}
       </span>
       <span
         v-if="expiresLabel()"

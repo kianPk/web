@@ -35553,7 +35553,9 @@ export const AllTypesProps: Record<string,any> = {
 		on_conflict:"team_scrim_requests_on_conflict"
 	},
 	team_scrim_requests_avg_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_bool_exp:{
 		_and:"team_scrim_requests_bool_exp",
@@ -35575,6 +35577,7 @@ export const AllTypesProps: Record<string,any> = {
 		match_options:"match_options_bool_exp",
 		match_options_id:"uuid_comparison_exp",
 		match_outcome:"String_comparison_exp",
+		match_winner_team_id:"uuid_comparison_exp",
 		proposals:"team_scrim_request_proposals_bool_exp",
 		proposals_aggregate:"team_scrim_request_proposals_aggregate_bool_exp",
 		proposed_scheduled_at:"timestamptz_comparison_exp",
@@ -35585,7 +35588,13 @@ export const AllTypesProps: Record<string,any> = {
 		status:"e_scrim_request_statuses_enum_comparison_exp",
 		to_team:"teams_bool_exp",
 		to_team_checked_in:"Boolean_comparison_exp",
-		to_team_id:"uuid_comparison_exp"
+		to_team_id:"uuid_comparison_exp",
+		wager_cancel_seen_at:"timestamptz_comparison_exp",
+		wager_rake_percent:"Int_comparison_exp",
+		wager_settled_at:"timestamptz_comparison_exp",
+		wager_status:"String_comparison_exp",
+		wager_winner_team_id:"uuid_comparison_exp",
+		wager_ypoints:"Int_comparison_exp"
 	},
 	team_scrim_requests_constraint: "enum" as const,
 	team_scrim_requests_inc_input:{
@@ -35604,6 +35613,7 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"uuid",
 		match_options:"match_options_obj_rel_insert_input",
 		match_options_id:"uuid",
+		match_winner_team_id:"uuid",
 		proposals:"team_scrim_request_proposals_arr_rel_insert_input",
 		proposed_scheduled_at:"timestamptz",
 		requested_by:"players_obj_rel_insert_input",
@@ -35611,7 +35621,10 @@ export const AllTypesProps: Record<string,any> = {
 		responded_at:"timestamptz",
 		status:"e_scrim_request_statuses_enum",
 		to_team:"teams_obj_rel_insert_input",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_settled_at:"timestamptz",
+		wager_winner_team_id:"uuid"
 	},
 	team_scrim_requests_max_order_by:{
 		awaiting_team_id:"order_by",
@@ -35623,11 +35636,18 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"order_by",
 		match_options_id:"order_by",
 		match_outcome:"order_by",
+		match_winner_team_id:"order_by",
 		proposed_scheduled_at:"order_by",
 		region:"order_by",
 		requested_by_steam_id:"order_by",
 		responded_at:"order_by",
-		to_team_id:"order_by"
+		to_team_id:"order_by",
+		wager_cancel_seen_at:"order_by",
+		wager_rake_percent:"order_by",
+		wager_settled_at:"order_by",
+		wager_status:"order_by",
+		wager_winner_team_id:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_min_order_by:{
 		awaiting_team_id:"order_by",
@@ -35639,11 +35659,18 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"order_by",
 		match_options_id:"order_by",
 		match_outcome:"order_by",
+		match_winner_team_id:"order_by",
 		proposed_scheduled_at:"order_by",
 		region:"order_by",
 		requested_by_steam_id:"order_by",
 		responded_at:"order_by",
-		to_team_id:"order_by"
+		to_team_id:"order_by",
+		wager_cancel_seen_at:"order_by",
+		wager_rake_percent:"order_by",
+		wager_settled_at:"order_by",
+		wager_status:"order_by",
+		wager_winner_team_id:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_obj_rel_insert_input:{
 		data:"team_scrim_requests_insert_input",
@@ -35671,6 +35698,7 @@ export const AllTypesProps: Record<string,any> = {
 		match_options:"match_options_order_by",
 		match_options_id:"order_by",
 		match_outcome:"order_by",
+		match_winner_team_id:"order_by",
 		proposals_aggregate:"team_scrim_request_proposals_aggregate_order_by",
 		proposed_scheduled_at:"order_by",
 		region:"order_by",
@@ -35680,7 +35708,13 @@ export const AllTypesProps: Record<string,any> = {
 		status:"order_by",
 		to_team:"teams_order_by",
 		to_team_checked_in:"order_by",
-		to_team_id:"order_by"
+		to_team_id:"order_by",
+		wager_cancel_seen_at:"order_by",
+		wager_rake_percent:"order_by",
+		wager_settled_at:"order_by",
+		wager_status:"order_by",
+		wager_winner_team_id:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_pk_columns_input:{
 		id:"uuid"
@@ -35697,20 +35731,30 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid",
 		match_id:"uuid",
 		match_options_id:"uuid",
+		match_winner_team_id:"uuid",
 		proposed_scheduled_at:"timestamptz",
 		requested_by_steam_id:"bigint",
 		responded_at:"timestamptz",
 		status:"e_scrim_request_statuses_enum",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_settled_at:"timestamptz",
+		wager_winner_team_id:"uuid"
 	},
 	team_scrim_requests_stddev_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_stddev_pop_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_stddev_samp_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_stream_cursor_input:{
 		initial_value:"team_scrim_requests_stream_cursor_value_input",
@@ -35725,14 +35769,20 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid",
 		match_id:"uuid",
 		match_options_id:"uuid",
+		match_winner_team_id:"uuid",
 		proposed_scheduled_at:"timestamptz",
 		requested_by_steam_id:"bigint",
 		responded_at:"timestamptz",
 		status:"e_scrim_request_statuses_enum",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_settled_at:"timestamptz",
+		wager_winner_team_id:"uuid"
 	},
 	team_scrim_requests_sum_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_update_column: "enum" as const,
 	team_scrim_requests_updates:{
@@ -35741,13 +35791,19 @@ export const AllTypesProps: Record<string,any> = {
 		where:"team_scrim_requests_bool_exp"
 	},
 	team_scrim_requests_var_pop_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_var_samp_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_requests_variance_order_by:{
-		requested_by_steam_id:"order_by"
+		requested_by_steam_id:"order_by",
+		wager_rake_percent:"order_by",
+		wager_ypoints:"order_by"
 	},
 	team_scrim_settings_aggregate_fields:{
 		count:{
@@ -64817,6 +64873,7 @@ export const ReturnTypes: Record<string,any> = {
 		match_options:"match_options",
 		match_options_id:"uuid",
 		match_outcome:"String",
+		match_winner_team_id:"uuid",
 		proposals:"team_scrim_request_proposals",
 		proposals_aggregate:"team_scrim_request_proposals_aggregate",
 		proposed_scheduled_at:"timestamptz",
@@ -64827,7 +64884,13 @@ export const ReturnTypes: Record<string,any> = {
 		status:"e_scrim_request_statuses_enum",
 		to_team:"teams",
 		to_team_checked_in:"Boolean",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_rake_percent:"Int",
+		wager_settled_at:"timestamptz",
+		wager_status:"String",
+		wager_winner_team_id:"uuid",
+		wager_ypoints:"Int"
 	},
 	team_scrim_requests_aggregate:{
 		aggregate:"team_scrim_requests_aggregate_fields",
@@ -64847,7 +64910,9 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"team_scrim_requests_variance_fields"
 	},
 	team_scrim_requests_avg_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_max_fields:{
 		awaiting_team_id:"uuid",
@@ -64859,11 +64924,18 @@ export const ReturnTypes: Record<string,any> = {
 		match_id:"uuid",
 		match_options_id:"uuid",
 		match_outcome:"String",
+		match_winner_team_id:"uuid",
 		proposed_scheduled_at:"timestamptz",
 		region:"String",
 		requested_by_steam_id:"bigint",
 		responded_at:"timestamptz",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_rake_percent:"Int",
+		wager_settled_at:"timestamptz",
+		wager_status:"String",
+		wager_winner_team_id:"uuid",
+		wager_ypoints:"Int"
 	},
 	team_scrim_requests_min_fields:{
 		awaiting_team_id:"uuid",
@@ -64875,36 +64947,57 @@ export const ReturnTypes: Record<string,any> = {
 		match_id:"uuid",
 		match_options_id:"uuid",
 		match_outcome:"String",
+		match_winner_team_id:"uuid",
 		proposed_scheduled_at:"timestamptz",
 		region:"String",
 		requested_by_steam_id:"bigint",
 		responded_at:"timestamptz",
-		to_team_id:"uuid"
+		to_team_id:"uuid",
+		wager_cancel_seen_at:"timestamptz",
+		wager_rake_percent:"Int",
+		wager_settled_at:"timestamptz",
+		wager_status:"String",
+		wager_winner_team_id:"uuid",
+		wager_ypoints:"Int"
 	},
 	team_scrim_requests_mutation_response:{
 		affected_rows:"Int",
 		returning:"team_scrim_requests"
 	},
 	team_scrim_requests_stddev_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_stddev_pop_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_stddev_samp_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_sum_fields:{
-		requested_by_steam_id:"bigint"
+		requested_by_steam_id:"bigint",
+		wager_rake_percent:"Int",
+		wager_ypoints:"Int"
 	},
 	team_scrim_requests_var_pop_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_var_samp_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_requests_variance_fields:{
-		requested_by_steam_id:"Float"
+		requested_by_steam_id:"Float",
+		wager_rake_percent:"Float",
+		wager_ypoints:"Float"
 	},
 	team_scrim_settings:{
 		allow_outside_availability:"Boolean",

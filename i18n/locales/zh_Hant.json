@@ -1117,7 +1117,24 @@
     "notes_section": "備註",
     "notes_placeholder": "對手應該知道的資訊——伺服器偏好、反作弊、語音等。",
     "settings_saved": "練習賽設定已儲存",
-    "settings_save_error": "儲存練習賽設定失敗"
+    "settings_save_error": "儲存練習賽設定失敗",
+    "respond_error": "Couldn't respond to the scrim request",
+    "wager": {
+      "title": "Ypoint wager",
+      "your_balance": "Your balance: {balance} Ypoints",
+      "none": "None",
+      "amount_label": "Ypoints per team",
+      "summary": "{amount} Ypoints per team · pot {pot} · winner takes {payout}",
+      "split_help": "Each team's stake is split evenly across its first five roster players when the scrim is accepted, and the winnings are shared among the winning team's players the same way.",
+      "rules_help": "The site keeps {rake}% of the pot. A tie, or a scrim canceled by an admin, is refunded. A team that cancels after accepting or doesn't show up loses its stake to the other team.",
+      "optional_help": "Optional: put Ypoints on the line to raise the stakes.",
+      "invalid": "Enter a whole number of Ypoints.",
+      "per_team": "{amount} Ypoints per team",
+      "status_escrowed": "Held in escrow until the scrim is decided",
+      "status_pending": "Taken from both teams' players when the scrim is accepted",
+      "accept_warning": "Accepting takes your team's share from your players' wallets",
+      "cancel_confirm": "This scrim has a Ypoint wager. Canceling now forfeits your team's stake to the other team. Cancel anyway?"
+    }
   },
   "elo_chart_bucket": {
     "monthly": "每月",
@@ -2324,7 +2341,11 @@
           "section": "練習賽搜尋",
           "enabled": "啟用練習賽搜尋",
           "enabled_description": "讓隊伍公布可用時段、尋找對手並安排練習賽。預設啟用。關閉此選項可在所有地方隱藏練習賽搜尋並停止自動配對。",
-          "updated": "練習賽搜尋設定已更新"
+          "updated": "練習賽搜尋設定已更新",
+          "wagers_section": "Ypoint wagers",
+          "wagers_description": "Let teams put Ypoints on their scrim requests. Stakes are held in escrow when a scrim is accepted and paid to the winning team's players. Enabled by default.",
+          "rake_label": "Site fee (% of the pot)",
+          "rake_help": "Kept from every pot that is paid out, never from refunds. 0 to 50, default 5."
         },
         "demo_settings": {
           "title": "Demo",
