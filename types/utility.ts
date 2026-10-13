@@ -109,6 +109,8 @@ export type UtilityLineup = {
   /** Up to 32 quantized points — enough to draw the line on a list/board. */
   trajectory_preview: Array<[number, number, number]> | null;
   trajectory_size?: number | null;
+  /** CS2's own grid for this smoke, recorded off the grenade; a computed field. */
+  smoke_voxels_url?: string | null;
   /**
    * Signed disagreement between the aim the trajectory implies and the view
    * angles the demo recorded. Only mined lineups carry it, and a big number

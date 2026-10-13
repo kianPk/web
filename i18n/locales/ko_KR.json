@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "투척 다시 보기",
-        "roof": "지붕"
+        "roof": "지붕",
+        "timeline": "투척 타임라인"
       },
       "detail": {
         "previous": "이전 라인업",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "각 수류탄의 비행 시간으로 투척 시간을 역산합니다. 연막은 동시에, 나머지는 {seconds}초 뒤에 떨어집니다. 직접 정한 시간은 잠기고 단계가 바뀌어도 유지됩니다.",
         "show_map": "지도 보기",
         "retime_all": "전체 다시 맞추기",
-        "unlock_step": "직접 설정함. 잠금을 풀면 나머지와 함께 시간을 맞춥니다."
+        "unlock_step": "직접 설정함. 잠금을 풀면 나머지와 함께 시간을 맞춥니다.",
+        "pause": "일시정지",
+        "seek": "실행 타임라인"
       },
       "sightline": {
         "eyebrow": "차단 확인",
@@ -7990,7 +7993,12 @@
         "kb_fly": "이동",
         "kb_up_down": "위 / 아래",
         "following_on_map": "맵에서 추적 중",
-        "bomb_carrier": "폭탄 소지자"
+        "bomb_carrier": "폭탄 소지자",
+        "level_lower": "아래층",
+        "level_upper": "위층",
+        "loading_map": "{map} 불러오는 중…",
+        "stage_no_map": "이 리플레이의 맵을 불러오지 못했습니다.",
+        "stage_unsupported": "이 브라우저에서는 리플레이 맵을 표시할 수 없습니다. WebGL 2가 필요합니다."
       },
       "auto_clip_preset": "프리셋으로 자동 클립",
       "hold_scoreboard": "누르고 있으면 스코어보드 표시",

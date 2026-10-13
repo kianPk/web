@@ -4661,7 +4661,8 @@
       },
       "viewer": {
         "replay_throw": "Replay throw",
-        "roof": "Roof"
+        "roof": "Roof",
+        "timeline": "Throw timeline"
       },
       "detail": {
         "previous": "Previous lineup",
@@ -5000,7 +5001,9 @@
         "land_together_hint": "Throw times are worked back from each grenade's flight: the smokes land at once and the rest {seconds}s later. A time you set yourself is locked and kept when steps change.",
         "show_map": "Show the map",
         "retime_all": "Re-time all",
-        "unlock_step": "Set by hand. Unlock to time it with the rest."
+        "unlock_step": "Set by hand. Unlock to time it with the rest.",
+        "pause": "Pause",
+        "seek": "Execute timeline"
       },
       "sightline": {
         "eyebrow": "Coverage Check",
@@ -8806,7 +8809,12 @@
         "kb_fly": "fly",
         "kb_up_down": "up / down",
         "following_on_map": "Following on the map",
-        "bomb_carrier": "Bomb carrier"
+        "bomb_carrier": "Bomb carrier",
+        "level_lower": "Lower",
+        "level_upper": "Upper",
+        "loading_map": "Loading {map}…",
+        "stage_no_map": "The map for this replay couldn't load.",
+        "stage_unsupported": "This browser can't show the replay map. It needs WebGL 2."
       },
       "auto_clip_preset": "Auto clip from preset",
       "hold_scoreboard": "Hold to show scoreboard",

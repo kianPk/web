@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Odtwórz rzut",
-        "roof": "Dach"
+        "roof": "Dach",
+        "timeline": "Oś czasu rzutu"
       },
       "detail": {
         "previous": "Poprzednia ustawka",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Czasy rzutów są liczone wstecz z lotu każdego granatu: smoki lądują jednocześnie, a reszta {seconds} s później. Czas ustawiony ręcznie jest blokowany i zostaje, gdy kroki się zmieniają.",
         "show_map": "Pokaż mapę",
         "retime_all": "Przelicz wszystko",
-        "unlock_step": "Ustawione ręcznie. Odblokuj, by zgrać z resztą."
+        "unlock_step": "Ustawione ręcznie. Odblokuj, by zgrać z resztą.",
+        "pause": "Pauza",
+        "seek": "Oś czasu wejścia"
       },
       "sightline": {
         "eyebrow": "Sprawdzenie pokrycia",
@@ -7990,7 +7993,12 @@
         "kb_fly": "lot",
         "kb_up_down": "góra / dół",
         "following_on_map": "Śledzenie na mapie",
-        "bomb_carrier": "Nosiciel bomby"
+        "bomb_carrier": "Nosiciel bomby",
+        "level_lower": "Dolny",
+        "level_upper": "Górny",
+        "loading_map": "Wczytywanie {map}…",
+        "stage_no_map": "Nie udało się wczytać mapy tej powtórki.",
+        "stage_unsupported": "Ta przeglądarka nie może wyświetlić mapy powtórki. Wymagany jest WebGL 2."
       },
       "auto_clip_preset": "Automatyczny klip z presetu",
       "hold_scoreboard": "Przytrzymaj, aby pokazać tabelę wyników",

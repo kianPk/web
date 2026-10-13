@@ -164,7 +164,9 @@ export function useRadarProjection(
     ) {
       return null;
     }
-    return radarImageUrl(playedMap.value, { retina: options.retina ?? true });
+    return radarImageUrl(playedMap.value, null, {
+      retina: options.retina ?? true,
+    });
   });
 
   // Undecided until the fetch resolves, so a caller does not flash "no radar"

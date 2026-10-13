@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "投げを再生",
-        "roof": "屋根"
+        "roof": "屋根",
+        "timeline": "投擲のタイムライン"
       },
       "detail": {
         "previous": "前のラインナップ",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "各グレネードの飛行時間から投げ時間を逆算します。スモークは同時に、その他は{seconds}秒後に着弾します。自分で設定した時間はロックされ、ステップが変わっても保持されます。",
         "show_map": "マップを表示",
         "retime_all": "すべて再計算",
-        "unlock_step": "手動で設定済み。ロックを外すと他と合わせて再計算します。"
+        "unlock_step": "手動で設定済み。ロックを外すと他と合わせて再計算します。",
+        "pause": "一時停止",
+        "seek": "エクスキュートのタイムライン"
       },
       "sightline": {
         "eyebrow": "カバー確認",
@@ -7990,7 +7993,12 @@
         "kb_fly": "移動",
         "kb_up_down": "上 / 下",
         "following_on_map": "マップ上で追跡中",
-        "bomb_carrier": "ボム保持者"
+        "bomb_carrier": "ボム保持者",
+        "level_lower": "下層",
+        "level_upper": "上層",
+        "loading_map": "{map} を読み込み中…",
+        "stage_no_map": "このリプレイのマップを読み込めませんでした。",
+        "stage_unsupported": "このブラウザではリプレイのマップを表示できません。WebGL 2 が必要です。"
       },
       "auto_clip_preset": "プリセットから自動クリップ",
       "hold_scoreboard": "長押しでスコアボード表示",

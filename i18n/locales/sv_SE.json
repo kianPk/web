@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Spela upp kastet",
-        "roof": "Tak"
+        "roof": "Tak",
+        "timeline": "Tidslinje för kastet"
       },
       "detail": {
         "previous": "Föregående uppställning",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Kasttiderna räknas baklänges från varje granats flygtid: rökarna landar samtidigt och resten {seconds} s senare. En tid du sätter själv låses och behålls när stegen ändras.",
         "show_map": "Visa kartan",
         "retime_all": "Tajma om alla",
-        "unlock_step": "Satt för hand. Lås upp för att tajma den med resten."
+        "unlock_step": "Satt för hand. Lås upp för att tajma den med resten.",
+        "pause": "Pausa",
+        "seek": "Tidslinje för executen"
       },
       "sightline": {
         "eyebrow": "Täckningskontroll",
@@ -7990,7 +7993,12 @@
         "kb_fly": "flyg",
         "kb_up_down": "upp / ner",
         "following_on_map": "Följer på kartan",
-        "bomb_carrier": "Bombbärare"
+        "bomb_carrier": "Bombbärare",
+        "level_lower": "Nedre",
+        "level_upper": "Övre",
+        "loading_map": "Laddar {map}…",
+        "stage_no_map": "Kartan för den här reprisen kunde inte laddas.",
+        "stage_unsupported": "Den här webbläsaren kan inte visa reprisens karta. Det krävs WebGL 2."
       },
       "auto_clip_preset": "Autoklipp från förinställning",
       "hold_scoreboard": "Håll för att visa resultattavla",

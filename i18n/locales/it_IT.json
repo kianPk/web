@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Rivedi il lancio",
-        "roof": "Tetto"
+        "roof": "Tetto",
+        "timeline": "Timeline del lancio"
       },
       "detail": {
         "previous": "Lineup precedente",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "I tempi di lancio sono calcolati a ritroso dal volo di ogni granata: i fumi atterrano insieme e il resto {seconds}s dopo. Un tempo impostato da te viene bloccato e mantenuto quando i passi cambiano.",
         "show_map": "Mostra la mappa",
         "retime_all": "Ricalcola tutto",
-        "unlock_step": "Impostato a mano. Sblocca per sincronizzarlo con il resto."
+        "unlock_step": "Impostato a mano. Sblocca per sincronizzarlo con il resto.",
+        "pause": "Pausa",
+        "seek": "Timeline dell’esecuzione"
       },
       "sightline": {
         "eyebrow": "Verifica di copertura",
@@ -7990,7 +7993,12 @@
         "kb_fly": "vola",
         "kb_up_down": "su / giù",
         "following_on_map": "In modalità sequela sulla mappa",
-        "bomb_carrier": "Portatore bomba"
+        "bomb_carrier": "Portatore bomba",
+        "level_lower": "Sotto",
+        "level_upper": "Sopra",
+        "loading_map": "Caricamento di {map}…",
+        "stage_no_map": "Impossibile caricare la mappa di questo replay.",
+        "stage_unsupported": "Questo browser non può mostrare la mappa del replay. Serve WebGL 2."
       },
       "auto_clip_preset": "Clip automatica da preset",
       "hold_scoreboard": "Tieni premuto per mostrare il tabellone",

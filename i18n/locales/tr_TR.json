@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Atışı tekrar oynat",
-        "roof": "Çatı"
+        "roof": "Çatı",
+        "timeline": "Atışın zaman çizelgesi"
       },
       "detail": {
         "previous": "Önceki dizilim",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Atış süreleri her bombanın uçuşundan geriye hesaplanır: smoke'lar aynı anda, geri kalanı {seconds} sn sonra düşer. Kendin koyduğun süre kilitlenir ve adımlar değişince korunur.",
         "show_map": "Haritayı göster",
         "retime_all": "Hepsini yeniden zamanla",
-        "unlock_step": "Elle ayarlandı. Diğerleriyle zamanlamak için kilidi aç."
+        "unlock_step": "Elle ayarlandı. Diğerleriyle zamanlamak için kilidi aç.",
+        "pause": "Duraklat",
+        "seek": "Uygulamanın zaman çizelgesi"
       },
       "sightline": {
         "eyebrow": "Kapsama Kontrolü",
@@ -7990,7 +7993,12 @@
         "kb_fly": "uç",
         "kb_up_down": "yukarı / aşağı",
         "following_on_map": "Haritada takip ediliyor",
-        "bomb_carrier": "Bomba taşıyıcı"
+        "bomb_carrier": "Bomba taşıyıcı",
+        "level_lower": "Alt",
+        "level_upper": "Üst",
+        "loading_map": "{map} yükleniyor…",
+        "stage_no_map": "Bu tekrarın haritası yüklenemedi.",
+        "stage_unsupported": "Bu tarayıcı tekrarın haritasını gösteremiyor. WebGL 2 gerekiyor."
       },
       "auto_clip_preset": "Hazır ayardan otomatik klip",
       "hold_scoreboard": "Skor tablosunu göstermek için basılı tut",

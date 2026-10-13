@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "回放投掷",
-        "roof": "屋顶"
+        "roof": "屋顶",
+        "timeline": "投掷时间轴"
       },
       "detail": {
         "previous": "上一个点位",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "按每颗道具的飞行时间倒推投掷时间：烟雾同时落地，其余晚 {seconds} 秒。你手动设置的时间会被锁定，步骤变化时保持不变。",
         "show_map": "显示地图",
         "retime_all": "全部重新计时",
-        "unlock_step": "手动设置。解锁后与其他步骤一起计时。"
+        "unlock_step": "手动设置。解锁后与其他步骤一起计时。",
+        "pause": "暂停",
+        "seek": "战术时间轴"
       },
       "sightline": {
         "eyebrow": "封锁检查",
@@ -7990,7 +7993,12 @@
         "kb_fly": "飞行",
         "kb_up_down": "上 / 下",
         "following_on_map": "在地图上跟随",
-        "bomb_carrier": "炸弹携带者"
+        "bomb_carrier": "炸弹携带者",
+        "level_lower": "下层",
+        "level_upper": "上层",
+        "loading_map": "正在加载 {map}…",
+        "stage_no_map": "无法加载此回放的地图。",
+        "stage_unsupported": "此浏览器无法显示回放地图，需要 WebGL 2。"
       },
       "auto_clip_preset": "从预设自动生成精彩集锦",
       "hold_scoreboard": "按住显示记分板",

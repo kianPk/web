@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Wurf abspielen",
-        "roof": "Dach"
+        "roof": "Dach",
+        "timeline": "Zeitleiste des Wurfs"
       },
       "detail": {
         "previous": "Vorheriges Lineup",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Die Wurfzeiten werden aus der Flugzeit jeder Granate zurückgerechnet: Die Smokes landen gleichzeitig, der Rest {seconds}s später. Eine selbst gesetzte Zeit wird gesperrt und bleibt erhalten, wenn sich Schritte ändern.",
         "show_map": "Karte zeigen",
         "retime_all": "Alle neu timen",
-        "unlock_step": "Von Hand gesetzt. Entsperren, um ihn mit dem Rest zu timen."
+        "unlock_step": "Von Hand gesetzt. Entsperren, um ihn mit dem Rest zu timen.",
+        "pause": "Pause",
+        "seek": "Zeitleiste des Executes"
       },
       "sightline": {
         "eyebrow": "Abdeckungsprüfung",
@@ -7990,7 +7993,12 @@
         "kb_fly": "Fliegen",
         "kb_up_down": "hoch / runter",
         "following_on_map": "Folgt auf der Map",
-        "bomb_carrier": "Bombenträger"
+        "bomb_carrier": "Bombenträger",
+        "level_lower": "Unten",
+        "level_upper": "Oben",
+        "loading_map": "{map} wird geladen…",
+        "stage_no_map": "Die Karte für diese Wiedergabe konnte nicht geladen werden.",
+        "stage_unsupported": "Dieser Browser kann die Karte der Wiedergabe nicht anzeigen. Dafür wird WebGL 2 benötigt."
       },
       "auto_clip_preset": "Auto-Clip aus Preset",
       "hold_scoreboard": "Halten, um das Scoreboard zu zeigen",

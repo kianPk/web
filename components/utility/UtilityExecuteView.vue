@@ -6,8 +6,10 @@ import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import Fold from "~/components/ui/transitions/Fold.vue";
+import UtilityExecuteTransport from "~/components/utility/UtilityExecuteTransport.vue";
 import UtilityExecuteViewer3D from "~/components/utility/UtilityExecuteViewer3D.vue";
 import UtilityThrowStrip from "~/components/utility/UtilityThrowStrip.vue";
+import type { PlaybackClock } from "~/composables/usePlaybackClock";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useUtilityCardViews } from "~/composables/useUtilityCardViews";
 import {
@@ -53,10 +55,10 @@ const props = withDefaults(
     /** Whose it is, and the team it belongs to, by name. */
     owner?: string | null;
     team?: string | null;
-    /** Seconds on the clock while it is being played back. */
-    clock?: number | null;
-    /** The `performance.now()` that run started at, for the scene. */
-    startedAt?: number | null;
+    /** The execute's run: its clock, and its play bar's length. */
+    run: PlaybackClock;
+    /** The clock is running, or the scene is flying in to start it. */
+    running?: boolean;
     // Play has been pressed on a map with a mesh, so the execute is thrown in
     // 3D. Off until then: a three.js scene per execute you open to read is
     // waste. Once on it stays, showing the run it last played.
@@ -69,8 +71,7 @@ const props = withDefaults(
   {
     owner: null,
     team: null,
-    clock: null,
-    startedAt: null,
+    running: false,
     scene: false,
     hoveredLineupId: null,
     lineupsLoading: false,
@@ -84,6 +85,8 @@ const emit = defineEmits<{
   (e: "framed"): void;
   // Put the map back where the scene was.
   (e: "close-scene"): void;
+  (e: "toggle"): void;
+  (e: "seek", seconds: number): void;
 }>();
 
 const mine = defineModel<boolean>("mine", { default: false });
@@ -241,12 +244,16 @@ const notices = computed(() => {
   return out;
 });
 
+// Steps light as the run reaches them, which needs only its tenths: the rows
+// are not redrawn every frame.
+const clock = computed(() => props.run.tenths.value);
+
 function waiting(beat: UtilityExecuteBeat) {
-  return props.clock !== null && beat.seconds > props.clock;
+  return clock.value !== null && beat.seconds > clock.value;
 }
 
 function lit(beat: UtilityExecuteBeat) {
-  return props.clock !== null && beat.seconds <= props.clock;
+  return clock.value !== null && beat.seconds <= clock.value;
 }
 
 // What is said when it is thrown, and whether it is a second helping of a
@@ -309,11 +316,20 @@ onBeforeUnmount(() => {
         <UtilityExecuteViewer3D
           :map-name="playbook.map_name"
           :beats="beats"
-          :clock="clock"
-          :started-at="startedAt"
+          :run="run"
+          :controls="64"
           fill
           @framed="emit('framed')"
-        />
+        >
+          <UtilityExecuteTransport
+            class="absolute inset-x-3 bottom-3 z-[11]"
+            :run="run"
+            :running="running"
+            :beats="beats"
+            @toggle="emit('toggle')"
+            @seek="(seconds) => emit('seek', seconds)"
+          />
+        </UtilityExecuteViewer3D>
         <button
           type="button"
           class="absolute left-3 top-3 z-[11] inline-flex h-8 items-center rounded-md border border-border/60 bg-black/60 px-3 text-xs font-semibold text-foreground backdrop-blur transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
@@ -334,10 +350,19 @@ onBeforeUnmount(() => {
         <UtilityExecuteViewer3D
           :map-name="playbook.map_name"
           :beats="beats"
-          :clock="clock"
-          :started-at="startedAt"
+          :run="run"
+          :controls="56"
           @framed="emit('framed')"
-        />
+        >
+          <UtilityExecuteTransport
+            class="absolute inset-x-2 bottom-2 z-[11]"
+            :run="run"
+            :running="running"
+            :beats="beats"
+            @toggle="emit('toggle')"
+            @seek="(seconds) => emit('seek', seconds)"
+          />
+        </UtilityExecuteViewer3D>
       </div>
     </Fold>
   </div>

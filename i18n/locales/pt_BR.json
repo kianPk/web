@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Repetir arremesso",
-        "roof": "Teto"
+        "roof": "Teto",
+        "timeline": "Linha do tempo do arremesso"
       },
       "detail": {
         "previous": "Lineup anterior",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Os tempos de arremesso são calculados de trás pra frente pelo voo de cada granada: as smokes caem juntas e o resto {seconds}s depois. Um tempo que você define fica travado e é mantido quando os passos mudam.",
         "show_map": "Mostrar o mapa",
         "retime_all": "Recalcular tudo",
-        "unlock_step": "Definido à mão. Destrave para cronometrar com o resto."
+        "unlock_step": "Definido à mão. Destrave para cronometrar com o resto.",
+        "pause": "Pausar",
+        "seek": "Linha do tempo da execução"
       },
       "sightline": {
         "eyebrow": "Verificação de cobertura",
@@ -7990,7 +7993,12 @@
         "kb_fly": "voar",
         "kb_up_down": "subir / descer",
         "following_on_map": "Seguindo no mapa",
-        "bomb_carrier": "Portador da bomba"
+        "bomb_carrier": "Portador da bomba",
+        "level_lower": "Inferior",
+        "level_upper": "Superior",
+        "loading_map": "Carregando {map}…",
+        "stage_no_map": "Não foi possível carregar o mapa deste replay.",
+        "stage_unsupported": "Este navegador não consegue exibir o mapa do replay. É necessário WebGL 2."
       },
       "auto_clip_preset": "Clipe automático do preset",
       "hold_scoreboard": "Segure para mostrar o placar",

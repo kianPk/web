@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Rejouer le lancer",
-        "roof": "Toit"
+        "roof": "Toit",
+        "timeline": "Chronologie du lancer"
       },
       "detail": {
         "previous": "Lineup précédent",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Les temps de lancer sont calculés à rebours depuis le vol de chaque grenade : les smokes tombent en même temps, le reste {seconds}s après. Un temps que vous fixez vous-même est verrouillé et conservé quand les étapes changent.",
         "show_map": "Afficher la carte",
         "retime_all": "Tout recalculer",
-        "unlock_step": "Fixé à la main. Déverrouillez pour le caler avec le reste."
+        "unlock_step": "Fixé à la main. Déverrouillez pour le caler avec le reste.",
+        "pause": "Pause",
+        "seek": "Chronologie de l’exécution"
       },
       "sightline": {
         "eyebrow": "Contrôle de couverture",
@@ -7990,7 +7993,12 @@
         "kb_fly": "voler",
         "kb_up_down": "haut / bas",
         "following_on_map": "Suivi sur la map",
-        "bomb_carrier": "Porteur de la bombe"
+        "bomb_carrier": "Porteur de la bombe",
+        "level_lower": "Bas",
+        "level_upper": "Haut",
+        "loading_map": "Chargement de {map}…",
+        "stage_no_map": "La carte de ce replay n'a pas pu être chargée.",
+        "stage_unsupported": "Ce navigateur ne peut pas afficher la carte du replay : WebGL 2 est nécessaire."
       },
       "auto_clip_preset": "Clip auto depuis un préréglage",
       "hold_scoreboard": "Maintiens pour afficher le scoreboard",

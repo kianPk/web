@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Repetir lanzamiento",
-        "roof": "Techo"
+        "roof": "Techo",
+        "timeline": "Línea de tiempo del lanzamiento"
       },
       "detail": {
         "previous": "Lineup anterior",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Los tiempos de lanzamiento se calculan hacia atrás desde el vuelo de cada granada: los humos caen a la vez y el resto {seconds}s después. Un tiempo que pongas tú se bloquea y se mantiene al cambiar los pasos.",
         "show_map": "Ver el mapa",
         "retime_all": "Recalcular todo",
-        "unlock_step": "Puesto a mano. Desbloquéalo para cronometrarlo con el resto."
+        "unlock_step": "Puesto a mano. Desbloquéalo para cronometrarlo con el resto.",
+        "pause": "Pausa",
+        "seek": "Línea de tiempo de la ejecución"
       },
       "sightline": {
         "eyebrow": "Comprobación de cobertura",
@@ -7990,7 +7993,12 @@
         "kb_fly": "volar",
         "kb_up_down": "subir / bajar",
         "following_on_map": "Siguiendo en el mapa",
-        "bomb_carrier": "Portador de la bomba"
+        "bomb_carrier": "Portador de la bomba",
+        "level_lower": "Inferior",
+        "level_upper": "Superior",
+        "loading_map": "Cargando {map}…",
+        "stage_no_map": "No se pudo cargar el mapa de esta repetición.",
+        "stage_unsupported": "Este navegador no puede mostrar el mapa de la repetición. Necesita WebGL 2."
       },
       "auto_clip_preset": "Clip automático desde preset",
       "hold_scoreboard": "Mantén pulsado para ver el marcador",

@@ -4305,7 +4305,8 @@
       },
       "viewer": {
         "replay_throw": "Afspil kastet",
-        "roof": "Tag"
+        "roof": "Tag",
+        "timeline": "Tidslinje for kastet"
       },
       "detail": {
         "previous": "Forrige opstilling",
@@ -4644,7 +4645,9 @@
         "land_together_hint": "Kastetiderne regnes baglæns ud fra hver granats flyvetid: røgene lander på én gang og resten {seconds}s senere. En tid, du selv sætter, låses og bevares, når trinene ændres.",
         "show_map": "Vis kortet",
         "retime_all": "Tidsæt alle igen",
-        "unlock_step": "Sat i hånden. Lås op for at tidsætte den med resten."
+        "unlock_step": "Sat i hånden. Lås op for at tidsætte den med resten.",
+        "pause": "Pause",
+        "seek": "Tidslinje for execute"
       },
       "sightline": {
         "eyebrow": "Dækningstjek",
@@ -7990,7 +7993,12 @@
         "kb_fly": "flyv",
         "kb_up_down": "op / ned",
         "following_on_map": "Følger på mappet",
-        "bomb_carrier": "Bombebærer"
+        "bomb_carrier": "Bombebærer",
+        "level_lower": "Nedre",
+        "level_upper": "Øvre",
+        "loading_map": "Indlæser {map}…",
+        "stage_no_map": "Kortet til denne genafspilning kunne ikke indlæses.",
+        "stage_unsupported": "Denne browser kan ikke vise genafspilningens kort. Det kræver WebGL 2."
       },
       "auto_clip_preset": "Auto-klip fra preset",
       "hold_scoreboard": "Hold nede for at vise scoreboard",
