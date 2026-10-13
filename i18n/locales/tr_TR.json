@@ -4342,7 +4342,8 @@
         "precision_failed": "Nişan hassasiyeti değiştirilemedi",
         "favorite_failed": "Kaydettiğin dizilimler güncellenemedi",
         "aim_delta": "Çıkarılan ve Kaydedilen Nişan",
-        "technical": "Teknik ayrıntılar"
+        "technical": "Teknik ayrıntılar",
+        "watch_3d": "3D olarak izle"
       },
       "practice": {
         "title": "Antrenman Sunucusu",

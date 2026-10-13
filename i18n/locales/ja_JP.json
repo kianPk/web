@@ -4342,7 +4342,8 @@
         "precision_failed": "エイム精度を変更できませんでした",
         "favorite_failed": "保存済みラインナップを更新できませんでした",
         "aim_delta": "推定エイムと記録エイム",
-        "technical": "技術的な詳細"
+        "technical": "技術的な詳細",
+        "watch_3d": "3Dで見る"
       },
       "practice": {
         "title": "練習サーバー",

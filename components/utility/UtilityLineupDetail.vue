@@ -42,6 +42,10 @@ import UtilityCollectionPicker from "~/components/utility/UtilityCollectionPicke
 import UtilityConfidenceMark from "~/components/utility/UtilityConfidenceMark.vue";
 import UtilityThrowStrip from "~/components/utility/UtilityThrowStrip.vue";
 import UtilityLineupPreview from "~/components/utility/UtilityLineupPreview.vue";
+import UtilityLineupViewer3D from "~/components/utility/UtilityLineupViewer3D.vue";
+import { useSidebar } from "~/components/ui/sidebar/utils";
+import { useUtilityCardViews } from "~/composables/useUtilityCardViews";
+import { hasMeshForMap } from "~/utilities/mapAssets";
 import UtilityLineupVideoAdmin from "~/components/utility/UtilityLineupVideoAdmin.vue";
 import UtilityLineupStills from "~/components/utility/UtilityLineupStills.vue";
 import UtilityMissPatternPanel from "~/components/utility/UtilityMissPatternPanel.vue";
@@ -505,6 +509,68 @@ function tile(on = false, wide = false) {
   return [TILE_BASE, on ? TILE_ON : TILE_OFF, wide ? "px-2.5" : "w-8"];
 }
 
+// 3D throws the lineup on the map's own square, in the map's place, the way an
+// execute is played; the card keeps its clip. A phone has no square beside the
+// card, so there the card's own preview carries the 3D. On until turned off,
+// and off stays off, from one lineup to the next and the next visit.
+const THREE_D_KEY = "utility:lineup-3d";
+const meshCdn = useRuntimeConfig().public.mapMeshCdn as string;
+const hasMesh = ref(false);
+const threeD = ref(false);
+const layers = useUtilityCardViews();
+const { isMobile } = useSidebar();
+const staged = computed(() => !!layers?.stage.value && !isMobile.value);
+const canThreeD = computed(() => hasMesh.value && staged.value);
+const onStage = computed(
+  () =>
+    threeD.value &&
+    canThreeD.value &&
+    open.value &&
+    !editing.value &&
+    !!lineup.value,
+);
+
+onMounted(() => {
+  try {
+    threeD.value = localStorage.getItem(THREE_D_KEY) !== "0";
+  } catch {
+    // private browsing -- the toggle still works for this visit
+  }
+});
+watch(threeD, (on) => {
+  try {
+    localStorage.setItem(THREE_D_KEY, on ? "1" : "0");
+  } catch {
+    // private browsing -- the toggle still works for this visit
+  }
+});
+
+watch(onStage, (on, was) => {
+  if (layers && (on || was)) {
+    layers.staged.value = on;
+  }
+});
+onBeforeUnmount(() => {
+  if (layers && onStage.value) {
+    layers.staged.value = false;
+  }
+});
+
+watch(
+  () => lineup.value?.map_name,
+  async (name) => {
+    hasMesh.value = false;
+    if (!name || !import.meta.client) {
+      return;
+    }
+    const found = await hasMeshForMap(meshCdn, name);
+    if (lineup.value?.map_name === name) {
+      hasMesh.value = found;
+    }
+  },
+  { immediate: true },
+);
+
 // A menu trigger inside a tooltip registers its anchor on the tooltip's popper,
 // so the menu needs the button handed to it or it opens off screen.
 const moreRef = ref<HTMLElement | null>(null);
@@ -627,6 +693,25 @@ const stats = computed(() => {
       class="absolute inset-0 z-20 flex flex-col bg-sidebar max-md:bg-background"
       :aria-label="lineup?.name ?? $t('pages.utility.detail.not_found')"
     >
+      <Teleport v-if="onStage && layers?.stage.value" :to="layers.stage.value">
+        <Transition
+          appear
+          enter-active-class="transition-[opacity,transform] [transition-duration:240ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] motion-reduce:![transition-duration:1ms]"
+          enter-from-class="scale-[0.98] opacity-0"
+        >
+          <div class="pointer-events-auto absolute inset-0">
+            <UtilityLineupViewer3D :key="lineup!.id" :lineup="lineup!" fill />
+            <button
+              type="button"
+              class="absolute left-3 top-3 z-[11] inline-flex h-8 items-center rounded-md border border-border/60 bg-black/60 px-3 text-xs font-semibold text-foreground backdrop-blur transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              @click="threeD = false"
+            >
+              {{ $t("pages.utility.playbooks.show_map") }}
+            </button>
+          </div>
+        </Transition>
+      </Teleport>
+
       <!-- Slid out over the list: Back puts the list where it was. The
            header is the way out on the left, big enough to hit without
            aiming, and on the right what you do TO the lineup: the reactions
@@ -692,6 +777,35 @@ const stats = computed(() => {
               </button>
             </template>
             {{ $t("pages.utility.plan.skip") }}
+          </FiveStackToolTip>
+
+          <FiveStackToolTip
+            v-if="canThreeD"
+            as-child
+            side="bottom"
+            :delay-duration="120"
+            :tap-toggle="false"
+          >
+            <template #trigger>
+              <button
+                type="button"
+                :class="tile(threeD, true)"
+                :aria-pressed="threeD"
+                :aria-label="
+                  threeD
+                    ? $t('pages.utility.playbooks.show_map')
+                    : $t('pages.utility.detail.watch_3d')
+                "
+                @click="threeD = !threeD"
+              >
+                3D
+              </button>
+            </template>
+            {{
+              threeD
+                ? $t("pages.utility.playbooks.show_map")
+                : $t("pages.utility.detail.watch_3d")
+            }}
           </FiveStackToolTip>
 
           <FiveStackToolTip
@@ -958,7 +1072,7 @@ const stats = computed(() => {
             </div>
           </div>
 
-          <UtilityLineupPreview :lineup="lineup" />
+          <UtilityLineupPreview :lineup="lineup" :scene="!onStage" />
           <UtilityLineupVideoAdmin
             v-if="isAdmin"
             :lineup="lineup"

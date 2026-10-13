@@ -14,7 +14,14 @@ import { useClipFileSize } from "~/composables/useClipFileSize";
 import { useUtilityLineupShare } from "~/composables/useUtilityLineupShare";
 import type { UtilityLineup } from "~/types/utility";
 
-const props = defineProps<{ lineup: UtilityLineup }>();
+const props = withDefaults(
+  defineProps<{
+    lineup: UtilityLineup;
+    // Off while the throw is on the map's own square: the card keeps the clip.
+    scene?: boolean;
+  }>(),
+  { scene: true },
+);
 
 const meshCdn = useRuntimeConfig().public.mapMeshCdn as string;
 
@@ -74,8 +81,10 @@ watch(
   <!-- Keyed on the lineup so switching remounts the scene rather than leaving
        the previous throw's camera -- or the previous clip's playhead -- behind. -->
   <div :key="lineup.id" class="flex min-w-0 flex-col gap-2">
+    <template v-if="!scene" />
+
     <UtilityLineupViewer3D
-      v-if="hasMesh"
+      v-else-if="hasMesh"
       :lineup="lineup"
       data-no-sheet-drag
     />

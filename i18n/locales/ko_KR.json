@@ -4342,7 +4342,8 @@
         "precision_failed": "조준 정밀도를 바꾸지 못했습니다",
         "favorite_failed": "저장한 라인업을 갱신하지 못했습니다",
         "aim_delta": "추정 조준 대 기록 조준",
-        "technical": "기술 정보"
+        "technical": "기술 정보",
+        "watch_3d": "3D로 보기"
       },
       "practice": {
         "title": "연습 서버",

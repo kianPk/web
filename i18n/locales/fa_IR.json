@@ -4698,7 +4698,8 @@
         "precision_failed": "دقت aim تغییر نکرد",
         "favorite_failed": "لاین‌آپ‌های ذخیره‌شده به‌روز نشد",
         "aim_delta": "Aim استنتاج‌شده در برابر ضبط‌شده",
-        "technical": "جزئیات فنی"
+        "technical": "جزئیات فنی",
+        "watch_3d": "نمایش سه‌بعدی"
       },
       "practice": {
         "title": "سرور تمرین",

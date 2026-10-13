@@ -4342,7 +4342,8 @@
         "precision_failed": "Kunne ikke ændre sigtepræcisionen",
         "favorite_failed": "Kunne ikke opdatere dine gemte opstillinger",
         "aim_delta": "Udledt vs optaget sigte",
-        "technical": "Tekniske detaljer"
+        "technical": "Tekniske detaljer",
+        "watch_3d": "Se i 3D"
       },
       "practice": {
         "title": "Træningsserver",

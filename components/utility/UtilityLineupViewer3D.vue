@@ -17,9 +17,14 @@ import { SMOKE_BLOOM_SECS } from "~/utils/smokeVolume";
 import type { SmokeVolume } from "~/utils/smokeVolume";
 import type { UtilityLineup, UtilityTrajectoryPoint } from "~/types/utility";
 
-const props = defineProps<{
-  lineup: UtilityLineup;
-}>();
+const props = withDefaults(
+  defineProps<{
+    lineup: UtilityLineup;
+    // Fills the map's square instead of keeping its own 16:10 shape.
+    fill?: boolean;
+  }>(),
+  { fill: false },
+);
 
 // One synthetic grenade, so Replay3DLite renders a lineup with exactly the same
 // code path it renders a demo with. Nothing about the renderer is utility-aware.
@@ -388,7 +393,7 @@ const tick = computed(() =>
 <template>
   <div
     class="relative w-full overflow-hidden rounded-md border border-border bg-[#08101f]"
-    style="aspect-ratio: 16 / 10"
+    :class="fill ? 'h-full' : 'aspect-[16/10]'"
   >
     <Replay3DLite
       :map-mesh-url="meshUrlForMap(meshCdn, mapName ?? '')"

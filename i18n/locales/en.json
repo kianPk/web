@@ -4698,7 +4698,8 @@
         "precision_failed": "Could not change the aim precision",
         "favorite_failed": "Could not update your saved lineups",
         "aim_delta": "Inferred vs Recorded Aim",
-        "technical": "Technical details"
+        "technical": "Technical details",
+        "watch_3d": "Watch in 3D"
       },
       "practice": {
         "title": "Practice Server",

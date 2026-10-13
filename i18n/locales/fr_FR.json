@@ -4342,7 +4342,8 @@
         "precision_failed": "Impossible de changer la précision de visée",
         "favorite_failed": "Impossible de mettre à jour vos lineups enregistrés",
         "aim_delta": "Visée déduite vs enregistrée",
-        "technical": "Détails techniques"
+        "technical": "Détails techniques",
+        "watch_3d": "Voir en 3D"
       },
       "practice": {
         "title": "Serveur d'entraînement",

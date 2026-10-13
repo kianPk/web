@@ -4342,7 +4342,8 @@
         "precision_failed": "Impossibile cambiare la precisione di mira",
         "favorite_failed": "Impossibile aggiornare i tuoi lineup salvati",
         "aim_delta": "Mira dedotta vs registrata",
-        "technical": "Dettagli tecnici"
+        "technical": "Dettagli tecnici",
+        "watch_3d": "Guarda in 3D"
       },
       "practice": {
         "title": "Server di allenamento",

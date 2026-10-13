@@ -4342,7 +4342,8 @@
         "precision_failed": "Nie udało się zmienić dokładności celowania",
         "favorite_failed": "Nie udało się zaktualizować zapisanych ustawek",
         "aim_delta": "Celowanie wyliczone vs nagrane",
-        "technical": "Szczegóły techniczne"
+        "technical": "Szczegóły techniczne",
+        "watch_3d": "Zobacz w 3D"
       },
       "practice": {
         "title": "Serwer treningowy",

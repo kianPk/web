@@ -4342,7 +4342,8 @@
         "precision_failed": "無法修改瞄準精度",
         "favorite_failed": "無法更新你收藏的點位",
         "aim_delta": "推算瞄準與記錄瞄準",
-        "technical": "技術細節"
+        "technical": "技術細節",
+        "watch_3d": "以 3D 觀看"
       },
       "practice": {
         "title": "練習伺服器",

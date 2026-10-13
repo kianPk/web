@@ -4342,7 +4342,8 @@
         "precision_failed": "Die Zielgenauigkeit konnte nicht geändert werden",
         "favorite_failed": "Deine gespeicherten Lineups konnten nicht aktualisiert werden",
         "aim_delta": "Abgeleitetes vs. aufgezeichnetes Zielen",
-        "technical": "Technische Details"
+        "technical": "Technische Details",
+        "watch_3d": "In 3D ansehen"
       },
       "practice": {
         "title": "Übungsserver",
