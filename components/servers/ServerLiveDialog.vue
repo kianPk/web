@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import QuickServerConnect from "~/components/match/QuickServerConnect.vue";
+import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import { mapLabel } from "~/utilities/serverModes";
 import { csRankIcon } from "~/utilities/csRank";
 import type { FleetServer } from "~/composables/usePublicServerFleet";
@@ -27,6 +28,8 @@ type LivePlayer = {
   points: number;
   skill_group?: number;
   rank_name?: string;
+  section_rating?: number;
+  section_level?: number;
 };
 
 const props = defineProps<{
@@ -38,24 +41,81 @@ const open = defineModel<boolean>("open", { default: false });
 
 const players = ref<LivePlayer[]>([]);
 const loading = ref(false);
+const sectionMode = ref<string | null>(null);
+const savingLevel = ref<string | null>(null);
 let timer: number | undefined;
+
+const usesSectionLevels = computed(
+  () => !!sectionMode.value || !!props.server?.modeKey,
+);
 
 async function load() {
   const id = props.server?.id;
   if (!id) return;
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
-    const data = await $fetch<{ players: LivePlayer[] }>(
-      `https://${apiDomain}/hosted-servers/public-details/${id}/players`,
-      { credentials: "include" },
-    );
+    const data = await $fetch<{
+      players: LivePlayer[];
+      section_mode?: string | null;
+    }>(`https://${apiDomain}/hosted-servers/public-details/${id}/players`, {
+      credentials: "include",
+    });
     if (props.server?.id === id) {
       players.value = data?.players || [];
+      sectionMode.value =
+        data?.section_mode || props.server?.modeKey || null;
     }
   } catch {
     players.value = [];
+    sectionMode.value = props.server?.modeKey || null;
   } finally {
     loading.value = false;
+  }
+}
+
+async function setSectionLevel(player: LivePlayer, level: number) {
+  const mode = sectionMode.value || props.server?.modeKey;
+  if (!mode || !isAdmin.value) return;
+  if (player.section_level === level) return;
+  savingLevel.value = player.steam_id;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    const data = await $fetch<{
+      player: { steam_id: string; rating: number; level: number };
+    }>(`https://${apiDomain}/hosted-servers/section-ratings/${mode}/admin-set`, {
+      method: "POST",
+      credentials: "include",
+      body: {
+        steam_id: player.steam_id,
+        level,
+        name: player.name || undefined,
+      },
+    });
+    const updated = data?.player;
+    if (updated) {
+      players.value = players.value.map((row) =>
+        row.steam_id === player.steam_id
+          ? {
+              ...row,
+              section_level: updated.level,
+              section_rating: Math.round(updated.rating),
+            }
+          : row,
+      );
+    }
+    toast({
+      title: t("pages.servers.dialog.level_saved", {
+        name: player.name || player.steam_id,
+        level: updated?.level ?? level,
+      }),
+    });
+  } catch (error: any) {
+    toast({
+      title: error?.data?.message || error?.message || String(error),
+      variant: "destructive",
+    });
+  } finally {
+    savingLevel.value = null;
   }
 }
 
@@ -251,7 +311,11 @@ function onAvatarError(e: Event) {
               class="grid grid-cols-[1fr_auto] gap-3 border-b border-border/60 px-3 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
             >
               <span>{{ $t("pages.servers.dialog.player") }}</span>
-              <span>{{ $t("pages.servers.dialog.rank") }}</span>
+              <span>{{
+                usesSectionLevels
+                  ? $t("pages.servers.dialog.level")
+                  : $t("pages.servers.dialog.rank")
+              }}</span>
             </div>
 
             <div class="max-h-72 overflow-y-auto">
@@ -276,40 +340,90 @@ function onAvatarError(e: Event) {
                 :key="player.steam_id"
                 class="grid grid-cols-[1fr_auto] items-center gap-3 border-b border-border/40 px-3 py-2 last:border-b-0"
               >
-                <NuxtLink
-                  :to="`/players/${player.steam_id}`"
-                  class="flex min-w-0 items-center gap-2.5 hover:text-[hsl(var(--tac-amber))]"
-                  :class="{ 'pointer-events-none': !player.registered }"
-                >
-                  <div
-                    class="h-7 w-7 shrink-0 overflow-hidden rounded-md bg-muted"
+                <div class="flex min-w-0 items-center gap-2.5">
+                  <NuxtLink
+                    :to="`/players/${player.steam_id}`"
+                    class="flex min-w-0 items-center gap-2.5 hover:text-[hsl(var(--tac-amber))]"
+                    :class="{ 'pointer-events-none': !player.registered }"
                   >
-                    <img
-                      v-if="player.avatar_url"
-                      :src="player.avatar_url"
-                      class="h-full w-full object-cover"
-                      @error="onAvatarError"
-                    />
-                  </div>
-                  <span class="truncate text-sm font-medium">
-                    {{ player.name || player.steam_id }}
-                  </span>
-                </NuxtLink>
-                <div class="flex items-center gap-2">
-                  <span
-                    v-if="player.points > 0"
-                    class="font-mono text-xs tabular-nums text-muted-foreground"
-                  >
-                    {{ player.points }}
-                  </span>
-                  <img
-                    v-if="player.skill_group"
-                    :src="csRankIcon(7, player.skill_group) || undefined"
-                    :alt="player.rank_name"
-                    :title="player.rank_name"
-                    class="h-5 w-auto"
+                    <div
+                      class="h-7 w-7 shrink-0 overflow-hidden rounded-md bg-muted"
+                    >
+                      <img
+                        v-if="player.avatar_url"
+                        :src="player.avatar_url"
+                        class="h-full w-full object-cover"
+                        @error="onAvatarError"
+                      />
+                    </div>
+                    <span class="truncate text-sm font-medium">
+                      {{ player.name || player.steam_id }}
+                    </span>
+                  </NuxtLink>
+                  <PlayerFaceitRank
+                    v-if="
+                      usesSectionLevels &&
+                      (player.section_level ?? null) !== null
+                    "
+                    class="shrink-0"
+                    :faceit-skill-level="player.section_level"
+                    :faceit-elo="player.section_rating"
                   />
-                  <span v-else class="text-xs text-muted-foreground/60">—</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <template v-if="usesSectionLevels">
+                    <select
+                      v-if="isAdmin"
+                      class="h-7 rounded-md border border-border bg-card px-1.5 font-mono text-xs"
+                      dir="ltr"
+                      :disabled="savingLevel === player.steam_id"
+                      :value="String(player.section_level ?? 4)"
+                      :aria-label="$t('pages.servers.dialog.set_level')"
+                      @change="
+                        setSectionLevel(
+                          player,
+                          Number(($event.target as HTMLSelectElement).value),
+                        )
+                      "
+                    >
+                      <option v-for="n in 10" :key="n" :value="String(n)">
+                        {{ $t("pages.servers.dialog.level_n", { level: n }) }}
+                      </option>
+                    </select>
+                    <span
+                      v-else-if="(player.section_rating ?? 0) > 0"
+                      class="font-mono text-xs tabular-nums text-muted-foreground"
+                    >
+                      {{ player.section_rating }}
+                    </span>
+                    <span
+                      v-else
+                      class="text-xs text-muted-foreground/60"
+                      >—</span
+                    >
+                    <Loader2
+                      v-if="savingLevel === player.steam_id"
+                      class="h-3.5 w-3.5 animate-spin text-muted-foreground"
+                    />
+                  </template>
+                  <template v-else>
+                    <span
+                      v-if="player.points > 0"
+                      class="font-mono text-xs tabular-nums text-muted-foreground"
+                    >
+                      {{ player.points }}
+                    </span>
+                    <img
+                      v-if="player.skill_group"
+                      :src="csRankIcon(7, player.skill_group) || undefined"
+                      :alt="player.rank_name"
+                      :title="player.rank_name"
+                      class="h-5 w-auto"
+                    />
+                    <span v-else class="text-xs text-muted-foreground/60"
+                      >—</span
+                    >
+                  </template>
                 </div>
               </div>
             </div>

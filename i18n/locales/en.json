@@ -6348,6 +6348,10 @@
       "dialog": {
         "player": "Player",
         "rank": "Rank",
+        "level": "Level",
+        "level_n": "Level {level}",
+        "set_level": "Set level",
+        "level_saved": "Set {name} to level {level}",
         "empty": "Nobody is on this server right now.",
         "players_unknown": "The player list refreshes every minute — check again shortly."
       },
