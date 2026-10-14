@@ -6265,6 +6265,7 @@
     "servers": {
       "title": "Servers",
       "hero_title": "Pick a mode and jump in",
+      "hero_cta": "Browse modes",
       "subtitle": "Duels, Deathmatch, BHOP, 2v2 and AWP servers that are always online. Pick a mode, hit Quick Game and you're in.",
       "stat_players": "Players in game",
       "stat_servers": "Servers online",
