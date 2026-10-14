@@ -43,69 +43,71 @@ useHead(() => ({ title: t("pages.servers.title") }));
 
 <template>
   <PageTransition :delay="0">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
-        {{ $t("pages.servers.hero_title") }}
-      </h1>
-      <p class="text-sm text-muted-foreground">
-        {{ $t("pages.servers.subtitle") }}
-      </p>
-    </div>
+    <section>
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-extrabold tracking-tight md:text-3xl">
+          {{ $t("pages.servers.hero_title") }}
+        </h1>
+        <p class="text-sm text-muted-foreground">
+          {{ $t("pages.servers.subtitle") }}
+        </p>
+      </div>
 
-    <div
-      class="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-    >
-      <component
-        :is="'to' in item ? NuxtLink : 'div'"
-        v-for="(item, index) in HIGHLIGHTS"
-        :key="item.key"
-        :to="'to' in item ? item.to : undefined"
-        class="group relative overflow-hidden rounded-xl bg-card p-4 ring-1 ring-white/5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 fill-mode-both hover:-translate-y-0.5 hover:ring-white/15"
-        :style="{ animationDelay: `${index * 40}ms` }"
+      <div
+        class="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
       >
-        <div
-          class="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-          :style="{
-            backgroundImage: `radial-gradient(130% 120% at 100% 0%, ${item.accent}2e 0%, transparent 55%)`,
-          }"
-        />
-        <div
-          class="pointer-events-none absolute inset-x-0 top-0 h-px"
-          :style="{
-            backgroundImage: `linear-gradient(90deg, transparent, ${item.accent}, transparent)`,
-          }"
-        />
         <component
-          :is="item.icon"
-          class="pointer-events-none absolute -bottom-3 -end-3 h-20 w-20 opacity-[0.06] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110"
-          :style="{ color: item.accent }"
-        />
-
-        <div class="relative flex h-full flex-col gap-3">
-          <span
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg ring-1"
+          :is="'to' in item ? NuxtLink : 'div'"
+          v-for="(item, index) in HIGHLIGHTS"
+          :key="item.key"
+          :to="'to' in item ? item.to : undefined"
+          class="group relative overflow-hidden rounded-xl bg-card p-4 ring-1 ring-white/5 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 fill-mode-both hover:-translate-y-0.5 hover:ring-white/15"
+          :style="{ animationDelay: `${index * 40}ms` }"
+        >
+          <div
+            class="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
             :style="{
-              backgroundColor: `${item.accent}1f`,
-              '--tw-ring-color': `${item.accent}40`,
+              backgroundImage: `radial-gradient(130% 120% at 100% 0%, ${item.accent}2e 0%, transparent 55%)`,
             }"
-          >
-            <component
-              :is="item.icon"
-              class="h-5 w-5"
-              :style="{ color: item.accent }"
-            />
-          </span>
-          <div class="space-y-1">
-            <p class="text-sm font-bold leading-snug">
-              {{ $t(`pages.servers.highlights.${item.key}.title`) }}
-            </p>
-            <p class="text-xs leading-relaxed text-muted-foreground">
-              {{ $t(`pages.servers.highlights.${item.key}.text`) }}
-            </p>
+          />
+          <div
+            class="pointer-events-none absolute inset-x-0 top-0 h-px"
+            :style="{
+              backgroundImage: `linear-gradient(90deg, transparent, ${item.accent}, transparent)`,
+            }"
+          />
+          <component
+            :is="item.icon"
+            class="pointer-events-none absolute -bottom-3 -end-3 h-20 w-20 opacity-[0.06] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110"
+            :style="{ color: item.accent }"
+          />
+
+          <div class="relative flex h-full flex-col gap-3">
+            <span
+              class="inline-flex h-10 w-10 items-center justify-center rounded-lg ring-1"
+              :style="{
+                backgroundColor: `${item.accent}1f`,
+                '--tw-ring-color': `${item.accent}40`,
+              }"
+            >
+              <component
+                :is="item.icon"
+                class="h-5 w-5"
+                :style="{ color: item.accent }"
+              />
+            </span>
+            <div class="space-y-1">
+              <p class="text-sm font-bold leading-snug">
+                {{ $t(`pages.servers.highlights.${item.key}.title`) }}
+              </p>
+              <p class="text-xs leading-relaxed text-muted-foreground">
+                {{ $t(`pages.servers.highlights.${item.key}.text`) }}
+              </p>
+            </div>
           </div>
-        </div>
-      </component>
-    </div>
+        </component>
+      </div>
+    </section>
   </PageTransition>
 
   <PageTransition :delay="80">
