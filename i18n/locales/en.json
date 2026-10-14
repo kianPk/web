@@ -6417,22 +6417,45 @@
         }
       },
       "highlights": {
-        "list_separator": ", ",
-        "live": {
-          "title": "{count} players in game",
-          "text": "On {count} servers that are online right now."
-        },
-        "modes": {
-          "title": "{count} modes",
-          "text": "{list}, always online."
+        "always_on": {
+          "title": "Online 24/7",
+          "text": "Every server is up day and night. No waiting for a lobby, jump in whenever you like."
         },
         "quick": {
           "title": "One click to play",
           "text": "Pick a mode and Quick Game drops you on the best server for you."
         },
         "skins": {
-          "title": "Your skins on every server",
-          "text": "The skins in your inventory on the site show up in every mode."
+          "title": "Your skins everywhere",
+          "text": "The skins in your inventory on the site show up on every server."
+        },
+        "duels": {
+          "title": "1v1 Duels by skill",
+          "text": "You're paired with a player of your level the moment a duel ends."
+        },
+        "dm": {
+          "title": "Deathmatch with rewards",
+          "text": "Health, armour and a full magazine back on every kill. Pick your guns with !guns."
+        },
+        "bhop": {
+          "title": "BHOP with records",
+          "text": "Auto-bhop with a timer on every map, the map's record and your personal best."
+        },
+        "awp": {
+          "title": "AWP-only deathmatch",
+          "text": "AWP against AWP, instant respawn and no spawn protection. Pure flicks."
+        },
+        "2x2": {
+          "title": "2x2 Wingman",
+          "text": "You and a partner against two on compact maps, in short matches."
+        },
+        "protected": {
+          "title": "Protected servers",
+          "text": "sv_cheats stays off and cheat commands like noclip and god are blocked."
+        },
+        "ranked": {
+          "title": "Ranked and Battle Pass",
+          "text": "Play ranked matches, track your stats and level up your Battle Pass on the site."
         }
       }
     },
