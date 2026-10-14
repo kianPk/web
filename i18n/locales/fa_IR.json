@@ -6507,7 +6507,8 @@
       "badge": {
         "veteran": "نشان Veteran",
         "elite": "نشان Elite",
-        "legend": "نشان Legend"
+        "legend": "نشان Legend",
+        "premium": "بتل‌پس پرمیوم"
       },
       "missions": {
         "d_play_1": "{target} مسابقه بازی کن",
@@ -6530,7 +6531,8 @@
         "w_3k_5": "این هفته {target} راند سه‌کیل (3K) بگیر",
         "w_flash_30": "این هفته {target} حریف را فلش کن",
         "w_trade_15": "این هفته {target} ترید کیل بگیر"
-      }
+      },
+      "profile_badge": "بتل‌پس"
     }
   },
   "ypoint": {

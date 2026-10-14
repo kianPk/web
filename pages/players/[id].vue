@@ -22,9 +22,10 @@ import Pagination from "~/components/Pagination.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import RecentTournaments from "~/components/tournament/RecentTournaments.vue";
 import AwardCase from "~/components/award/AwardCase.vue";
+import AwardBadge from "~/components/award/AwardBadge.vue";
 import AwardComposer from "~/components/award/AwardComposer.vue";
 import { Button } from "~/components/ui/button";
-import { Plus } from "lucide-vue-next";
+import { Plus, Ticket } from "lucide-vue-next";
 import { CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { e_player_roles_enum } from "~/generated/zeus";
@@ -1806,18 +1807,46 @@ const playerHeroTeamChipDotClasses =
                 </div>
               </div>
 
-              <h1 :class="[playerHeroNameClasses, playerHeroNameSizeClasses]">
-                <span
-                  v-if="showNameGhost"
-                  :class="playerHeroNameGhostClasses"
-                  aria-hidden="true"
+              <div class="flex min-w-0 flex-wrap items-center gap-2.5">
+                <h1 :class="[playerHeroNameClasses, playerHeroNameSizeClasses]">
+                  <span
+                    v-if="showNameGhost"
+                    :class="playerHeroNameGhostClasses"
+                    aria-hidden="true"
+                  >
+                    {{ player.name }}
+                  </span>
+                  <span :class="playerHeroNameMainClasses">{{
+                    player.name
+                  }}</span>
+                </h1>
+                <NuxtLink
+                  v-if="battlePassPremiumAward"
+                  to="/battle-pass"
+                  class="group/bp inline-flex items-center gap-1.5 rounded-md border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.12)] py-1 pe-2.5 ps-1 text-[hsl(var(--tac-amber))] transition-colors hover:border-[hsl(var(--tac-amber)_/_0.7)] hover:bg-[hsl(var(--tac-amber)_/_0.2)]"
+                  :title="
+                    battlePassPremiumAward.award?.name ||
+                    $t('pages.battle_pass.profile_badge')
+                  "
                 >
-                  {{ player.name }}
-                </span>
-                <span :class="playerHeroNameMainClasses">{{
-                  player.name
-                }}</span>
-              </h1>
+                  <AwardBadge
+                    :award="battlePassPremiumAward.award"
+                    :seed-key="battlePassPremiumAward.award_id"
+                    size="xs"
+                    :interactive="false"
+                    :show-name="false"
+                    class="shrink-0"
+                  />
+                  <Ticket
+                    class="h-3.5 w-3.5 shrink-0 opacity-90 group-hover/bp:opacity-100"
+                  />
+                  <span
+                    class="hidden font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] sm:inline"
+                  >
+                    {{ $t("pages.battle_pass.profile_badge") }}
+                  </span>
+                </NuxtLink>
+              </div>
 
               <div :class="playerHeroMetaStripClasses">
                 <span :class="playerHeroIdentClasses">
@@ -3289,6 +3318,19 @@ export default {
   computed: {
     canGrantAwards() {
       return useApplicationSettingsStore().canGrantAwards;
+    },
+    // Latest season's Premium unlock emblem, if they bought the Battle Pass.
+    battlePassPremiumAward() {
+      const rows = Array.isArray(this.playerAwards) ? this.playerAwards : [];
+      const matches = rows.filter((row: any) =>
+        /^battle_pass_s\d+_premium$/.test(
+          String(row?.award?.system_key ?? ""),
+        ),
+      );
+      if (!matches.length) return null;
+      return matches.sort((a: any, b: any) =>
+        String(b?.created_at ?? "").localeCompare(String(a?.created_at ?? "")),
+      )[0];
     },
     pageContentReady(): boolean {
       if (this.pageContentTimedOut) return true;

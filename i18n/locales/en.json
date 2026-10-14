@@ -6507,7 +6507,8 @@
       "badge": {
         "veteran": "Veteran badge",
         "elite": "Elite badge",
-        "legend": "Legend badge"
+        "legend": "Legend badge",
+        "premium": "Premium Battle Pass"
       },
       "missions": {
         "d_play_1": "Play {target} match",
@@ -6530,7 +6531,8 @@
         "w_3k_5": "Get {target} triple kill (3K) rounds this week",
         "w_flash_30": "Flash {target} enemies this week",
         "w_trade_15": "Get {target} trade kills this week"
-      }
+      },
+      "profile_badge": "Battle Pass"
     }
   },
   "ypoint": {
