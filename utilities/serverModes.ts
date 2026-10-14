@@ -1,6 +1,6 @@
 import cleanMapName from "~/utilities/cleanMapName";
 
-export type ServerModeKey = "duels" | "dm" | "bhop" | "2x2";
+export type ServerModeKey = "duels" | "dm" | "bhop" | "2x2" | "awp";
 
 export type ServerModeCommand = {
   command: string;
@@ -133,6 +133,19 @@ export const SERVER_MODES: ServerModeDefinition[] = [
     maps: ["Inferno", "Nuke", "Overpass", "Vertigo", "Poseidon"],
     faq: 2,
   },
+  {
+    key: "awp",
+    cover: SCREENSHOT("de_vertigo"),
+    accent: "#8e4ec6",
+    order: 50,
+    slots: 20,
+    commands: [
+      { command: "!rs", descriptionKey: "rs" },
+      { command: "!spec", descriptionKey: "spec" },
+    ],
+    maps: ["awp_lego_2", "awp_creek", "awp_roost_fp", "awp_gony_v2"],
+    faq: 3,
+  },
 ];
 
 export function serverModeDefinition(
@@ -146,7 +159,8 @@ export function sectionModeKey(value: unknown): ServerModeKey | null {
   return value === "duels" ||
     value === "dm" ||
     value === "bhop" ||
-    value === "2x2"
+    value === "2x2" ||
+    value === "awp"
     ? value
     : null;
 }

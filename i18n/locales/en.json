@@ -6317,7 +6317,8 @@
         "top": "The map's ten best times",
         "practice": "Pause the timer and move freely",
         "noclip": "Fly through walls (turns practice mode on)",
-        "resume": "Leave practice mode and carry on where you were"
+        "resume": "Leave practice mode and carry on where you were",
+        "rs": "Reset your score"
       },
       "filters": {
         "all_maps": "Map: any",
@@ -6399,6 +6400,19 @@
             "a2": "We have maps from easy for new players to hard for professionals. Hold jump to hop — auto-bhop is on — and type !practice or !noclip to learn a part of the map without the timer.",
             "q3": "How does the timer work?",
             "a3": "Leave the start zone to start the timer and reach the end zone to stop it. !r takes you back to the start, !wr shows the record and !pb your best time."
+          }
+        },
+        "awp": {
+          "name": "AWP",
+          "subtitle": "Become a world-class sniper: AWP against AWP, team against team, to practise flicks, quickscopes and noscopes",
+          "about": "Everyone spawns with an AWP, a knife and armour. Buying is off, ammo never runs out and short rounds keep you shooting, so all that counts is your crosshair placement and first-shot accuracy.",
+          "faq": {
+            "q1": "What are the rules?",
+            "a1": "Two teams play short rounds on the awp_ maps. Everyone spawns with an AWP, a knife and armour; money and buying are off and ammo is unlimited. A round ends when one team is wiped out or time runs out.",
+            "q2": "Can I pick up other weapons?",
+            "a2": "No. Weapons don't drop on death and map-placed weapons are removed, so it's always AWP against AWP.",
+            "q3": "How do I reset my score?",
+            "a3": "Type !rs in the chat to set your kills, deaths and score back to zero. !spec lets you watch instead of playing."
           }
         }
       }

@@ -93,6 +93,7 @@ const counts = ref<Record<ServerModeKey, number>>({
   dm: 0,
   bhop: 0,
   "2x2": 0,
+  awp: 0,
 });
 const reserve = ref(DEFAULT_RESERVE);
 const saving = ref(false);
@@ -179,6 +180,7 @@ const pools = ref<Record<ServerModeKey, SectionMap[]>>({
   dm: [],
   bhop: [],
   "2x2": [],
+  awp: [],
 });
 const savingMaps = ref(false);
 
