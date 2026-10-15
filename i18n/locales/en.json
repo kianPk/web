@@ -6363,7 +6363,9 @@
         "rent": "Rent",
         "pick_mode": "Game mode",
         "slots": "Player slots",
-        "slots_hint": "Mode includes {included} slots. Extra slots are billed for the rental length (max {max}).",
+        "slots_hint": "Base includes {included} slots. Each extra slot is billed per hour for the rental length (max {max}).",
+        "mode_slots_hint": "{n} base slots",
+        "slot_rate_hint": "+{toman} Toman / extra slot / hour · {ypoint} YP",
         "password": "Connect password",
         "password_placeholder": "Optional",
         "password_hint": "Leave empty for a public server. Letters, digits, _ - . only.",
@@ -6383,9 +6385,11 @@
         "admin": {
           "duration": "Duration",
           "rates_title": "Host pricing (admin)",
-          "rates_hint": "Hourly rate used to price every rental. Players configure mode and duration themselves.",
+          "rates_hint": "Base hourly rate includes 10 slots. Set the extra-slot hourly rate separately.",
           "rate_toman": "Price per hour (Toman)",
           "rate_ypoint": "Price per hour (Ypoint)",
+          "slot_rate_toman": "Extra slot / hour (Toman)",
+          "slot_rate_ypoint": "Extra slot / hour (Ypoint)",
           "save_rates": "Save rates",
           "rates_saved": "Host rates saved"
         }

@@ -16,11 +16,15 @@ export type SectionHostOverview = {
   remaining: number;
   modes: string[];
   durations: string[];
+  /** Base slots included in the hourly Host rate (always 10). */
+  included_slots?: number;
   mode_slots?: Record<string, number>;
   included_slots_by_mode?: Record<string, number>;
   max_slots?: number;
   slot_price_irr?: number;
   slot_price_ypoint?: number;
+  slot_price_irr_per_hour?: number;
+  slot_price_ypoint_per_hour?: number;
   price_irr_per_hour: number;
   price_ypoint_per_hour: number;
 };

@@ -62,10 +62,13 @@ const FALLBACK_DURATIONS = [
   "30d",
 ] as const;
 
+/** Slots included in the base Host hourly rate. */
+const HOST_INCLUDED_SLOTS = 10;
+
 const mode = ref<ServerModeKey>("duels");
 const duration = ref<string>("1h");
 const label = ref("");
-const slots = ref(18);
+const slots = ref(HOST_INCLUDED_SLOTS);
 const connectPassword = ref("");
 const adminSteamId = ref("");
 const termsAccepted = ref(false);
@@ -74,6 +77,8 @@ const checkoutOpen = ref(false);
 
 const rateToman = ref(0);
 const rateYpoint = ref(0);
+const slotRateToman = ref(0);
+const slotRateYpoint = ref(0);
 const rateSaving = ref(false);
 
 const signedIn = computed(() => Boolean(auth.me?.steam_id));
@@ -100,17 +105,14 @@ const selectedMode = computed(
 
 const maxSlots = computed(() => overview.value?.max_slots || 32);
 
-const includedSlots = computed(() => {
-  const map =
-    overview.value?.included_slots_by_mode || overview.value?.mode_slots;
-  if (map?.[mode.value]) return map[mode.value];
-  return selectedMode.value?.slots || 18;
-});
+const includedSlots = computed(
+  () => overview.value?.included_slots || HOST_INCLUDED_SLOTS,
+);
 
 const safeSlots = computed(() => {
   const n = Math.floor(Number(slots.value));
   if (!Number.isFinite(n)) return includedSlots.value;
-  return Math.min(maxSlots.value, Math.max(2, n));
+  return Math.min(maxSlots.value, Math.max(includedSlots.value, n));
 });
 
 const safeDuration = computed(() => normalizeDuration(duration.value) || "1h");
@@ -133,6 +135,15 @@ const displayQuote = computed<SectionHostQuote | null>(() => {
     };
   }
   return local;
+});
+
+const canRent = computed(() => {
+  const price = Number(displayQuote.value?.price_irr || 0);
+  if (price <= 0) return false;
+  // Only block when the API explicitly says closed/full — missing fields must not disable Rent.
+  if (overview.value?.enabled === false) return false;
+  if (overview.value?.available === false) return false;
+  return true;
 });
 
 const myHostServers = computed(() =>
@@ -190,17 +201,25 @@ function computeLocalQuote(): SectionHostQuote | null {
     Number(rateYpoint.value) ||
     overview.value?.price_ypoint_per_hour ||
     0;
-  const slotIrr = overview.value?.slot_price_irr || 0;
-  const slotYp = overview.value?.slot_price_ypoint || 0;
+  const slotIrrPerHour =
+    tomanToIrr(slotRateToman.value) ||
+    overview.value?.slot_price_irr_per_hour ||
+    overview.value?.slot_price_irr ||
+    50_000;
+  const slotYpPerHour =
+    Number(slotRateYpoint.value) ||
+    overview.value?.slot_price_ypoint_per_hour ||
+    overview.value?.slot_price_ypoint ||
+    5;
   const baseIrr = Math.ceil((rateIrr * hours) / 10_000) * 10_000;
   const baseYp = rateYp > 0 ? Math.ceil(rateYp * hours) : 0;
   const slotsIrr =
-    extra > 0 && slotIrr > 0
-      ? Math.ceil((slotIrr * extra * hours) / (30 * 24) / 10_000) * 10_000
+    extra > 0 && slotIrrPerHour > 0
+      ? Math.ceil((slotIrrPerHour * extra * hours) / 10_000) * 10_000
       : 0;
   const slotsYp =
-    extra > 0 && slotYp > 0
-      ? Math.ceil((slotYp * extra * hours) / (30 * 24))
+    extra > 0 && slotYpPerHour > 0
+      ? Math.ceil(slotYpPerHour * extra * hours)
       : 0;
   return {
     duration: dur,
@@ -245,13 +264,29 @@ async function refreshOverview() {
   if (overview.value.price_ypoint_per_hour == null) {
     overview.value.price_ypoint_per_hour = 50;
   }
+  if (
+    !overview.value.slot_price_irr_per_hour &&
+    !overview.value.slot_price_irr
+  ) {
+    overview.value.slot_price_irr_per_hour = 50_000;
+  }
   rateToman.value = irrToToman(overview.value.price_irr_per_hour || 0);
   rateYpoint.value = overview.value.price_ypoint_per_hour || 0;
+  slotRateToman.value = irrToToman(
+    overview.value.slot_price_irr_per_hour ||
+      overview.value.slot_price_irr ||
+      50_000,
+  );
+  slotRateYpoint.value =
+    overview.value.slot_price_ypoint_per_hour ||
+    overview.value.slot_price_ypoint ||
+    5;
   syncSlotsToMode();
 }
 
 function syncSlotsToMode() {
-  slots.value = Math.min(maxSlots.value, Math.max(2, includedSlots.value));
+  // Always start at the included base (10). User can add more.
+  slots.value = includedSlots.value;
 }
 
 function scheduleQuote() {
@@ -320,13 +355,19 @@ async function refresh() {
   loading.value = false;
 }
 
-watch([duration, slots, mode, rateToman, rateYpoint], () => {
-  duration.value = normalizeDuration(duration.value);
-  scheduleQuote();
-});
+watch(
+  [duration, slots, mode, rateToman, rateYpoint, slotRateToman, slotRateYpoint],
+  () => {
+    duration.value = normalizeDuration(duration.value);
+    scheduleQuote();
+  },
+);
 
 watch(mode, () => {
-  slots.value = includedSlots.value;
+  // Mode change does not reset slots above the included base if user already raised them.
+  if (slots.value < includedSlots.value) {
+    slots.value = includedSlots.value;
+  }
 });
 
 function pickDuration(d: string) {
@@ -341,7 +382,14 @@ function openCheckout() {
     });
     return;
   }
-  if (!overview.value?.available) {
+  if (overview.value?.enabled === false) {
+    toast({
+      variant: "destructive",
+      title: t("pages.servers.host.sales_closed"),
+    });
+    return;
+  }
+  if (overview.value?.available === false) {
     toast({
       variant: "destructive",
       title: t("pages.servers.host.capacity_full"),
@@ -417,6 +465,11 @@ async function saveRates() {
           0,
           Math.round(Number(rateYpoint.value) || 0),
         ),
+        section_host_slot_price_irr_per_hour: tomanToIrr(slotRateToman.value),
+        section_host_slot_price_ypoint_per_hour: Math.max(
+          0,
+          Math.round(Number(slotRateYpoint.value) || 0),
+        ),
       },
     });
     toast({ title: t("pages.servers.host.admin.rates_saved") });
@@ -486,6 +539,14 @@ onMounted(() => {
               <Label>{{ $t("pages.servers.host.admin.rate_ypoint") }}</Label>
               <Input v-model.number="rateYpoint" type="number" min="0" />
             </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.slot_rate_toman") }}</Label>
+              <Input v-model.number="slotRateToman" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.slot_rate_ypoint") }}</Label>
+              <Input v-model.number="slotRateYpoint" type="number" min="0" />
+            </div>
           </div>
           <Button type="button" size="sm" :disabled="rateSaving" @click="saveRates">
             {{ $t("pages.servers.host.admin.save_rates") }}
@@ -493,16 +554,21 @@ onMounted(() => {
         </section>
 
         <div
-          v-if="overview && (!overview.enabled || !overview.available)"
+          v-if="overview && overview.enabled === false"
           class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm"
         >
-          {{
-            !overview.enabled
-              ? $t("pages.servers.host.sales_closed")
-              : $t("pages.servers.host.capacity_full")
-          }}
+          {{ $t("pages.servers.host.sales_closed") }}
         </div>
-        <p v-else-if="overview" class="m-0 text-xs text-muted-foreground">
+        <div
+          v-else-if="overview && overview.available === false"
+          class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm"
+        >
+          {{ $t("pages.servers.host.capacity_full") }}
+        </div>
+        <p
+          v-else-if="overview && overview.remaining != null"
+          class="m-0 text-xs text-muted-foreground"
+        >
           {{ $t("pages.servers.host.remaining", { n: overview.remaining }) }}
         </p>
 
@@ -547,7 +613,11 @@ onMounted(() => {
                       {{ $t(`pages.servers.modes.${m.key}.name`) }}
                     </div>
                     <div class="text-[11px] text-white/55">
-                      {{ $t("pages.hosting.slots", { n: m.slots }) }}
+                      {{
+                        $t("pages.servers.host.mode_slots_hint", {
+                          n: HOST_INCLUDED_SLOTS,
+                        })
+                      }}
                     </div>
                   </div>
                 </button>
@@ -591,8 +661,8 @@ onMounted(() => {
                   size="icon"
                   variant="outline"
                   class="h-9 w-9"
-                  :disabled="slots <= 2"
-                  @click="slots = Math.max(2, slots - 1)"
+                  :disabled="slots <= includedSlots"
+                  @click="slots = Math.max(includedSlots, slots - 1)"
                 >
                   −
                 </Button>
@@ -741,10 +811,23 @@ onMounted(() => {
                 {{
                   $t("pages.servers.host.rate_hint", {
                     toman: formatTomanAmount(
-                      overview?.price_irr_per_hour || 0,
+                      tomanToIrr(rateToman) ||
+                        overview?.price_irr_per_hour ||
+                        0,
                       locale.startsWith("fa") ? "fa-IR" : "en-US",
                     ),
-                    ypoint: overview?.price_ypoint_per_hour || 0,
+                    ypoint: rateYpoint || overview?.price_ypoint_per_hour || 0,
+                  })
+                }}
+              </p>
+              <p
+                v-if="slotRateToman > 0"
+                class="m-0 text-xs text-white/40"
+              >
+                {{
+                  $t("pages.servers.host.slot_rate_hint", {
+                    toman: slotRateToman,
+                    ypoint: slotRateYpoint || 0,
                   })
                 }}
               </p>
@@ -760,11 +843,7 @@ onMounted(() => {
               type="button"
               size="lg"
               class="relative mt-auto w-full"
-              :disabled="
-                !overview?.available ||
-                !displayQuote ||
-                displayQuote.price_irr <= 0
-              "
+              :disabled="!canRent"
               @click="openCheckout"
             >
               <Clock class="h-4 w-4" />
