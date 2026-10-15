@@ -6391,7 +6391,7 @@
           "slot_rate_ypoint": "اسلات اضافه / ساعت (وای‌پوینت)",
           "save_rates": "ذخیره نرخ",
           "rates_saved": "نرخ Host ذخیره شد",
-          "rates_not_persisted": "نرخ ذخیره نشد. API را دوباره دیپلوی کن و دوباره امتحان کن."
+          "rates_not_persisted": "نرخ ذخیره نشد. دسترسی ادمین به settings را چک کن و دوباره امتحان کن."
         }
       },
       "dialog": {
