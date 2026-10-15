@@ -408,22 +408,31 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
   }
   paying.value = true;
   try {
-    const result = await hostedApi<HostedCheckoutResult>(
-      "/hosted-servers/section-host/checkout",
-      {
-        method: "POST",
-        body: {
-          sectionMode: mode.value,
-          duration: safeDuration.value,
-          label: label.value,
-          slots: safeSlots.value,
-          connectPassword: connectPassword.value.trim() || undefined,
-          adminSteamId: adminSteamId.value.trim() || undefined,
-          termsAccepted: true,
-          payWith,
-        },
-      },
-    );
+    const checkoutBody = {
+      sectionMode: mode.value,
+      duration: safeDuration.value,
+      label: label.value,
+      slots: safeSlots.value,
+      connectPassword: connectPassword.value.trim() || undefined,
+      adminSteamId: adminSteamId.value.trim() || undefined,
+      termsAccepted: true,
+      payWith,
+    };
+    // Prefer host-checkout (HostedServersController). Fall back to legacy path.
+    let result: HostedCheckoutResult;
+    try {
+      result = await hostedApi<HostedCheckoutResult>(
+        "/hosted-servers/host-checkout",
+        { method: "POST", body: checkoutBody },
+      );
+    } catch (error) {
+      const msg = hostedErrorMessage(error);
+      if (!/cannot post|404|not found/i.test(msg)) throw error;
+      result = await hostedApi<HostedCheckoutResult>(
+        "/hosted-servers/section-host/checkout",
+        { method: "POST", body: checkoutBody },
+      );
+    }
     checkoutOpen.value = false;
     if (result.paid) {
       toast({ title: t("pages.hosting.ypoint_paid") });
