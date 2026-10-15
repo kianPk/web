@@ -57,6 +57,7 @@ type BattlePassResponse = {
     daily: number;
     weekly: number;
     subscriber: number;
+    bonus?: number;
   };
   levels: Array<{
     level: number;
@@ -284,7 +285,7 @@ onMounted(() => {
 
 <template>
   <PageTransition>
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16 pt-6">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pb-16 pt-6">
       <TacticalPageHeader>
         <template #title>{{ $t("pages.battle_pass.title") }}</template>
         <template #subtitle>
@@ -329,21 +330,31 @@ onMounted(() => {
       </div>
 
       <template v-else-if="data && season">
-        <div class="grid gap-4 lg:grid-cols-[1fr_340px]">
+        <div class="grid gap-4 lg:grid-cols-[1fr_320px]">
           <div
-            class="relative overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-gradient-to-br from-[hsl(var(--tac-amber)/0.12)] via-background to-violet-500/10 p-6"
+            class="relative overflow-hidden rounded-2xl border border-[#e3d39a]/30 bg-[#0a0c10] p-7 ring-1 ring-white/5"
           >
-            <div class="flex flex-wrap items-end justify-between gap-4">
-              <div class="flex items-center gap-4">
+            <div
+              class="pointer-events-none absolute -end-16 -top-20 h-56 w-56 rounded-full bg-[#e3d39a]/10 blur-3xl"
+              aria-hidden="true"
+            />
+            <div
+              class="pointer-events-none absolute -bottom-24 -start-10 h-48 w-48 rounded-full bg-amber-600/10 blur-3xl"
+              aria-hidden="true"
+            />
+            <div class="relative flex flex-wrap items-end justify-between gap-4">
+              <div class="flex items-center gap-5">
                 <div
-                  class="flex h-20 w-20 flex-col items-center justify-center rounded-lg border-2 border-[hsl(var(--tac-amber))] bg-background/60"
+                  class="flex h-24 w-24 flex-col items-center justify-center rounded-2xl border border-[#e3d39a]/50 bg-gradient-to-b from-[#e3d39a]/15 to-transparent shadow-[inset_0_0_30px_rgba(227,211,154,0.12)]"
                 >
                   <span
-                    class="text-[10px] uppercase tracking-widest text-muted-foreground"
+                    class="font-[Oxanium] text-[10px] uppercase tracking-[0.2em] text-[#e3d39a]/80"
                   >
                     {{ $t("pages.battle_pass.level") }}
                   </span>
-                  <span class="text-3xl font-black tabular-nums">
+                  <span
+                    class="font-[Oxanium] text-4xl font-black tabular-nums text-white"
+                  >
                     {{ data.level }}
                   </span>
                 </div>
@@ -398,26 +409,44 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap gap-2 text-xs">
+            <div class="relative mt-5 flex flex-wrap gap-2 text-xs">
               <span
-                v-for="part in ['matches', 'daily', 'weekly', 'subscriber']"
+                v-for="part in (
+                  [
+                    'matches',
+                    'daily',
+                    'weekly',
+                    'subscriber',
+                    'bonus',
+                  ] as const
+                ).filter(
+                  (key) =>
+                    key !== 'bonus' || (data.breakdown.bonus ?? 0) > 0,
+                )"
                 :key="part"
-                class="rounded-md border border-border/60 bg-background/50 px-2 py-1"
+                class="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1"
               >
                 {{ $t(`pages.battle_pass.breakdown.${part}`) }}:
-                <span class="font-semibold tabular-nums">
-                  {{ formatNumber(data.breakdown[part as keyof typeof data.breakdown]) }}
+                <span class="font-semibold tabular-nums text-[#e3d39a]">
+                  {{
+                    formatNumber(
+                      Number(
+                        data.breakdown[part as keyof typeof data.breakdown] ||
+                          0,
+                      ),
+                    )
+                  }}
                 </span>
               </span>
             </div>
           </div>
 
           <div
-            class="flex flex-col gap-3 rounded-xl border p-5"
+            class="flex flex-col gap-3 rounded-2xl border p-6 ring-1 ring-white/5"
             :class="
               data.premium
-                ? 'border-violet-500/40 bg-violet-500/5'
-                : 'border-border/60 bg-muted/10'
+                ? 'border-amber-400/40 bg-gradient-to-b from-amber-500/15 to-[#0a0c10]'
+                : 'border-white/10 bg-[#0a0c10]'
             "
           >
             <div class="flex items-center gap-2 font-semibold">
@@ -488,15 +517,17 @@ onMounted(() => {
             </Button>
           </div>
 
-          <div class="flex gap-3 rounded-xl border border-border/60 bg-muted/10 p-3">
-            <div class="flex w-20 shrink-0 flex-col gap-2 pt-8">
+          <div
+            class="flex gap-3 rounded-2xl border border-white/10 bg-[#0a0c10] p-4 ring-1 ring-white/5"
+          >
+            <div class="flex w-20 shrink-0 flex-col gap-2 pt-9">
               <div
-                class="flex h-24 items-center text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                class="flex h-28 items-center text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
               >
                 {{ $t("pages.battle_pass.free_track") }}
               </div>
               <div
-                class="flex h-24 items-center gap-1 text-xs font-semibold uppercase tracking-wider text-violet-400"
+                class="flex h-28 items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-400"
               >
                 <Crown class="h-3.5 w-3.5" />
                 {{ $t("pages.battle_pass.premium_track") }}
@@ -504,22 +535,22 @@ onMounted(() => {
             </div>
             <div
               ref="track"
-              class="flex gap-2 overflow-x-auto scroll-smooth pb-2"
+              class="flex gap-2.5 overflow-x-auto scroll-smooth pb-2"
             >
               <div
                 v-for="row in data.levels"
                 :key="row.level"
                 :data-level="row.level"
-                class="flex w-24 shrink-0 flex-col gap-2"
+                class="flex w-[6.5rem] shrink-0 flex-col gap-2"
               >
                 <div
-                  class="flex h-6 items-center justify-center rounded text-xs font-bold tabular-nums"
+                  class="flex h-7 items-center justify-center rounded-md font-[Oxanium] text-xs font-bold tabular-nums"
                   :class="
                     row.level <= data.level
-                      ? 'bg-[hsl(var(--tac-amber))] text-black'
+                      ? 'bg-[#e3d39a] text-black'
                       : row.level === data.level + 1
-                        ? 'border border-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber))]'
-                        : 'bg-muted/40 text-muted-foreground'
+                        ? 'border border-[#e3d39a] text-[#e3d39a]'
+                        : 'bg-white/5 text-muted-foreground'
                   "
                 >
                   {{ row.level }}

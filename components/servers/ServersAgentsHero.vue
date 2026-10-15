@@ -8,10 +8,10 @@ const hostEl = ref<HTMLElement | null>(null);
 
 let disposeScene: (() => void) | undefined;
 
-// Real CS2 inspect shots (Getaway Sally + Special Agent Ava), cropped.
+// Cut-out CS2 agents (transparent PNGs) on empty 3D stage.
 const AGENTS = [
-  { src: "/img/servers/ava.jpg", x: -1.35, z: 0.15, scale: 2.05, yaw: 0.14 },
-  { src: "/img/servers/sally.jpg", x: 1.15, z: 0.45, scale: 2.2, yaw: -0.12 },
+  { src: "/img/servers/ava.png", x: -1.25, z: 0.2, scale: 2.35, yaw: 0.12 },
+  { src: "/img/servers/sally.png", x: 1.05, z: 0.55, scale: 2.55, yaw: -0.1 },
 ] as const;
 
 onMounted(async () => {
@@ -111,7 +111,9 @@ async function mountAgentsScene(
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
+        alphaTest: 0.12,
         depthWrite: false,
+        side: THREE.DoubleSide,
       });
       disposables.push(geo, mat);
 

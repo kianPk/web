@@ -5863,152 +5863,152 @@
           "description": "Win 1 Wingman match today."
         },
         "p_win_duel_1": {
-          "title": "Duel Win",
-          "description": "Win 1 Duel match today."
+          "title": "Duel Wins",
+          "description": "Win 2 Duel matches today."
         },
         "p_win_any_2": {
-          "title": "Double Win",
-          "description": "Win any 2 matches today."
+          "title": "Triple Win",
+          "description": "Win 3 matches today."
         },
         "p_play_2": {
-          "title": "Warm-up",
-          "description": "Finish 2 matches today."
-        },
-        "p_play_3": {
-          "title": "Grind Session",
+          "title": "Play 3",
           "description": "Finish 3 matches today."
         },
-        "p_kills_15": {
-          "title": "15 Kills",
-          "description": "Get 15 kills in a single match."
+        "p_play_3": {
+          "title": "Play 4",
+          "description": "Finish 4 matches today."
         },
-        "p_kills_25": {
+        "p_kills_15": {
           "title": "25 Kills",
           "description": "Get 25 kills in a single match."
         },
+        "p_kills_25": {
+          "title": "35 Kills",
+          "description": "Get 35 kills in a single match."
+        },
         "p_dmg_1500": {
-          "title": "1500 Damage",
-          "description": "Deal 1500 damage in one match."
+          "title": "2200 Damage",
+          "description": "Deal 2200 damage in a single match."
         },
         "p_dmg_2000": {
-          "title": "2000 Damage",
-          "description": "Deal 2000 damage in one match."
+          "title": "3000 Damage",
+          "description": "Deal 3000 damage in a single match."
         },
         "p_hs_8": {
-          "title": "Headhunter",
-          "description": "Get 8 headshot kills in one match."
+          "title": "12 Headshots",
+          "description": "Get 12 headshot kills in a single match."
         },
         "p_assists_10": {
-          "title": "Team Player",
-          "description": "Get 10 assists in one match."
+          "title": "14 Assists",
+          "description": "Get 14 assists in a single match."
         },
         "p_flash_5": {
-          "title": "Flash Support",
-          "description": "Flash 5 enemies in one match."
+          "title": "8 Flashes",
+          "description": "Flash 8 enemies in a single match."
         },
         "p_3k_1": {
-          "title": "Triple Kill",
-          "description": "Get a 3-kill round in one match."
+          "title": "Double 3K",
+          "description": "Get 2 triple-kill rounds in a single match."
         },
         "p_knife_1": {
           "title": "Cold Blood",
           "description": "Get a knife kill in one match."
         },
         "p_kd_12": {
-          "title": "Positive Impact",
-          "description": "Finish a match with K/D of 1.2 or higher."
+          "title": "1.4 K/D",
+          "description": "Finish a match with at least 1.40 K/D."
         },
         "p_adr_80": {
-          "title": "Solid ADR",
-          "description": "Finish a match with ADR of 80+."
+          "title": "95 ADR",
+          "description": "Finish a match with at least 95 ADR."
         },
         "p_kills_day_40": {
-          "title": "40 Kills Today",
-          "description": "Get 40 kills across all matches today."
+          "title": "55 Kills Today",
+          "description": "Get 55 total kills today."
         },
         "p_dmg_day_3000": {
-          "title": "3000 Damage Today",
-          "description": "Deal 3000 total damage today."
+          "title": "4500 Damage Today",
+          "description": "Deal 4500 total damage today."
         },
         "pp_win_comp_2": {
-          "title": "Competitive Double",
-          "description": "Win 2 Competitive matches today."
-        },
-        "pp_win_comp_3": {
           "title": "Competitive Triple",
           "description": "Win 3 Competitive matches today."
         },
+        "pp_win_comp_3": {
+          "title": "Competitive Quad",
+          "description": "Win 4 Competitive matches today."
+        },
         "pp_win_wing_2": {
-          "title": "Wingman Double",
-          "description": "Win 2 Wingman matches today."
+          "title": "Wingman Triple",
+          "description": "Win 3 Wingman matches today."
         },
         "pp_win_duel_2": {
-          "title": "Duel Double",
-          "description": "Win 2 Duel matches today."
+          "title": "Duel Triple",
+          "description": "Win 3 Duel matches today."
         },
         "pp_win_any_3": {
-          "title": "Hat-trick",
-          "description": "Win any 3 matches today."
+          "title": "Quad Win",
+          "description": "Win 4 matches today."
         },
         "pp_play_5": {
-          "title": "Full Session",
-          "description": "Finish 5 matches today."
+          "title": "Play 6",
+          "description": "Finish 6 matches today."
         },
         "pp_kills_30": {
-          "title": "30 Bomb",
-          "description": "Get 30 kills in a single match."
+          "title": "40 Kills",
+          "description": "Get 40 kills in a single match."
         },
         "pp_kills_35": {
-          "title": "35 Kills",
-          "description": "Get 35 kills in a single match."
+          "title": "50 Kills",
+          "description": "Get 50 kills in a single match."
         },
         "pp_dmg_2500": {
-          "title": "2500 Damage",
-          "description": "Deal 2500 damage in one match."
+          "title": "3500 Damage",
+          "description": "Deal 3500 damage in a single match."
         },
         "pp_dmg_3000": {
-          "title": "3000 Damage",
-          "description": "Deal 3000 damage in one match."
+          "title": "4200 Damage",
+          "description": "Deal 4200 damage in a single match."
         },
         "pp_hs_12": {
-          "title": "Sharpshooter",
-          "description": "Get 12 headshot kills in one match."
+          "title": "18 Headshots",
+          "description": "Get 18 headshot kills in a single match."
         },
         "pp_ace_1": {
           "title": "Ace",
           "description": "Get a 5-kill round in one match."
         },
         "pp_4k_2": {
-          "title": "Quad Threat",
-          "description": "Get two 4-kill rounds in one match."
+          "title": "Triple 4K",
+          "description": "Get 3 four-kill rounds in a single match."
         },
         "pp_3k_3": {
-          "title": "Multi-kill Machine",
-          "description": "Get three 3-kill rounds in one match."
+          "title": "Five 3Ks",
+          "description": "Get 5 triple-kill rounds in a single match."
         },
         "pp_flash_10": {
-          "title": "Blind Side",
-          "description": "Flash 10 enemies in one match."
+          "title": "14 Flashes",
+          "description": "Flash 14 enemies in a single match."
         },
         "pp_trade_10": {
-          "title": "Trade Specialist",
-          "description": "Get 10 trade kills in one match."
+          "title": "14 Trades",
+          "description": "Get 14 trade kills in a single match."
         },
         "pp_kd_15": {
-          "title": "Dominant K/D",
-          "description": "Finish a match with K/D of 1.5 or higher."
+          "title": "1.8 K/D",
+          "description": "Finish a match with at least 1.80 K/D."
         },
         "pp_adr_100": {
-          "title": "100 ADR",
-          "description": "Finish a match with ADR of 100+."
+          "title": "120 ADR",
+          "description": "Finish a match with at least 120 ADR."
         },
         "pp_kast_80": {
-          "title": "High KAST",
-          "description": "Finish a match with 80%+ KAST."
+          "title": "85% KAST",
+          "description": "Finish a match with at least 85% KAST."
         },
         "pp_kills_day_60": {
-          "title": "60 Kills Today",
-          "description": "Get 60 kills across all matches today."
+          "title": "80 Kills Today",
+          "description": "Get 80 total kills today."
         },
         "p_win_rush_1": {
           "title": "Rush Win",
@@ -6481,10 +6481,11 @@
         "matches": "Matches",
         "daily": "Daily missions",
         "weekly": "Weekly missions",
-        "subscriber": "Premium challenges"
+        "subscriber": "Premium challenges",
+        "bonus": "XP packs"
       },
       "premium_title": "Premium track",
-      "premium_body": "Get a reward on every level: Ypoints, Premium and Premium Plus days and the exclusive Legend badge. Levels you already reached can be claimed right away.",
+      "premium_body": "A full track like the big platforms: Ypoints, XP packs, Premium / Premium Plus days, and exclusive badges — not currency alone. Levels you already reached can be claimed right away.",
       "price": "Price",
       "your_balance": "Your balance",
       "buy_premium": "Unlock Premium",
@@ -6510,32 +6511,37 @@
         "subscription": "{tier} {days} days"
       },
       "badge": {
+        "contender": "Contender badge",
         "veteran": "Veteran badge",
+        "champion": "Champion badge",
         "elite": "Elite badge",
         "legend": "Legend badge",
         "premium": "Premium Battle Pass"
       },
       "missions": {
-        "d_play_1": "Play {target} match",
         "d_play_2": "Play {target} matches",
+        "d_play_3": "Play {target} matches",
         "d_win_1": "Win {target} match",
-        "d_kills_15": "Get {target} kills today",
-        "d_kills_30": "Get {target} kills today",
-        "d_hs_8": "Get {target} headshot kills today",
-        "d_dmg_1500": "Deal {target} damage today",
-        "d_assists_6": "Get {target} assists today",
-        "d_flash_6": "Flash {target} enemies today",
-        "d_he_150": "Deal {target} grenade damage today",
-        "d_3k_1": "Get a triple kill (3K) round in a match",
-        "w_play_10": "Play {target} matches this week",
-        "w_win_5": "Win {target} matches this week",
-        "w_duel_3": "Play {target} 1v1 matches this week",
-        "w_kills_100": "Get {target} kills this week",
-        "w_hs_40": "Get {target} headshot kills this week",
-        "w_dmg_8000": "Deal {target} damage this week",
-        "w_3k_5": "Get {target} triple kill (3K) rounds this week",
-        "w_flash_30": "Flash {target} enemies this week",
-        "w_trade_15": "Get {target} trade kills this week"
+        "d_win_2": "Win {target} matches",
+        "d_kills_25": "Get {target} kills today",
+        "d_kills_40": "Get {target} kills today",
+        "d_hs_12": "Get {target} headshot kills today",
+        "d_hs_18": "Get {target} headshot kills today",
+        "d_dmg_2200": "Deal {target} damage today",
+        "d_dmg_3200": "Deal {target} damage today",
+        "d_assists_10": "Get {target} assists today",
+        "d_flash_10": "Flash {target} enemies today",
+        "d_he_250": "Deal {target} grenade damage today",
+        "d_3k_2": "Get {target} triple kill (3K) rounds in one match",
+        "w_play_14": "Play {target} matches this week",
+        "w_win_8": "Win {target} matches this week",
+        "w_duel_5": "Play {target} 1v1 matches this week",
+        "w_kills_160": "Get {target} kills this week",
+        "w_hs_70": "Get {target} headshot kills this week",
+        "w_dmg_14000": "Deal {target} damage this week",
+        "w_3k_8": "Get {target} triple kill (3K) rounds this week",
+        "w_flash_50": "Flash {target} enemies this week",
+        "w_trade_25": "Get {target} trade kills this week"
       },
       "profile_badge": "Battle Pass"
     }
