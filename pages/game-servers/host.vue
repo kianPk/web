@@ -513,30 +513,46 @@ async function saveRates() {
       ),
       section_host_slot_price_ypoint_per_hour: parseRate(slotRateYpoint.value),
     };
-    // Prefer dedicated pricing route; fall back to full admin/settings.
-    let saved: HostedAdminSettings;
-    try {
-      saved = await hostedApi<HostedAdminSettings>(
-        "/hosted-servers/admin/section-host-pricing",
-        { method: "POST", body },
-      );
-    } catch (error) {
-      const msg = hostedErrorMessage(error);
-      if (!/cannot post|404|not found/i.test(msg)) throw error;
-      saved = await hostedApi<HostedAdminSettings>(
-        "/hosted-servers/admin/settings",
-        { method: "POST", body },
-      );
+    // Try host-pricing (checkout controller) first, then admin pricing, then settings.
+    const paths = [
+      "/hosted-servers/host-pricing",
+      "/hosted-servers/admin/section-host-pricing",
+      "/hosted-servers/admin/settings",
+    ];
+    let lastError: unknown;
+    let saved: HostedAdminSettings | null = null;
+    for (const path of paths) {
+      try {
+        saved = await hostedApi<HostedAdminSettings>(path, {
+          method: "POST",
+          body,
+        });
+        break;
+      } catch (error) {
+        lastError = error;
+        const msg = hostedErrorMessage(error);
+        if (!/cannot post|404|not found/i.test(msg)) throw error;
+      }
     }
-    // Confirm the API actually persisted Host keys (old images ignored them).
-    const persisted = Number(saved?.section_host_price_irr_per_hour);
+    if (!saved) throw lastError || new Error(t("pages.servers.host.admin.rates_not_persisted"));
+
+    // Re-read from admin/settings — confirms the new API wrote settings rows.
+    let verified: HostedAdminSettings | null = null;
+    try {
+      verified = await hostedApi<HostedAdminSettings>(
+        "/hosted-servers/admin/settings",
+      );
+    } catch {
+      verified = saved;
+    }
+    const persisted = Number(verified?.section_host_price_irr_per_hour);
     if (
       !Number.isFinite(persisted) ||
       persisted !== body.section_host_price_irr_per_hour
     ) {
       throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
     }
-    applyAdminRates(saved);
+    applyAdminRates(verified || saved);
     toast({ title: t("pages.servers.host.admin.rates_saved") });
     await refreshQuote();
   } catch (error) {
