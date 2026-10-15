@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import gql from "graphql-tag";
+import { useApolloClient } from "@vue/apollo-composable";
 import { ArrowLeft, Clock, Server, Settings2 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
@@ -39,7 +41,36 @@ import { useAuthStore } from "~/stores/AuthStore";
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
+const { client: apollo } = useApolloClient();
 const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
+
+/** Same settings table other admin pages write via Hasura (works without API redeploy). */
+const HOST_RATE_SETTING = {
+  irr: "hosted_servers.section_host_price_irr_per_hour",
+  yp: "hosted_servers.section_host_price_ypoint_per_hour",
+  slotIrr: "hosted_servers.section_host_slot_price_irr_per_hour",
+  slotYp: "hosted_servers.section_host_slot_price_ypoint_per_hour",
+} as const;
+
+const LOAD_HOST_RATES = gql`
+  query HostSectionRates {
+    settings(where: { name: { _like: "hosted_servers.section_host%" } }) {
+      name
+      value
+    }
+  }
+`;
+
+const SAVE_HOST_RATES = gql`
+  mutation SaveHostSectionRates($objects: [settings_insert_input!]!) {
+    insert_settings(
+      objects: $objects
+      on_conflict: { constraint: settings_pkey, update_columns: [value] }
+    ) {
+      affected_rows
+    }
+  }
+`;
 
 useHead(() => ({ title: t("pages.servers.host.title") }));
 
@@ -261,17 +292,22 @@ function parseRate(value: unknown): number {
   return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
 }
 
-function applyAdminRates(settings: HostedAdminSettings) {
-  const irr = Number(settings.section_host_price_irr_per_hour);
-  const yp = Number(settings.section_host_price_ypoint_per_hour);
-  const slotIrr = Number(settings.section_host_slot_price_irr_per_hour);
-  const slotYp = Number(settings.section_host_slot_price_ypoint_per_hour);
-  rateToman.value = irrToToman(Number.isFinite(irr) ? irr : 500_000);
-  rateYpoint.value = Number.isFinite(yp) ? yp : 50;
+function applyRateValues(input: {
+  irr?: number;
+  yp?: number;
+  slotIrr?: number;
+  slotYp?: number;
+}) {
+  const irr = Number(input.irr);
+  const yp = Number(input.yp);
+  const slotIrr = Number(input.slotIrr);
+  const slotYp = Number(input.slotYp);
+  rateToman.value = irrToToman(Number.isFinite(irr) && irr >= 0 ? irr : 500_000);
+  rateYpoint.value = Number.isFinite(yp) && yp >= 0 ? yp : 50;
   slotRateToman.value = irrToToman(
-    Number.isFinite(slotIrr) ? slotIrr : 50_000,
+    Number.isFinite(slotIrr) && slotIrr >= 0 ? slotIrr : 50_000,
   );
-  slotRateYpoint.value = Number.isFinite(slotYp) ? slotYp : 5;
+  slotRateYpoint.value = Number.isFinite(slotYp) && slotYp >= 0 ? slotYp : 5;
   if (overview.value) {
     overview.value.price_irr_per_hour = tomanToIrr(rateToman.value);
     overview.value.price_ypoint_per_hour = rateYpoint.value;
@@ -280,19 +316,45 @@ function applyAdminRates(settings: HostedAdminSettings) {
   }
 }
 
+function applyAdminRates(settings: HostedAdminSettings) {
+  applyRateValues({
+    irr: settings.section_host_price_irr_per_hour,
+    yp: settings.section_host_price_ypoint_per_hour,
+    slotIrr: settings.section_host_slot_price_irr_per_hour,
+    slotYp: settings.section_host_slot_price_ypoint_per_hour,
+  });
+}
+
 function applyOverviewRates(ov: SectionHostOverview) {
-  const irr = Number(ov.price_irr_per_hour);
-  const yp = Number(ov.price_ypoint_per_hour);
-  const slotIrr = Number(ov.slot_price_irr_per_hour ?? ov.slot_price_irr);
-  const slotYp = Number(ov.slot_price_ypoint_per_hour ?? ov.slot_price_ypoint);
-  rateToman.value = irrToToman(
-    Number.isFinite(irr) && irr > 0 ? irr : 500_000,
-  );
-  rateYpoint.value = Number.isFinite(yp) ? yp : 50;
-  slotRateToman.value = irrToToman(
-    Number.isFinite(slotIrr) && slotIrr > 0 ? slotIrr : 50_000,
-  );
-  slotRateYpoint.value = Number.isFinite(slotYp) ? slotYp : 5;
+  applyRateValues({
+    irr: ov.price_irr_per_hour,
+    yp: ov.price_ypoint_per_hour,
+    slotIrr: ov.slot_price_irr_per_hour ?? ov.slot_price_irr,
+    slotYp: ov.slot_price_ypoint_per_hour ?? ov.slot_price_ypoint,
+  });
+}
+
+async function loadHostRatesFromHasura(): Promise<boolean> {
+  const { data } = await apollo.query<{
+    settings: Array<{ name: string; value: string | null }>;
+  }>({
+    query: LOAD_HOST_RATES,
+    fetchPolicy: "network-only",
+  });
+  const rows = data?.settings || [];
+  if (!rows.length) return false;
+  const read = (name: string) => {
+    const raw = rows.find((r) => r.name === name)?.value;
+    const n = Number.parseInt(String(raw ?? ""), 10);
+    return Number.isFinite(n) ? n : undefined;
+  };
+  applyRateValues({
+    irr: read(HOST_RATE_SETTING.irr),
+    yp: read(HOST_RATE_SETTING.yp),
+    slotIrr: read(HOST_RATE_SETTING.slotIrr),
+    slotYp: read(HOST_RATE_SETTING.slotYp),
+  });
+  return true;
 }
 
 async function refreshOverview() {
@@ -307,9 +369,16 @@ async function refreshOverview() {
   if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
     mode.value = overview.value.modes[0] as ServerModeKey;
   }
-  // Admin rates: load from admin/settings (persisted keys). Overview alone can
-  // miss fields on older builds and was resetting the form to zeros.
+  // Admin rates: Hasura settings first (same DB the API quotes from).
   if (isAdmin.value) {
+    try {
+      if (await loadHostRatesFromHasura()) {
+        syncSlotsToMode();
+        return;
+      }
+    } catch {
+      // Fall through.
+    }
     try {
       const admin = await hostedApi<HostedAdminSettings>(
         "/hosted-servers/admin/settings",
@@ -318,7 +387,7 @@ async function refreshOverview() {
       syncSlotsToMode();
       return;
     } catch {
-      // Fall through to overview rates for non-admin errors / older API.
+      // Fall through to overview rates.
     }
   }
   applyOverviewRates(overview.value);
@@ -505,54 +574,31 @@ async function saveRates() {
   if (rateSaving.value) return;
   rateSaving.value = true;
   try {
-    const body = {
-      section_host_price_irr_per_hour: tomanToIrr(parseRate(rateToman.value)),
-      section_host_price_ypoint_per_hour: parseRate(rateYpoint.value),
-      section_host_slot_price_irr_per_hour: tomanToIrr(
-        parseRate(slotRateToman.value),
-      ),
-      section_host_slot_price_ypoint_per_hour: parseRate(slotRateYpoint.value),
-    };
-    // Try host-pricing (checkout controller) first, then admin pricing, then settings.
-    const paths = [
-      "/hosted-servers/host-pricing",
-      "/hosted-servers/admin/section-host-pricing",
-      "/hosted-servers/admin/settings",
-    ];
-    let lastError: unknown;
-    let saved: HostedAdminSettings | null = null;
-    for (const path of paths) {
-      try {
-        saved = await hostedApi<HostedAdminSettings>(path, {
-          method: "POST",
-          body,
-        });
-        break;
-      } catch (error) {
-        lastError = error;
-        const msg = hostedErrorMessage(error);
-        if (!/cannot post|404|not found/i.test(msg)) throw error;
-      }
-    }
-    if (!saved) throw lastError || new Error(t("pages.servers.host.admin.rates_not_persisted"));
-
-    // Re-read from admin/settings — confirms the new API wrote settings rows.
-    let verified: HostedAdminSettings | null = null;
-    try {
-      verified = await hostedApi<HostedAdminSettings>(
-        "/hosted-servers/admin/settings",
-      );
-    } catch {
-      verified = saved;
-    }
-    const persisted = Number(verified?.section_host_price_irr_per_hour);
-    if (
-      !Number.isFinite(persisted) ||
-      persisted !== body.section_host_price_irr_per_hour
-    ) {
+    const irr = tomanToIrr(parseRate(rateToman.value));
+    const yp = parseRate(rateYpoint.value);
+    const slotIrr = tomanToIrr(parseRate(slotRateToman.value));
+    const slotYp = parseRate(slotRateYpoint.value);
+    // Write straight to public.settings via Hasura — same path as Application
+    // settings pages. Does not depend on a fresh api image.
+    await apollo.mutate({
+      mutation: SAVE_HOST_RATES,
+      variables: {
+        objects: [
+          { name: HOST_RATE_SETTING.irr, value: String(irr) },
+          { name: HOST_RATE_SETTING.yp, value: String(yp) },
+          { name: HOST_RATE_SETTING.slotIrr, value: String(slotIrr) },
+          { name: HOST_RATE_SETTING.slotYp, value: String(slotYp) },
+        ],
+      },
+    });
+    const ok = await loadHostRatesFromHasura();
+    if (!ok) {
       throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
     }
-    applyAdminRates(verified || saved);
+    const persisted = tomanToIrr(parseRate(rateToman.value));
+    if (persisted !== irr) {
+      throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
+    }
     toast({ title: t("pages.servers.host.admin.rates_saved") });
     await refreshQuote();
   } catch (error) {
