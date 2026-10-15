@@ -16,9 +16,11 @@ PANEL_NODE="${PANEL_NODE:-ubuntu}"
 GAME_NODE="${GAME_NODE:-b039e0b7-8505-4fe8-a811-425a00d8503a}"
 NS=5stack
 DO_EXTRACT=0
+COPY_MODELS=0
 for a in "$@"; do
   case "$a" in
     --extract|-e) DO_EXTRACT=1 ;;
+    --copy-models) COPY_MODELS=1 ;;
   esac
 done
 
@@ -80,16 +82,21 @@ kubectl -n "$NS" exec inv-node-tools -- bash -lc '
 '
 
 echo
-echo "=== copy models extract panel → game node via kubectl cp pipeline ==="
-# Stream tar from panel host path into the tools pod (writes onto game node hostPath).
-# Only if panel has anything useful (composites/renders); images are empty today.
-if [[ -d /opt/5stack/models/cs2-model-extract ]]; then
-  tar -C /opt/5stack/models/cs2-model-extract -cf - . \
-    | kubectl -n "$NS" exec -i inv-node-tools -- bash -lc \
-      'mkdir -p /host-opt5stack/models/cs2-model-extract && tar -C /host-opt5stack/models/cs2-model-extract -xf -'
-  echo "models tree copied."
+if [[ "$COPY_MODELS" -eq 1 ]]; then
+  echo "=== copy models extract panel → game node (optional, slow) ==="
+  if [[ -d /opt/5stack/models/cs2-model-extract ]]; then
+    tar -C /opt/5stack/models/cs2-model-extract -cf - . \
+      | kubectl -n "$NS" exec -i inv-node-tools -- bash -lc \
+        'mkdir -p /host-opt5stack/models/cs2-model-extract && tar -C /host-opt5stack/models/cs2-model-extract -xf -'
+    echo "models tree copied."
+  else
+    echo "(no local models extract to copy)"
+  fi
 else
-  echo "(no local models extract to copy)"
+  echo "=== skip models copy (default) — extract will rebuild images/ on game node ==="
+  echo "    (pass --copy-models only if you need old composites/renders)"
+  kubectl -n "$NS" exec inv-node-tools -- bash -lc \
+    'mkdir -p /host-opt5stack/models/cs2-model-extract'
 fi
 
 echo
