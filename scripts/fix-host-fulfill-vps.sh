@@ -94,7 +94,8 @@ SELECT 'hosted_servers_recent' AS k,
  LIMIT 15;
 SQL
 
-PGPOD=$(kubectl -n "$NS" get pods -o name | grep -E 'timescaledb|postgres' | head -1 | cut -d/ -f2)
+PGPOD=$(kubectl -n "$NS" get pods --field-selector=status.phase=Running -o name \
+  | grep -E 'timescaledb|postgres' | grep -v backup | head -1 | cut -d/ -f2)
 echo "postgres: $PGPOD"
 kubectl -n "$NS" cp "$SQL_FILE" "$PGPOD:/tmp/fix_host_fulfill.sql"
 kubectl -n "$NS" exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/fix_host_fulfill.sql' \

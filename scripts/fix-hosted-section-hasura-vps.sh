@@ -27,7 +27,8 @@ SELECT column_name, data_type, column_default
  ORDER BY column_name;
 SQL
 
-PGPOD=$(kubectl -n "$NS" get pods -o name | grep -E 'timescaledb|postgres' | head -1 | cut -d/ -f2)
+PGPOD=$(kubectl -n "$NS" get pods --field-selector=status.phase=Running -o name \
+  | grep -E 'timescaledb|postgres' | grep -v backup | head -1 | cut -d/ -f2)
 echo "postgres: $PGPOD"
 kubectl -n "$NS" cp "$SQL_FILE" "$PGPOD:/tmp/hosted_section.sql"
 kubectl -n "$NS" exec "$PGPOD" -- bash -lc 'psql -U postgres -d postgres -f /tmp/hosted_section.sql' \
