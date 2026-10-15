@@ -67,14 +67,13 @@ SELECT 'recent_host_orders' AS k,
  ORDER BY o.created_at DESC
  LIMIT 20;
 
--- Unstick: paid, claimed fulfilled, but no server row linked.
+-- Seal paid Host orders so deleting a hosted server cannot resurrect it
+-- (purge nulls hosted_server_id via FK; clearing fulfilled_at used to re-create).
 UPDATE store_orders
-   SET hosted_fulfilled_at = NULL
+   SET hosted_fulfilled_at = COALESCE(hosted_fulfilled_at, now())
  WHERE status = 'paid'
    AND hosted_kind IN ('new', 'renew')
-   AND hosted_server_id IS NULL
-   AND hosted_fulfilled_at IS NOT NULL
-   AND paid_at > now() - interval '14 days';
+   AND paid_at > now() - interval '30 days';
 
 SELECT 'unfulfilled_paid' AS k, count(*)::text AS v
   FROM store_orders
