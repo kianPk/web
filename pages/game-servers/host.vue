@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import gql from "graphql-tag";
-import { useApolloClient } from "@vue/apollo-composable";
 import { ArrowLeft, Clock, Server, Settings2 } from "lucide-vue-next";
+import getGraphqlClient from "~/graphql/getGraphqlClient";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -41,7 +41,6 @@ import { useAuthStore } from "~/stores/AuthStore";
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
-const { client: apollo } = useApolloClient();
 const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 
 /** Same settings table other admin pages write via Hasura (works without API redeploy). */
@@ -52,9 +51,12 @@ const HOST_RATE_SETTING = {
   slotYp: "hosted_servers.section_host_slot_price_ypoint_per_hour",
 } as const;
 
+const HOST_RATE_NAMES = Object.values(HOST_RATE_SETTING);
+const HOST_RATES_LOCAL_KEY = "yguard:host-section-rates";
+
 const LOAD_HOST_RATES = gql`
-  query HostSectionRates {
-    settings(where: { name: { _like: "hosted_servers.section_host%" } }) {
+  query HostSectionRates($names: [String!]!) {
+    settings(where: { name: { _in: $names } }) {
       name
       value
     }
@@ -71,6 +73,13 @@ const SAVE_HOST_RATES = gql`
     }
   }
 `;
+
+type HostRateValues = {
+  irr: number;
+  yp: number;
+  slotIrr: number;
+  slotYp: number;
+};
 
 useHead(() => ({ title: t("pages.servers.host.title") }));
 
@@ -292,22 +301,60 @@ function parseRate(value: unknown): number {
   return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
 }
 
+function currentRateValues(): HostRateValues {
+  return {
+    irr: tomanToIrr(parseRate(rateToman.value)),
+    yp: parseRate(rateYpoint.value),
+    slotIrr: tomanToIrr(parseRate(slotRateToman.value)),
+    slotYp: parseRate(slotRateYpoint.value),
+  };
+}
+
+function persistLocalRates(values: HostRateValues) {
+  try {
+    localStorage.setItem(HOST_RATES_LOCAL_KEY, JSON.stringify(values));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function readLocalRates(): HostRateValues | null {
+  try {
+    const raw = localStorage.getItem(HOST_RATES_LOCAL_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<HostRateValues>;
+    const irr = Number(parsed.irr);
+    const yp = Number(parsed.yp);
+    const slotIrr = Number(parsed.slotIrr);
+    const slotYp = Number(parsed.slotYp);
+    if (![irr, yp, slotIrr, slotYp].every((n) => Number.isFinite(n) && n >= 0)) {
+      return null;
+    }
+    return { irr, yp, slotIrr, slotYp };
+  } catch {
+    return null;
+  }
+}
+
 function applyRateValues(input: {
   irr?: number;
   yp?: number;
   slotIrr?: number;
   slotYp?: number;
 }) {
-  const irr = Number(input.irr);
-  const yp = Number(input.yp);
-  const slotIrr = Number(input.slotIrr);
-  const slotYp = Number(input.slotYp);
-  rateToman.value = irrToToman(Number.isFinite(irr) && irr >= 0 ? irr : 500_000);
-  rateYpoint.value = Number.isFinite(yp) && yp >= 0 ? yp : 50;
-  slotRateToman.value = irrToToman(
-    Number.isFinite(slotIrr) && slotIrr >= 0 ? slotIrr : 50_000,
-  );
-  slotRateYpoint.value = Number.isFinite(slotYp) && slotYp >= 0 ? slotYp : 5;
+  // Treat 0 from a stale API overview as "missing" so it cannot wipe real rates.
+  const pick = (n: unknown, fallback: number) => {
+    const v = Number(n);
+    return Number.isFinite(v) && v > 0 ? v : fallback;
+  };
+  const ypPick = (n: unknown, fallback: number) => {
+    const v = Number(n);
+    return Number.isFinite(v) && v >= 0 ? v : fallback;
+  };
+  rateToman.value = irrToToman(pick(input.irr, 500_000));
+  rateYpoint.value = ypPick(input.yp, 50);
+  slotRateToman.value = irrToToman(pick(input.slotIrr, 50_000));
+  slotRateYpoint.value = ypPick(input.slotYp, 5);
   if (overview.value) {
     overview.value.price_irr_per_hour = tomanToIrr(rateToman.value);
     overview.value.price_ypoint_per_hour = rateYpoint.value;
@@ -316,45 +363,74 @@ function applyRateValues(input: {
   }
 }
 
-function applyAdminRates(settings: HostedAdminSettings) {
-  applyRateValues({
-    irr: settings.section_host_price_irr_per_hour,
-    yp: settings.section_host_price_ypoint_per_hour,
-    slotIrr: settings.section_host_slot_price_irr_per_hour,
-    slotYp: settings.section_host_slot_price_ypoint_per_hour,
-  });
-}
-
-function applyOverviewRates(ov: SectionHostOverview) {
-  applyRateValues({
-    irr: ov.price_irr_per_hour,
-    yp: ov.price_ypoint_per_hour,
-    slotIrr: ov.slot_price_irr_per_hour ?? ov.slot_price_irr,
-    slotYp: ov.slot_price_ypoint_per_hour ?? ov.slot_price_ypoint,
-  });
+function graphqlErrorMessage(error: unknown): string {
+  const err = error as {
+    message?: string;
+    graphQLErrors?: Array<{ message?: string }>;
+    networkError?: { message?: string };
+  };
+  const gqlMsg = err?.graphQLErrors?.map((e) => e.message).filter(Boolean).join(", ");
+  return gqlMsg || err?.networkError?.message || err?.message || hostedErrorMessage(error);
 }
 
 async function loadHostRatesFromHasura(): Promise<boolean> {
-  const { data } = await apollo.query<{
+  const { data } = await getGraphqlClient().query<{
     settings: Array<{ name: string; value: string | null }>;
   }>({
     query: LOAD_HOST_RATES,
+    variables: { names: HOST_RATE_NAMES },
     fetchPolicy: "network-only",
   });
   const rows = data?.settings || [];
   if (!rows.length) return false;
   const read = (name: string) => {
     const raw = rows.find((r) => r.name === name)?.value;
-    const n = Number.parseInt(String(raw ?? ""), 10);
+    if (raw == null || raw === "") return undefined;
+    const n = Number.parseInt(String(raw), 10);
     return Number.isFinite(n) ? n : undefined;
   };
-  applyRateValues({
-    irr: read(HOST_RATE_SETTING.irr),
-    yp: read(HOST_RATE_SETTING.yp),
-    slotIrr: read(HOST_RATE_SETTING.slotIrr),
-    slotYp: read(HOST_RATE_SETTING.slotYp),
-  });
+  const values: HostRateValues = {
+    irr: read(HOST_RATE_SETTING.irr) ?? 500_000,
+    yp: read(HOST_RATE_SETTING.yp) ?? 50,
+    slotIrr: read(HOST_RATE_SETTING.slotIrr) ?? 50_000,
+    slotYp: read(HOST_RATE_SETTING.slotYp) ?? 5,
+  };
+  // Only accept a Hasura row set if at least one money rate is present in DB.
+  const hasMoney = rows.some(
+    (r) =>
+      (r.name === HOST_RATE_SETTING.irr || r.name === HOST_RATE_SETTING.slotIrr) &&
+      String(r.value ?? "").length > 0,
+  );
+  if (!hasMoney) return false;
+  applyRateValues(values);
+  persistLocalRates(values);
   return true;
+}
+
+async function loadAdminRates(): Promise<void> {
+  try {
+    if (await loadHostRatesFromHasura()) return;
+  } catch (error) {
+    console.warn("host rates hasura load failed", error);
+  }
+  const local = readLocalRates();
+  if (local) {
+    applyRateValues(local);
+    return;
+  }
+  try {
+    const admin = await hostedApi<HostedAdminSettings>(
+      "/hosted-servers/admin/settings",
+    );
+    applyRateValues({
+      irr: admin.section_host_price_irr_per_hour,
+      yp: admin.section_host_price_ypoint_per_hour,
+      slotIrr: admin.section_host_slot_price_irr_per_hour,
+      slotYp: admin.section_host_slot_price_ypoint_per_hour,
+    });
+  } catch {
+    /* keep whatever is already in the form */
+  }
 }
 
 async function refreshOverview() {
@@ -369,28 +445,22 @@ async function refreshOverview() {
   if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
     mode.value = overview.value.modes[0] as ServerModeKey;
   }
-  // Admin rates: Hasura settings first (same DB the API quotes from).
+  // Wait for session so administrator Hasura permissions apply.
+  await auth.getMe();
   if (isAdmin.value) {
-    try {
-      if (await loadHostRatesFromHasura()) {
-        syncSlotsToMode();
-        return;
-      }
-    } catch {
-      // Fall through.
-    }
-    try {
-      const admin = await hostedApi<HostedAdminSettings>(
-        "/hosted-servers/admin/settings",
-      );
-      applyAdminRates(admin);
-      syncSlotsToMode();
-      return;
-    } catch {
-      // Fall through to overview rates.
+    await loadAdminRates();
+  } else {
+    // Non-admin: overview only, ignore zero placeholders from old API builds.
+    const ov = overview.value;
+    if (Number(ov.price_irr_per_hour) > 0 || Number(ov.price_ypoint_per_hour) > 0) {
+      applyRateValues({
+        irr: ov.price_irr_per_hour,
+        yp: ov.price_ypoint_per_hour,
+        slotIrr: ov.slot_price_irr_per_hour ?? ov.slot_price_irr,
+        slotYp: ov.slot_price_ypoint_per_hour ?? ov.slot_price_ypoint,
+      });
     }
   }
-  applyOverviewRates(overview.value);
   syncSlotsToMode();
 }
 
@@ -574,46 +644,57 @@ async function saveRates() {
   if (rateSaving.value) return;
   rateSaving.value = true;
   try {
-    const irr = tomanToIrr(parseRate(rateToman.value));
-    const yp = parseRate(rateYpoint.value);
-    const slotIrr = tomanToIrr(parseRate(slotRateToman.value));
-    const slotYp = parseRate(slotRateYpoint.value);
-    // Write straight to public.settings via Hasura — same path as Application
-    // settings pages. Does not depend on a fresh api image.
-    await apollo.mutate({
+    await auth.getMe();
+    if (!isAdmin.value) {
+      throw new Error(t("pages.store.sign_in_required"));
+    }
+    const values = currentRateValues();
+    // Keep a browser backup so a refresh never blanks the admin form even if
+    // Hasura is momentarily unavailable.
+    persistLocalRates(values);
+    applyRateValues(values);
+
+    const result = await getGraphqlClient().mutate<{
+      insert_settings?: { affected_rows?: number };
+    }>({
       mutation: SAVE_HOST_RATES,
       variables: {
         objects: [
-          { name: HOST_RATE_SETTING.irr, value: String(irr) },
-          { name: HOST_RATE_SETTING.yp, value: String(yp) },
-          { name: HOST_RATE_SETTING.slotIrr, value: String(slotIrr) },
-          { name: HOST_RATE_SETTING.slotYp, value: String(slotYp) },
+          { name: HOST_RATE_SETTING.irr, value: String(values.irr) },
+          { name: HOST_RATE_SETTING.yp, value: String(values.yp) },
+          { name: HOST_RATE_SETTING.slotIrr, value: String(values.slotIrr) },
+          { name: HOST_RATE_SETTING.slotYp, value: String(values.slotYp) },
         ],
       },
     });
-    const ok = await loadHostRatesFromHasura();
-    if (!ok) {
+    const affected = Number(result.data?.insert_settings?.affected_rows || 0);
+    if (affected < 1) {
       throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
     }
-    const persisted = tomanToIrr(parseRate(rateToman.value));
-    if (persisted !== irr) {
-      throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
-    }
+    // Confirm round-trip from Hasura (same client as Application settings).
+    await loadHostRatesFromHasura();
     toast({ title: t("pages.servers.host.admin.rates_saved") });
     await refreshQuote();
   } catch (error) {
     toast({
       variant: "destructive",
-      title: hostedErrorMessage(error),
+      title: graphqlErrorMessage(error),
     });
   } finally {
     rateSaving.value = false;
   }
 }
 
+watch(isAdmin, (admin) => {
+  if (admin) void loadAdminRates();
+});
+
 onMounted(() => {
-  void refresh();
-  void refreshYpoints();
+  void (async () => {
+    await auth.getMe();
+    await refresh();
+    void refreshYpoints();
+  })();
 });
 </script>
 
