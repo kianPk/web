@@ -28,7 +28,14 @@ cleanup() {
 trap cleanup EXIT
 
 echo "=== preflight: hostPath inspect pod on game node (no SSH) ==="
-kubectl -n "$NS" delete pod inv-node-tools --wait=false --ignore-not-found >/dev/null 2>&1 || true
+# Must fully delete first — kubectl apply cannot mutate securityContext / volumes.
+kubectl -n "$NS" delete pod inv-node-tools --ignore-not-found --wait=true --timeout=120s >/dev/null 2>&1 || true
+# Extra settle in case finalizer lags
+for _ in 1 2 3 4 5; do
+  kubectl -n "$NS" get pod inv-node-tools >/dev/null 2>&1 || break
+  sleep 2
+done
+
 cat <<EOF | kubectl -n "$NS" apply -f -
 apiVersion: v1
 kind: Pod
@@ -43,8 +50,6 @@ spec:
     - name: tools
       image: nicolaka/netshoot:latest
       command: ["sleep", "3600"]
-      securityContext:
-        privileged: true
       volumeMounts:
         - name: opt5
           mountPath: /host-opt5stack
