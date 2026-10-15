@@ -41,8 +41,10 @@ export type FleetMode = ServerModeDefinition & {
  * shift around.
  */
 export function usePublicServerFleet() {
-  // section_mode is newer than the generated client; Zeus passes a field it
-  // has no schema entry for through as-is.
+  // Do NOT filter/select hosted_section here: production Hasura may not have
+  // tracked that column yet, and a single unknown field empties the whole fleet
+  // ("No servers online" on every mode). Public boxes are labeled "Duels #1";
+  // paid Host rentals use other labels — we drop those client-side instead.
   const { result: serversResult, loading } = useSubscription(
     generateSubscription({
       servers: [
@@ -50,7 +52,6 @@ export function usePublicServerFleet() {
           where: {
             _and: [
               { section_mode: { _is_null: false } } as any,
-              { hosted_section: { _eq: false } } as any,
               { connection_string: { _is_null: false } },
               { enabled: { _eq: true } },
               { connected: { _eq: true } },
@@ -68,7 +69,6 @@ export function usePublicServerFleet() {
           connection_string: true,
           max_players: true,
           section_mode: true,
-          hosted_section: true,
           server_region: {
             is_lan: true,
             description: true,
@@ -102,19 +102,16 @@ export function usePublicServerFleet() {
     const rows = ((serversResult.value as any)?.servers || []) as Array<
       Record<string, any>
     >;
-    const counters = new Map<ServerModeKey, number>();
     const list: FleetServer[] = [];
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
-      // Paid Host rentals share section_mode but stay off the public fleet.
-      if (row.hosted_section) continue;
+      // Paid Host rentals share section_mode but use custom / "Host …" labels.
+      // Public fleet rows are always "Duels #1", "AWP #2", …
+      const number = serverNumber(row.label);
+      if (number == null) continue;
       const modeKey = sectionModeKey(row.section_mode);
       if (!modeKey) continue;
-
-      const number =
-        serverNumber(row.label) ?? (counters.get(modeKey) ?? 0) + 1;
-      counters.set(modeKey, number);
 
       const stats = live.value.get(row.id);
       const players = Number(stats?.players) || 0;
