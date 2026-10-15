@@ -6390,7 +6390,8 @@
           "slot_rate_toman": "اسلات اضافه / ساعت (تومان)",
           "slot_rate_ypoint": "اسلات اضافه / ساعت (وای‌پوینت)",
           "save_rates": "ذخیره نرخ",
-          "rates_saved": "نرخ Host ذخیره شد"
+          "rates_saved": "نرخ Host ذخیره شد",
+          "rates_not_persisted": "نرخ ذخیره نشد. API را دوباره دیپلوی کن و دوباره امتحان کن."
         }
       },
       "dialog": {

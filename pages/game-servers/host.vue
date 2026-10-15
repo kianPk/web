@@ -28,6 +28,7 @@ import { SERVER_MODES, type ServerModeKey } from "~/utilities/serverModes";
 import {
   hostedApi,
   hostedErrorMessage,
+  type HostedAdminSettings,
   type HostedCheckoutResult,
   type HostedServer,
   type SectionHostOverview,
@@ -246,6 +247,54 @@ function formatPrice(irr: number) {
   });
 }
 
+/** Parse admin rate inputs (custom Input may emit strings; allow Latin digits). */
+function parseRate(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.round(value));
+  }
+  const raw = String(value ?? "")
+    .trim()
+    .replace(/,/g, "")
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+  if (!raw) return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+}
+
+function applyAdminRates(settings: HostedAdminSettings) {
+  const irr = Number(settings.section_host_price_irr_per_hour);
+  const yp = Number(settings.section_host_price_ypoint_per_hour);
+  const slotIrr = Number(settings.section_host_slot_price_irr_per_hour);
+  const slotYp = Number(settings.section_host_slot_price_ypoint_per_hour);
+  rateToman.value = irrToToman(Number.isFinite(irr) ? irr : 500_000);
+  rateYpoint.value = Number.isFinite(yp) ? yp : 50;
+  slotRateToman.value = irrToToman(
+    Number.isFinite(slotIrr) ? slotIrr : 50_000,
+  );
+  slotRateYpoint.value = Number.isFinite(slotYp) ? slotYp : 5;
+  if (overview.value) {
+    overview.value.price_irr_per_hour = tomanToIrr(rateToman.value);
+    overview.value.price_ypoint_per_hour = rateYpoint.value;
+    overview.value.slot_price_irr_per_hour = tomanToIrr(slotRateToman.value);
+    overview.value.slot_price_ypoint_per_hour = slotRateYpoint.value;
+  }
+}
+
+function applyOverviewRates(ov: SectionHostOverview) {
+  const irr = Number(ov.price_irr_per_hour);
+  const yp = Number(ov.price_ypoint_per_hour);
+  const slotIrr = Number(ov.slot_price_irr_per_hour ?? ov.slot_price_irr);
+  const slotYp = Number(ov.slot_price_ypoint_per_hour ?? ov.slot_price_ypoint);
+  rateToman.value = irrToToman(
+    Number.isFinite(irr) && irr > 0 ? irr : 500_000,
+  );
+  rateYpoint.value = Number.isFinite(yp) ? yp : 50;
+  slotRateToman.value = irrToToman(
+    Number.isFinite(slotIrr) && slotIrr > 0 ? slotIrr : 50_000,
+  );
+  slotRateYpoint.value = Number.isFinite(slotYp) ? slotYp : 5;
+}
+
 async function refreshOverview() {
   overview.value = await hostedApi<SectionHostOverview>(
     "/hosted-servers/section-host/overview",
@@ -258,29 +307,21 @@ async function refreshOverview() {
   if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
     mode.value = overview.value.modes[0] as ServerModeKey;
   }
-  if (!overview.value.price_irr_per_hour) {
-    overview.value.price_irr_per_hour = 500_000;
+  // Admin rates: load from admin/settings (persisted keys). Overview alone can
+  // miss fields on older builds and was resetting the form to zeros.
+  if (isAdmin.value) {
+    try {
+      const admin = await hostedApi<HostedAdminSettings>(
+        "/hosted-servers/admin/settings",
+      );
+      applyAdminRates(admin);
+      syncSlotsToMode();
+      return;
+    } catch {
+      // Fall through to overview rates for non-admin errors / older API.
+    }
   }
-  if (overview.value.price_ypoint_per_hour == null) {
-    overview.value.price_ypoint_per_hour = 50;
-  }
-  if (
-    !overview.value.slot_price_irr_per_hour &&
-    !overview.value.slot_price_irr
-  ) {
-    overview.value.slot_price_irr_per_hour = 50_000;
-  }
-  rateToman.value = irrToToman(overview.value.price_irr_per_hour || 0);
-  rateYpoint.value = overview.value.price_ypoint_per_hour || 0;
-  slotRateToman.value = irrToToman(
-    overview.value.slot_price_irr_per_hour ||
-      overview.value.slot_price_irr ||
-      50_000,
-  );
-  slotRateYpoint.value =
-    overview.value.slot_price_ypoint_per_hour ||
-    overview.value.slot_price_ypoint ||
-    5;
+  applyOverviewRates(overview.value);
   syncSlotsToMode();
 }
 
@@ -464,25 +505,40 @@ async function saveRates() {
   if (rateSaving.value) return;
   rateSaving.value = true;
   try {
-    // Use admin/settings (already routed) — dedicated section-host-pricing
-    // path 404s on older api images / ingress path allowlists.
-    await hostedApi("/hosted-servers/admin/settings", {
-      method: "POST",
-      body: {
-        section_host_price_irr_per_hour: tomanToIrr(rateToman.value),
-        section_host_price_ypoint_per_hour: Math.max(
-          0,
-          Math.round(Number(rateYpoint.value) || 0),
-        ),
-        section_host_slot_price_irr_per_hour: tomanToIrr(slotRateToman.value),
-        section_host_slot_price_ypoint_per_hour: Math.max(
-          0,
-          Math.round(Number(slotRateYpoint.value) || 0),
-        ),
-      },
-    });
+    const body = {
+      section_host_price_irr_per_hour: tomanToIrr(parseRate(rateToman.value)),
+      section_host_price_ypoint_per_hour: parseRate(rateYpoint.value),
+      section_host_slot_price_irr_per_hour: tomanToIrr(
+        parseRate(slotRateToman.value),
+      ),
+      section_host_slot_price_ypoint_per_hour: parseRate(slotRateYpoint.value),
+    };
+    // Prefer dedicated pricing route; fall back to full admin/settings.
+    let saved: HostedAdminSettings;
+    try {
+      saved = await hostedApi<HostedAdminSettings>(
+        "/hosted-servers/admin/section-host-pricing",
+        { method: "POST", body },
+      );
+    } catch (error) {
+      const msg = hostedErrorMessage(error);
+      if (!/cannot post|404|not found/i.test(msg)) throw error;
+      saved = await hostedApi<HostedAdminSettings>(
+        "/hosted-servers/admin/settings",
+        { method: "POST", body },
+      );
+    }
+    // Confirm the API actually persisted Host keys (old images ignored them).
+    const persisted = Number(saved?.section_host_price_irr_per_hour);
+    if (
+      !Number.isFinite(persisted) ||
+      persisted !== body.section_host_price_irr_per_hour
+    ) {
+      throw new Error(t("pages.servers.host.admin.rates_not_persisted"));
+    }
+    applyAdminRates(saved);
     toast({ title: t("pages.servers.host.admin.rates_saved") });
-    await refresh();
+    await refreshQuote();
   } catch (error) {
     toast({
       variant: "destructive",
@@ -542,19 +598,43 @@ onMounted(() => {
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="space-y-1.5">
               <Label>{{ $t("pages.servers.host.admin.rate_toman") }}</Label>
-              <Input v-model.number="rateToman" type="number" min="0" />
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                :model-value="rateToman"
+                @update:model-value="rateToman = parseRate($event)"
+              />
             </div>
             <div class="space-y-1.5">
               <Label>{{ $t("pages.servers.host.admin.rate_ypoint") }}</Label>
-              <Input v-model.number="rateYpoint" type="number" min="0" />
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                :model-value="rateYpoint"
+                @update:model-value="rateYpoint = parseRate($event)"
+              />
             </div>
             <div class="space-y-1.5">
               <Label>{{ $t("pages.servers.host.admin.slot_rate_toman") }}</Label>
-              <Input v-model.number="slotRateToman" type="number" min="0" />
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                :model-value="slotRateToman"
+                @update:model-value="slotRateToman = parseRate($event)"
+              />
             </div>
             <div class="space-y-1.5">
               <Label>{{ $t("pages.servers.host.admin.slot_rate_ypoint") }}</Label>
-              <Input v-model.number="slotRateYpoint" type="number" min="0" />
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                :model-value="slotRateYpoint"
+                @update:model-value="slotRateYpoint = parseRate($event)"
+              />
             </div>
           </div>
           <Button type="button" size="sm" :disabled="rateSaving" @click="saveRates">

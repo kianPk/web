@@ -6391,7 +6391,8 @@
           "slot_rate_toman": "Extra slot / hour (Toman)",
           "slot_rate_ypoint": "Extra slot / hour (Ypoint)",
           "save_rates": "Save rates",
-          "rates_saved": "Host rates saved"
+          "rates_saved": "Host rates saved",
+          "rates_not_persisted": "Rates were not saved. Redeploy the API, then try again."
         }
       },
       "dialog": {

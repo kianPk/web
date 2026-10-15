@@ -142,6 +142,8 @@ export type HostedAdminSettings = {
   max_slots: number;
   section_host_price_irr_per_hour?: number;
   section_host_price_ypoint_per_hour?: number;
+  section_host_slot_price_irr_per_hour?: number;
+  section_host_slot_price_ypoint_per_hour?: number;
 };
 
 export type HostedSlotsQuote = {
