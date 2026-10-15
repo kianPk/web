@@ -10,6 +10,21 @@ SQL_FILE="$(mktemp)"
 trap 'rm -f "$SQL_FILE"' EXIT
 
 cat >"$SQL_FILE" <<'SQL'
+-- Columns from migrations 1905/1920 that production never got; without
+-- hosted_servers.section_mode every paid Host order fails at INSERT.
+ALTER TABLE public.hosted_servers
+  ADD COLUMN IF NOT EXISTS extra_slots integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS section_mode text;
+ALTER TABLE public.servers
+  ADD COLUMN IF NOT EXISTS hosted_section boolean NOT NULL DEFAULT false;
+
+SELECT 'columns' AS k, table_name, column_name
+  FROM information_schema.columns
+ WHERE table_schema = 'public'
+   AND ((table_name = 'hosted_servers' AND column_name IN ('section_mode', 'extra_slots'))
+     OR (table_name = 'servers' AND column_name = 'hosted_section'))
+ ORDER BY table_name, column_name;
+
 -- Carrier product must have hosted_slots for older fulfill gates / catalog joins.
 INSERT INTO public.store_products (
   slug, title, description, price_irr, price_ypoint, hosted_slots,
@@ -89,8 +104,9 @@ echo ""
 echo "=== API image / recent fulfill logs ==="
 kubectl -n "$NS" get deploy/api -o jsonpath='image={.spec.template.spec.containers[0].image}{"\n"}'
 kubectl -n "$NS" get pods -l app=api -o wide
-kubectl -n "$NS" logs deploy/api --tail=200 2>/dev/null \
-  | grep -E 'hosted fulfill|hosted fulfillment|ProcessHostedServers|Store order paid|fulfill skipped' \
+kubectl -n "$NS" logs deploy/api --tail=2000 2>/dev/null \
+  | grep -E 'hosted fulfill|hosted fulfillment|stalled provision|ensureHostedSchema|ProcessHostedServers|paid with Ypoints|fulfill skipped' \
+  | tail -40 \
   || echo "(no matching API log lines yet)"
 
 echo ""
