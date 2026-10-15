@@ -215,7 +215,9 @@ async function saveRates() {
   if (rateSaving.value) return;
   rateSaving.value = true;
   try {
-    await hostedApi("/hosted-servers/admin/section-host-pricing", {
+    // Use admin/settings (already routed) — dedicated section-host-pricing
+    // path 404s on older api images / ingress path allowlists.
+    await hostedApi("/hosted-servers/admin/settings", {
       method: "POST",
       body: {
         section_host_price_irr_per_hour: tomanToIrr(rateToman.value),
