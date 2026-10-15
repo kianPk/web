@@ -604,20 +604,29 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
       termsAccepted: true,
       payWith,
     };
-    // Prefer host-checkout (HostedServersController). Fall back to legacy path.
-    let result: HostedCheckoutResult;
-    try {
-      result = await hostedApi<HostedCheckoutResult>(
-        "/hosted-servers/host-checkout",
-        { method: "POST", body: checkoutBody },
-      );
-    } catch (error) {
-      const msg = hostedErrorMessage(error);
-      if (!/cannot post|404|not found/i.test(msg)) throw error;
-      result = await hostedApi<HostedCheckoutResult>(
-        "/hosted-servers/section-host/checkout",
-        { method: "POST", body: checkoutBody },
-      );
+    // Try flat paths first (host-checkout), then nested legacy.
+    const checkoutPaths = [
+      "/hosted-servers/host-checkout",
+      "/hosted-servers/section-host-checkout",
+      "/hosted-servers/section-host/checkout",
+    ];
+    let result: HostedCheckoutResult | null = null;
+    let lastCheckoutError: unknown;
+    for (const path of checkoutPaths) {
+      try {
+        result = await hostedApi<HostedCheckoutResult>(path, {
+          method: "POST",
+          body: checkoutBody,
+        });
+        break;
+      } catch (error) {
+        lastCheckoutError = error;
+        const msg = hostedErrorMessage(error);
+        if (!/cannot post|404|not found/i.test(msg)) throw error;
+      }
+    }
+    if (!result) {
+      throw lastCheckoutError || new Error("Host checkout unavailable");
     }
     checkoutOpen.value = false;
     if (result.paid) {
