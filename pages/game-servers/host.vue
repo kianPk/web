@@ -44,9 +44,12 @@ useHead(() => ({ title: t("pages.servers.host.title") }));
 
 const overview = ref<SectionHostOverview | null>(null);
 const quote = ref<SectionHostQuote | null>(null);
+const quoteError = ref<string | null>(null);
 const myServers = ref<HostedServer[]>([]);
 const loading = ref(true);
 const quoting = ref(false);
+let quoteSeq = 0;
+let quoteTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mode = ref<ServerModeKey>("duels");
 const duration = ref("1d");
@@ -89,14 +92,81 @@ const includedSlots = computed(() => {
   return selectedMode.value?.slots || 18;
 });
 
+const safeSlots = computed(() => {
+  const n = Math.floor(Number(slots.value));
+  if (!Number.isFinite(n)) return includedSlots.value;
+  return Math.min(maxSlots.value, Math.max(2, n));
+});
+
+/** Always-visible price: local calc from rates, overridden by API quote when available. */
+const displayQuote = computed<SectionHostQuote | null>(() => {
+  const local = computeLocalQuote();
+  if (quote.value && Number(quote.value.price_irr) >= 0) {
+    return quote.value;
+  }
+  return local;
+});
+
 const myHostServers = computed(() =>
   myServers.value.filter((s) => Boolean(s.section_mode)),
 );
 
 const canAffordYpoint = computed(() => {
-  const price = Number(quote.value?.price_ypoint || 0);
+  const price = Number(displayQuote.value?.price_ypoint || 0);
   return price > 0 && (ypointBalance.value ?? 0) >= price;
 });
+
+function durationHours(value: string): number {
+  const m = (value || "")
+    .trim()
+    .toLowerCase()
+    .match(/^(\d+)\s*(h|hr|hrs|d|day|days|w|week|weeks|mo|month|months)$/);
+  if (!m) return 24;
+  const n = Number(m[1]);
+  const unit = m[2];
+  if (/^(h|hr|hrs)$/.test(unit)) return Math.max(1, n);
+  if (/^(d|day|days)$/.test(unit)) return Math.max(1, n * 24);
+  if (/^(w|week|weeks)$/.test(unit)) return Math.max(1, n * 7 * 24);
+  return Math.max(1, n * 30 * 24);
+}
+
+function computeLocalQuote(): SectionHostQuote | null {
+  if (!overview.value) return null;
+  const hours = durationHours(duration.value);
+  const included = includedSlots.value;
+  const slotCount = safeSlots.value;
+  const extra = Math.max(0, slotCount - included);
+  const rateIrr = overview.value.price_irr_per_hour || 0;
+  const rateYp = overview.value.price_ypoint_per_hour || 0;
+  const slotIrr = overview.value.slot_price_irr || 0;
+  const slotYp = overview.value.slot_price_ypoint || 0;
+  const baseIrr = Math.ceil((rateIrr * hours) / 10_000) * 10_000;
+  const baseYp = rateYp > 0 ? Math.ceil(rateYp * hours) : 0;
+  const slotsIrr =
+    extra > 0 && slotIrr > 0
+      ? Math.ceil((slotIrr * extra * hours) / (30 * 24) / 10_000) * 10_000
+      : 0;
+  const slotsYp =
+    extra > 0 && slotYp > 0
+      ? Math.ceil((slotYp * extra * hours) / (30 * 24))
+      : 0;
+  return {
+    duration: duration.value,
+    hours,
+    slots: slotCount,
+    included_slots: included,
+    extra_slots: extra,
+    base_price_irr: baseIrr,
+    base_price_ypoint: baseYp,
+    slots_price_irr: slotsIrr,
+    slots_price_ypoint: slotsYp,
+    price_irr: baseIrr + slotsIrr,
+    price_ypoint: baseYp + slotsYp,
+    price_irr_per_hour: rateIrr,
+    price_ypoint_per_hour: rateYp,
+    max_slots: maxSlots.value,
+  };
+}
 
 function formatPrice(irr: number) {
   const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
@@ -115,36 +185,58 @@ async function refreshOverview() {
   if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
     mode.value = overview.value.modes[0] as ServerModeKey;
   }
+  // Defaults match API getSettings fallbacks so local price never stays blank.
+  if (!overview.value.price_irr_per_hour) {
+    overview.value.price_irr_per_hour = 500_000;
+  }
+  if (overview.value.price_ypoint_per_hour == null) {
+    overview.value.price_ypoint_per_hour = 50;
+  }
   rateToman.value = irrToToman(overview.value.price_irr_per_hour || 0);
   rateYpoint.value = overview.value.price_ypoint_per_hour || 0;
   syncSlotsToMode();
 }
 
 function syncSlotsToMode() {
-  const included = includedSlots.value;
-  const max = maxSlots.value;
-  if (!slots.value || slots.value < 2) {
-    slots.value = included;
-  }
-  slots.value = Math.min(max, Math.max(2, slots.value));
+  slots.value = Math.min(maxSlots.value, Math.max(2, includedSlots.value));
+}
+
+function scheduleQuote() {
+  if (quoteTimer) clearTimeout(quoteTimer);
+  quoteTimer = setTimeout(() => {
+    void refreshQuote();
+  }, 200);
 }
 
 async function refreshQuote() {
+  const seq = ++quoteSeq;
+  const slotCount = safeSlots.value;
+  if (slots.value !== slotCount) {
+    slots.value = slotCount;
+  }
+  // Show local price immediately while API responds.
+  quote.value = computeLocalQuote();
   quoting.value = true;
+  quoteError.value = null;
   try {
     const params = new URLSearchParams({
       duration: duration.value,
-      slots: String(slots.value),
+      slots: String(slotCount),
       sectionMode: mode.value,
     });
-    quote.value = await hostedApi<SectionHostQuote>(
+    const remote = await hostedApi<SectionHostQuote>(
       `/hosted-servers/section-host/quote?${params}`,
     );
+    if (seq !== quoteSeq) return;
+    quote.value = remote;
   } catch (error) {
-    quote.value = null;
+    if (seq !== quoteSeq) return;
+    // Keep local quote so the summary never goes blank.
+    quote.value = computeLocalQuote();
+    quoteError.value = hostedErrorMessage(error);
     console.error(error);
   } finally {
-    quoting.value = false;
+    if (seq === quoteSeq) quoting.value = false;
   }
 }
 
@@ -156,6 +248,8 @@ async function refresh() {
   } catch (error) {
     console.error(error);
     overview.value = null;
+    quote.value = null;
+    quoteError.value = hostedErrorMessage(error);
   }
   if (signedIn.value) {
     try {
@@ -168,7 +262,7 @@ async function refresh() {
 }
 
 watch([duration, slots, mode], () => {
-  void refreshQuote();
+  scheduleQuote();
 });
 
 watch(mode, () => {
@@ -195,7 +289,7 @@ function openCheckout() {
 }
 
 async function pay(payWith: "bale" | "ypoint" = "bale") {
-  if (paying.value || !quote.value) return;
+  if (paying.value || !displayQuote.value) return;
   if (!termsAccepted.value) {
     toast({ variant: "destructive", title: t("pages.store.terms_required") });
     return;
@@ -210,7 +304,7 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
           sectionMode: mode.value,
           duration: duration.value,
           label: label.value,
-          slots: slots.value,
+          slots: safeSlots.value,
           connectPassword: connectPassword.value.trim() || undefined,
           adminSteamId: adminSteamId.value.trim() || undefined,
           termsAccepted: true,
@@ -517,35 +611,35 @@ onMounted(() => {
               </h3>
               <p class="m-0 text-sm text-white/55">
                 {{ formatHostedDuration(duration, t) }}
-                <span v-if="quote"> · {{ quote.hours }}h</span>
-                · {{ $t("pages.hosting.slots", { n: slots }) }}
+                <span v-if="displayQuote"> · {{ displayQuote.hours }}h</span>
+                · {{ $t("pages.hosting.slots", { n: safeSlots }) }}
               </p>
             </div>
 
             <div class="relative space-y-2 border-y border-white/10 py-4">
               <div
-                v-if="quote"
+                v-if="displayQuote"
                 class="space-y-1 text-xs text-white/45"
               >
                 <div class="flex justify-between gap-2">
                   <span>{{ $t("pages.servers.host.price_base") }}</span>
                   <span class="font-mono text-white/70">{{
-                    formatPrice(quote.base_price_irr)
+                    formatPrice(displayQuote.base_price_irr || displayQuote.price_irr)
                   }}</span>
                 </div>
                 <div
-                  v-if="quote.extra_slots > 0"
+                  v-if="(displayQuote.extra_slots || 0) > 0"
                   class="flex justify-between gap-2"
                 >
                   <span>
                     {{
                       $t("pages.servers.host.price_extra_slots", {
-                        n: quote.extra_slots,
+                        n: displayQuote.extra_slots,
                       })
                     }}
                   </span>
                   <span class="font-mono text-white/70">{{
-                    formatPrice(quote.slots_price_irr)
+                    formatPrice(displayQuote.slots_price_irr || 0)
                   }}</span>
                 </div>
               </div>
@@ -554,20 +648,22 @@ onMounted(() => {
                   {{ $t("pages.servers.host.price") }}
                 </span>
                 <span
-                  v-if="quoting"
+                  v-if="quoting && !displayQuote"
                   class="text-sm text-white/40"
                 >
                   …
                 </span>
                 <span
-                  v-else-if="quote"
-                  class="font-mono text-2xl font-bold tabular-nums"
+                  v-else-if="displayQuote"
+                  class="font-mono text-2xl font-bold tabular-nums transition-all duration-300"
+                  :class="{ 'opacity-70': quoting }"
                 >
-                  {{ formatPrice(quote.price_irr) }}
+                  {{ formatPrice(displayQuote.price_irr) }}
                 </span>
+                <span v-else class="text-sm text-white/40">—</span>
               </div>
               <div
-                v-if="quote?.price_ypoint"
+                v-if="displayQuote?.price_ypoint"
                 class="flex items-center justify-end gap-1.5 font-mono text-sm text-[hsl(var(--tac-amber))]"
               >
                 <img
@@ -575,7 +671,7 @@ onMounted(() => {
                   alt=""
                   class="h-4 w-4 object-contain"
                 />
-                {{ quote.price_ypoint }}
+                {{ displayQuote.price_ypoint }}
               </div>
               <p class="m-0 text-xs text-white/40">
                 {{
@@ -588,13 +684,23 @@ onMounted(() => {
                   })
                 }}
               </p>
+              <p
+                v-if="quoteError && !displayQuote?.price_irr"
+                class="m-0 text-xs text-red-300"
+              >
+                {{ quoteError }}
+              </p>
             </div>
 
             <Button
               type="button"
               size="lg"
               class="relative mt-auto w-full"
-              :disabled="!overview?.available || !quote || quoting"
+              :disabled="
+                !overview?.available ||
+                !displayQuote ||
+                displayQuote.price_irr <= 0
+              "
               @click="openCheckout"
             >
               <Clock class="h-4 w-4" />
@@ -654,8 +760,10 @@ onMounted(() => {
               {{ $t(`pages.servers.modes.${selectedMode.key}.name`) }}
             </span>
             · {{ formatHostedDuration(duration, t) }}
-            · {{ $t("pages.hosting.slots", { n: slots }) }}
-            <span v-if="quote"> · {{ formatPrice(quote.price_irr) }}</span>
+            · {{ $t("pages.hosting.slots", { n: safeSlots }) }}
+            <span v-if="displayQuote">
+              · {{ formatPrice(displayQuote.price_irr) }}</span
+            >
           </DialogDescription>
         </DialogHeader>
 
@@ -696,7 +804,7 @@ onMounted(() => {
             {{ $t("common.cancel") }}
           </Button>
           <Button
-            v-if="quote?.price_ypoint"
+            v-if="displayQuote?.price_ypoint"
             type="button"
             variant="outline"
             :disabled="paying || !termsAccepted || !canAffordYpoint"
@@ -708,7 +816,9 @@ onMounted(() => {
               class="h-4 w-4 object-contain"
             />
             {{
-              $t("pages.store.pay_with_ypoint", { n: quote.price_ypoint })
+              $t("pages.store.pay_with_ypoint", {
+                n: displayQuote.price_ypoint,
+              })
             }}
           </Button>
           <Button

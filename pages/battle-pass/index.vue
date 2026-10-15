@@ -422,12 +422,12 @@ onMounted(() => {
 
       <div
         v-else-if="data && season"
-        class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]"
+        class="bp-shell grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]"
       >
         <!-- LEFT: season + challenges + upgrade -->
-        <aside class="flex flex-col gap-3">
+        <aside class="bp-aside flex flex-col gap-3">
           <div
-            class="overflow-hidden rounded-xl border border-white/10 bg-[#12151c]"
+            class="bp-card overflow-hidden rounded-xl border border-white/10 bg-[#12151c]"
           >
             <div
               class="relative px-4 pb-3 pt-4"
@@ -480,7 +480,7 @@ onMounted(() => {
               </div>
               <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
                 <div
-                  class="h-full rounded-full bg-[hsl(var(--tac-amber))]"
+                  class="bp-bar h-full rounded-full bg-[hsl(var(--tac-amber))]"
                   :style="{ width: `${levelPct}%` }"
                 />
               </div>
@@ -525,7 +525,7 @@ onMounted(() => {
               <div
                 v-for="mission in group.block.missions"
                 :key="mission.key"
-                class="rounded-lg border border-white/[0.07] bg-[#0c0f14] p-2.5"
+                class="bp-mission rounded-lg border border-white/[0.07] bg-[#0c0f14] p-2.5"
               >
                 <div class="flex items-start justify-between gap-2">
                   <span class="text-[12px] font-medium leading-snug text-white/90">
@@ -566,7 +566,7 @@ onMounted(() => {
           </div>
 
           <div
-            class="mt-auto overflow-hidden rounded-xl border border-orange-500/35 bg-gradient-to-b from-[#2a1608] to-[#12151c] p-4"
+            class="bp-upgrade mt-auto overflow-hidden rounded-xl border border-orange-500/35 bg-gradient-to-b from-[#2a1608] to-[#12151c] p-4"
           >
             <template v-if="!data.premium">
               <div class="text-xs font-semibold uppercase tracking-wider text-orange-300">
@@ -618,7 +618,7 @@ onMounted(() => {
             <Button
               v-if="claimableCount > 0"
               size="sm"
-              class="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
+              class="bp-claim-all gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
               :disabled="claimingAll"
               @click="claimAll"
             >
@@ -634,45 +634,39 @@ onMounted(() => {
 
           <!-- Big reward preview -->
           <div
-            class="relative flex min-h-[280px] flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0e1117] px-4 py-10"
+            class="bp-preview relative flex min-h-[280px] flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0e1117] px-4 py-10"
           >
-            <div
-              class="pointer-events-none absolute inset-0 opacity-40"
-              style="
-                background: radial-gradient(
-                  ellipse 50% 50% at 50% 45%,
-                  hsla(42, 90%, 50%, 0.18),
-                  transparent 65%
-                );
-              "
-              aria-hidden="true"
-            />
-            <template v-if="selected">
-              <div class="relative flex flex-col items-center text-center">
+            <div class="bp-preview-glow pointer-events-none absolute inset-0" aria-hidden="true" />
+            <Transition name="bp-reward" mode="out-in">
+              <div
+                v-if="selected"
+                :key="selected.key"
+                class="relative flex flex-col items-center text-center"
+              >
                 <template v-if="selected.reward.type === 'ypoints'">
                   <img
                     src="/img/ypoint-logo.png"
                     alt=""
-                    class="h-28 w-28 object-contain drop-shadow-[0_8px_28px_rgba(245,165,36,0.45)]"
+                    class="bp-float h-28 w-28 object-contain drop-shadow-[0_8px_28px_rgba(245,165,36,0.45)]"
                   />
                   <div class="mt-3 text-4xl font-black tabular-nums text-white">
                     + {{ selected.reward.amount }}
                   </div>
                 </template>
                 <template v-else-if="selected.reward.type === 'xp'">
-                  <Zap class="h-28 w-28 text-sky-400 drop-shadow-[0_8px_28px_rgba(56,189,248,0.45)]" />
+                  <Zap class="bp-float h-28 w-28 text-sky-400 drop-shadow-[0_8px_28px_rgba(56,189,248,0.45)]" />
                   <div class="mt-3 text-4xl font-black tabular-nums text-sky-300">
                     + {{ selected.reward.amount }} XP
                   </div>
                 </template>
                 <template v-else-if="selected.reward.type === 'subscription'">
-                  <Crown class="h-28 w-28 text-[hsl(var(--tac-amber))]" />
+                  <Crown class="bp-float h-28 w-28 text-[hsl(var(--tac-amber))]" />
                   <div class="mt-3 text-2xl font-black text-white">
                     {{ rewardLabel(selected.reward) }}
                   </div>
                 </template>
                 <template v-else>
-                  <Award class="h-28 w-28 text-[hsl(var(--tac-amber))]" />
+                  <Award class="bp-float h-28 w-28 text-[hsl(var(--tac-amber))]" />
                   <div class="mt-3 text-2xl font-black text-white">
                     {{ rewardLabel(selected.reward) }}
                   </div>
@@ -693,7 +687,7 @@ onMounted(() => {
                   v-if="
                     selected.reached && !selected.claimed && !selected.locked
                   "
-                  class="mt-5 min-w-[10rem] bg-[hsl(var(--tac-amber))] font-bold text-black hover:brightness-110"
+                  class="bp-pulse mt-5 min-w-[10rem] bg-[hsl(var(--tac-amber))] font-bold text-black hover:brightness-110"
                   :disabled="busyCell === selected.key"
                   @click="claim(selected.level, selected.track)"
                 >
@@ -714,22 +708,26 @@ onMounted(() => {
                   {{ $t("pages.battle_pass.reward_locked") }}
                 </div>
               </div>
-            </template>
+            </Transition>
           </div>
 
           <!-- Reward track -->
-          <div class="rounded-xl border border-white/10 bg-[#12151c] p-3">
+          <div class="bp-track rounded-xl border border-white/10 bg-[#12151c] p-3">
             <div class="flex gap-2 overflow-x-auto pb-1">
               <button
-                v-for="item in pageItems"
+                v-for="(item, idx) in pageItems"
                 :key="item.key"
                 type="button"
-                class="relative flex w-[5.75rem] shrink-0 flex-col overflow-hidden rounded-lg border bg-[#0c0f14] transition"
-                :class="
+                class="bp-tile relative flex w-[5.75rem] shrink-0 flex-col overflow-hidden rounded-lg border bg-[#0c0f14]"
+                :style="{ animationDelay: `${idx * 40}ms` }"
+                :class="[
                   selectedKey === item.key
-                    ? 'border-teal-400 shadow-[0_0_0_1px_rgba(45,212,191,0.5)]'
-                    : 'border-white/10 hover:border-white/25'
-                "
+                    ? 'border-teal-400 shadow-[0_0_18px_rgba(45,212,191,0.35)]'
+                    : 'border-white/10 hover:border-white/25 hover:-translate-y-0.5',
+                  item.reached && !item.claimed && !item.locked
+                    ? 'bp-tile-claimable'
+                    : '',
+                ]"
                 @click="selectItem(item)"
               >
                 <div
@@ -837,3 +835,201 @@ onMounted(() => {
     </div>
   </PageTransition>
 </template>
+
+<style scoped>
+.bp-shell {
+  animation: bp-shell-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bp-aside > * {
+  animation: bp-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bp-aside > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.bp-aside > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.bp-aside > *:nth-child(3) {
+  animation-delay: 0.18s;
+}
+.bp-aside > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.bp-preview,
+.bp-track {
+  animation: bp-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.bp-preview-glow {
+  background:
+    radial-gradient(
+      ellipse 55% 50% at 50% 42%,
+      hsla(42, 90%, 50%, 0.22),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 70% 20%,
+      rgba(56, 189, 248, 0.08),
+      transparent 50%
+    );
+  animation: bp-glow 4.5s ease-in-out infinite;
+}
+
+.bp-float {
+  animation: bp-float 3.2s ease-in-out infinite;
+}
+
+.bp-bar {
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bp-mission {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+.bp-mission:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.bp-upgrade {
+  box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.15);
+  animation:
+    bp-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both,
+    bp-upgrade-glow 2.8s ease-in-out infinite;
+}
+
+.bp-claim-all {
+  animation: bp-pulse-soft 1.8s ease-in-out infinite;
+}
+
+.bp-pulse {
+  animation: bp-pulse-soft 1.6s ease-in-out infinite;
+}
+
+.bp-tile {
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.25s ease;
+  animation: bp-tile-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bp-tile-claimable {
+  box-shadow: 0 0 14px rgba(245, 165, 36, 0.22);
+  animation:
+    bp-tile-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both,
+    bp-tile-glow 1.8s ease-in-out infinite;
+}
+
+.bp-reward-enter-active,
+.bp-reward-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bp-reward-enter-from {
+  opacity: 0;
+  transform: scale(0.92) translateY(8px);
+}
+.bp-reward-leave-to {
+  opacity: 0;
+  transform: scale(0.96) translateY(-6px);
+}
+
+@keyframes bp-shell-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes bp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes bp-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes bp-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.04);
+  }
+}
+@keyframes bp-pulse-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 165, 36, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px 2px rgba(245, 165, 36, 0.35);
+  }
+}
+@keyframes bp-upgrade-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 28px 2px rgba(249, 115, 22, 0.22);
+  }
+}
+@keyframes bp-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes bp-tile-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(245, 165, 36, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245, 165, 36, 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-shell,
+  .bp-aside > *,
+  .bp-preview,
+  .bp-track,
+  .bp-float,
+  .bp-preview-glow,
+  .bp-upgrade,
+  .bp-claim-all,
+  .bp-pulse,
+  .bp-tile,
+  .bp-tile-claimable {
+    animation: none !important;
+  }
+}
+</style>
