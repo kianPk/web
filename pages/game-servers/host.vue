@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, Clock, Server } from "lucide-vue-next";
+import { ArrowLeft, Clock, Pencil, Plus, Server, Trash2 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -26,16 +26,13 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { toast } from "~/components/ui/toast";
-import { formatTomanAmount } from "~/utilities/irrToman";
+import { formatTomanAmount, irrToToman, tomanToIrr } from "~/utilities/irrToman";
 import {
   formatHostedDate,
   formatHostedDuration,
   hostedStatusVariant,
 } from "~/utilities/hostedFormat";
-import {
-  SERVER_MODES,
-  type ServerModeKey,
-} from "~/utilities/serverModes";
+import { SERVER_MODES, type ServerModeKey } from "~/utilities/serverModes";
 import {
   hostedApi,
   hostedErrorMessage,
@@ -46,6 +43,15 @@ import {
 } from "~/composables/useHostedServers";
 import { useAuthStore } from "~/stores/AuthStore";
 
+type AdminHostPlan = HostedPlan & {
+  description: string;
+  active: boolean;
+  sort_order: number;
+  servers: number;
+};
+
+const DURATION_PRESETS = ["1h", "3h", "12h", "1d", "3d", "7d", "14d", "30d"];
+
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
@@ -55,6 +61,7 @@ useHead(() => ({ title: t("pages.servers.host.title") }));
 
 const overview = ref<SectionHostOverview | null>(null);
 const myServers = ref<HostedServer[]>([]);
+const adminPlans = ref<AdminHostPlan[]>([]);
 const loading = ref(true);
 
 const buyPlan = ref<HostedPlan | null>(null);
@@ -64,10 +71,26 @@ const buyLabel = ref("");
 const termsAccepted = ref(false);
 const paying = ref(false);
 
+const planEditorOpen = ref(false);
+const planSaving = ref(false);
+const editingPlanId = ref<string | null>(null);
+const planForm = ref({
+  title: "",
+  description: "",
+  duration: "1d",
+  price_toman: 0,
+  price_ypoint: null as number | null,
+  sort_order: 0,
+  active: true,
+});
+
 const signedIn = computed(() => Boolean(auth.me?.steam_id));
+const isAdmin = computed(() => auth.isAdmin);
 
 const modeOptions = computed(() => {
-  const allowed = new Set(overview.value?.modes || SERVER_MODES.map((m) => m.key));
+  const allowed = new Set(
+    overview.value?.modes || SERVER_MODES.map((m) => m.key),
+  );
   return SERVER_MODES.filter((m) => allowed.has(m.key));
 });
 
@@ -87,10 +110,18 @@ async function refresh() {
   }
   if (signedIn.value) {
     try {
-      const all = await hostedApi<HostedServer[]>("/hosted-servers/mine");
-      myServers.value = all;
+      myServers.value = await hostedApi<HostedServer[]>("/hosted-servers/mine");
     } catch {
       myServers.value = [];
+    }
+  }
+  if (isAdmin.value) {
+    try {
+      adminPlans.value = await hostedApi<AdminHostPlan[]>(
+        "/hosted-servers/section-host/admin/plans",
+      );
+    } catch {
+      adminPlans.value = [];
     }
   }
   loading.value = false;
@@ -171,6 +202,124 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
   }
 }
 
+function openCreatePlan() {
+  editingPlanId.value = null;
+  planForm.value = {
+    title: "",
+    description: "",
+    duration: "1d",
+    price_toman: 0,
+    price_ypoint: null,
+    sort_order: (adminPlans.value.at(-1)?.sort_order ?? 200) + 1,
+    active: true,
+  };
+  planEditorOpen.value = true;
+}
+
+function openEditPlan(plan: AdminHostPlan) {
+  editingPlanId.value = plan.id;
+  planForm.value = {
+    title: plan.title,
+    description: plan.description || "",
+    duration: plan.duration || "1d",
+    price_toman: irrToToman(plan.price_irr),
+    price_ypoint: plan.price_ypoint,
+    sort_order: plan.sort_order ?? 0,
+    active: plan.active,
+  };
+  planEditorOpen.value = true;
+}
+
+async function savePlan() {
+  if (planSaving.value) return;
+  if (!planForm.value.title.trim()) {
+    toast({
+      variant: "destructive",
+      title: t("pages.servers.host.admin.title_required"),
+    });
+    return;
+  }
+  planSaving.value = true;
+  try {
+    const body = {
+      title: planForm.value.title.trim(),
+      description: planForm.value.description.trim(),
+      duration: planForm.value.duration.trim(),
+      price_irr: tomanToIrr(planForm.value.price_toman),
+      price_ypoint:
+        planForm.value.price_ypoint == null
+          ? null
+          : Math.max(0, Math.round(Number(planForm.value.price_ypoint) || 0)) ||
+            null,
+      sort_order: Math.round(Number(planForm.value.sort_order) || 0),
+      active: planForm.value.active,
+    };
+    if (editingPlanId.value) {
+      await hostedApi(`/hosted-servers/section-host/admin/plans/${editingPlanId.value}`, {
+        method: "POST",
+        body,
+      });
+    } else {
+      await hostedApi("/hosted-servers/section-host/admin/plans", {
+        method: "POST",
+        body,
+      });
+    }
+    planEditorOpen.value = false;
+    toast({ title: t("pages.servers.host.admin.saved") });
+    await refresh();
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: t("pages.servers.host.admin.save_failed"),
+      description: hostedErrorMessage(error),
+    });
+  } finally {
+    planSaving.value = false;
+  }
+}
+
+async function togglePlanActive(plan: AdminHostPlan) {
+  try {
+    await hostedApi(
+      `/hosted-servers/section-host/admin/plans/${plan.id}/active`,
+      {
+        method: "POST",
+        body: { active: !plan.active },
+      },
+    );
+    await refresh();
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: hostedErrorMessage(error),
+    });
+  }
+}
+
+async function deletePlan(plan: AdminHostPlan) {
+  if (
+    !confirm(
+      t("pages.servers.host.admin.delete_confirm", { title: plan.title }),
+    )
+  ) {
+    return;
+  }
+  try {
+    await hostedApi(
+      `/hosted-servers/section-host/admin/plans/${plan.id}/delete`,
+      { method: "POST" },
+    );
+    toast({ title: t("pages.servers.host.admin.deleted") });
+    await refresh();
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: hostedErrorMessage(error),
+    });
+  }
+}
+
 onMounted(() => {
   void refresh();
   void refreshYpoints();
@@ -203,6 +352,93 @@ onMounted(() => {
       </div>
 
       <div v-else class="space-y-8">
+        <section
+          v-if="isAdmin"
+          class="space-y-3 rounded-xl border border-border/70 bg-card/30 p-4"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="m-0 text-base font-semibold">
+                {{ $t("pages.servers.host.admin.title") }}
+              </h2>
+              <p class="m-0 mt-0.5 text-xs text-muted-foreground">
+                {{ $t("pages.servers.host.admin.hint") }}
+              </p>
+            </div>
+            <Button type="button" size="sm" @click="openCreatePlan">
+              <Plus class="h-4 w-4" />
+              {{ $t("pages.servers.host.admin.add") }}
+            </Button>
+          </div>
+
+          <p
+            v-if="!adminPlans.length"
+            class="m-0 text-sm text-muted-foreground"
+          >
+            {{ $t("pages.servers.host.admin.empty") }}
+          </p>
+          <div v-else class="space-y-2">
+            <div
+              v-for="plan in adminPlans"
+              :key="plan.id"
+              class="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5"
+            >
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="truncate font-medium">{{ plan.title }}</span>
+                  <Badge :variant="plan.active ? 'default' : 'secondary'">
+                    {{
+                      plan.active
+                        ? $t("pages.servers.host.admin.active")
+                        : $t("pages.servers.host.admin.inactive")
+                    }}
+                  </Badge>
+                  <Badge variant="outline">
+                    {{ formatHostedDuration(plan.duration, t) }}
+                  </Badge>
+                </div>
+                <p class="m-0 mt-1 text-xs text-muted-foreground">
+                  {{ formatPrice(plan.price_irr) }}
+                  <span v-if="plan.price_ypoint">
+                    · {{ plan.price_ypoint }} YP
+                  </span>
+                  · {{ $t("pages.servers.host.admin.rentals", { n: plan.servers }) }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  @click="togglePlanActive(plan)"
+                >
+                  {{
+                    plan.active
+                      ? $t("pages.servers.host.admin.disable")
+                      : $t("pages.servers.host.admin.enable")
+                  }}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  @click="openEditPlan(plan)"
+                >
+                  <Pencil class="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  @click="deletePlan(plan)"
+                >
+                  <Trash2 class="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div
           v-if="overview && (!overview.enabled || !overview.available)"
           class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm"
@@ -429,6 +665,96 @@ onMounted(() => {
         >
           {{ $t("pages.store.ypoint_balance_hint", { n: ypointBalance }) }}
         </p>
+      </DialogScrollContent>
+    </Dialog>
+
+    <Dialog v-model:open="planEditorOpen">
+      <DialogScrollContent class="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {{
+              editingPlanId
+                ? $t("pages.servers.host.admin.edit")
+                : $t("pages.servers.host.admin.add")
+            }}
+          </DialogTitle>
+          <DialogDescription>
+            {{ $t("pages.servers.host.admin.form_hint") }}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-3">
+          <div class="space-y-1.5">
+            <Label>{{ $t("pages.servers.host.admin.plan_title") }}</Label>
+            <Input v-model="planForm.title" maxlength="80" />
+          </div>
+          <div class="space-y-1.5">
+            <Label>{{ $t("pages.servers.host.admin.plan_description") }}</Label>
+            <Input v-model="planForm.description" maxlength="500" />
+          </div>
+          <div class="space-y-1.5">
+            <Label>{{ $t("pages.servers.host.admin.duration") }}</Label>
+            <Select v-model="planForm.duration">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="d in DURATION_PRESETS"
+                  :key="d"
+                  :value="d"
+                >
+                  {{ formatHostedDuration(d, t) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.price_toman") }}</Label>
+              <Input v-model.number="planForm.price_toman" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.price_ypoint") }}</Label>
+              <Input
+                v-model.number="planForm.price_ypoint"
+                type="number"
+                min="0"
+                :placeholder="$t('pages.servers.host.admin.ypoint_optional')"
+              />
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <Label>{{ $t("pages.servers.host.admin.sort_order") }}</Label>
+            <Input v-model.number="planForm.sort_order" type="number" />
+          </div>
+          <button
+            type="button"
+            class="flex w-full items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm"
+            @click="planForm.active = !planForm.active"
+          >
+            <span>{{ $t("pages.servers.host.admin.active") }}</span>
+            <Checkbox
+              :model-value="planForm.active"
+              class="pointer-events-none"
+              tabindex="-1"
+            />
+          </button>
+        </div>
+
+        <DialogFooter class="gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            :disabled="planSaving"
+            @click="planEditorOpen = false"
+          >
+            {{ $t("common.cancel") }}
+          </Button>
+          <Button type="button" :disabled="planSaving" @click="savePlan">
+            {{ $t("pages.servers.host.admin.save") }}
+          </Button>
+        </DialogFooter>
       </DialogScrollContent>
     </Dialog>
   </div>
