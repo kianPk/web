@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import gql from "graphql-tag";
 import { ArrowLeft, Clock, Server, Settings2 } from "lucide-vue-next";
@@ -533,6 +533,12 @@ async function refresh() {
     }
   }
   loading.value = false;
+  // Re-apply rates after the admin section mounts — the previous shadcn Input
+  // stack could emit an empty update on mount and wipe values set while loading.
+  await nextTick();
+  if (isAdmin.value) {
+    await loadAdminRates();
+  }
 }
 
 watch(
@@ -649,6 +655,9 @@ async function saveRates() {
       throw new Error(t("pages.store.sign_in_required"));
     }
     const values = currentRateValues();
+    if (values.irr <= 0) {
+      throw new Error(t("pages.servers.host.admin.rate_required"));
+    }
     // Keep a browser backup so a refresh never blanks the admin form even if
     // Hasura is momentarily unavailable.
     persistLocalRates(values);
@@ -740,43 +749,61 @@ onMounted(() => {
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.rate_toman") }}</Label>
-              <Input
+              <Label for="host-rate-toman">{{
+                $t("pages.servers.host.admin.rate_toman")
+              }}</Label>
+              <!-- Native inputs: shadcn Input + useVModel(passive) remounts after
+                   loading and emits "" which was wiping saved rates to 0. -->
+              <input
+                id="host-rate-toman"
+                v-model.number="rateToman"
                 type="number"
                 min="0"
                 step="1"
-                :model-value="rateToman"
-                @update:model-value="rateToman = parseRate($event)"
+                autocomplete="off"
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
             <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.rate_ypoint") }}</Label>
-              <Input
+              <Label for="host-rate-ypoint">{{
+                $t("pages.servers.host.admin.rate_ypoint")
+              }}</Label>
+              <input
+                id="host-rate-ypoint"
+                v-model.number="rateYpoint"
                 type="number"
                 min="0"
                 step="1"
-                :model-value="rateYpoint"
-                @update:model-value="rateYpoint = parseRate($event)"
+                autocomplete="off"
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
             <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.slot_rate_toman") }}</Label>
-              <Input
+              <Label for="host-slot-rate-toman">{{
+                $t("pages.servers.host.admin.slot_rate_toman")
+              }}</Label>
+              <input
+                id="host-slot-rate-toman"
+                v-model.number="slotRateToman"
                 type="number"
                 min="0"
                 step="1"
-                :model-value="slotRateToman"
-                @update:model-value="slotRateToman = parseRate($event)"
+                autocomplete="off"
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
             <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.slot_rate_ypoint") }}</Label>
-              <Input
+              <Label for="host-slot-rate-ypoint">{{
+                $t("pages.servers.host.admin.slot_rate_ypoint")
+              }}</Label>
+              <input
+                id="host-slot-rate-ypoint"
+                v-model.number="slotRateYpoint"
                 type="number"
                 min="0"
                 step="1"
-                :model-value="slotRateYpoint"
-                @update:model-value="slotRateYpoint = parseRate($event)"
+                autocomplete="off"
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
           </div>
