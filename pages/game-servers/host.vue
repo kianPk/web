@@ -604,8 +604,9 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
       termsAccepted: true,
       payWith,
     };
-    // Try flat paths first (host-checkout), then nested legacy.
+    // Prefer the long-lived /checkout path (Hosting already uses it), then aliases.
     const checkoutPaths = [
+      "/hosted-servers/checkout",
       "/hosted-servers/host-checkout",
       "/hosted-servers/section-host-checkout",
       "/hosted-servers/section-host/checkout",
