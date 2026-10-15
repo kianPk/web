@@ -14,11 +14,19 @@ export type SectionHostOverview = {
   enabled: boolean;
   available: boolean;
   remaining: number;
-  plans: HostedPlan[];
   modes: string[];
-  slot_price_irr: number;
-  slot_price_ypoint: number;
-  max_slots: number;
+  durations: string[];
+  price_irr_per_hour: number;
+  price_ypoint_per_hour: number;
+};
+
+export type SectionHostQuote = {
+  duration: string;
+  hours: number;
+  price_irr: number;
+  price_ypoint: number;
+  price_irr_per_hour: number;
+  price_ypoint_per_hour: number;
 };
 
 export type HostedAdminPlan = {
@@ -65,7 +73,12 @@ export type HostedServer = {
   slots: number;
   extra_slots: number;
   status:
-    "provisioning" | "active" | "expired" | "suspended" | "failed" | "deleted";
+    | "provisioning"
+    | "active"
+    | "expired"
+    | "suspended"
+    | "failed"
+    | "deleted";
   status_detail: string | null;
   expires_at: string;
   created_at: string;
@@ -110,6 +123,8 @@ export type HostedAdminSettings = {
   slot_price_irr: number;
   slot_price_ypoint: number;
   max_slots: number;
+  section_host_price_irr_per_hour?: number;
+  section_host_price_ypoint_per_hour?: number;
 };
 
 export type HostedSlotsQuote = {

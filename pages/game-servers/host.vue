@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, Clock, Pencil, Plus, Server, Trash2 } from "lucide-vue-next";
+import { ArrowLeft, Clock, Server, Settings2 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -9,14 +9,6 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Skeleton } from "~/components/ui/skeleton";
-import Empty from "~/components/ui/empty/Empty.vue";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import {
   Dialog,
   DialogScrollContent,
@@ -37,20 +29,11 @@ import {
   hostedApi,
   hostedErrorMessage,
   type HostedCheckoutResult,
-  type HostedPlan,
   type HostedServer,
   type SectionHostOverview,
+  type SectionHostQuote,
 } from "~/composables/useHostedServers";
 import { useAuthStore } from "~/stores/AuthStore";
-
-type AdminHostPlan = HostedPlan & {
-  description: string;
-  active: boolean;
-  sort_order: number;
-  servers: number;
-};
-
-const DURATION_PRESETS = ["1h", "3h", "12h", "1d", "3d", "7d", "14d", "30d"];
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();
@@ -60,29 +43,21 @@ const { balance: ypointBalance, refresh: refreshYpoints } = useYpoints();
 useHead(() => ({ title: t("pages.servers.host.title") }));
 
 const overview = ref<SectionHostOverview | null>(null);
+const quote = ref<SectionHostQuote | null>(null);
 const myServers = ref<HostedServer[]>([]);
-const adminPlans = ref<AdminHostPlan[]>([]);
 const loading = ref(true);
+const quoting = ref(false);
 
-const buyPlan = ref<HostedPlan | null>(null);
-const buyOpen = ref(false);
-const buyMode = ref<ServerModeKey>("duels");
-const buyLabel = ref("");
+const mode = ref<ServerModeKey>("duels");
+const duration = ref("1d");
+const label = ref("");
 const termsAccepted = ref(false);
 const paying = ref(false);
+const checkoutOpen = ref(false);
 
-const planEditorOpen = ref(false);
-const planSaving = ref(false);
-const editingPlanId = ref<string | null>(null);
-const planForm = ref({
-  title: "",
-  description: "",
-  duration: "1d",
-  price_toman: 0,
-  price_ypoint: null as number | null,
-  sort_order: 0,
-  active: true,
-});
+const rateToman = ref(0);
+const rateYpoint = ref(0);
+const rateSaving = ref(false);
 
 const signedIn = computed(() => Boolean(auth.me?.steam_id));
 const isAdmin = computed(() => auth.isAdmin);
@@ -94,16 +69,63 @@ const modeOptions = computed(() => {
   return SERVER_MODES.filter((m) => allowed.has(m.key));
 });
 
+const durationOptions = computed(
+  () => overview.value?.durations || ["1h", "3h", "12h", "1d", "3d", "7d", "14d", "30d"],
+);
+
+const selectedMode = computed(
+  () => modeOptions.value.find((m) => m.key === mode.value) || modeOptions.value[0],
+);
+
 const myHostServers = computed(() =>
   myServers.value.filter((s) => Boolean(s.section_mode)),
 );
 
+const canAffordYpoint = computed(() => {
+  const price = Number(quote.value?.price_ypoint || 0);
+  return price > 0 && (ypointBalance.value ?? 0) >= price;
+});
+
+function formatPrice(irr: number) {
+  const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
+  return t("pages.store.price", {
+    amount: formatTomanAmount(irr, numberLocale),
+  });
+}
+
+async function refreshOverview() {
+  overview.value = await hostedApi<SectionHostOverview>(
+    "/hosted-servers/section-host/overview",
+  );
+  if (overview.value.durations?.length && !overview.value.durations.includes(duration.value)) {
+    duration.value = overview.value.durations[0];
+  }
+  if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
+    mode.value = overview.value.modes[0] as ServerModeKey;
+  }
+  rateToman.value = irrToToman(overview.value.price_irr_per_hour || 0);
+  rateYpoint.value = overview.value.price_ypoint_per_hour || 0;
+}
+
+async function refreshQuote() {
+  quoting.value = true;
+  try {
+    quote.value = await hostedApi<SectionHostQuote>(
+      `/hosted-servers/section-host/quote?duration=${encodeURIComponent(duration.value)}`,
+    );
+  } catch (error) {
+    quote.value = null;
+    console.error(error);
+  } finally {
+    quoting.value = false;
+  }
+}
+
 async function refresh() {
   loading.value = true;
   try {
-    overview.value = await hostedApi<SectionHostOverview>(
-      "/hosted-servers/section-host/overview",
-    );
+    await refreshOverview();
+    await refreshQuote();
   } catch (error) {
     console.error(error);
     overview.value = null;
@@ -115,26 +137,14 @@ async function refresh() {
       myServers.value = [];
     }
   }
-  if (isAdmin.value) {
-    try {
-      adminPlans.value = await hostedApi<AdminHostPlan[]>(
-        "/hosted-servers/admin/section-plans",
-      );
-    } catch {
-      adminPlans.value = [];
-    }
-  }
   loading.value = false;
 }
 
-function formatPrice(irr: number) {
-  const numberLocale = locale.value?.startsWith("fa") ? "fa-IR" : "en-US";
-  return t("pages.store.price", {
-    amount: formatTomanAmount(irr, numberLocale),
-  });
-}
+watch(duration, () => {
+  void refreshQuote();
+});
 
-function openBuy(plan: HostedPlan) {
+function openCheckout() {
   if (!signedIn.value) {
     toast({
       variant: "destructive",
@@ -142,20 +152,19 @@ function openBuy(plan: HostedPlan) {
     });
     return;
   }
-  buyPlan.value = plan;
-  buyMode.value = modeOptions.value[0]?.key || "duels";
-  buyLabel.value = "";
+  if (!overview.value?.available) {
+    toast({
+      variant: "destructive",
+      title: t("pages.servers.host.capacity_full"),
+    });
+    return;
+  }
   termsAccepted.value = false;
-  buyOpen.value = true;
+  checkoutOpen.value = true;
 }
 
-const canAffordPlan = computed(() => {
-  const price = Number(buyPlan.value?.price_ypoint || 0);
-  return price > 0 && (ypointBalance.value ?? 0) >= price;
-});
-
 async function pay(payWith: "bale" | "ypoint" = "bale") {
-  if (!buyPlan.value || paying.value) return;
+  if (paying.value || !quote.value) return;
   if (!termsAccepted.value) {
     toast({ variant: "destructive", title: t("pages.store.terms_required") });
     return;
@@ -163,19 +172,19 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
   paying.value = true;
   try {
     const result = await hostedApi<HostedCheckoutResult>(
-      "/hosted-servers/checkout",
+      "/hosted-servers/section-host/checkout",
       {
         method: "POST",
         body: {
-          productId: buyPlan.value.id,
-          sectionMode: buyMode.value,
-          label: buyLabel.value,
+          sectionMode: mode.value,
+          duration: duration.value,
+          label: label.value,
           termsAccepted: true,
           payWith,
         },
       },
     );
-    buyOpen.value = false;
+    checkoutOpen.value = false;
     if (result.paid) {
       toast({ title: t("pages.hosting.ypoint_paid") });
       void refreshYpoints();
@@ -202,121 +211,29 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
   }
 }
 
-function openCreatePlan() {
-  editingPlanId.value = null;
-  planForm.value = {
-    title: "",
-    description: "",
-    duration: "1d",
-    price_toman: 0,
-    price_ypoint: null,
-    sort_order: (adminPlans.value.at(-1)?.sort_order ?? 200) + 1,
-    active: true,
-  };
-  planEditorOpen.value = true;
-}
-
-function openEditPlan(plan: AdminHostPlan) {
-  editingPlanId.value = plan.id;
-  planForm.value = {
-    title: plan.title,
-    description: plan.description || "",
-    duration: plan.duration || "1d",
-    price_toman: irrToToman(plan.price_irr),
-    price_ypoint: plan.price_ypoint,
-    sort_order: plan.sort_order ?? 0,
-    active: plan.active,
-  };
-  planEditorOpen.value = true;
-}
-
-async function savePlan() {
-  if (planSaving.value) return;
-  if (!planForm.value.title.trim()) {
-    toast({
-      variant: "destructive",
-      title: t("pages.servers.host.admin.title_required"),
-    });
-    return;
-  }
-  planSaving.value = true;
+async function saveRates() {
+  if (rateSaving.value) return;
+  rateSaving.value = true;
   try {
-    const body = {
-      title: planForm.value.title.trim(),
-      description: planForm.value.description.trim(),
-      duration: planForm.value.duration.trim(),
-      price_irr: tomanToIrr(planForm.value.price_toman),
-      price_ypoint:
-        planForm.value.price_ypoint == null
-          ? null
-          : Math.max(0, Math.round(Number(planForm.value.price_ypoint) || 0)) ||
-            null,
-      sort_order: Math.round(Number(planForm.value.sort_order) || 0),
-      active: planForm.value.active,
-    };
-    if (editingPlanId.value) {
-      await hostedApi(
-        `/hosted-servers/admin/section-plans/${editingPlanId.value}`,
-        {
-          method: "POST",
-          body,
-        },
-      );
-    } else {
-      await hostedApi("/hosted-servers/admin/section-plans", {
-        method: "POST",
-        body,
-      });
-    }
-    planEditorOpen.value = false;
-    toast({ title: t("pages.servers.host.admin.saved") });
+    await hostedApi("/hosted-servers/admin/section-host-pricing", {
+      method: "POST",
+      body: {
+        section_host_price_irr_per_hour: tomanToIrr(rateToman.value),
+        section_host_price_ypoint_per_hour: Math.max(
+          0,
+          Math.round(Number(rateYpoint.value) || 0),
+        ),
+      },
+    });
+    toast({ title: t("pages.servers.host.admin.rates_saved") });
     await refresh();
   } catch (error) {
     toast({
       variant: "destructive",
-      title: t("pages.servers.host.admin.save_failed"),
-      description: hostedErrorMessage(error),
+      title: hostedErrorMessage(error),
     });
   } finally {
-    planSaving.value = false;
-  }
-}
-
-async function togglePlanActive(plan: AdminHostPlan) {
-  try {
-    await hostedApi(`/hosted-servers/admin/section-plans/${plan.id}/active`, {
-      method: "POST",
-      body: { active: !plan.active },
-    });
-    await refresh();
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      title: hostedErrorMessage(error),
-    });
-  }
-}
-
-async function deletePlan(plan: AdminHostPlan) {
-  if (
-    !confirm(
-      t("pages.servers.host.admin.delete_confirm", { title: plan.title }),
-    )
-  ) {
-    return;
-  }
-  try {
-    await hostedApi(
-      `/hosted-servers/admin/section-plans/${plan.id}/delete`,
-      { method: "POST" },
-    );
-    toast({ title: t("pages.servers.host.admin.deleted") });
-    await refresh();
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      title: hostedErrorMessage(error),
-    });
+    rateSaving.value = false;
   }
 }
 
@@ -341,102 +258,44 @@ onMounted(() => {
           {{ $t("pages.servers.host.title") }}
         </h1>
         <p class="m-0 max-w-2xl text-sm text-muted-foreground">
-          {{ $t("pages.servers.host.description") }}
+          {{ $t("pages.servers.host.description_config") }}
         </p>
       </div>
     </div>
 
     <PageTransition>
-      <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Skeleton v-for="i in 3" :key="i" class="h-56 rounded-lg" />
+      <div v-if="loading" class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <Skeleton class="h-80 rounded-2xl" />
+        <Skeleton class="h-80 rounded-2xl" />
       </div>
 
       <div v-else class="space-y-8">
         <section
           v-if="isAdmin"
-          class="space-y-3 rounded-xl border border-border/70 bg-card/30 p-4"
+          class="space-y-3 rounded-2xl border border-border/70 bg-card/30 p-4"
         >
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 class="m-0 text-base font-semibold">
-                {{ $t("pages.servers.host.admin.title") }}
-              </h2>
-              <p class="m-0 mt-0.5 text-xs text-muted-foreground">
-                {{ $t("pages.servers.host.admin.hint") }}
-              </p>
-            </div>
-            <Button type="button" size="sm" @click="openCreatePlan">
-              <Plus class="h-4 w-4" />
-              {{ $t("pages.servers.host.admin.add") }}
-            </Button>
+          <div class="flex items-center gap-2">
+            <Settings2 class="h-4 w-4 text-muted-foreground" />
+            <h2 class="m-0 text-base font-semibold">
+              {{ $t("pages.servers.host.admin.rates_title") }}
+            </h2>
           </div>
-
-          <p
-            v-if="!adminPlans.length"
-            class="m-0 text-sm text-muted-foreground"
-          >
-            {{ $t("pages.servers.host.admin.empty") }}
+          <p class="m-0 text-xs text-muted-foreground">
+            {{ $t("pages.servers.host.admin.rates_hint") }}
           </p>
-          <div v-else class="space-y-2">
-            <div
-              v-for="plan in adminPlans"
-              :key="plan.id"
-              class="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5"
-            >
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="truncate font-medium">{{ plan.title }}</span>
-                  <Badge :variant="plan.active ? 'default' : 'secondary'">
-                    {{
-                      plan.active
-                        ? $t("pages.servers.host.admin.active")
-                        : $t("pages.servers.host.admin.inactive")
-                    }}
-                  </Badge>
-                  <Badge variant="outline">
-                    {{ formatHostedDuration(plan.duration, t) }}
-                  </Badge>
-                </div>
-                <p class="m-0 mt-1 text-xs text-muted-foreground">
-                  {{ formatPrice(plan.price_irr) }}
-                  <span v-if="plan.price_ypoint">
-                    · {{ plan.price_ypoint }} YP
-                  </span>
-                  · {{ $t("pages.servers.host.admin.rentals", { n: plan.servers }) }}
-                </p>
-              </div>
-              <div class="flex flex-wrap gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  @click="togglePlanActive(plan)"
-                >
-                  {{
-                    plan.active
-                      ? $t("pages.servers.host.admin.disable")
-                      : $t("pages.servers.host.admin.enable")
-                  }}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  @click="openEditPlan(plan)"
-                >
-                  <Pencil class="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  @click="deletePlan(plan)"
-                >
-                  <Trash2 class="h-3.5 w-3.5" />
-                </Button>
-              </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.rate_toman") }}</Label>
+              <Input v-model.number="rateToman" type="number" min="0" />
+            </div>
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin.rate_ypoint") }}</Label>
+              <Input v-model.number="rateYpoint" type="number" min="0" />
             </div>
           </div>
+          <Button type="button" size="sm" :disabled="rateSaving" @click="saveRates">
+            {{ $t("pages.servers.host.admin.save_rates") }}
+          </Button>
         </section>
 
         <div
@@ -453,62 +312,166 @@ onMounted(() => {
           {{ $t("pages.servers.host.remaining", { n: overview.remaining }) }}
         </p>
 
-        <Empty v-if="!overview?.plans?.length">
-          <h2 class="m-0 text-lg font-semibold">
-            {{ $t("pages.servers.host.no_plans") }}
-          </h2>
-        </Empty>
-
-        <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <article
-            v-for="plan in overview.plans"
-            :key="plan.id"
-            class="flex flex-col overflow-hidden rounded-lg border border-border bg-card/40"
+        <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <section
+            class="space-y-5 rounded-2xl border border-border/70 bg-card/40 p-5"
           >
-            <div class="flex flex-1 flex-col gap-3 p-4">
-              <h2 class="m-0 font-sans text-base font-semibold">
-                {{ plan.title }}
+            <div>
+              <h2 class="m-0 text-lg font-semibold">
+                {{ $t("pages.servers.host.configure") }}
               </h2>
-              <div class="flex flex-wrap gap-2">
-                <Badge variant="outline">
-                  <Clock class="h-3 w-3" />
-                  {{ formatHostedDuration(plan.duration, t) }}
-                </Badge>
-              </div>
-              <p
-                v-if="plan.description"
-                class="m-0 whitespace-pre-line text-sm text-muted-foreground"
-              >
-                {{ plan.description }}
+              <p class="m-0 mt-1 text-sm text-muted-foreground">
+                {{ $t("pages.servers.host.configure_hint") }}
               </p>
-              <div class="mt-auto flex items-center justify-between gap-3">
-                <div class="flex flex-col gap-0.5">
-                  <span class="font-mono text-sm font-semibold tabular-nums">
-                    {{ formatPrice(plan.price_irr) }}
-                  </span>
-                  <span
-                    v-if="plan.price_ypoint"
-                    class="inline-flex items-center gap-1 font-mono text-xs font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
-                  >
-                    <img
-                      src="/img/ypoint-logo.png"
-                      alt="Ypoint"
-                      class="h-3.5 w-3.5 object-contain"
-                    />
-                    {{ plan.price_ypoint }}
-                  </span>
-                </div>
-                <Button
+            </div>
+
+            <div class="space-y-2">
+              <Label>{{ $t("pages.servers.host.pick_mode") }}</Label>
+              <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                <button
+                  v-for="m in modeOptions"
+                  :key="m.key"
                   type="button"
-                  size="sm"
-                  :disabled="!overview?.available"
-                  @click="openBuy(plan)"
+                  class="group relative aspect-[5/4] overflow-hidden rounded-xl border text-start transition duration-200"
+                  :class="
+                    mode === m.key
+                      ? 'border-[hsl(var(--tac-amber))] ring-2 ring-[hsl(var(--tac-amber)/0.35)]'
+                      : 'border-border/70 hover:border-white/25'
+                  "
+                  @click="mode = m.key"
                 >
-                  {{ $t("pages.servers.host.rent") }}
-                </Button>
+                  <img
+                    :src="m.cover"
+                    alt=""
+                    class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/20"
+                  />
+                  <div class="absolute inset-x-0 bottom-0 p-2.5">
+                    <div class="text-sm font-semibold text-white">
+                      {{ $t(`pages.servers.modes.${m.key}.name`) }}
+                    </div>
+                    <div class="text-[11px] text-white/55">
+                      {{ $t("pages.hosting.slots", { n: m.slots }) }}
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
-          </article>
+
+            <div class="space-y-2">
+              <Label>{{ $t("pages.servers.host.admin.duration") }}</Label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="d in durationOptions"
+                  :key="d"
+                  type="button"
+                  class="rounded-lg border px-3 py-2 text-sm transition-colors"
+                  :class="
+                    duration === d
+                      ? 'border-primary bg-primary/10 font-semibold'
+                      : 'border-border hover:bg-muted/40'
+                  "
+                  @click="duration = d"
+                >
+                  {{ formatHostedDuration(d, t) }}
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.hosting.server_name") }}</Label>
+              <Input
+                v-model="label"
+                maxlength="64"
+                :placeholder="$t('pages.servers.host.name_placeholder')"
+              />
+            </div>
+          </section>
+
+          <aside
+            class="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-border/70 bg-[#0a0c10] p-5 text-white ring-1 ring-white/5"
+          >
+            <img
+              v-if="selectedMode"
+              :src="selectedMode.cover"
+              alt=""
+              class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
+            />
+            <div
+              class="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-[#0a0c10]/90 to-[#0a0c10]"
+            />
+            <div class="relative space-y-1">
+              <p class="m-0 text-xs uppercase tracking-[0.16em] text-white/45">
+                {{ $t("pages.servers.host.summary") }}
+              </p>
+              <h3 class="m-0 text-xl font-semibold">
+                {{
+                  selectedMode
+                    ? $t(`pages.servers.modes.${selectedMode.key}.name`)
+                    : "—"
+                }}
+              </h3>
+              <p class="m-0 text-sm text-white/55">
+                {{ formatHostedDuration(duration, t) }}
+                <span v-if="quote"> · {{ quote.hours }}h</span>
+              </p>
+            </div>
+
+            <div class="relative space-y-2 border-y border-white/10 py-4">
+              <div class="flex items-end justify-between gap-3">
+                <span class="text-sm text-white/55">
+                  {{ $t("pages.servers.host.price") }}
+                </span>
+                <span
+                  v-if="quoting"
+                  class="text-sm text-white/40"
+                >
+                  …
+                </span>
+                <span
+                  v-else-if="quote"
+                  class="font-mono text-2xl font-bold tabular-nums"
+                >
+                  {{ formatPrice(quote.price_irr) }}
+                </span>
+              </div>
+              <div
+                v-if="quote?.price_ypoint"
+                class="flex items-center justify-end gap-1.5 font-mono text-sm text-[hsl(var(--tac-amber))]"
+              >
+                <img
+                  src="/img/ypoint-logo.png"
+                  alt=""
+                  class="h-4 w-4 object-contain"
+                />
+                {{ quote.price_ypoint }}
+              </div>
+              <p class="m-0 text-xs text-white/40">
+                {{
+                  $t("pages.servers.host.rate_hint", {
+                    toman: formatTomanAmount(
+                      overview?.price_irr_per_hour || 0,
+                      locale.startsWith("fa") ? "fa-IR" : "en-US",
+                    ),
+                    ypoint: overview?.price_ypoint_per_hour || 0,
+                  })
+                }}
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              size="lg"
+              class="relative mt-auto w-full"
+              :disabled="!overview?.available || !quote || quoting"
+              @click="openCheckout"
+            >
+              <Clock class="h-4 w-4" />
+              {{ $t("pages.servers.host.rent") }}
+            </Button>
+          </aside>
         </div>
 
         <section v-if="signedIn" class="space-y-3">
@@ -526,7 +489,7 @@ onMounted(() => {
               v-for="server in myHostServers"
               :key="server.id"
               :to="`/hosting/${server.id}`"
-              class="flex items-center gap-3 rounded-lg border border-border bg-card/40 p-4 transition-colors hover:bg-muted/40"
+              class="flex items-center gap-3 rounded-xl border border-border bg-card/40 p-4 transition-colors hover:bg-muted/40"
             >
               <Server class="h-8 w-8 shrink-0 text-muted-foreground" />
               <div class="min-w-0 flex-1">
@@ -536,9 +499,7 @@ onMounted(() => {
                     {{ $t(`pages.hosting.status.${server.status}`) }}
                   </Badge>
                   <Badge v-if="server.section_mode" variant="outline">
-                    {{
-                      $t(`pages.servers.modes.${server.section_mode}.name`)
-                    }}
+                    {{ $t(`pages.servers.modes.${server.section_mode}.name`) }}
                   </Badge>
                 </div>
                 <p class="m-0 mt-1 text-xs text-muted-foreground">
@@ -555,89 +516,60 @@ onMounted(() => {
       </div>
     </PageTransition>
 
-    <Dialog v-model:open="buyOpen">
+    <Dialog v-model:open="checkoutOpen">
       <DialogScrollContent class="max-w-md">
         <DialogHeader>
-          <DialogTitle>{{ buyPlan?.title }}</DialogTitle>
+          <DialogTitle>{{ $t("pages.servers.host.rent") }}</DialogTitle>
           <DialogDescription>
-            {{ buyPlan ? formatPrice(buyPlan.price_irr) : "" }}
-            ·
-            {{ buyPlan ? formatHostedDuration(buyPlan.duration, t) : "" }}
+            <span v-if="selectedMode">
+              {{ $t(`pages.servers.modes.${selectedMode.key}.name`) }}
+            </span>
+            · {{ formatHostedDuration(duration, t) }}
+            <span v-if="quote"> · {{ formatPrice(quote.price_irr) }}</span>
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-4">
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.servers.host.pick_mode") }}</Label>
-            <Select v-model="buyMode">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="mode in modeOptions"
-                  :key="mode.key"
-                  :value="mode.key"
-                >
-                  {{ $t(`pages.servers.modes.${mode.key}.name`) }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.hosting.server_name") }}</Label>
-            <Input
-              v-model="buyLabel"
-              maxlength="64"
-              :placeholder="$t('pages.servers.host.name_placeholder')"
-            />
-          </div>
+        <ol
+          class="m-0 list-decimal space-y-1 rounded-lg border border-border bg-muted/20 py-2.5 pe-3 ps-7 text-[0.75rem] leading-relaxed text-muted-foreground"
+        >
+          <li>{{ $t("pages.servers.host.terms_1") }}</li>
+          <li>{{ $t("pages.servers.host.terms_2") }}</li>
+          <li>{{ $t("pages.hosting.terms_3") }}</li>
+          <li>{{ $t("pages.store.terms_1") }}</li>
+        </ol>
 
-          <ol
-            class="m-0 list-decimal space-y-1 rounded-lg border border-border bg-muted/20 py-2.5 pe-3 ps-7 text-[0.75rem] leading-relaxed text-muted-foreground"
-          >
-            <li>{{ $t("pages.servers.host.terms_1") }}</li>
-            <li>{{ $t("pages.servers.host.terms_2") }}</li>
-            <li>{{ $t("pages.hosting.terms_3") }}</li>
-            <li>{{ $t("pages.store.terms_1") }}</li>
-          </ol>
-
-          <button
-            type="button"
-            class="flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start"
-            :class="
-              termsAccepted ? 'border-primary/50 bg-primary/5' : 'border-border'
-            "
-            @click="termsAccepted = !termsAccepted"
-          >
-            <Checkbox
-              :model-value="termsAccepted"
-              class="pointer-events-none mt-0.5"
-              tabindex="-1"
-            />
-            <span class="text-sm leading-snug">
-              {{ $t("pages.store.terms_accept") }}
-            </span>
-          </button>
-        </div>
+        <button
+          type="button"
+          class="mt-4 flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start"
+          :class="
+            termsAccepted ? 'border-primary/50 bg-primary/5' : 'border-border'
+          "
+          @click="termsAccepted = !termsAccepted"
+        >
+          <Checkbox
+            :model-value="termsAccepted"
+            class="pointer-events-none mt-0.5"
+            tabindex="-1"
+          />
+          <span class="text-sm leading-snug">
+            {{ $t("pages.store.terms_accept") }}
+          </span>
+        </button>
 
         <DialogFooter class="gap-2">
           <Button
             type="button"
             variant="ghost"
             :disabled="paying"
-            @click="buyOpen = false"
+            @click="checkoutOpen = false"
           >
             {{ $t("common.cancel") }}
           </Button>
           <Button
-            v-if="buyPlan?.price_ypoint"
+            v-if="quote?.price_ypoint"
             type="button"
             variant="outline"
-            :disabled="paying || !termsAccepted || !canAffordPlan"
-            :title="
-              canAffordPlan ? undefined : $t('pages.store.ypoint_not_enough')
-            "
+            :disabled="paying || !termsAccepted || !canAffordYpoint"
             @click="pay('ypoint')"
           >
             <img
@@ -645,7 +577,9 @@ onMounted(() => {
               alt=""
               class="h-4 w-4 object-contain"
             />
-            {{ $t("pages.store.pay_with_ypoint", { n: buyPlan.price_ypoint }) }}
+            {{
+              $t("pages.store.pay_with_ypoint", { n: quote.price_ypoint })
+            }}
           </Button>
           <Button
             type="button"
@@ -657,102 +591,6 @@ onMounted(() => {
                 ? $t("pages.store.buying")
                 : $t("pages.store.pay_with_bale")
             }}
-          </Button>
-        </DialogFooter>
-        <p
-          v-if="buyPlan?.price_ypoint && ypointBalance !== null"
-          class="m-0 text-end text-xs text-muted-foreground"
-        >
-          {{ $t("pages.store.ypoint_balance_hint", { n: ypointBalance }) }}
-        </p>
-      </DialogScrollContent>
-    </Dialog>
-
-    <Dialog v-model:open="planEditorOpen">
-      <DialogScrollContent class="max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {{
-              editingPlanId
-                ? $t("pages.servers.host.admin.edit")
-                : $t("pages.servers.host.admin.add")
-            }}
-          </DialogTitle>
-          <DialogDescription>
-            {{ $t("pages.servers.host.admin.form_hint") }}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="space-y-3">
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.servers.host.admin.plan_title") }}</Label>
-            <Input v-model="planForm.title" maxlength="80" />
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.servers.host.admin.plan_description") }}</Label>
-            <Input v-model="planForm.description" maxlength="500" />
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.servers.host.admin.duration") }}</Label>
-            <Select v-model="planForm.duration">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="d in DURATION_PRESETS"
-                  :key="d"
-                  :value="d"
-                >
-                  {{ formatHostedDuration(d, t) }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.price_toman") }}</Label>
-              <Input v-model.number="planForm.price_toman" type="number" min="0" />
-            </div>
-            <div class="space-y-1.5">
-              <Label>{{ $t("pages.servers.host.admin.price_ypoint") }}</Label>
-              <Input
-                v-model.number="planForm.price_ypoint"
-                type="number"
-                min="0"
-                :placeholder="$t('pages.servers.host.admin.ypoint_optional')"
-              />
-            </div>
-          </div>
-          <div class="space-y-1.5">
-            <Label>{{ $t("pages.servers.host.admin.sort_order") }}</Label>
-            <Input v-model.number="planForm.sort_order" type="number" />
-          </div>
-          <button
-            type="button"
-            class="flex w-full items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm"
-            @click="planForm.active = !planForm.active"
-          >
-            <span>{{ $t("pages.servers.host.admin.active") }}</span>
-            <Checkbox
-              :model-value="planForm.active"
-              class="pointer-events-none"
-              tabindex="-1"
-            />
-          </button>
-        </div>
-
-        <DialogFooter class="gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            :disabled="planSaving"
-            @click="planEditorOpen = false"
-          >
-            {{ $t("common.cancel") }}
-          </Button>
-          <Button type="button" :disabled="planSaving" @click="savePlan">
-            {{ $t("pages.servers.host.admin.save") }}
           </Button>
         </DialogFooter>
       </DialogScrollContent>

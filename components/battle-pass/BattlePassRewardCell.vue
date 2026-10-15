@@ -28,59 +28,66 @@ function onClick() {
 <template>
   <div
     v-if="!reward"
-    class="h-[7.25rem] rounded-xl border border-dashed border-white/[0.08] bg-black/30"
+    class="h-[7.25rem] rounded-2xl border border-dashed border-white/[0.06] bg-black/25"
   />
   <button
     v-else
     type="button"
-    class="group relative flex h-[7.25rem] w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border px-1.5 text-center transition-all duration-200"
+    class="group relative flex h-[7.25rem] w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border px-1.5 text-center transition duration-200"
     :class="[
       claimable
-        ? premium
-          ? 'cursor-pointer border-rose-400 bg-rose-500/20 shadow-[0_0_24px_rgba(244,63,94,0.35)] hover:bg-rose-500/30'
-          : 'cursor-pointer border-emerald-400 bg-emerald-500/15 shadow-[0_0_24px_rgba(52,211,153,0.3)] hover:bg-emerald-500/25'
+        ? 'cursor-pointer border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.2)] shadow-[0_0_32px_hsla(var(--tac-amber)/0.35)] hover:scale-[1.03] hover:bg-[hsl(var(--tac-amber)/0.3)]'
         : claimed
-          ? 'cursor-default border-emerald-500/50 bg-emerald-500/10'
+          ? 'cursor-default border-emerald-400/50 bg-emerald-500/[0.14]'
           : premium
-            ? 'cursor-default border-rose-500/30 bg-gradient-to-b from-rose-500/15 via-[#1a0a0e] to-[#0c0e12]'
-            : 'cursor-default border-white/10 bg-gradient-to-b from-white/[0.06] to-[#0c0e12]',
-      !reached && !claimed ? 'opacity-45' : '',
+            ? 'cursor-default border-[hsl(var(--tac-amber)/0.4)] bg-gradient-to-b from-[hsl(var(--tac-amber)/0.18)] via-[#141821] to-[#0a0d12]'
+            : 'cursor-default border-white/[0.1] bg-gradient-to-b from-[#161b24] to-[#0c1016]',
+      !reached && !claimed ? 'opacity-45 grayscale-[0.35]' : '',
     ]"
     :title="claimable ? $t('pages.battle_pass.claim') : undefined"
     @click="onClick"
   >
     <div
-      class="pointer-events-none absolute inset-x-0 top-0 h-px"
-      :class="premium ? 'bg-gradient-to-r from-transparent via-rose-400/70 to-transparent' : 'bg-gradient-to-r from-transparent via-white/20 to-transparent'"
+      v-if="premium && !claimed"
+      class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--tac-amber)/0.7)] to-transparent"
       aria-hidden="true"
     />
 
     <template v-if="reward.type === 'ypoints'">
-      <img src="/img/ypoint-logo.png" alt="" class="h-9 w-9 object-contain drop-shadow" />
-      <span class="text-base font-black tabular-nums text-white">{{
+      <img
+        src="/img/ypoint-logo.png"
+        alt=""
+        class="h-9 w-9 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
+      />
+      <span class="text-[1.05rem] font-black tabular-nums tracking-tight text-white">{{
         reward.amount
       }}</span>
-      <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50"
+      <span
+        class="text-[9px] font-bold uppercase tracking-[0.16em] text-white/40"
         >YP</span
       >
     </template>
     <template v-else-if="reward.type === 'xp'">
-      <Zap class="h-9 w-9 text-amber-300 drop-shadow" />
-      <span class="text-base font-black tabular-nums text-amber-300"
+      <Zap class="h-9 w-9 text-[hsl(var(--tac-amber))] drop-shadow-[0_0_12px_hsla(var(--tac-amber)/0.55)]" />
+      <span
+        class="text-[1.05rem] font-black tabular-nums tracking-tight text-[hsl(var(--tac-amber))]"
         >+{{ reward.amount }}</span
       >
-      <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50"
+      <span
+        class="text-[9px] font-bold uppercase tracking-[0.16em] text-white/40"
         >XP</span
       >
     </template>
     <template v-else-if="reward.type === 'subscription'">
       <Crown
-        class="h-9 w-9 drop-shadow"
+        class="h-9 w-9 drop-shadow-[0_0_12px_hsla(var(--tac-amber)/0.45)]"
         :class="
-          reward.tier === 'premium_plus' ? 'text-violet-300' : 'text-amber-300'
+          reward.tier === 'premium_plus'
+            ? 'text-amber-200'
+            : 'text-[hsl(var(--tac-amber))]'
         "
       />
-      <span class="px-0.5 text-[11px] font-bold leading-tight text-white">
+      <span class="px-0.5 text-[10px] font-semibold leading-snug text-white/90">
         {{
           $t("pages.battle_pass.reward.subscription", {
             tier:
@@ -93,38 +100,35 @@ function onClick() {
       </span>
     </template>
     <template v-else>
-      <Award
-        class="h-9 w-9 drop-shadow"
-        :class="
-          reward.badge === 'legend'
-            ? 'text-violet-300'
-            : reward.badge === 'champion' || reward.badge === 'elite'
-              ? 'text-amber-300'
-              : 'text-sky-300'
-        "
-      />
-      <span class="px-0.5 text-[11px] font-bold leading-tight text-white">
+      <Award class="h-9 w-9 text-[hsl(var(--tac-amber))]" />
+      <span class="px-0.5 text-[10px] font-semibold leading-snug text-white/90">
         {{ $t(`pages.battle_pass.badge.${reward.badge}`) }}
       </span>
     </template>
 
     <span
       v-if="claimed"
-      class="absolute right-1.5 top-1.5 rounded-full bg-emerald-500 p-0.5 text-white shadow"
+      class="absolute right-1.5 top-1.5 rounded-full bg-emerald-500 p-0.5 text-white shadow-sm"
     >
       <Check class="h-3 w-3" />
     </span>
     <span
       v-else-if="locked || !reached"
-      class="absolute right-1.5 top-1.5 text-white/40"
+      class="absolute right-1.5 top-1.5 rounded-full bg-black/40 p-0.5 text-white/40"
     >
       <Lock class="h-3.5 w-3.5" />
     </span>
     <span
       v-else-if="busy"
-      class="absolute right-1.5 top-1.5 text-white"
+      class="absolute right-1.5 top-1.5 text-[hsl(var(--tac-amber))]"
     >
       <Loader2 class="h-3.5 w-3.5 animate-spin" />
+    </span>
+    <span
+      v-else-if="claimable"
+      class="absolute inset-x-2 bottom-1.5 rounded-full bg-[hsl(var(--tac-amber))] py-0.5 text-[9px] font-bold uppercase tracking-wider text-black"
+    >
+      {{ $t("pages.battle_pass.claim") }}
     </span>
   </button>
 </template>
