@@ -6346,6 +6346,8 @@
       "mode_missing_title": "Mode not found",
       "mode_missing": "This mode doesn't exist.",
       "back_to_modes": "All modes",
+      "host_badge": "Host",
+      "your_host": "Your Host server",
       "host": {
         "name": "Host",
         "tagline": "Rent a server",

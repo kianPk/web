@@ -6345,6 +6345,8 @@
       "mode_missing_title": "مود پیدا نشد",
       "mode_missing": "چنین مودی وجود ندارد.",
       "back_to_modes": "همه‌ی مودها",
+      "host_badge": "هاست",
+      "your_host": "سرور Host شما",
       "host": {
         "name": "Host",
         "tagline": "کرایه سرور",

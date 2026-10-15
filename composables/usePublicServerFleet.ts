@@ -27,6 +27,10 @@ export type FleetServer = {
   players: number;
   capacity: number;
   full: boolean;
+  /** Public fleet box vs the signed-in user's paid Host rental. */
+  kind?: "public" | "host";
+  /** hosted_servers.id when kind === "host". */
+  hostedId?: string | null;
 };
 
 export type FleetMode = ServerModeDefinition & {

@@ -422,65 +422,81 @@ onMounted(() => {
 
       <div
         v-else-if="data && season"
-        class="bp-shell grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]"
+        class="bp-shell grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]"
       >
         <!-- LEFT: season + challenges + upgrade -->
         <aside class="bp-aside flex flex-col gap-3">
           <div
-            class="bp-card overflow-hidden rounded-xl border border-white/10 bg-[#12151c]"
+            class="bp-card overflow-hidden rounded-2xl border border-white/10 bg-[#0e1117]"
           >
-            <div
-              class="relative px-4 pb-3 pt-4"
-              style="
-                background:
-                  radial-gradient(ellipse 90% 80% at 20% 0%, hsla(32, 90%, 50%, 0.35), transparent 55%),
-                  linear-gradient(160deg, #2a1a0c 0%, #12151c 70%);
-              "
-            >
-              <div class="text-[1.35rem] font-black uppercase tracking-wide text-white">
-                {{ $t("pages.battle_pass.title") }}
-                {{ season.number }}
-              </div>
-              <div class="mt-2 flex flex-wrap gap-1.5">
-                <span
-                  class="rounded bg-black/40 px-2 py-0.5 text-[11px] font-semibold text-white/80"
+            <div class="bp-season-hero relative px-4 pb-4 pt-5">
+              <div
+                class="pointer-events-none absolute inset-0 bp-season-mesh"
+                aria-hidden="true"
+              />
+              <div class="relative">
+                <div
+                  class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-black/35 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]"
                 >
-                  {{ $t("pages.battle_pass.levels_badge", { n: data.max_level }) }}
-                </span>
-                <span
-                  class="rounded bg-black/40 px-2 py-0.5 text-[11px] font-semibold text-white/80"
+                  <Sparkles class="h-3 w-3" />
+                  {{ $t("pages.battle_pass.title") }}
+                </div>
+                <div
+                  class="mt-2 text-[2rem] font-black leading-none tracking-tight text-white"
                 >
-                  {{
-                    $t("pages.battle_pass.challenges_badge", {
-                      n: challengeCount,
-                    })
-                  }}
-                </span>
-              </div>
-              <div class="mt-3 font-mono text-xs text-white/55">
-                {{ $t("pages.battle_pass.season_end") }}
-                <span class="ms-1 text-[hsl(var(--tac-amber))]">
-                  {{ countdownParts(season.ends_at).d }}d,
-                  {{ countdownParts(season.ends_at).h }}h,
-                  {{ countdownParts(season.ends_at).m }}min
-                </span>
+                  S{{ season.number }}
+                </div>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  <span
+                    class="rounded-md bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-white/75 ring-1 ring-white/10"
+                  >
+                    {{
+                      $t("pages.battle_pass.levels_badge", { n: data.max_level })
+                    }}
+                  </span>
+                  <span
+                    class="rounded-md bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-white/75 ring-1 ring-white/10"
+                  >
+                    {{
+                      $t("pages.battle_pass.challenges_badge", {
+                        n: challengeCount,
+                      })
+                    }}
+                  </span>
+                </div>
+                <div
+                  class="mt-4 flex items-center gap-2 font-mono text-xs text-white/50"
+                >
+                  <span>{{ $t("pages.battle_pass.season_end") }}</span>
+                  <span
+                    class="rounded bg-[hsl(var(--tac-amber)/0.15)] px-1.5 py-0.5 font-semibold tabular-nums text-[hsl(var(--tac-amber))]"
+                  >
+                    {{ countdownParts(season.ends_at).d }}d
+                    {{ countdownParts(season.ends_at).h }}h
+                    {{ countdownParts(season.ends_at).m }}m
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div class="space-y-2 border-t border-white/10 px-3 py-3">
-              <div class="flex items-center justify-between gap-2 text-xs text-white/50">
-                <span>
+            <div class="space-y-2.5 border-t border-white/10 px-4 py-3.5">
+              <div
+                class="flex items-end justify-between gap-2 text-xs text-white/50"
+              >
+                <span class="text-sm font-bold text-white">
                   {{ $t("pages.battle_pass.level") }}
-                  {{ data.level }}
+                  <span class="text-[hsl(var(--tac-amber))]">{{
+                    data.level
+                  }}</span>
                 </span>
                 <span class="tabular-nums">
                   {{ formatNumber(levelXp) }} /
                   {{ formatNumber(data.xp_per_level) }} XP
                 </span>
               </div>
-              <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div class="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  class="bp-bar h-full rounded-full bg-[hsl(var(--tac-amber))]"
+                  class="bp-bar h-full rounded-full bg-gradient-to-r from-[hsl(var(--tac-amber))] to-amber-200"
                   :style="{ width: `${levelPct}%` }"
                 />
               </div>
@@ -494,7 +510,7 @@ onMounted(() => {
               </button>
               <p
                 v-if="xpHelpOpen"
-                class="m-0 rounded-lg bg-black/30 p-2 text-[11px] leading-relaxed text-white/55"
+                class="m-0 rounded-lg bg-black/30 p-2.5 text-[11px] leading-relaxed text-white/55"
               >
                 {{ $t("pages.battle_pass.xp_rules") }}
               </p>
@@ -507,25 +523,25 @@ onMounted(() => {
               { id: 'weekly', block: data.weekly },
             ]"
             :key="group.id"
-            class="rounded-xl border border-white/10 bg-[#12151c] p-3"
+            class="rounded-2xl border border-white/10 bg-[#0e1117] p-3.5"
           >
             <div class="mb-2 flex items-center justify-between gap-2">
               <h3 class="m-0 text-sm font-bold text-white">
                 {{ $t(`pages.battle_pass.${group.id}_title`) }}
               </h3>
+              <span class="text-[10px] font-medium text-white/35">
+                {{
+                  $t("pages.battle_pass.resets", {
+                    time: formatIn(group.block.resets_at),
+                  })
+                }}
+              </span>
             </div>
-            <p class="m-0 mb-2 text-[11px] text-white/40">
-              {{
-                $t("pages.battle_pass.resets", {
-                  time: formatIn(group.block.resets_at),
-                })
-              }}
-            </p>
             <div class="space-y-2">
               <div
                 v-for="mission in group.block.missions"
                 :key="mission.key"
-                class="bp-mission rounded-lg border border-white/[0.07] bg-[#0c0f14] p-2.5"
+                class="bp-mission rounded-xl border border-white/[0.07] bg-[#0a0d12] p-2.5"
               >
                 <div class="flex items-start justify-between gap-2">
                   <span class="text-[12px] font-medium leading-snug text-white/90">
@@ -566,7 +582,7 @@ onMounted(() => {
           </div>
 
           <div
-            class="bp-upgrade mt-auto overflow-hidden rounded-xl border border-orange-500/35 bg-gradient-to-b from-[#2a1608] to-[#12151c] p-4"
+            class="bp-upgrade mt-auto overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-b from-[#2a1608] via-[#1a120c] to-[#0e1117] p-4"
           >
             <template v-if="!data.premium">
               <div class="text-xs font-semibold uppercase tracking-wider text-orange-300">
@@ -634,9 +650,16 @@ onMounted(() => {
 
           <!-- Big reward preview -->
           <div
-            class="bp-preview relative flex min-h-[280px] flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0e1117] px-4 py-10"
+            class="bp-preview relative flex min-h-[300px] flex-1 flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0a0d12] px-4 py-10"
           >
-            <div class="bp-preview-glow pointer-events-none absolute inset-0" aria-hidden="true" />
+            <div
+              class="bp-preview-glow pointer-events-none absolute inset-0"
+              aria-hidden="true"
+            />
+            <div
+              class="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--tac-amber)/0.5)] to-transparent"
+              aria-hidden="true"
+            />
             <Transition name="bp-reward" mode="out-in">
               <div
                 v-if="selected"
@@ -712,17 +735,27 @@ onMounted(() => {
           </div>
 
           <!-- Reward track -->
-          <div class="bp-track rounded-xl border border-white/10 bg-[#12151c] p-3">
+          <div
+            class="bp-track rounded-2xl border border-white/10 bg-[#0e1117] p-3.5"
+          >
+            <div class="mb-2.5 flex items-center justify-between gap-2 px-0.5">
+              <p class="m-0 text-xs font-semibold uppercase tracking-wider text-white/40">
+                {{ $t("pages.battle_pass.rewards_title") }}
+              </p>
+              <p class="m-0 text-[11px] text-white/35">
+                {{ page + 1 }} / {{ pageCount }}
+              </p>
+            </div>
             <div class="flex gap-2 overflow-x-auto pb-1">
               <button
                 v-for="(item, idx) in pageItems"
                 :key="item.key"
                 type="button"
-                class="bp-tile relative flex w-[5.75rem] shrink-0 flex-col overflow-hidden rounded-lg border bg-[#0c0f14]"
+                class="bp-tile relative flex w-[5.9rem] shrink-0 flex-col overflow-hidden rounded-xl border bg-[#0a0d12]"
                 :style="{ animationDelay: `${idx * 40}ms` }"
                 :class="[
                   selectedKey === item.key
-                    ? 'border-teal-400 shadow-[0_0_18px_rgba(45,212,191,0.35)]'
+                    ? 'border-[hsl(var(--tac-amber))] shadow-[0_0_20px_hsla(var(--tac-amber)/0.35)]'
                     : 'border-white/10 hover:border-white/25 hover:-translate-y-0.5',
                   item.reached && !item.claimed && !item.locked
                     ? 'bp-tile-claimable'
@@ -736,7 +769,7 @@ onMounted(() => {
                   {{ item.level }}
                 </div>
                 <div
-                  class="relative flex h-[4.5rem] flex-col items-center justify-center gap-0.5 px-1"
+                  class="relative flex h-[4.75rem] flex-col items-center justify-center gap-0.5 px-1"
                 >
                   <Lock
                     v-if="item.locked || !item.reached"
@@ -777,7 +810,7 @@ onMounted(() => {
                   class="flex h-6 items-center justify-center text-[10px] font-bold uppercase tracking-wide"
                   :class="
                     item.track === 'premium'
-                      ? 'bg-orange-500/20 text-orange-300'
+                      ? 'bg-gradient-to-r from-orange-500/25 to-amber-500/15 text-orange-300'
                       : 'bg-white/5 text-white/45'
                   "
                 >
@@ -860,6 +893,26 @@ onMounted(() => {
 .bp-preview,
 .bp-track {
   animation: bp-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.bp-season-hero {
+  background: linear-gradient(165deg, #24180c 0%, #0e1117 72%);
+}
+
+.bp-season-mesh {
+  background:
+    radial-gradient(
+      ellipse 90% 70% at 15% 0%,
+      hsla(38, 90%, 48%, 0.38),
+      transparent 58%
+    ),
+    repeating-linear-gradient(
+      -22deg,
+      transparent,
+      transparent 14px,
+      rgba(255, 255, 255, 0.018) 14px,
+      rgba(255, 255, 255, 0.018) 15px
+    );
 }
 
 .bp-preview-glow {

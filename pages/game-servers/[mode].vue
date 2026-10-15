@@ -13,6 +13,7 @@ import {
   LogIn,
   MapPin,
   Play,
+  Server,
   Settings,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
@@ -65,24 +66,101 @@ import {
   type FleetMode,
   type FleetServer,
 } from "~/composables/usePublicServerFleet";
+import {
+  hostedApi,
+  type HostedServer,
+} from "~/composables/useHostedServers";
+import { liveMapName, sectionModeKey } from "~/utilities/serverModes";
 
 const route = useRoute();
 const { t } = useI18n();
-const { loading, servers, modes } = usePublicServerFleet();
+const auth = useAuthStore();
+const { loading, modes } = usePublicServerFleet();
 
 const modeKey = computed(() => String(route.params.mode || ""));
 const mode = computed<FleetMode | null>(
   () => modes.value.find((m) => m.key === modeKey.value) ?? null,
 );
-const ready = computed(() => !loading.value || servers.value.length > 0);
 const modeName = computed(() =>
   mode.value ? t(`pages.servers.modes.${mode.value.key}.name`) : "",
 );
 
-const loggedIn = computed(() => !!useAuthStore().me?.steam_id);
+const loggedIn = computed(() => !!auth.me?.steam_id);
 function loginWithSteam() {
   window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.href)}`;
 }
+
+/** Buyer's own Host rentals for this mode — shown above the public boxes. */
+const myHosts = ref<FleetServer[]>([]);
+const hostsLoading = ref(false);
+
+function hostToFleet(h: HostedServer): FleetServer | null {
+  const modeOf = sectionModeKey(h.section_mode);
+  if (!modeOf || !h.server_id) return null;
+  if (!["active", "provisioning"].includes(h.status)) return null;
+  const host = h.host || "127.0.0.1";
+  const port = Number(h.port) || 27015;
+  const pass = (h.connect_password || "").trim();
+  const connection_string = pass
+    ? `connect ${host}:${port}; password ${pass}`
+    : `connect ${host}:${port}`;
+  const connection_link = pass
+    ? `steam://connect/${host}:${port}/${encodeURIComponent(pass)}`
+    : `steam://connect/${host}:${port}`;
+  const capacity = Math.max(2, Number(h.slots) || 10);
+  const players = Number(h.players) || 0;
+  return {
+    id: h.server_id,
+    number: 0,
+    label: h.label || "Host",
+    type: h.type || "Deathmatch",
+    game: "cs2",
+    region: null,
+    regionName: null,
+    connection_link,
+    connection_string,
+    max_players: capacity,
+    modeKey: modeOf,
+    map: liveMapName(h.map),
+    players,
+    capacity,
+    full: players >= capacity,
+    kind: "host",
+    hostedId: h.id,
+  };
+}
+
+async function loadMyHosts() {
+  if (!loggedIn.value) {
+    myHosts.value = [];
+    return;
+  }
+  hostsLoading.value = true;
+  try {
+    const list = await hostedApi<HostedServer[]>("/hosted-servers/mine");
+    myHosts.value = (list || [])
+      .map(hostToFleet)
+      .filter((s): s is FleetServer => !!s && s.modeKey === modeKey.value);
+  } catch {
+    myHosts.value = [];
+  } finally {
+    hostsLoading.value = false;
+  }
+}
+
+watch([loggedIn, modeKey], () => void loadMyHosts(), { immediate: true });
+
+/** Public fleet + the signed-in user's Host rentals for this mode. */
+const modeServers = computed(() => {
+  const publicList = mode.value?.servers || [];
+  const publicIds = new Set(publicList.map((s) => s.id));
+  const hosts = myHosts.value.filter((h) => !publicIds.has(h.id));
+  return [...hosts, ...publicList];
+});
+
+const ready = computed(
+  () => (!loading.value && !hostsLoading.value) || modeServers.value.length > 0,
+);
 
 type SortKey = "players_desc" | "players_asc" | "number";
 type ViewKey = "tiles" | "table";
@@ -106,6 +184,7 @@ onMounted(() => {
   const saved = localStorage.getItem("servers:view");
   if (saved === "tiles" || saved === "table") view.value = saved;
   loadQuickPlayMap();
+  void auth.getMe().then(() => loadMyHosts());
 });
 watch(view, (value) => localStorage.setItem("servers:view", value));
 watch(quickPlayMap, (value) =>
@@ -140,16 +219,14 @@ function distinct(values: Array<string | null>) {
   return [...new Set(values.filter((v): v is string => !!v))].sort();
 }
 const maps = computed(() =>
-  distinct((mode.value?.servers || []).map((s) => s.map)).filter(
-    (m) => m !== "default",
-  ),
+  distinct(modeServers.value.map((s) => s.map)).filter((m) => m !== "default"),
 );
 const regions = computed(() =>
-  distinct((mode.value?.servers || []).map((s) => s.regionName)),
+  distinct(modeServers.value.map((s) => s.regionName)),
 );
 
 const visibleServers = computed(() => {
-  let list = [...(mode.value?.servers || [])];
+  let list = [...modeServers.value];
   if (mapFilter.value !== ANY) {
     list = list.filter((s) => s.map === mapFilter.value);
   }
@@ -159,7 +236,12 @@ const visibleServers = computed(() => {
   if (!showFull.value) {
     list = list.filter((s) => !s.full);
   }
-  const byNumber = (a: FleetServer, b: FleetServer) => a.number - b.number;
+  const byNumber = (a: FleetServer, b: FleetServer) => {
+    // Host rentals stay pinned above numbered public boxes.
+    if (a.kind === "host" && b.kind !== "host") return -1;
+    if (b.kind === "host" && a.kind !== "host") return 1;
+    return a.number - b.number;
+  };
   switch (sortKey.value) {
     case "players_asc":
       return list.sort((a, b) => a.players - b.players || byNumber(a, b));
@@ -172,7 +254,7 @@ const visibleServers = computed(() => {
 
 const quickPlayTarget = computed(() =>
   pickQuickPlayServer(
-    mode.value?.servers || [],
+    (mode.value?.servers || []).filter((s) => s.kind !== "host"),
     quickPlayMap.value === ANY ? null : quickPlayMap.value,
   ),
 );
@@ -225,7 +307,7 @@ function openServer(server: FleetServer) {
   selected.value = server;
   dialogOpen.value = true;
 }
-watch(servers, (list) => {
+watch(modeServers, (list) => {
   if (!selected.value) return;
   selected.value = list.find((s) => s.id === selected.value!.id) ?? null;
   if (!selected.value) dialogOpen.value = false;
@@ -524,7 +606,7 @@ useHead(() => ({
 
         <PageTransition :delay="120">
           <Empty
-            v-if="mode.servers.length === 0"
+            v-if="modeServers.length === 0"
             class="mt-4 min-h-[200px] rounded-xl bg-card"
           >
             <EmptyTitle>{{ $t("pages.servers.no_servers_title") }}</EmptyTitle>
@@ -549,27 +631,59 @@ useHead(() => ({
               :key="server.id"
               role="button"
               tabindex="0"
-              class="group relative flex h-[76px] cursor-pointer items-center gap-3 overflow-hidden rounded-xl border border-white/5 bg-card px-3.5 transition-colors hover:border-white/15"
-              @click="openServer(server)"
-              @keydown.enter="openServer(server)"
+              class="group relative flex h-[76px] cursor-pointer items-center gap-3 overflow-hidden rounded-xl px-3.5 transition-colors"
+              :class="
+                server.kind === 'host'
+                  ? 'border border-[hsl(var(--tac-amber)/0.4)] bg-gradient-to-r from-[hsl(var(--tac-amber)/0.14)] via-card to-card hover:border-[hsl(var(--tac-amber)/0.7)]'
+                  : 'border border-white/5 bg-card hover:border-white/15'
+              "
+              @click="
+                server.kind === 'host' && server.hostedId
+                  ? $router.push(`/hosting/${server.hostedId}`)
+                  : openServer(server)
+              "
+              @keydown.enter="
+                server.kind === 'host' && server.hostedId
+                  ? $router.push(`/hosting/${server.hostedId}`)
+                  : openServer(server)
+              "
             >
               <img
+                v-if="server.kind !== 'host'"
                 :src="mapImage(server.map)"
                 alt=""
                 class="absolute inset-0 h-full w-full rounded-[10px] object-cover opacity-20 transition-opacity duration-300 group-hover:opacity-30"
                 @error="onImgError"
               />
+              <div
+                v-else
+                class="pointer-events-none absolute inset-y-0 start-0 w-1 bg-[hsl(var(--tac-amber))]"
+                aria-hidden="true"
+              />
 
               <div class="relative flex min-w-0 flex-1 flex-col gap-1.5">
                 <div class="flex items-center gap-2 text-[0.8rem] font-medium">
-                  <b class="font-bold">#{{ server.number }}</b>
-                  <span
-                    v-if="server.regionName"
-                    class="inline-flex min-w-0 items-center gap-1"
-                  >
-                    <MapPin class="h-3 w-3 shrink-0 text-white/60" />
-                    <span class="truncate">{{ server.regionName }}</span>
-                  </span>
+                  <template v-if="server.kind === 'host'">
+                    <span
+                      class="inline-flex items-center gap-1 rounded bg-[hsl(var(--tac-amber)/0.2)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                    >
+                      <Server class="h-3 w-3" />
+                      {{ $t("pages.servers.host_badge") }}
+                    </span>
+                    <span class="truncate font-semibold">{{
+                      server.label
+                    }}</span>
+                  </template>
+                  <template v-else>
+                    <b class="font-bold">#{{ server.number }}</b>
+                    <span
+                      v-if="server.regionName"
+                      class="inline-flex min-w-0 items-center gap-1"
+                    >
+                      <MapPin class="h-3 w-3 shrink-0 text-white/60" />
+                      <span class="truncate">{{ server.regionName }}</span>
+                    </span>
+                  </template>
                 </div>
                 <div
                   class="flex min-w-0 items-center gap-2 text-xs font-medium"
@@ -586,7 +700,11 @@ useHead(() => ({
                     <span class="opacity-60">/ {{ server.capacity }}</span>
                   </span>
                   <span class="text-white/40">•</span>
-                  <span class="truncate">{{ mapLabel(server.map) }}</span>
+                  <span class="truncate">{{
+                    server.kind === "host"
+                      ? $t("pages.servers.your_host")
+                      : mapLabel(server.map)
+                  }}</span>
                 </div>
               </div>
 
@@ -594,7 +712,7 @@ useHead(() => ({
                 <button
                   type="button"
                   class="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-white opacity-50 transition-opacity hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
-                  :disabled="server.full"
+                  :disabled="server.full || !server.connection_link"
                   :title="
                     server.full
                       ? $t('pages.servers.full')
@@ -650,20 +768,46 @@ useHead(() => ({
                   v-for="server in visibleServers"
                   :key="server.id"
                   class="cursor-pointer border-b border-white/5 last:border-b-0 hover:bg-white/[0.03]"
-                  @click="openServer(server)"
+                  :class="
+                    server.kind === 'host'
+                      ? 'bg-[hsl(var(--tac-amber)/0.06)]'
+                      : ''
+                  "
+                  @click="
+                    server.kind === 'host' && server.hostedId
+                      ? $router.push(`/hosting/${server.hostedId}`)
+                      : openServer(server)
+                  "
                 >
-                  <td class="px-4 py-2.5 font-bold">{{ server.number }}</td>
+                  <td class="px-4 py-2.5 font-bold">
+                    <span
+                      v-if="server.kind === 'host'"
+                      class="text-[11px] uppercase tracking-wide text-[hsl(var(--tac-amber))]"
+                      >{{ $t("pages.servers.host_badge") }}</span
+                    >
+                    <template v-else>{{ server.number }}</template>
+                  </td>
                   <td
                     class="px-3 py-2.5 font-semibold tabular-nums"
                     :class="playersTone(server)"
                   >
                     {{ server.players }}/{{ server.capacity }}
                   </td>
-                  <td class="px-3 py-2.5">{{ mapLabel(server.map) }}</td>
+                  <td class="px-3 py-2.5">
+                    {{
+                      server.kind === "host"
+                        ? server.label
+                        : mapLabel(server.map)
+                    }}
+                  </td>
                   <td
                     class="hidden px-3 py-2.5 text-muted-foreground sm:table-cell"
                   >
-                    {{ server.regionName }}
+                    {{
+                      server.kind === "host"
+                        ? $t("pages.servers.your_host")
+                        : server.regionName
+                    }}
                   </td>
                   <td class="px-4 py-1.5 text-end">
                     <Button
@@ -671,7 +815,7 @@ useHead(() => ({
                       class="h-8 min-w-20 rounded-lg"
                       :class="server.full ? '' : 'tac-amber-cta'"
                       :variant="server.full ? 'secondary' : 'default'"
-                      :disabled="server.full"
+                      :disabled="server.full || !server.connection_link"
                       @click.stop="connect(server)"
                     >
                       {{

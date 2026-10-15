@@ -861,27 +861,28 @@ onMounted(() => {
                   v-for="m in modeOptions"
                   :key="m.key"
                   type="button"
-                  class="group relative aspect-[5/4] overflow-hidden rounded-xl border text-start transition duration-200"
+                  class="group relative flex min-h-[5.5rem] flex-col justify-between overflow-hidden rounded-xl border p-3 text-start transition duration-200"
                   :class="
                     mode === m.key
-                      ? 'border-[hsl(var(--tac-amber))] ring-2 ring-[hsl(var(--tac-amber)/0.35)]'
-                      : 'border-border/70 hover:border-white/25'
+                      ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.12)] ring-2 ring-[hsl(var(--tac-amber)/0.3)]'
+                      : 'border-border/70 bg-card/50 hover:border-white/25 hover:bg-card/80'
                   "
                   @click="mode = m.key"
                 >
-                  <img
-                    :src="m.cover"
-                    alt=""
-                    class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  <span
+                    class="pointer-events-none absolute -end-4 -top-4 h-16 w-16 rounded-full opacity-30 blur-2xl"
+                    :style="{ background: m.accent }"
+                    aria-hidden="true"
                   />
-                  <div
-                    class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/20"
+                  <span
+                    class="relative inline-flex h-2 w-2 rounded-full"
+                    :style="{ background: m.accent }"
                   />
-                  <div class="absolute inset-x-0 bottom-0 p-2.5">
-                    <div class="text-sm font-semibold text-white">
+                  <div class="relative mt-2">
+                    <div class="text-sm font-semibold text-foreground">
                       {{ $t(`pages.servers.modes.${m.key}.name`) }}
                     </div>
-                    <div class="text-[11px] text-white/55">
+                    <div class="text-[11px] text-muted-foreground">
                       {{
                         $t("pages.servers.host.mode_slots_hint", {
                           n: HOST_INCLUDED_SLOTS,
@@ -1136,11 +1137,19 @@ onMounted(() => {
               v-for="server in myHostServers"
               :key="server.id"
               :to="`/hosting/${server.id}`"
-              class="flex items-center gap-3 rounded-xl border border-border bg-card/40 p-4 transition-colors hover:bg-muted/40"
+              class="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.28)] bg-gradient-to-r from-[hsl(var(--tac-amber)/0.1)] via-card/80 to-card/60 p-4 transition hover:border-[hsl(var(--tac-amber)/0.55)]"
             >
-              <Server class="h-8 w-8 shrink-0 text-muted-foreground" />
+              <span
+                class="absolute inset-y-0 start-0 w-1 bg-[hsl(var(--tac-amber))]"
+                aria-hidden="true"
+              />
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))]"
+              >
+                <Server class="h-5 w-5" />
+              </div>
               <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <span class="truncate font-semibold">{{ server.label }}</span>
                   <Badge :variant="hostedStatusVariant(server.status)">
                     {{ $t(`pages.hosting.status.${server.status}`) }}
