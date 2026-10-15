@@ -8,10 +8,10 @@ const hostEl = ref<HTMLElement | null>(null);
 
 let disposeScene: (() => void) | undefined;
 
+// Real CS2 inspect shots (Getaway Sally + Special Agent Ava), cropped.
 const AGENTS = [
-  { src: "/img/servers/ct-2.jpg", x: -1.85, z: -0.35, scale: 1.55, yaw: 0.12 },
-  { src: "/img/servers/t.jpg", x: 0.05, z: 0.55, scale: 1.85, yaw: -0.06 },
-  { src: "/img/servers/ct.jpg", x: 1.75, z: -0.15, scale: 1.65, yaw: -0.18 },
+  { src: "/img/servers/ava.jpg", x: -1.35, z: 0.15, scale: 2.05, yaw: 0.14 },
+  { src: "/img/servers/sally.jpg", x: 1.15, z: 0.45, scale: 2.2, yaw: -0.12 },
 ] as const;
 
 onMounted(async () => {
