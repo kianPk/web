@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
+import ServerHostTile from "~/components/servers/ServerHostTile.vue";
 import ServersAgentsHero from "~/components/servers/ServersAgentsHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 
@@ -38,14 +39,19 @@ useHead(() => ({ title: t("pages.servers.title") }));
               class="aspect-[4/5] rounded-lg"
             />
           </template>
-          <ServerModeTile
-            v-for="(mode, index) in modes"
-            v-else
-            :key="mode.key"
-            :mode="mode"
-            class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
-            :style="{ animationDelay: `${index * 50}ms` }"
-          />
+          <template v-else>
+            <ServerModeTile
+              v-for="(mode, index) in modes"
+              :key="mode.key"
+              :mode="mode"
+              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+              :style="{ animationDelay: `${index * 50}ms` }"
+            />
+            <ServerHostTile
+              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+              :style="{ animationDelay: `${modes.length * 50}ms` }"
+            />
+          </template>
         </div>
       </div>
     </section>

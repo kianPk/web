@@ -7,6 +7,18 @@ export type HostedPlan = {
   image_url: string | null;
   hosted_slots: number;
   duration: string;
+  hosted_section_mode?: string | null;
+};
+
+export type SectionHostOverview = {
+  enabled: boolean;
+  available: boolean;
+  remaining: number;
+  plans: HostedPlan[];
+  modes: string[];
+  slot_price_irr: number;
+  slot_price_ypoint: number;
+  max_slots: number;
 };
 
 export type HostedAdminPlan = {
@@ -59,6 +71,7 @@ export type HostedServer = {
   created_at: string;
   product_id: string | null;
   type: string | null;
+  section_mode?: string | null;
   host: string | null;
   port: number | null;
   connect_password: string | null;

@@ -50,6 +50,7 @@ export function usePublicServerFleet() {
           where: {
             _and: [
               { section_mode: { _is_null: false } } as any,
+              { hosted_section: { _eq: false } } as any,
               { connection_string: { _is_null: false } },
               { enabled: { _eq: true } },
               { connected: { _eq: true } },
@@ -67,6 +68,7 @@ export function usePublicServerFleet() {
           connection_string: true,
           max_players: true,
           section_mode: true,
+          hosted_section: true,
           server_region: {
             is_lan: true,
             description: true,
@@ -105,6 +107,8 @@ export function usePublicServerFleet() {
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
+      // Paid Host rentals share section_mode but stay off the public fleet.
+      if (row.hosted_section) continue;
       const modeKey = sectionModeKey(row.section_mode);
       if (!modeKey) continue;
 
