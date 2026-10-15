@@ -16,6 +16,11 @@ export type SectionHostOverview = {
   remaining: number;
   modes: string[];
   durations: string[];
+  mode_slots?: Record<string, number>;
+  included_slots_by_mode?: Record<string, number>;
+  max_slots?: number;
+  slot_price_irr?: number;
+  slot_price_ypoint?: number;
   price_irr_per_hour: number;
   price_ypoint_per_hour: number;
 };
@@ -23,10 +28,18 @@ export type SectionHostOverview = {
 export type SectionHostQuote = {
   duration: string;
   hours: number;
+  slots: number;
+  included_slots: number;
+  extra_slots: number;
+  base_price_irr: number;
+  base_price_ypoint: number;
+  slots_price_irr: number;
+  slots_price_ypoint: number;
   price_irr: number;
   price_ypoint: number;
   price_irr_per_hour: number;
   price_ypoint_per_hour: number;
+  max_slots?: number;
 };
 
 export type HostedAdminPlan = {

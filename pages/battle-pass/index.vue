@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
-  CalendarClock,
+  Award,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   Crown,
   Gift,
-  RefreshCw,
-  ShoppingBag,
+  HelpCircle,
+  Lock,
   Sparkles,
-  Swords,
+  Zap,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import BattlePassRewardCell from "~/components/battle-pass/BattlePassRewardCell.vue";
 import type { BattlePassReward } from "~/components/battle-pass/types";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Badge } from "~/components/ui/badge";
 import { toast } from "~/components/ui/toast";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useYpoints } from "~/composables/useYpoints";
@@ -38,6 +39,14 @@ type Challenge = {
   completed: boolean;
 };
 
+type LevelRow = {
+  level: number;
+  free: BattlePassReward | null;
+  premium: BattlePassReward | null;
+  free_claimed: boolean;
+  premium_claimed: boolean;
+};
+
 type BattlePassResponse = {
   season: {
     number: number;
@@ -58,13 +67,7 @@ type BattlePassResponse = {
     subscriber: number;
     bonus?: number;
   };
-  levels: Array<{
-    level: number;
-    free: BattlePassReward | null;
-    premium: BattlePassReward | null;
-    free_claimed: boolean;
-    premium_claimed: boolean;
-  }>;
+  levels: LevelRow[];
   daily: { day: string; resets_at: string; missions: Mission[] };
   weekly: { week_start: string; resets_at: string; missions: Mission[] };
   subscriber: {
@@ -81,6 +84,18 @@ type BattlePassResponse = {
   } | null;
 };
 
+type TrackItem = {
+  key: string;
+  level: number;
+  track: "free" | "premium";
+  reward: BattlePassReward;
+  claimed: boolean;
+  locked: boolean;
+  reached: boolean;
+};
+
+const PAGE_SIZE = 9;
+
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const { refresh: refreshYpoints } = useYpoints();
@@ -91,7 +106,9 @@ const data = ref<BattlePassResponse | null>(null);
 const busyCell = ref<string | null>(null);
 const claimingAll = ref(false);
 const buying = ref(false);
-const track = ref<HTMLElement | null>(null);
+const page = ref(0);
+const selectedKey = ref<string | null>(null);
+const xpHelpOpen = ref(false);
 
 const numberLocale = computed(() =>
   locale.value?.startsWith("fa") ? "fa-IR" : "en-US",
@@ -128,6 +145,89 @@ const canAffordPremium = computed(
     data.value.balance >= data.value.season.premium_price_ypoints,
 );
 
+const challengeCount = computed(() => {
+  if (!data.value) return 0;
+  return (
+    data.value.daily.missions.length +
+    data.value.weekly.missions.length +
+    (data.value.subscriber?.challenges.length || 0)
+  );
+});
+
+const trackItems = computed<TrackItem[]>(() => {
+  if (!data.value) return [];
+  const items: TrackItem[] = [];
+  for (const row of data.value.levels) {
+    if (row.free) {
+      items.push({
+        key: `${row.level}:free`,
+        level: row.level,
+        track: "free",
+        reward: row.free,
+        claimed: row.free_claimed,
+        locked: false,
+        reached: row.level <= data.value.level,
+      });
+    }
+    if (row.premium) {
+      items.push({
+        key: `${row.level}:premium`,
+        level: row.level,
+        track: "premium",
+        reward: row.premium,
+        claimed: row.premium_claimed,
+        locked: !data.value.premium,
+        reached: row.level <= data.value.level,
+      });
+    }
+  }
+  return items;
+});
+
+const pageCount = computed(() =>
+  Math.max(1, Math.ceil(trackItems.value.length / PAGE_SIZE)),
+);
+
+const pageItems = computed(() => {
+  const start = page.value * PAGE_SIZE;
+  return trackItems.value.slice(start, start + PAGE_SIZE);
+});
+
+const selected = computed(
+  () =>
+    trackItems.value.find((item) => item.key === selectedKey.value) ||
+    pageItems.value[0] ||
+    null,
+);
+
+const pageNumbers = computed(() => {
+  const total = pageCount.value;
+  const current = page.value;
+  const nums: number[] = [];
+  for (let i = 0; i < total; i++) {
+    if (i < 6 || i === total - 1 || Math.abs(i - current) <= 1) {
+      nums.push(i);
+    }
+  }
+  return nums;
+});
+
+watch(trackItems, (items) => {
+  if (!items.length) {
+    selectedKey.value = null;
+    return;
+  }
+  if (!selectedKey.value || !items.some((i) => i.key === selectedKey.value)) {
+    const claimable = items.find(
+      (i) => i.reached && !i.claimed && !i.locked,
+    );
+    const current = items.find((i) => i.level === (data.value?.level || 1));
+    selectedKey.value = (claimable || current || items[0]).key;
+    const idx = items.findIndex((i) => i.key === selectedKey.value);
+    if (idx >= 0) page.value = Math.floor(idx / PAGE_SIZE);
+  }
+});
+
 function api(path: string) {
   return `https://${apiDomain}/battle-pass/${path}`;
 }
@@ -149,7 +249,6 @@ async function refresh() {
       query: { _: Date.now() },
     });
     await nextTick();
-    scrollToCurrent();
   } catch (error) {
     toast({
       variant: "destructive",
@@ -159,18 +258,6 @@ async function refresh() {
     data.value = null;
   } finally {
     loading.value = false;
-  }
-}
-
-function scrollToCurrent() {
-  if (!track.value || !data.value) return;
-  const target = Math.min(data.value.level + 1, data.value.max_level);
-  const column = track.value.querySelector<HTMLElement>(
-    `[data-level="${target}"]`,
-  );
-  if (column) {
-    track.value.scrollLeft =
-      column.offsetLeft - track.value.clientWidth / 2 + column.clientWidth / 2;
   }
 }
 
@@ -258,7 +345,6 @@ function formatIn(iso: string) {
   return format.format(Math.round(hours / 24), "day");
 }
 
-/** Compact countdown like xplay’s top-left season timer. */
 function countdownParts(iso: string) {
   const ms = Math.max(0, new Date(iso).getTime() - Date.now());
   const totalH = Math.floor(ms / 3_600_000);
@@ -287,6 +373,29 @@ function formatPrice(irr: number) {
   });
 }
 
+function rewardLabel(reward: BattlePassReward) {
+  if (reward.type === "ypoints") return `${reward.amount} YP`;
+  if (reward.type === "xp") return `+${reward.amount} XP`;
+  if (reward.type === "subscription") {
+    return t("pages.battle_pass.reward.subscription", {
+      tier:
+        reward.tier === "premium_plus"
+          ? t("pages.challenges.tier_plus")
+          : t("pages.challenges.tier_premium"),
+      days: reward.days,
+    });
+  }
+  return t(`pages.battle_pass.badge.${reward.badge}`);
+}
+
+function selectItem(item: TrackItem) {
+  selectedKey.value = item.key;
+}
+
+function goPage(n: number) {
+  page.value = Math.max(0, Math.min(pageCount.value - 1, n));
+}
+
 onMounted(() => {
   void refresh();
 });
@@ -294,417 +403,437 @@ onMounted(() => {
 
 <template>
   <PageTransition>
-    <div class="relative mx-auto w-full max-w-6xl space-y-6 px-4 pb-16 pt-6">
-      <div
-        class="pointer-events-none absolute inset-x-0 -top-8 h-72 bg-[radial-gradient(ellipse_at_top,hsla(var(--tac-amber)/0.12),transparent_60%)]"
-        aria-hidden="true"
-      />
-
-      <div v-if="!auth.me" class="relative py-20 text-center text-sm text-muted-foreground">
+    <div class="mx-auto w-full max-w-[1400px] px-3 pb-16 pt-4 md:px-5">
+      <div v-if="!auth.me" class="py-20 text-center text-sm text-muted-foreground">
         {{ $t("pages.battle_pass.login_required") }}
       </div>
 
-      <div v-else-if="loading && !data" class="relative space-y-4">
-        <Skeleton class="h-40 w-full rounded-3xl" />
-        <Skeleton class="h-72 w-full rounded-3xl" />
+      <div v-else-if="loading && !data" class="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <Skeleton class="h-[36rem] rounded-xl" />
+        <Skeleton class="h-[36rem] rounded-xl" />
       </div>
 
       <div
         v-else-if="data && !data.season"
-        class="relative rounded-3xl border border-border/60 bg-muted/20 p-8 text-sm text-muted-foreground"
+        class="rounded-xl border border-border/60 bg-muted/20 p-8 text-sm text-muted-foreground"
       >
         {{ $t("pages.battle_pass.no_season") }}
       </div>
 
-      <template v-else-if="data && season">
-        <header
-          class="relative overflow-hidden rounded-3xl border border-[hsl(var(--tac-amber)/0.28)] bg-[#080a0f] shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
-        >
+      <div
+        v-else-if="data && season"
+        class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]"
+      >
+        <!-- LEFT: season + challenges + upgrade -->
+        <aside class="flex flex-col gap-3">
           <div
-            class="pointer-events-none absolute inset-0"
-            style="
-              background:
-                radial-gradient(ellipse 70% 80% at 0% 0%, hsla(var(--tac-amber) / 0.22), transparent 50%),
-                radial-gradient(ellipse 50% 60% at 100% 20%, rgba(56, 120, 255, 0.12), transparent 45%),
-                linear-gradient(165deg, #141a26 0%, #080a0f 55%, #0c1018 100%);
-            "
-            aria-hidden="true"
-          />
-          <div
-            class="pointer-events-none absolute inset-0 opacity-[0.07]"
-            style="
-              background-image: linear-gradient(hsla(0,0%,100%,0.08) 1px, transparent 1px),
-                linear-gradient(90deg, hsla(0,0%,100%,0.08) 1px, transparent 1px);
-              background-size: 28px 28px;
-            "
-            aria-hidden="true"
-          />
-
-          <div class="relative flex flex-wrap items-center justify-between gap-6 p-6 md:p-8">
-            <div class="flex items-center gap-5">
-              <div class="relative">
-                <div
-                  class="absolute -inset-1 rounded-[1.35rem] bg-[hsl(var(--tac-amber)/0.35)] blur-md"
-                  aria-hidden="true"
-                />
-                <div
-                  class="relative flex h-[5.25rem] w-[5.25rem] flex-col items-center justify-center rounded-[1.25rem] border border-[hsl(var(--tac-amber)/0.55)] bg-black/50"
-                >
-                  <span
-                    class="text-[9px] font-bold uppercase tracking-[0.22em] text-[hsl(var(--tac-amber)/0.9)]"
-                  >
-                    {{ $t("pages.battle_pass.level") }}
-                  </span>
-                  <span class="text-4xl font-black tabular-nums leading-none text-white">{{
-                    data.level
-                  }}</span>
-                </div>
-              </div>
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <h1 class="m-0 text-2xl font-black tracking-tight text-white md:text-3xl">
-                    {{ $t("pages.battle_pass.title") }}
-                  </h1>
-                  <Badge
-                    v-if="data.premium"
-                    class="border-0 bg-[hsl(var(--tac-amber))] text-black hover:bg-[hsl(var(--tac-amber))]"
-                  >
-                    <Crown class="me-1 h-3 w-3" />
-                    {{ $t("pages.battle_pass.premium_active") }}
-                  </Badge>
-                </div>
-                <p class="m-0 mt-1.5 text-sm text-white/55">
-                  {{
-                    $t("pages.battle_pass.season_name", {
-                      season: season.number,
-                    })
-                  }}
-                  ·
-                  {{
-                    $t("pages.battle_pass.total_xp", {
-                      xp: formatNumber(data.xp),
-                    })
-                  }}
-                </p>
-                <div
-                  class="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-white/45"
-                >
-                  <CalendarClock class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
-                  {{ $t("pages.battle_pass.ends_in") }}
-                  <span class="text-[hsl(var(--tac-amber))]">
-                    {{ countdownParts(season.ends_at).d }}d
-                    {{ countdownParts(season.ends_at).h }}h
-                    {{ countdownParts(season.ends_at).m }}m
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex w-full max-w-md flex-col gap-3 sm:w-auto">
-              <div class="space-y-2 rounded-2xl border border-white/10 bg-black/25 p-3.5">
-                <div class="flex justify-between text-xs text-white/50">
-                  <span v-if="data.level < data.max_level">
-                    {{
-                      $t("pages.battle_pass.next_level", {
-                        level: data.level + 1,
-                      })
-                    }}
-                  </span>
-                  <span v-else>{{ $t("pages.battle_pass.max_level") }}</span>
-                  <span class="tabular-nums text-white/70">
-                    {{ formatNumber(levelXp) }}/{{ formatNumber(data.xp_per_level) }}
-                  </span>
-                </div>
-                <div class="h-2.5 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    class="h-full rounded-full bg-gradient-to-r from-[hsl(var(--tac-amber)/0.7)] to-[hsl(var(--tac-amber))] transition-all duration-500"
-                    :style="{ width: `${levelPct}%` }"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  class="border-white/15 bg-white/5 text-white hover:bg-white/10"
-                  :disabled="loading"
-                  @click="refresh"
-                >
-                  <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': loading }" />
-                </Button>
-                <Button
-                  v-if="claimableCount > 0"
-                  size="sm"
-                  class="gap-1.5 bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.35)] hover:bg-emerald-500"
-                  :disabled="claimingAll"
-                  @click="claimAll"
-                >
-                  <Gift class="h-3.5 w-3.5" />
-                  {{ $t("pages.battle_pass.claim_all", { count: claimableCount }) }}
-                </Button>
-                <template v-if="!data.premium">
-                  <Button
-                    v-if="canAffordPremium"
-                    size="sm"
-                    class="gap-1.5 bg-[hsl(var(--tac-amber))] font-semibold text-black shadow-[0_0_24px_hsla(var(--tac-amber)/0.4)] hover:brightness-110"
-                    :disabled="buying"
-                    @click="buyPremium"
-                  >
-                    <Sparkles class="h-3.5 w-3.5" />
-                    {{ $t("pages.battle_pass.buy_premium") }}
-                    · {{ formatNumber(season.premium_price_ypoints) }}
-                  </Button>
-                  <Button
-                    v-else
-                    as-child
-                    size="sm"
-                    variant="outline"
-                    class="border-white/15 bg-white/5 text-white"
-                  >
-                    <NuxtLink to="/store">
-                      <ShoppingBag class="h-3.5 w-3.5" />
-                      {{ $t("pages.battle_pass.get_ypoints") }}
-                    </NuxtLink>
-                  </Button>
-                </template>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <section
-          class="relative overflow-hidden rounded-3xl border border-white/10 bg-[#080a0f] shadow-[0_16px_48px_rgba(0,0,0,0.28)]"
-        >
-          <div class="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3.5 md:px-5">
-            <h2 class="m-0 text-sm font-bold tracking-wide text-white/85">
-              {{ $t("pages.battle_pass.rewards_title") }}
-            </h2>
-            <p class="m-0 hidden max-w-md text-end text-xs text-white/35 sm:block">
-              {{ $t("pages.battle_pass.xp_rules") }}
-            </p>
-          </div>
-          <div class="flex">
-            <div class="hidden w-[5.5rem] shrink-0 flex-col border-e border-white/10 sm:flex">
-              <div
-                class="flex h-[7.25rem] flex-col items-center justify-center gap-1 px-2 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
-              >
-                <Crown class="h-4 w-4" />
-                {{ $t("pages.battle_pass.premium_track") }}
-              </div>
-              <div
-                class="flex h-9 items-center justify-center border-y border-white/10 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35"
-              >
-                {{ $t("pages.battle_pass.level") }}
-              </div>
-              <div
-                class="flex h-[7.25rem] items-center justify-center px-2 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-white/55"
-              >
-                {{ $t("pages.battle_pass.free_track") }}
-              </div>
-            </div>
+            class="overflow-hidden rounded-xl border border-white/10 bg-[#12151c]"
+          >
             <div
-              ref="track"
-              class="flex flex-1 gap-2.5 overflow-x-auto px-3 py-4 scroll-smooth md:gap-3 md:px-4"
+              class="relative px-4 pb-3 pt-4"
+              style="
+                background:
+                  radial-gradient(ellipse 90% 80% at 20% 0%, hsla(32, 90%, 50%, 0.35), transparent 55%),
+                  linear-gradient(160deg, #2a1a0c 0%, #12151c 70%);
+              "
             >
-              <div
-                v-for="row in data.levels"
-                :key="row.level"
-                :data-level="row.level"
-                class="flex w-[7.25rem] shrink-0 flex-col gap-2.5"
-              >
-                <BattlePassRewardCell
-                  :reward="row.premium"
-                  premium
-                  :reached="row.level <= data.level"
-                  :claimed="row.premium_claimed"
-                  :locked="!data.premium"
-                  :busy="busyCell === `${row.level}:premium`"
-                  @claim="claim(row.level, 'premium')"
-                />
-                <div
-                  class="relative flex h-9 items-center justify-center rounded-lg text-xs font-black tabular-nums"
-                  :class="
-                    row.level <= data.level
-                      ? 'bg-[hsl(var(--tac-amber))] text-black shadow-[0_0_18px_hsla(var(--tac-amber)/0.45)]'
-                      : row.level === data.level + 1
-                        ? 'border border-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber))]'
-                        : 'bg-white/[0.04] text-white/30'
-                  "
+              <div class="text-[1.35rem] font-black uppercase tracking-wide text-white">
+                {{ $t("pages.battle_pass.title") }}
+                {{ season.number }}
+              </div>
+              <div class="mt-2 flex flex-wrap gap-1.5">
+                <span
+                  class="rounded bg-black/40 px-2 py-0.5 text-[11px] font-semibold text-white/80"
                 >
-                  {{ row.level }}
-                </div>
-                <BattlePassRewardCell
-                  :reward="row.free"
-                  :reached="row.level <= data.level"
-                  :claimed="row.free_claimed"
-                  :locked="false"
-                  :busy="busyCell === `${row.level}:free`"
-                  @claim="claim(row.level, 'free')"
-                />
+                  {{ $t("pages.battle_pass.levels_badge", { n: data.max_level }) }}
+                </span>
+                <span
+                  class="rounded bg-black/40 px-2 py-0.5 text-[11px] font-semibold text-white/80"
+                >
+                  {{
+                    $t("pages.battle_pass.challenges_badge", {
+                      n: challengeCount,
+                    })
+                  }}
+                </span>
+              </div>
+              <div class="mt-3 font-mono text-xs text-white/55">
+                {{ $t("pages.battle_pass.season_end") }}
+                <span class="ms-1 text-[hsl(var(--tac-amber))]">
+                  {{ countdownParts(season.ends_at).d }}d,
+                  {{ countdownParts(season.ends_at).h }}h,
+                  {{ countdownParts(season.ends_at).m }}min
+                </span>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section class="grid gap-4 lg:grid-cols-2">
+            <div class="space-y-2 border-t border-white/10 px-3 py-3">
+              <div class="flex items-center justify-between gap-2 text-xs text-white/50">
+                <span>
+                  {{ $t("pages.battle_pass.level") }}
+                  {{ data.level }}
+                </span>
+                <span class="tabular-nums">
+                  {{ formatNumber(levelXp) }} /
+                  {{ formatNumber(data.xp_per_level) }} XP
+                </span>
+              </div>
+              <div class="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-[hsl(var(--tac-amber))]"
+                  :style="{ width: `${levelPct}%` }"
+                />
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300"
+                @click="xpHelpOpen = !xpHelpOpen"
+              >
+                <HelpCircle class="h-3.5 w-3.5" />
+                {{ $t("pages.battle_pass.xp_how") }}
+              </button>
+              <p
+                v-if="xpHelpOpen"
+                class="m-0 rounded-lg bg-black/30 p-2 text-[11px] leading-relaxed text-white/55"
+              >
+                {{ $t("pages.battle_pass.xp_rules") }}
+              </p>
+            </div>
+          </div>
+
           <div
             v-for="group in [
               { id: 'daily', block: data.daily },
               { id: 'weekly', block: data.weekly },
             ]"
             :key="group.id"
-            class="rounded-3xl border border-border/50 bg-card/50 p-5 backdrop-blur-sm"
+            class="rounded-xl border border-white/10 bg-[#12151c] p-3"
           >
-            <div class="mb-4 flex items-center justify-between gap-2">
-              <h3 class="m-0 text-base font-semibold">
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <h3 class="m-0 text-sm font-bold text-white">
                 {{ $t(`pages.battle_pass.${group.id}_title`) }}
               </h3>
-              <span
-                class="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground"
-              >
-                <CalendarClock class="h-3.5 w-3.5" />
-                {{
-                  $t("pages.battle_pass.resets", {
-                    time: formatIn(group.block.resets_at),
-                  })
-                }}
-              </span>
             </div>
-            <div class="space-y-2.5">
-              <div
-                v-for="mission in group.block.missions"
-                :key="mission.key"
-                class="rounded-2xl border p-3.5 transition-colors"
-                :class="
-                  mission.completed
-                    ? 'border-emerald-500/40 bg-emerald-500/[0.08]'
-                    : 'border-border/50 bg-background/40'
-                "
-              >
-                <div class="flex items-start justify-between gap-2 text-sm">
-                  <span class="font-medium leading-snug">
-                    {{ missionTitle(mission.key, mission.target) }}
-                  </span>
-                  <span
-                    class="shrink-0 rounded-md bg-[hsl(var(--tac-amber)/0.14)] px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[hsl(var(--tac-amber))]"
-                  >
-                    +{{ formatNumber(mission.xp) }} XP
-                  </span>
-                </div>
-                <div class="mt-2.5 flex items-center gap-2">
-                  <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      class="h-full rounded-full transition-all duration-500"
-                      :class="
-                        mission.completed
-                          ? 'bg-emerald-500'
-                          : 'bg-[hsl(var(--tac-amber))]'
-                      "
-                      :style="{ width: `${missionPct(mission)}%` }"
-                    />
-                  </div>
-                  <span class="font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {{ mission.progress }}/{{ mission.target }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          v-if="data.subscriber"
-          class="rounded-3xl border border-[hsl(var(--tac-amber)/0.3)] bg-gradient-to-br from-[hsl(var(--tac-amber)/0.08)] to-transparent p-5 md:p-6"
-        >
-          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="m-0 flex items-center gap-2 text-base font-semibold">
-              <Swords class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-              {{ $t("pages.battle_pass.subscriber_title") }}
-            </h3>
-            <Badge v-if="data.subscriber.subscription" variant="secondary">
+            <p class="m-0 mb-2 text-[11px] text-white/40">
               {{
-                data.subscriber.subscription.tier === "premium_plus"
-                  ? $t("pages.challenges.tier_plus")
-                  : $t("pages.challenges.tier_premium")
-              }}
-            </Badge>
-          </div>
-
-          <template v-if="data.subscriber.unlocked">
-            <p class="m-0 mb-4 text-xs text-muted-foreground">
-              {{
-                $t("pages.battle_pass.subscriber_help", {
-                  xp: data.subscriber.xp_per_challenge,
+                $t("pages.battle_pass.resets", {
+                  time: formatIn(group.block.resets_at),
                 })
               }}
             </p>
-            <div class="grid gap-2.5 md:grid-cols-2">
+            <div class="space-y-2">
               <div
-                v-for="challenge in data.subscriber.challenges"
-                :key="challenge.id"
-                class="rounded-2xl border p-3.5"
-                :class="
-                  challenge.completed
-                    ? 'border-emerald-500/40 bg-emerald-500/[0.08]'
-                    : 'border-border/50 bg-background/40'
-                "
+                v-for="mission in group.block.missions"
+                :key="mission.key"
+                class="rounded-lg border border-white/[0.07] bg-[#0c0f14] p-2.5"
               >
-                <div class="flex items-start justify-between gap-2 text-sm">
-                  <span class="font-medium">
-                    {{ $t(`pages.challenges.catalog.${challenge.key}.title`) }}
+                <div class="flex items-start justify-between gap-2">
+                  <span class="text-[12px] font-medium leading-snug text-white/90">
+                    {{ missionTitle(mission.key, mission.target) }}
                   </span>
-                  <span class="flex shrink-0 items-center gap-1 text-xs">
-                    <img src="/img/ypoint-logo.png" alt="" class="h-3.5 w-3.5 object-contain" />
-                    +{{ challenge.reward_ypoints }}
-                    <span class="font-mono text-[hsl(var(--tac-amber))]">
-                      +{{ data.subscriber.xp_per_challenge }} XP
-                    </span>
+                  <span
+                    class="shrink-0 font-mono text-[11px] tabular-nums text-white/45"
+                  >
+                    {{ mission.progress }} / {{ mission.target }}
                   </span>
                 </div>
-                <p class="m-0 mt-1 text-xs text-muted-foreground">
-                  {{ $t(`pages.challenges.catalog.${challenge.key}.description`) }}
-                </p>
-                <div class="mt-2.5 flex items-center gap-2">
-                  <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      class="h-full rounded-full transition-all duration-500"
-                      :class="
-                        challenge.completed
-                          ? 'bg-emerald-500'
-                          : 'bg-[hsl(var(--tac-amber))]'
-                      "
-                      :style="{ width: `${missionPct(challenge)}%` }"
-                    />
-                  </div>
-                  <span class="font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {{ challenge.progress }}/{{ challenge.target }}
+                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span
+                    class="rounded bg-[hsl(var(--tac-amber)/0.18)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[hsl(var(--tac-amber))]"
+                  >
+                    {{ formatNumber(mission.xp) }} XP
                   </span>
+                  <span
+                    v-if="data.premium"
+                    class="rounded bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-orange-300"
+                  >
+                    BP +{{ Math.round(mission.xp * 0.25) }}XP
+                  </span>
+                </div>
+                <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    class="h-full rounded-full"
+                    :class="
+                      mission.completed
+                        ? 'bg-emerald-500'
+                        : 'bg-[hsl(var(--tac-amber))]'
+                    "
+                    :style="{ width: `${missionPct(mission)}%` }"
+                  />
                 </div>
               </div>
             </div>
-          </template>
-          <template v-else>
-            <p class="m-0 mb-3 text-sm text-muted-foreground">
-              {{ $t("pages.battle_pass.subscriber_locked") }}
-            </p>
-            <div class="flex flex-wrap gap-2">
+          </div>
+
+          <div
+            class="mt-auto overflow-hidden rounded-xl border border-orange-500/35 bg-gradient-to-b from-[#2a1608] to-[#12151c] p-4"
+          >
+            <template v-if="!data.premium">
+              <div class="text-xs font-semibold uppercase tracking-wider text-orange-300">
+                {{ $t("pages.battle_pass.upgrade_bp") }}
+              </div>
+              <div class="mt-1 flex items-end gap-2">
+                <span class="text-2xl font-black text-white">
+                  {{ formatNumber(season.premium_price_ypoints) }}
+                </span>
+                <img src="/img/ypoint-logo.png" alt="" class="mb-1 h-5 w-5" />
+              </div>
+              <p class="m-0 mt-1 text-[11px] text-white/50">
+                {{ $t("pages.battle_pass.upgrade_benefit") }}
+              </p>
               <Button
-                v-for="product in data.subscriber.products"
-                :key="product.id"
+                v-if="canAffordPremium"
+                class="mt-3 w-full bg-orange-500 font-bold text-black hover:bg-orange-400"
+                :disabled="buying"
+                @click="buyPremium"
+              >
+                <Sparkles class="h-4 w-4" />
+                {{ $t("pages.battle_pass.upgrade_bp") }}
+              </Button>
+              <Button
+                v-else
                 as-child
-                size="sm"
-                variant="outline"
-                class="gap-2"
+                class="mt-3 w-full bg-orange-500 font-bold text-black hover:bg-orange-400"
               >
                 <NuxtLink to="/store">
-                  <ShoppingBag class="h-3.5 w-3.5" />
-                  {{ product.title }} · {{ formatPrice(product.price_irr) }}
+                  {{ $t("pages.battle_pass.get_ypoints") }}
                 </NuxtLink>
               </Button>
+            </template>
+            <template v-else>
+              <div class="flex items-center gap-2 text-sm font-semibold text-orange-300">
+                <Crown class="h-4 w-4" />
+                {{ $t("pages.battle_pass.premium_active") }}
+              </div>
+              <p class="m-0 mt-1 text-[11px] text-white/50">
+                {{ $t("pages.battle_pass.premium_owned") }}
+              </p>
+            </template>
+          </div>
+        </aside>
+
+        <!-- RIGHT: preview + track -->
+        <section class="flex min-w-0 flex-col gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <Button
+              v-if="claimableCount > 0"
+              size="sm"
+              class="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-500"
+              :disabled="claimingAll"
+              @click="claimAll"
+            >
+              <Gift class="h-3.5 w-3.5" />
+              {{ $t("pages.battle_pass.claim_all", { count: claimableCount }) }}
+            </Button>
+            <div
+              class="ms-auto rounded-lg border border-white/10 bg-[#12151c] px-3 py-1.5 font-mono text-xs text-white/60"
+            >
+              {{ formatNumber(data.balance) }} YP
             </div>
-          </template>
+          </div>
+
+          <!-- Big reward preview -->
+          <div
+            class="relative flex min-h-[280px] flex-1 flex-col items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#0e1117] px-4 py-10"
+          >
+            <div
+              class="pointer-events-none absolute inset-0 opacity-40"
+              style="
+                background: radial-gradient(
+                  ellipse 50% 50% at 50% 45%,
+                  hsla(42, 90%, 50%, 0.18),
+                  transparent 65%
+                );
+              "
+              aria-hidden="true"
+            />
+            <template v-if="selected">
+              <div class="relative flex flex-col items-center text-center">
+                <template v-if="selected.reward.type === 'ypoints'">
+                  <img
+                    src="/img/ypoint-logo.png"
+                    alt=""
+                    class="h-28 w-28 object-contain drop-shadow-[0_8px_28px_rgba(245,165,36,0.45)]"
+                  />
+                  <div class="mt-3 text-4xl font-black tabular-nums text-white">
+                    + {{ selected.reward.amount }}
+                  </div>
+                </template>
+                <template v-else-if="selected.reward.type === 'xp'">
+                  <Zap class="h-28 w-28 text-sky-400 drop-shadow-[0_8px_28px_rgba(56,189,248,0.45)]" />
+                  <div class="mt-3 text-4xl font-black tabular-nums text-sky-300">
+                    + {{ selected.reward.amount }} XP
+                  </div>
+                </template>
+                <template v-else-if="selected.reward.type === 'subscription'">
+                  <Crown class="h-28 w-28 text-[hsl(var(--tac-amber))]" />
+                  <div class="mt-3 text-2xl font-black text-white">
+                    {{ rewardLabel(selected.reward) }}
+                  </div>
+                </template>
+                <template v-else>
+                  <Award class="h-28 w-28 text-[hsl(var(--tac-amber))]" />
+                  <div class="mt-3 text-2xl font-black text-white">
+                    {{ rewardLabel(selected.reward) }}
+                  </div>
+                </template>
+
+                <p class="m-0 mt-3 text-sm text-white/50">
+                  {{ $t("pages.battle_pass.level") }}
+                  {{ selected.level }}
+                  ·
+                  {{
+                    selected.track === "premium"
+                      ? $t("pages.battle_pass.premium_track")
+                      : $t("pages.battle_pass.free_track")
+                  }}
+                </p>
+
+                <Button
+                  v-if="
+                    selected.reached && !selected.claimed && !selected.locked
+                  "
+                  class="mt-5 min-w-[10rem] bg-[hsl(var(--tac-amber))] font-bold text-black hover:brightness-110"
+                  :disabled="busyCell === selected.key"
+                  @click="claim(selected.level, selected.track)"
+                >
+                  {{ $t("pages.battle_pass.claim") }}
+                </Button>
+                <div
+                  v-else-if="selected.claimed"
+                  class="mt-5 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1.5 text-sm font-semibold text-emerald-300"
+                >
+                  <Check class="h-4 w-4" />
+                  {{ $t("pages.battle_pass.claimed_toast") }}
+                </div>
+                <div
+                  v-else
+                  class="mt-5 inline-flex items-center gap-1.5 text-sm text-white/40"
+                >
+                  <Lock class="h-4 w-4" />
+                  {{ $t("pages.battle_pass.reward_locked") }}
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Reward track -->
+          <div class="rounded-xl border border-white/10 bg-[#12151c] p-3">
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              <button
+                v-for="item in pageItems"
+                :key="item.key"
+                type="button"
+                class="relative flex w-[5.75rem] shrink-0 flex-col overflow-hidden rounded-lg border bg-[#0c0f14] transition"
+                :class="
+                  selectedKey === item.key
+                    ? 'border-teal-400 shadow-[0_0_0_1px_rgba(45,212,191,0.5)]'
+                    : 'border-white/10 hover:border-white/25'
+                "
+                @click="selectItem(item)"
+              >
+                <div
+                  class="flex h-7 items-center justify-center border-b border-white/10 text-xs font-bold tabular-nums text-white/70"
+                >
+                  {{ item.level }}
+                </div>
+                <div
+                  class="relative flex h-[4.5rem] flex-col items-center justify-center gap-0.5 px-1"
+                >
+                  <Lock
+                    v-if="item.locked || !item.reached"
+                    class="absolute right-1 top-1 h-3 w-3 text-white/30"
+                  />
+                  <Check
+                    v-else-if="item.claimed"
+                    class="absolute right-1 top-1 h-3 w-3 text-emerald-400"
+                  />
+                  <img
+                    v-if="item.reward.type === 'ypoints'"
+                    src="/img/ypoint-logo.png"
+                    alt=""
+                    class="h-7 w-7 object-contain"
+                  />
+                  <Zap
+                    v-else-if="item.reward.type === 'xp'"
+                    class="h-7 w-7 text-sky-400"
+                  />
+                  <Crown
+                    v-else-if="item.reward.type === 'subscription'"
+                    class="h-7 w-7 text-[hsl(var(--tac-amber))]"
+                  />
+                  <Award v-else class="h-7 w-7 text-[hsl(var(--tac-amber))]" />
+                  <span
+                    class="max-w-full truncate text-[11px] font-bold tabular-nums text-white"
+                  >
+                    <template v-if="item.reward.type === 'ypoints'">{{
+                      item.reward.amount
+                    }}</template>
+                    <template v-else-if="item.reward.type === 'xp'"
+                      >+{{ item.reward.amount }}</template
+                    >
+                    <template v-else>★</template>
+                  </span>
+                </div>
+                <div
+                  class="flex h-6 items-center justify-center text-[10px] font-bold uppercase tracking-wide"
+                  :class="
+                    item.track === 'premium'
+                      ? 'bg-orange-500/20 text-orange-300'
+                      : 'bg-white/5 text-white/45'
+                  "
+                >
+                  {{
+                    item.track === "premium"
+                      ? $t("pages.battle_pass.premium_track")
+                      : $t("pages.battle_pass.free_track")
+                  }}
+                </div>
+              </button>
+            </div>
+
+            <div class="mt-3 flex items-center justify-center gap-1.5">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-30"
+                :disabled="page <= 0"
+                @click="goPage(page - 1)"
+              >
+                <ChevronLeft class="h-3.5 w-3.5" />
+                {{ $t("pages.battle_pass.previous") }}
+              </button>
+              <template v-for="(n, idx) in pageNumbers" :key="n">
+                <span
+                  v-if="idx > 0 && pageNumbers[idx - 1] < n - 1"
+                  class="px-1 text-white/30"
+                  >…</span
+                >
+                <button
+                  type="button"
+                  class="min-w-[1.75rem] rounded px-1.5 py-1 text-xs font-semibold tabular-nums"
+                  :class="
+                    page === n
+                      ? 'bg-white/15 text-white'
+                      : 'text-white/45 hover:bg-white/5 hover:text-white'
+                  "
+                  @click="goPage(n)"
+                >
+                  {{ n + 1 }}
+                </button>
+              </template>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/50 hover:bg-white/5 hover:text-white disabled:opacity-30"
+                :disabled="page >= pageCount - 1"
+                @click="goPage(page + 1)"
+              >
+                {{ $t("pages.battle_pass.next") }}
+                <ChevronRight class="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </section>
-      </template>
+      </div>
     </div>
   </PageTransition>
 </template>

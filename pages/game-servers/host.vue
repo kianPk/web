@@ -51,6 +51,9 @@ const quoting = ref(false);
 const mode = ref<ServerModeKey>("duels");
 const duration = ref("1d");
 const label = ref("");
+const slots = ref(18);
+const connectPassword = ref("");
+const adminSteamId = ref("");
 const termsAccepted = ref(false);
 const paying = ref(false);
 const checkoutOpen = ref(false);
@@ -76,6 +79,15 @@ const durationOptions = computed(
 const selectedMode = computed(
   () => modeOptions.value.find((m) => m.key === mode.value) || modeOptions.value[0],
 );
+
+const maxSlots = computed(() => overview.value?.max_slots || 32);
+
+const includedSlots = computed(() => {
+  const map =
+    overview.value?.included_slots_by_mode || overview.value?.mode_slots;
+  if (map?.[mode.value]) return map[mode.value];
+  return selectedMode.value?.slots || 18;
+});
 
 const myHostServers = computed(() =>
   myServers.value.filter((s) => Boolean(s.section_mode)),
@@ -105,13 +117,28 @@ async function refreshOverview() {
   }
   rateToman.value = irrToToman(overview.value.price_irr_per_hour || 0);
   rateYpoint.value = overview.value.price_ypoint_per_hour || 0;
+  syncSlotsToMode();
+}
+
+function syncSlotsToMode() {
+  const included = includedSlots.value;
+  const max = maxSlots.value;
+  if (!slots.value || slots.value < 2) {
+    slots.value = included;
+  }
+  slots.value = Math.min(max, Math.max(2, slots.value));
 }
 
 async function refreshQuote() {
   quoting.value = true;
   try {
+    const params = new URLSearchParams({
+      duration: duration.value,
+      slots: String(slots.value),
+      sectionMode: mode.value,
+    });
     quote.value = await hostedApi<SectionHostQuote>(
-      `/hosted-servers/section-host/quote?duration=${encodeURIComponent(duration.value)}`,
+      `/hosted-servers/section-host/quote?${params}`,
     );
   } catch (error) {
     quote.value = null;
@@ -140,8 +167,12 @@ async function refresh() {
   loading.value = false;
 }
 
-watch(duration, () => {
+watch([duration, slots, mode], () => {
   void refreshQuote();
+});
+
+watch(mode, () => {
+  slots.value = includedSlots.value;
 });
 
 function openCheckout() {
@@ -179,6 +210,9 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
           sectionMode: mode.value,
           duration: duration.value,
           label: label.value,
+          slots: slots.value,
+          connectPassword: connectPassword.value.trim() || undefined,
+          adminSteamId: adminSteamId.value.trim() || undefined,
           termsAccepted: true,
           payWith,
         },
@@ -390,6 +424,72 @@ onMounted(() => {
                 :placeholder="$t('pages.servers.host.name_placeholder')"
               />
             </div>
+
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.slots") }}</Label>
+              <div class="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  class="h-9 w-9"
+                  :disabled="slots <= 2"
+                  @click="slots = Math.max(2, slots - 1)"
+                >
+                  −
+                </Button>
+                <Input
+                  v-model.number="slots"
+                  type="number"
+                  min="2"
+                  :max="maxSlots"
+                  class="text-center font-mono"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  class="h-9 w-9"
+                  :disabled="slots >= maxSlots"
+                  @click="slots = Math.min(maxSlots, slots + 1)"
+                >
+                  +
+                </Button>
+              </div>
+              <p class="m-0 text-xs text-muted-foreground">
+                {{
+                  $t("pages.servers.host.slots_hint", {
+                    included: includedSlots,
+                    max: maxSlots,
+                  })
+                }}
+              </p>
+            </div>
+
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.password") }}</Label>
+              <Input
+                v-model="connectPassword"
+                maxlength="32"
+                autocomplete="off"
+                :placeholder="$t('pages.servers.host.password_placeholder')"
+              />
+              <p class="m-0 text-xs text-muted-foreground">
+                {{ $t("pages.servers.host.password_hint") }}
+              </p>
+            </div>
+
+            <div class="space-y-1.5">
+              <Label>{{ $t("pages.servers.host.admin_steam") }}</Label>
+              <Input
+                v-model="adminSteamId"
+                maxlength="80"
+                :placeholder="$t('pages.servers.host.admin_steam_placeholder')"
+              />
+              <p class="m-0 text-xs text-muted-foreground">
+                {{ $t("pages.servers.host.admin_steam_hint") }}
+              </p>
+            </div>
           </section>
 
           <aside
@@ -418,11 +518,38 @@ onMounted(() => {
               <p class="m-0 text-sm text-white/55">
                 {{ formatHostedDuration(duration, t) }}
                 <span v-if="quote"> · {{ quote.hours }}h</span>
+                · {{ $t("pages.hosting.slots", { n: slots }) }}
               </p>
             </div>
 
             <div class="relative space-y-2 border-y border-white/10 py-4">
-              <div class="flex items-end justify-between gap-3">
+              <div
+                v-if="quote"
+                class="space-y-1 text-xs text-white/45"
+              >
+                <div class="flex justify-between gap-2">
+                  <span>{{ $t("pages.servers.host.price_base") }}</span>
+                  <span class="font-mono text-white/70">{{
+                    formatPrice(quote.base_price_irr)
+                  }}</span>
+                </div>
+                <div
+                  v-if="quote.extra_slots > 0"
+                  class="flex justify-between gap-2"
+                >
+                  <span>
+                    {{
+                      $t("pages.servers.host.price_extra_slots", {
+                        n: quote.extra_slots,
+                      })
+                    }}
+                  </span>
+                  <span class="font-mono text-white/70">{{
+                    formatPrice(quote.slots_price_irr)
+                  }}</span>
+                </div>
+              </div>
+              <div class="flex items-end justify-between gap-3 pt-1">
                 <span class="text-sm text-white/55">
                   {{ $t("pages.servers.host.price") }}
                 </span>
@@ -527,6 +654,7 @@ onMounted(() => {
               {{ $t(`pages.servers.modes.${selectedMode.key}.name`) }}
             </span>
             · {{ formatHostedDuration(duration, t) }}
+            · {{ $t("pages.hosting.slots", { n: slots }) }}
             <span v-if="quote"> · {{ formatPrice(quote.price_irr) }}</span>
           </DialogDescription>
         </DialogHeader>
