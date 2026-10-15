@@ -118,7 +118,7 @@ async function refresh() {
   if (isAdmin.value) {
     try {
       adminPlans.value = await hostedApi<AdminHostPlan[]>(
-        "/hosted-servers/section-host/admin/plans",
+        "/hosted-servers/admin/section-plans",
       );
     } catch {
       adminPlans.value = [];
@@ -255,12 +255,15 @@ async function savePlan() {
       active: planForm.value.active,
     };
     if (editingPlanId.value) {
-      await hostedApi(`/hosted-servers/section-host/admin/plans/${editingPlanId.value}`, {
-        method: "POST",
-        body,
-      });
+      await hostedApi(
+        `/hosted-servers/admin/section-plans/${editingPlanId.value}`,
+        {
+          method: "POST",
+          body,
+        },
+      );
     } else {
-      await hostedApi("/hosted-servers/section-host/admin/plans", {
+      await hostedApi("/hosted-servers/admin/section-plans", {
         method: "POST",
         body,
       });
@@ -281,13 +284,10 @@ async function savePlan() {
 
 async function togglePlanActive(plan: AdminHostPlan) {
   try {
-    await hostedApi(
-      `/hosted-servers/section-host/admin/plans/${plan.id}/active`,
-      {
-        method: "POST",
-        body: { active: !plan.active },
-      },
-    );
+    await hostedApi(`/hosted-servers/admin/section-plans/${plan.id}/active`, {
+      method: "POST",
+      body: { active: !plan.active },
+    });
     await refresh();
   } catch (error) {
     toast({
@@ -307,7 +307,7 @@ async function deletePlan(plan: AdminHostPlan) {
   }
   try {
     await hostedApi(
-      `/hosted-servers/section-host/admin/plans/${plan.id}/delete`,
+      `/hosted-servers/admin/section-plans/${plan.id}/delete`,
       { method: "POST" },
     );
     toast({ title: t("pages.servers.host.admin.deleted") });

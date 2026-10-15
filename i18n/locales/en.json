@@ -6513,6 +6513,7 @@
       "title": "Battle Pass",
       "description": "Level up by playing and unlock site rewards.",
       "subtitle": "Season {season} · ends {ends}",
+      "ends_in": "Ends in",
       "refresh": "Refresh",
       "login_required": "Sign in to see your Battle Pass.",
       "no_season": "The next season has not started yet.",
