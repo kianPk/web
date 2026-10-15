@@ -51,8 +51,19 @@ const quoting = ref(false);
 let quoteSeq = 0;
 let quoteTimer: ReturnType<typeof setTimeout> | null = null;
 
+const FALLBACK_DURATIONS = [
+  "1h",
+  "3h",
+  "12h",
+  "1d",
+  "3d",
+  "7d",
+  "14d",
+  "30d",
+] as const;
+
 const mode = ref<ServerModeKey>("duels");
-const duration = ref("1d");
+const duration = ref<string>("1h");
 const label = ref("");
 const slots = ref(18);
 const connectPassword = ref("");
@@ -75,9 +86,13 @@ const modeOptions = computed(() => {
   return SERVER_MODES.filter((m) => allowed.has(m.key));
 });
 
-const durationOptions = computed(
-  () => overview.value?.durations || ["1h", "3h", "12h", "1d", "3d", "7d", "14d", "30d"],
-);
+const durationOptions = computed(() => {
+  const raw = overview.value?.durations?.length
+    ? overview.value.durations
+    : [...FALLBACK_DURATIONS];
+  const normalized = raw.map(normalizeDuration).filter(Boolean) as string[];
+  return normalized.length ? normalized : [...FALLBACK_DURATIONS];
+});
 
 const selectedMode = computed(
   () => modeOptions.value.find((m) => m.key === mode.value) || modeOptions.value[0],
@@ -98,11 +113,24 @@ const safeSlots = computed(() => {
   return Math.min(maxSlots.value, Math.max(2, n));
 });
 
-/** Always-visible price: local calc from rates, overridden by API quote when available. */
+const safeDuration = computed(() => normalizeDuration(duration.value) || "1h");
+
+/** Price always from local rates (admin form / overview). API quote is optional. */
 const displayQuote = computed<SectionHostQuote | null>(() => {
   const local = computeLocalQuote();
-  if (quote.value && Number(quote.value.price_irr) >= 0) {
-    return quote.value;
+  const remote = quote.value;
+  if (
+    remote &&
+    Number(remote.price_irr) > 0 &&
+    normalizeDuration(remote.duration) === safeDuration.value
+  ) {
+    return {
+      ...local!,
+      ...remote,
+      base_price_irr: remote.base_price_irr ?? remote.price_irr,
+      slots_price_irr: remote.slots_price_irr ?? 0,
+      extra_slots: remote.extra_slots ?? local?.extra_slots ?? 0,
+    };
   }
   return local;
 });
@@ -116,30 +144,54 @@ const canAffordYpoint = computed(() => {
   return price > 0 && (ypointBalance.value ?? 0) >= price;
 });
 
-function durationHours(value: string): number {
-  const m = (value || "")
+/** Accept "1h" / "1 h" / bare "1" (treat as hours) / "1d". */
+function normalizeDuration(value: string | number | null | undefined): string {
+  const raw = String(value ?? "")
     .trim()
-    .toLowerCase()
-    .match(/^(\d+)\s*(h|hr|hrs|d|day|days|w|week|weeks|mo|month|months)$/);
+    .toLowerCase();
+  if (!raw) return "1h";
+  const m = raw.match(
+    /^(\d+)\s*(h|hr|hrs|d|day|days|w|week|weeks|mo|month|months)?$/,
+  );
+  if (!m) return "1h";
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 1) return "1h";
+  const unit = m[2] || "h";
+  if (/^(h|hr|hrs)$/.test(unit)) return `${n}h`;
+  if (/^(d|day|days)$/.test(unit)) return `${n}d`;
+  if (/^(w|week|weeks)$/.test(unit)) return `${n}w`;
+  return `${n}mo`;
+}
+
+function durationHours(value: string): number {
+  const clean = normalizeDuration(value);
+  const m = clean.match(/^(\d+)(h|d|w|mo)$/);
   if (!m) return 24;
   const n = Number(m[1]);
-  const unit = m[2];
-  if (/^(h|hr|hrs)$/.test(unit)) return Math.max(1, n);
-  if (/^(d|day|days)$/.test(unit)) return Math.max(1, n * 24);
-  if (/^(w|week|weeks)$/.test(unit)) return Math.max(1, n * 7 * 24);
+  if (m[2] === "h") return Math.max(1, n);
+  if (m[2] === "d") return Math.max(1, n * 24);
+  if (m[2] === "w") return Math.max(1, n * 7 * 24);
   return Math.max(1, n * 30 * 24);
 }
 
 function computeLocalQuote(): SectionHostQuote | null {
-  if (!overview.value) return null;
-  const hours = durationHours(duration.value);
+  if (!overview.value && !rateToman.value && !rateYpoint.value) return null;
+  const dur = safeDuration.value;
+  const hours = durationHours(dur);
   const included = includedSlots.value;
   const slotCount = safeSlots.value;
   const extra = Math.max(0, slotCount - included);
-  const rateIrr = overview.value.price_irr_per_hour || 0;
-  const rateYp = overview.value.price_ypoint_per_hour || 0;
-  const slotIrr = overview.value.slot_price_irr || 0;
-  const slotYp = overview.value.slot_price_ypoint || 0;
+  // Prefer live admin inputs so price updates even before/without overview rates.
+  const rateIrr =
+    tomanToIrr(rateToman.value) ||
+    overview.value?.price_irr_per_hour ||
+    500_000;
+  const rateYp =
+    Number(rateYpoint.value) ||
+    overview.value?.price_ypoint_per_hour ||
+    0;
+  const slotIrr = overview.value?.slot_price_irr || 0;
+  const slotYp = overview.value?.slot_price_ypoint || 0;
   const baseIrr = Math.ceil((rateIrr * hours) / 10_000) * 10_000;
   const baseYp = rateYp > 0 ? Math.ceil(rateYp * hours) : 0;
   const slotsIrr =
@@ -151,7 +203,7 @@ function computeLocalQuote(): SectionHostQuote | null {
       ? Math.ceil((slotYp * extra * hours) / (30 * 24))
       : 0;
   return {
-    duration: duration.value,
+    duration: dur,
     hours,
     slots: slotCount,
     included_slots: included,
@@ -179,13 +231,14 @@ async function refreshOverview() {
   overview.value = await hostedApi<SectionHostOverview>(
     "/hosted-servers/section-host/overview",
   );
-  if (overview.value.durations?.length && !overview.value.durations.includes(duration.value)) {
-    duration.value = overview.value.durations[0];
-  }
+  duration.value = normalizeDuration(
+    durationOptions.value.includes(normalizeDuration(duration.value))
+      ? duration.value
+      : durationOptions.value[0],
+  );
   if (overview.value.modes?.length && !overview.value.modes.includes(mode.value)) {
     mode.value = overview.value.modes[0] as ServerModeKey;
   }
-  // Defaults match API getSettings fallbacks so local price never stays blank.
   if (!overview.value.price_irr_per_hour) {
     overview.value.price_irr_per_hour = 500_000;
   }
@@ -205,22 +258,23 @@ function scheduleQuote() {
   if (quoteTimer) clearTimeout(quoteTimer);
   quoteTimer = setTimeout(() => {
     void refreshQuote();
-  }, 200);
+  }, 150);
 }
 
 async function refreshQuote() {
   const seq = ++quoteSeq;
+  duration.value = safeDuration.value;
   const slotCount = safeSlots.value;
   if (slots.value !== slotCount) {
     slots.value = slotCount;
   }
-  // Show local price immediately while API responds.
+  // Local price is the source of truth for the UI (works even if quote GET 404s).
   quote.value = computeLocalQuote();
   quoting.value = true;
   quoteError.value = null;
   try {
     const params = new URLSearchParams({
-      duration: duration.value,
+      duration: safeDuration.value,
       slots: String(slotCount),
       sectionMode: mode.value,
     });
@@ -228,13 +282,18 @@ async function refreshQuote() {
       `/hosted-servers/section-host/quote?${params}`,
     );
     if (seq !== quoteSeq) return;
-    quote.value = remote;
+    if (remote && Number(remote.price_irr) > 0) {
+      quote.value = remote;
+    }
   } catch (error) {
     if (seq !== quoteSeq) return;
-    // Keep local quote so the summary never goes blank.
+    // Silent fallback — do not block the Rent button on a missing quote route.
     quote.value = computeLocalQuote();
-    quoteError.value = hostedErrorMessage(error);
-    console.error(error);
+    const msg = hostedErrorMessage(error);
+    if (!/cannot get|404|not found/i.test(msg)) {
+      quoteError.value = msg;
+    }
+    console.warn("section-host quote unavailable, using local price", error);
   } finally {
     if (seq === quoteSeq) quoting.value = false;
   }
@@ -261,13 +320,18 @@ async function refresh() {
   loading.value = false;
 }
 
-watch([duration, slots, mode], () => {
+watch([duration, slots, mode, rateToman, rateYpoint], () => {
+  duration.value = normalizeDuration(duration.value);
   scheduleQuote();
 });
 
 watch(mode, () => {
   slots.value = includedSlots.value;
 });
+
+function pickDuration(d: string) {
+  duration.value = normalizeDuration(d);
+}
 
 function openCheckout() {
   if (!signedIn.value) {
@@ -302,7 +366,7 @@ async function pay(payWith: "bale" | "ypoint" = "bale") {
         method: "POST",
         body: {
           sectionMode: mode.value,
-          duration: duration.value,
+          duration: safeDuration.value,
           label: label.value,
           slots: safeSlots.value,
           connectPassword: connectPassword.value.trim() || undefined,
@@ -499,11 +563,11 @@ onMounted(() => {
                   type="button"
                   class="rounded-lg border px-3 py-2 text-sm transition-colors"
                   :class="
-                    duration === d
+                    safeDuration === normalizeDuration(d)
                       ? 'border-primary bg-primary/10 font-semibold'
                       : 'border-border hover:bg-muted/40'
                   "
-                  @click="duration = d"
+                  @click="pickDuration(d)"
                 >
                   {{ formatHostedDuration(d, t) }}
                 </button>
@@ -610,7 +674,7 @@ onMounted(() => {
                 }}
               </h3>
               <p class="m-0 text-sm text-white/55">
-                {{ formatHostedDuration(duration, t) }}
+                {{ formatHostedDuration(safeDuration, t) }}
                 <span v-if="displayQuote"> · {{ displayQuote.hours }}h</span>
                 · {{ $t("pages.hosting.slots", { n: safeSlots }) }}
               </p>
@@ -685,7 +749,7 @@ onMounted(() => {
                 }}
               </p>
               <p
-                v-if="quoteError && !displayQuote?.price_irr"
+                v-if="quoteError && !(displayQuote && displayQuote.price_irr > 0)"
                 class="m-0 text-xs text-red-300"
               >
                 {{ quoteError }}
