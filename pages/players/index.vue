@@ -55,6 +55,10 @@ import {
   filterTriggerActive,
   filterBadgeClasses,
 } from "~/utilities/tacticalClasses";
+
+definePageMeta({
+  middleware: "admin",
+});
 </script>
 
 <template>

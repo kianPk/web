@@ -485,7 +485,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           }}</SidebarGroupLabel>
 
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="isAdmin">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.players')"

@@ -22,10 +22,9 @@ import Pagination from "~/components/Pagination.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import RecentTournaments from "~/components/tournament/RecentTournaments.vue";
 import AwardCase from "~/components/award/AwardCase.vue";
-import AwardBadge from "~/components/award/AwardBadge.vue";
 import AwardComposer from "~/components/award/AwardComposer.vue";
 import { Button } from "~/components/ui/button";
-import { Plus, Ticket } from "lucide-vue-next";
+import { Plus, Star } from "lucide-vue-next";
 import { CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { e_player_roles_enum } from "~/generated/zeus";
@@ -1823,28 +1822,16 @@ const playerHeroTeamChipDotClasses =
                 <NuxtLink
                   v-if="battlePassPremiumAward"
                   to="/battle-pass"
-                  class="group/bp inline-flex items-center gap-1.5 rounded-md border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.12)] py-1 pe-2.5 ps-1 text-[hsl(var(--tac-amber))] transition-colors hover:border-[hsl(var(--tac-amber)_/_0.7)] hover:bg-[hsl(var(--tac-amber)_/_0.2)]"
+                  class="inline-flex shrink-0 text-[hsl(var(--tac-amber))] transition-transform duration-150 hover:scale-110 hover:text-[hsl(var(--tac-amber))]"
                   :title="
                     battlePassPremiumAward.award?.name ||
                     $t('pages.battle_pass.profile_badge')
                   "
+                  :aria-label="$t('pages.battle_pass.profile_badge')"
                 >
-                  <AwardBadge
-                    :award="battlePassPremiumAward.award"
-                    :seed-key="battlePassPremiumAward.award_id"
-                    size="xs"
-                    :interactive="false"
-                    :show-name="false"
-                    class="shrink-0"
+                  <Star
+                    class="h-[1.15em] w-[1.15em] fill-current drop-shadow-[0_0_6px_hsl(var(--tac-amber)_/_0.45)]"
                   />
-                  <Ticket
-                    class="h-3.5 w-3.5 shrink-0 opacity-90 group-hover/bp:opacity-100"
-                  />
-                  <span
-                    class="hidden font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] sm:inline"
-                  >
-                    {{ $t("pages.battle_pass.profile_badge") }}
-                  </span>
                 </NuxtLink>
               </div>
 
@@ -2217,10 +2204,10 @@ const playerHeroTeamChipDotClasses =
               >
                 <PlayerLeaderboardRank :playerSteamId="player.steam_id" />
                 <PlayerFaceitRank
-                  :faceit-skill-level="player.faceit_skill_level"
-                  :faceit-elo="player.faceit_elo"
-                  :faceit-url="player.faceit_url"
-                  :faceit-nickname="player.faceit_nickname"
+                  :faceit-skill-level="displayFaceitSkillLevel"
+                  :faceit-elo="displayFaceitElo"
+                  :faceit-url="displayFaceitUrl"
+                  :faceit-nickname="displayFaceitNickname"
                 />
                 <PlayerPremierRank
                   :premier-rank="player.premier_rank"
@@ -3313,11 +3300,45 @@ export default {
       }>,
       editPlayerSheet: false,
       addFriendPending: false,
+      duelsSectionLevel: null as number | null,
+      duelsSectionRating: null as number | null,
     };
+  },
+  watch: {
+    playerId: {
+      immediate: true,
+      handler() {
+        void this.loadDuelsSectionRating();
+      },
+    },
   },
   computed: {
     canGrantAwards() {
       return useApplicationSettingsStore().canGrantAwards;
+    },
+    // Linked FACEIT account first; otherwise Duels section level set in Servers.
+    displayFaceitSkillLevel(): number | null {
+      const linked = this.player?.faceit_skill_level;
+      if (linked != null) return linked;
+      return this.duelsSectionLevel;
+    },
+    displayFaceitElo(): number | null {
+      if (this.player?.faceit_skill_level != null) {
+        return this.player.faceit_elo ?? null;
+      }
+      return this.duelsSectionRating;
+    },
+    displayFaceitUrl(): string | null {
+      if (this.player?.faceit_skill_level != null) {
+        return this.player.faceit_url ?? null;
+      }
+      return null;
+    },
+    displayFaceitNickname(): string | null {
+      if (this.player?.faceit_skill_level != null) {
+        return this.player.faceit_nickname ?? null;
+      }
+      return null;
     },
     // Latest season's Premium unlock emblem, if they bought the Battle Pass.
     battlePassPremiumAward() {
@@ -3589,6 +3610,33 @@ export default {
         });
       } finally {
         this.addFriendPending = false;
+      }
+    },
+    async loadDuelsSectionRating() {
+      const steamId = String(this.playerId || "");
+      if (!/^\d{17}$/.test(steamId)) {
+        this.duelsSectionLevel = null;
+        this.duelsSectionRating = null;
+        return;
+      }
+      try {
+        const data = await $fetch<{
+          players?: Array<{ level?: number; rating?: number }>;
+        }>(
+          `https://${this.apiDomain}/hosted-servers/section-ratings/duels?steam_ids=${encodeURIComponent(steamId)}`,
+        );
+        const row = data?.players?.[0];
+        this.duelsSectionLevel =
+          row?.level != null && Number.isFinite(Number(row.level))
+            ? Number(row.level)
+            : null;
+        this.duelsSectionRating =
+          row?.rating != null && Number.isFinite(Number(row.rating))
+            ? Math.round(Number(row.rating))
+            : null;
+      } catch {
+        this.duelsSectionLevel = null;
+        this.duelsSectionRating = null;
       }
     },
     handleImageError(event) {

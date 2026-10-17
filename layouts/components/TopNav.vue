@@ -394,7 +394,7 @@ const loginArrowClasses =
                           </NuxtLink>
                         </NavigationMenuLink>
                       </li>
-                      <li>
+                      <li v-if="authStore.isAdmin">
                         <NavigationMenuLink as-child>
                           <NuxtLink
                             to="/players"
