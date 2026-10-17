@@ -273,6 +273,18 @@ import PlayerContextMenu from "~/components/player/PlayerContextMenu.vue";
               :at-elo="atElo"
               :type="matchType"
             />
+            <!-- Always surface linked FACEIT level next to site ELO when present. -->
+            <PlayerFaceitRank
+              v-if="
+                showElo &&
+                matchType !== 'Faceit' &&
+                faceitSkillLevel != null
+              "
+              :faceit-skill-level="faceitSkillLevel"
+              :faceit-elo="faceitElo"
+              :faceit-url="player.faceit_url"
+              :faceit-nickname="player.faceit_nickname"
+            />
             <slot name="elo-postfix"></slot>
             <p
               class="text-muted-foreground text-xs flex items-center gap-1"
