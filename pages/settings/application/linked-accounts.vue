@@ -160,43 +160,6 @@ import SettingsSection from "~/components/settings/SettingsSection.vue";
             </div>
           </div>
 
-          <div class="flex flex-row items-center justify-between gap-4">
-            <div class="space-y-0.5">
-              <h4 class="text-base font-medium">
-                {{
-                  $t(
-                    "pages.settings.application.linked_accounts.faceit_sync_ranks",
-                    "Sync Faceit Ranks",
-                  )
-                }}
-              </h4>
-              <p class="text-sm text-muted-foreground">
-                {{
-                  $t(
-                    "pages.settings.application.linked_accounts.faceit_sync_ranks_description",
-                    "Queue a backfill of FACEIT levels for recently active players. Runs automatically every 10 minutes after deploy.",
-                  )
-                }}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              :disabled="syncingRanks"
-              @click.stop="syncFaceitRanks"
-            >
-              {{
-                syncingRanks
-                  ? $t(
-                      "pages.settings.application.linked_accounts.faceit_syncing",
-                      "Queueing…",
-                    )
-                  : $t(
-                      "pages.settings.application.linked_accounts.faceit_sync_button",
-                      "Sync Now",
-                    )
-              }}
-            </Button>
-          </div>
         </div>
       </SettingsSection>
     </PageTransition>
@@ -217,7 +180,6 @@ export default {
   data() {
     return {
       testing: false,
-      syncingRanks: false,
       testResult: null as FaceitTestResult | null,
     };
   },
@@ -236,9 +198,6 @@ export default {
         this.settings.find((s) => s.name === "public.faceit_import_enabled")
           ?.value === "true"
       );
-    },
-    apiDomain(): string {
-      return useRuntimeConfig().public.apiDomain as string;
     },
   },
   methods: {
@@ -287,42 +246,6 @@ export default {
         });
       } finally {
         this.testing = false;
-      }
-    },
-    async syncFaceitRanks() {
-      this.syncingRanks = true;
-      try {
-        // Via Hasura action — /faceit/* is not on the public API ingress.
-        const { data } = await (this.$apollo as any).mutate({
-          mutation: generateMutation({
-            syncFaceitRanks: [
-              { limit: 80, force: true },
-              { success: true, limit: true },
-            ],
-          }),
-        });
-        const result = data?.syncFaceitRanks as {
-          success?: boolean;
-          limit?: number;
-        };
-        toast({
-          title: this.$t(
-            "pages.settings.application.linked_accounts.faceit_sync_queued",
-            "Faceit rank sync queued",
-          ),
-          description: `limit=${result?.limit ?? 80}`,
-        });
-      } catch (error) {
-        toast({
-          title: this.$t(
-            "pages.settings.application.linked_accounts.faceit_sync_failed",
-            "Faceit rank sync failed",
-          ),
-          description: (error as Error)?.message ?? String(error),
-          variant: "destructive",
-        });
-      } finally {
-        this.syncingRanks = false;
       }
     },
   },
