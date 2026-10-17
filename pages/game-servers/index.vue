@@ -5,6 +5,7 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
 import ServerHostTile from "~/components/servers/ServerHostTile.vue";
+import ServerPublicTile from "~/components/servers/ServerPublicTile.vue";
 import ServersAgentsHero from "~/components/servers/ServersAgentsHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 
@@ -47,9 +48,13 @@ useHead(() => ({ title: t("pages.servers.title") }));
               class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
               :style="{ animationDelay: `${index * 50}ms` }"
             />
-            <ServerHostTile
+            <ServerPublicTile
               class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
               :style="{ animationDelay: `${modes.length * 50}ms` }"
+            />
+            <ServerHostTile
+              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+              :style="{ animationDelay: `${(modes.length + 1) * 50}ms` }"
             />
           </template>
         </div>

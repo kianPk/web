@@ -6348,6 +6348,12 @@
       "back_to_modes": "All modes",
       "host_badge": "Host",
       "your_host": "Your Host server",
+      "public": {
+        "name": "Public",
+        "tagline": "Community servers",
+        "subtitle": "Browse live public Deathmatch and community servers and jump in.",
+        "open": "Browse"
+      },
       "host": {
         "name": "Host",
         "tagline": "Rent a server",

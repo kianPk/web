@@ -326,19 +326,6 @@ const loginArrowClasses =
                           </NuxtLink>
                         </NavigationMenuLink>
                       </li>
-                      <li v-if="showPublicServersLink">
-                        <NavigationMenuLink as-child>
-                          <NuxtLink
-                            to="/public-servers"
-                            :class="navItemClasses"
-                          >
-                            <span :class="navItemChevronClasses">◢</span>
-                            <span :class="navItemLabelClasses">
-                              {{ $t("layouts.top_nav.play.public_servers") }}
-                            </span>
-                          </NuxtLink>
-                        </NavigationMenuLink>
-                      </li>
                     </ul>
                   </div>
 
@@ -694,61 +681,14 @@ const loginArrowClasses =
 </template>
 
 <script lang="ts">
-import { generateSubscription } from "~/graphql/graphqlGen";
-import { $, e_server_types_enum, e_player_roles_enum } from "~/generated/zeus";
-
 export default {
   data() {
     return {
       showLogoutModal: false,
       profileMenuOpen: false,
-      publicServers: undefined as any[] | undefined,
     };
   },
-  apollo: {
-    $subscribe: {
-      publicServers: {
-        query: generateSubscription({
-          servers: [
-            {
-              where: {
-                _and: [
-                  {
-                    _or: [
-                      {
-                        type: { _neq: $("rankedType", "e_server_types_enum!") },
-                      },
-                      { connection_string: { _is_null: false } },
-                    ],
-                  },
-                  { enabled: { _eq: true } },
-                  { connected: { _eq: true } },
-                  { section_mode: { _is_null: true } } as any,
-                ],
-              },
-            },
-            { id: true },
-          ],
-        }),
-        variables: function () {
-          return { rankedType: e_server_types_enum.Ranked };
-        },
-        result: function (this: any, { data }: { data: any }) {
-          this.publicServers = data.servers;
-        },
-      },
-    },
-  },
   computed: {
-    canManageServers() {
-      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
-    },
-    hasPublicServers() {
-      return (this.publicServers?.length ?? 0) > 0;
-    },
-    showPublicServersLink() {
-      return this.hasPublicServers || this.canManageServers;
-    },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
     },
