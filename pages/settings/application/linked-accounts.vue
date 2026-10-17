@@ -292,20 +292,25 @@ export default {
     async syncFaceitRanks() {
       this.syncingRanks = true;
       try {
-        const data = await $fetch<{ queued?: boolean; limit?: number }>(
-          `https://${this.apiDomain}/faceit/refresh-ranks`,
-          {
-            method: "POST",
-            body: { limit: 80, force: true },
-            credentials: "include",
-          },
-        );
+        // Via Hasura action — /faceit/* is not on the public API ingress.
+        const { data } = await (this.$apollo as any).mutate({
+          mutation: generateMutation({
+            syncFaceitRanks: [
+              { limit: 80, force: true },
+              { success: true, limit: true },
+            ],
+          }),
+        });
+        const result = data?.syncFaceitRanks as {
+          success?: boolean;
+          limit?: number;
+        };
         toast({
           title: this.$t(
             "pages.settings.application.linked_accounts.faceit_sync_queued",
             "Faceit rank sync queued",
           ),
-          description: `limit=${data?.limit ?? 80}`,
+          description: `limit=${result?.limit ?? 80}`,
         });
       } catch (error) {
         toast({
