@@ -192,11 +192,6 @@ async function load() {
               min_players
               enabled
               map_pool
-              players_aggregate {
-                aggregate {
-                  count
-                }
-              }
               players {
                 steam_id
                 joined_at
