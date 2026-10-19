@@ -6712,7 +6712,8 @@
         "challenges": "چلنج",
         "hosting": "خرید سرور",
         "game_servers": "سرورها",
-        "battle_pass": "بتل پس"
+        "battle_pass": "بتل پس",
+        "clubs": "کلاب‌ها"
       },
       "community": {
         "title": "جامعه"
@@ -6793,7 +6794,8 @@
         "finance": "مدیریت مالی — پرداخت‌ها، VIP، Ypoint",
         "challenges": "چالش‌های روزانه",
         "game_servers": "سرورها بر اساس مود بازی",
-        "battle_pass": "بتل پس"
+        "battle_pass": "بتل پس",
+        "clubs": "کلاب‌ها"
       },
       "logout_dialog": {
         "title": "خروج",
@@ -6882,6 +6884,10 @@
         "teamspeak": {
           "title": "TeamSpeak",
           "subtitle": "به چت صوتی بپیوندید"
+        },
+        "clubs": {
+          "title": "کلاب‌ها",
+          "subtitle": "هاب‌ها و کلن‌های جامعه"
         }
       }
     },

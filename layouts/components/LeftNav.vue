@@ -26,6 +26,7 @@ import {
   LibraryBig,
   Leaf,
   Medal,
+  Building2,
   CalendarRange,
   ShoppingBag,
   Wallet,
@@ -517,6 +518,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <ShieldHalf />
                   {{ $t("layouts.app_nav.navigation.teams") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.clubs')"
+              >
+                <NuxtLink
+                  to="/clubs"
+                  :class="{
+                    'router-link-active': $route.path.startsWith('/clubs'),
+                  }"
+                >
+                  <Building2 />
+                  {{ $t("layouts.app_nav.navigation.clubs") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

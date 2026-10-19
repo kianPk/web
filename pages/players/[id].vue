@@ -710,6 +710,48 @@ const playerIdRef = computed<string | null>(() => {
   return useAuthStore().me?.steam_id ?? null;
 });
 
+const playerClubs = ref<
+  Array<{ id: string; slug?: string | null; name: string; short_name?: string | null }>
+>([]);
+async function loadPlayerClubs() {
+  if (!playerIdRef.value) {
+    playerClubs.value = [];
+    return;
+  }
+  try {
+    const { useApolloClient } = await import("@vue/apollo-composable");
+    const { gql } = await import("@apollo/client/core");
+    const { client } = useApolloClient();
+    const { data } = await client.query({
+      query: gql`
+        query PlayerClubs($steam_id: bigint!) {
+          club_members(
+            where: { steam_id: { _eq: $steam_id } }
+            order_by: [{ is_primary: desc }, { joined_at: asc }]
+            limit: 8
+          ) {
+            is_primary
+            club {
+              id
+              slug
+              name
+              short_name
+            }
+          }
+        }
+      `,
+      variables: { steam_id: playerIdRef.value },
+      fetchPolicy: "cache-first",
+    });
+    playerClubs.value = (data?.club_members ?? [])
+      .map((m: any) => m.club)
+      .filter(Boolean);
+  } catch {
+    playerClubs.value = [];
+  }
+}
+watch(playerIdRef, () => void loadPlayerClubs(), { immediate: true });
+
 watch(playerIdRef, () => clearCompareTarget());
 
 // ---- plugin-contributed profile tabs ----------------------------------------
@@ -1900,6 +1942,23 @@ const playerHeroTeamChipDotClasses =
                   >
                     <span :class="playerHeroTeamChipDotClasses"></span>
                     <span>{{ team.short_name || team.name }}</span>
+                  </NuxtLink>
+                </template>
+
+                <template v-if="playerClubs.length > 0">
+                  <span
+                    :class="playerHeroMetaDividerClasses"
+                    aria-hidden="true"
+                  ></span>
+                  <NuxtLink
+                    v-for="c in playerClubs"
+                    :key="c.id"
+                    :to="`/clubs/${c.slug || c.id}`"
+                    :class="playerHeroTeamChipClasses"
+                    :title="c.name"
+                  >
+                    <span :class="playerHeroTeamChipDotClasses"></span>
+                    <span>{{ c.short_name || c.name }}</span>
                   </NuxtLink>
                 </template>
               </div>

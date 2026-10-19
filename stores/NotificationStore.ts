@@ -11,6 +11,7 @@ import {
   MY_TOURNAMENT_INVITES_SUBSCRIPTION,
   MY_TOURNAMENT_TEAM_INVITES_SUBSCRIPTION,
 } from "~/graphql/tournamentInvites";
+import { gql } from "@apollo/client/core";
 
 export type LeagueScheduleTask = {
   id: string;
@@ -85,6 +86,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
       : useNuxtApp().$i18n.t(key)) as string;
 
   const team_invites = ref<any[]>([]);
+  const club_invites = ref<any[]>([]);
   const tournament_team_invites = ref<any[]>([]);
   // An invite to REGISTER for a tournament, which is a different thing from
   // `tournament_team_invites` (an invite to join a team already registered for
@@ -317,6 +319,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     () =>
       !!unreadNewsArticle.value ||
       team_invites.value.length > 0 ||
+      club_invites.value.length > 0 ||
       tournament_team_invites.value.length > 0 ||
       tournament_invites.value.length > 0 ||
       draft_invites.value.length > 0 ||
@@ -330,6 +333,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     () =>
       (unreadNewsArticle.value ? 1 : 0) +
       team_invites.value.length +
+      club_invites.value.length +
       tournament_team_invites.value.length +
       tournament_invites.value.length +
       draft_invites.value.length +
@@ -411,6 +415,39 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
         .subscribe({
           next: ({ data }) => {
             team_invites.value = data.team_invites;
+          },
+        }),
+    );
+
+    subscribe(
+      "notifications:club_invites",
+      getGraphqlClient()
+        .subscribe({
+          query: gql`
+            subscription ClubInvites($steam_id: bigint!) {
+              club_invites(
+                order_by: [{ created_at: desc }]
+                where: { steam_id: { _eq: $steam_id } }
+              ) {
+                id
+                created_at
+                club {
+                  id
+                  name
+                  slug
+                }
+                invited_by {
+                  name
+                  steam_id
+                }
+              }
+            }
+          `,
+          variables: { steam_id },
+        })
+        .subscribe({
+          next: ({ data }) => {
+            club_invites.value = data?.club_invites ?? [];
           },
         }),
     );
@@ -673,6 +710,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
         useNotificationPreferences().reset();
         const { unsubscribe } = useSubscriptionManager();
         unsubscribe("notifications:team_invites");
+        unsubscribe("notifications:club_invites");
         unsubscribe("notifications:tournament_team_invites");
         unsubscribe("notifications:tournament_invites");
         unsubscribe("notifications:tournament_team_registration_invites");
@@ -694,6 +732,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
 
   return {
     team_invites,
+    club_invites,
     tournament_team_invites,
     tournament_invites,
     draft_invites,

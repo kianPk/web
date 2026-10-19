@@ -443,6 +443,30 @@ const loginArrowClasses =
                       <li>
                         <NavigationMenuLink as-child>
                           <NuxtLink
+                            to="/clubs"
+                            :class="[navItemClasses, navItemStackedClasses]"
+                          >
+                            <span :class="navItemChevronClasses">◢</span>
+                            <span :class="navItemContentClasses">
+                              <span :class="navItemLabelClasses">
+                                {{
+                                  $t("layouts.top_nav.community.clubs.title")
+                                }}
+                              </span>
+                              <span :class="navItemSubClasses">
+                                {{
+                                  $t(
+                                    "layouts.top_nav.community.clubs.subtitle",
+                                  )
+                                }}
+                              </span>
+                            </span>
+                          </NuxtLink>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <NavigationMenuLink as-child>
+                          <NuxtLink
                             to="/leaderboard"
                             :class="[navItemClasses, navItemStackedClasses]"
                           >

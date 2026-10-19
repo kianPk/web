@@ -3,6 +3,7 @@ import { Bell } from "lucide-vue-next";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
 import TeamInviteNotification from "~/components/TeamInviteNotification.vue";
+import ClubInviteNotification from "~/components/ClubInviteNotification.vue";
 import NotificationItem from "~/components/notification/NotificationItem.vue";
 import NotificationStack from "~/components/notification/NotificationStack.vue";
 </script>
@@ -36,6 +37,7 @@ import NotificationStack from "~/components/notification/NotificationStack.vue";
           <template
             v-if="
               team_invites.length > 0 ||
+              club_invites.length > 0 ||
               tournament_team_invites.length > 0 ||
               tournament_invites.length > 0 ||
               notifications.length > 0
@@ -50,6 +52,18 @@ import NotificationStack from "~/components/notification/NotificationStack.vue";
                 :invite="invite"
                 :key="invite.id"
                 v-for="invite of team_invites"
+              />
+              <Separator v-if="notifications.length > 0"></Separator>
+            </div>
+
+            <div
+              v-if="club_invites.length > 0"
+              class="mb-4 p-4 bg-accent rounded-lg"
+            >
+              <ClubInviteNotification
+                :invite="invite"
+                :key="invite.id"
+                v-for="invite of club_invites"
               />
               <Separator v-if="notifications.length > 0"></Separator>
             </div>
@@ -297,6 +311,9 @@ export default {
     },
     team_invites() {
       return useNotificationStore().team_invites;
+    },
+    club_invites() {
+      return useNotificationStore().club_invites;
     },
     tournament_team_invites() {
       return useNotificationStore().tournament_team_invites;

@@ -2,6 +2,7 @@
 import { CheckCheck, Trash2 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import TeamInviteNotification from "~/components/TeamInviteNotification.vue";
+import ClubInviteNotification from "~/components/ClubInviteNotification.vue";
 import DraftInviteNotification from "~/components/notification/DraftInviteNotification.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import NotificationItem from "~/components/notification/NotificationItem.vue";
@@ -83,6 +84,26 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
                 :invite="invite"
                 :key="invite.id"
                 v-for="invite of team_invites"
+              />
+              <Separator v-if="notifications.length > 0" />
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition
+        enter-active-class="notif-fold"
+        enter-from-class="notif-fold-collapsed"
+        leave-active-class="notif-fold"
+        leave-to-class="notif-fold-collapsed"
+      >
+        <div v-if="club_invites.length > 0" class="grid grid-rows-[1fr]">
+          <div class="min-h-0">
+            <div class="mb-3 p-3 bg-card/60 border border-border rounded-md">
+              <ClubInviteNotification
+                :invite="invite"
+                :key="invite.id"
+                v-for="invite of club_invites"
               />
               <Separator v-if="notifications.length > 0" />
             </div>
@@ -266,6 +287,9 @@ export default {
     team_invites() {
       return useNotificationStore().team_invites;
     },
+    club_invites() {
+      return useNotificationStore().club_invites;
+    },
     tournament_team_invites() {
       return useNotificationStore().tournament_team_invites;
     },
@@ -291,6 +315,7 @@ export default {
       return (
         this.scheduleTasks.length > 0 ||
         this.team_invites.length > 0 ||
+        this.club_invites.length > 0 ||
         this.tournament_team_invites.length > 0 ||
         this.tournament_invites.length > 0 ||
         this.draft_invites.length > 0 ||

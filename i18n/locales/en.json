@@ -6613,6 +6613,105 @@
         "w_trade_25": "Get {target} trade kills this week"
       },
       "profile_badge": "Battle Pass"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "create": "Create Club",
+      "search": "Search clubs...",
+      "empty_title": "No clubs yet",
+      "empty_desc": "Create a club or join one from an invite.",
+      "no_description": "No description",
+      "not_found": "Club not found",
+      "load_failed": "Failed to load club",
+      "action_failed": "Action failed",
+      "members_label": "members",
+      "join": "Join club",
+      "request_join": "Request to join",
+      "request_message": "Message (optional)",
+      "leave": "Leave",
+      "set_primary": "Represent this club",
+      "primary_badge": "Primary",
+      "ban": "Ban",
+      "activity": "Activity",
+      "no_activity": "No recent activity",
+      "stats": "Stats",
+      "channels": "Channels",
+      "chat_placeholder": "Message #channel",
+      "chat_members_only": "Join the club to chat",
+      "send": "Send",
+      "create_season_lb": "Create season leaderboard",
+      "frozen": "Frozen",
+      "freeze": "Freeze",
+      "unfreeze": "Unfreeze",
+      "player": "Player",
+      "points": "Points",
+      "streak": "Streak",
+      "create_queue": "Create queue",
+      "join_queue": "Join queue",
+      "leave_queue": "Leave queue",
+      "no_queues": "No club queues yet",
+      "party_title": "Party title",
+      "create_party": "Create party",
+      "party": "Party",
+      "join_party": "Join",
+      "leave_party": "Leave",
+      "queue_party": "Queue to ranked lobby",
+      "guest_steam": "Guest Steam ID",
+      "add_guest": "Add guest",
+      "clash_hint": "Register with your primary club. Set a primary club first.",
+      "register_clash": "Register",
+      "no_clash": "No clash events scheduled",
+      "invites": "Invites",
+      "invite_links": "Invite links",
+      "steam_id": "Steam ID",
+      "send_invite": "Invite",
+      "bypass_req": "Bypass requirements",
+      "create_link": "Create link",
+      "link_created": "Link created",
+      "requests": "Join requests",
+      "requirements": "Join requirements",
+      "bans": "Bans",
+      "tabs": {
+        "overview": "Overview",
+        "members": "Members",
+        "chat": "Chat",
+        "leaderboard": "Leaderboard",
+        "queues": "Queues",
+        "parties": "Parties",
+        "clash": "Clash",
+        "admin": "Admin"
+      },
+      "join_modes": {
+        "open": "Open",
+        "request": "Request to join",
+        "invite_only": "Invite only"
+      },
+      "form": {
+        "name": "Club name",
+        "short_name": "Tag",
+        "description": "Description",
+        "join_mode": "Join mode",
+        "submit": "Create club",
+        "name_required": "Name is required",
+        "create_failed": "Could not create club"
+      },
+      "invite": {
+        "title": "Club invite",
+        "message": "You were invited to join {club}",
+        "invited_by": "Invited by {name}",
+        "accept": "Accept",
+        "deny": "Decline",
+        "redeem_title": "Join via invite link",
+        "redeem_desc": "Accept this invite to join the club.",
+        "redeem": "Join club",
+        "link_failed": "Invite link invalid or expired"
+      },
+      "profile_strip": "Clubs",
+      "party_finder": "Party Finder",
+      "party_finder_empty": "No listed parties",
+      "party_finder_empty_desc": "Club members can list a party from their club page.",
+      "leader": "Leader",
+      "join_as_guest": "Join as guest"
     }
   },
   "ypoint": {
@@ -6712,7 +6811,8 @@
         "challenges": "Challenges",
         "hosting": "Buy a server",
         "game_servers": "Servers",
-        "battle_pass": "Battle Pass"
+        "battle_pass": "Battle Pass",
+        "clubs": "Clubs"
       },
       "community": {
         "title": "Community"
@@ -6793,7 +6893,8 @@
         "finance": "Finance — payments, VIP, Ypoints",
         "challenges": "Daily Challenges",
         "game_servers": "Servers by game mode",
-        "battle_pass": "Battle Pass"
+        "battle_pass": "Battle Pass",
+        "clubs": "Clubs"
       },
       "logout_dialog": {
         "title": "Logout",
@@ -6882,6 +6983,10 @@
         "teamspeak": {
           "title": "TeamSpeak",
           "subtitle": "Join voice chat"
+        },
+        "clubs": {
+          "title": "Clubs",
+          "subtitle": "Community hubs and clans"
         }
       }
     },

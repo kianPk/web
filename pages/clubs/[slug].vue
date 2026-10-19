@@ -1,0 +1,1174 @@
+<script setup lang="ts">
+import { gql } from "@apollo/client/core";
+import { useApolloClient } from "@vue/apollo-composable";
+import {
+  Crown,
+  MessageSquare,
+  Shield,
+  Trophy,
+  Users,
+  Swords,
+  ListOrdered,
+  PartyPopper,
+} from "lucide-vue-next";
+import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
+import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+
+const VALID_TABS = [
+  "overview",
+  "members",
+  "chat",
+  "leaderboard",
+  "queues",
+  "parties",
+  "clash",
+  "admin",
+] as const;
+type Tab = (typeof VALID_TABS)[number];
+
+const route = useRoute();
+const { t } = useI18n();
+const { client } = useApolloClient();
+const auth = useAuthStore();
+const me = computed(() => auth.me);
+
+const slugParam = computed(() => String(route.params.slug || ""));
+const tab = ref<Tab>(
+  VALID_TABS.includes(route.query.tab as Tab)
+    ? (route.query.tab as Tab)
+    : "overview",
+);
+
+watch(tab, (value) => {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (value === "overview") url.searchParams.delete("tab");
+  else url.searchParams.set("tab", value);
+  window.history.replaceState(window.history.state, "", url.toString());
+});
+
+const club = ref<any>(null);
+const loading = ref(true);
+const error = ref("");
+const busy = ref(false);
+const inviteSteamId = ref("");
+const inviteMessage = ref("");
+const joinMessage = ref("");
+const chatBody = ref("");
+const activeChannelId = ref<string | null>(null);
+const linkMaxUses = ref<number | null>(null);
+const linkHours = ref<number | null>(24);
+const linkBypass = ref(false);
+const newQueueName = ref("In-house 5v5");
+const newPartyTitle = ref("");
+const guestSteamId = ref("");
+const seasonLbName = ref("Season");
+const minElo = ref<number | null>(null);
+const minLevel = ref<number | null>(null);
+const createdLinkCode = ref("");
+
+const myMembership = computed(() => {
+  if (!me.value || !club.value) return null;
+  return (
+    club.value.members?.find(
+      (m: any) => String(m.steam_id) === String(me.value.steam_id),
+    ) ?? null
+  );
+});
+const canManage = computed(() =>
+  ["owner", "admin"].includes(myMembership.value?.role),
+);
+const canModerate = computed(() =>
+  ["owner", "admin", "moderator"].includes(myMembership.value?.role),
+);
+const isMember = computed(() => !!myMembership.value);
+const activeChannel = computed(() => {
+  const channels = club.value?.channels ?? [];
+  return (
+    channels.find((c: any) => c.id === activeChannelId.value) || channels[0]
+  );
+});
+
+async function load() {
+  loading.value = true;
+  error.value = "";
+  try {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        slugParam.value,
+      );
+    const { data } = await client.query({
+      query: gql`
+        query ClubDetail($where: clubs_bool_exp!) {
+          clubs(where: $where, limit: 1) {
+            id
+            name
+            slug
+            short_name
+            avatar_url
+            cover_url
+            description
+            join_mode
+            min_elo
+            min_faceit_level
+            owner_steam_id
+            role
+            can_manage
+            created_at
+            members_aggregate {
+              aggregate {
+                count
+              }
+            }
+            members(order_by: [{ role: asc }, { joined_at: asc }]) {
+              steam_id
+              role
+              is_primary
+              joined_at
+              player {
+                steam_id
+                name
+                avatar_url
+                faceit_elo
+                faceit_skill_level
+              }
+            }
+            activity(order_by: [{ created_at: desc }], limit: 40) {
+              id
+              kind
+              payload
+              created_at
+              actor_steam_id
+            }
+            channels(order_by: [{ name: asc }]) {
+              id
+              name
+              slug
+              messages(order_by: [{ created_at: desc }], limit: 80) {
+                id
+                body
+                created_at
+                deleted_at
+                author_steam_id
+                author {
+                  name
+                  steam_id
+                }
+              }
+            }
+            leaderboards(order_by: [{ created_at: asc }]) {
+              id
+              name
+              type
+              points_win
+              points_loss
+              starting_points
+              frozen
+              starts_at
+              ends_at
+              entries(
+                order_by: [{ points: desc }]
+                limit: 50
+              ) {
+                steam_id
+                points
+                wins
+                losses
+                streak
+                player {
+                  name
+                  steam_id
+                }
+              }
+            }
+            queues(order_by: [{ created_at: asc }]) {
+              id
+              name
+              region
+              team_size
+              min_players
+              enabled
+              map_pool
+              players_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              players {
+                steam_id
+                joined_at
+                player {
+                  name
+                }
+              }
+            }
+            parties(order_by: [{ created_at: desc }], limit: 30) {
+              id
+              title
+              listed
+              min_elo
+              max_elo
+              leader_steam_id
+              members {
+                steam_id
+                is_guest
+                player {
+                  name
+                }
+              }
+            }
+            invites(order_by: [{ created_at: desc }], limit: 30) {
+              id
+              steam_id
+              created_at
+              player {
+                name
+              }
+            }
+            invite_links(order_by: [{ created_at: desc }], limit: 20) {
+              id
+              code
+              max_uses
+              uses
+              expires_at
+              bypass_requirements
+              revoked_at
+              created_at
+            }
+            join_requests(
+              where: { status: { _eq: "pending" } }
+              order_by: [{ created_at: desc }]
+            ) {
+              id
+              steam_id
+              message
+              created_at
+              player {
+                name
+              }
+            }
+            bans(order_by: [{ created_at: desc }]) {
+              id
+              steam_id
+              reason
+              created_at
+              player {
+                name
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        where: isUuid
+          ? { _or: [{ id: { _eq: slugParam.value } }, { slug: { _eq: slugParam.value } }] }
+          : { slug: { _eq: slugParam.value } },
+      },
+      fetchPolicy: "network-only",
+    });
+    club.value = data?.clubs?.[0] ?? null;
+    if (!club.value) error.value = t("pages.clubs.not_found");
+    else {
+      minElo.value = club.value.min_elo;
+      minLevel.value = club.value.min_faceit_level;
+      if (!activeChannelId.value && club.value.channels?.[0]) {
+        activeChannelId.value = club.value.channels[0].id;
+      }
+    }
+  } catch (e: any) {
+    error.value = e?.message || t("pages.clubs.load_failed");
+    club.value = null;
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => void load());
+watch(slugParam, () => void load());
+
+async function runAction(mutation: string, variables: Record<string, unknown>) {
+  busy.value = true;
+  error.value = "";
+  try {
+    await client.mutate({ mutation: gql(mutation), variables });
+    await load();
+  } catch (e: any) {
+    error.value = e?.message || t("pages.clubs.action_failed");
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function joinOpen() {
+  await runAction(
+    `mutation($club_id: uuid!) { joinClubOpen(club_id: $club_id) { success } }`,
+    { club_id: club.value.id },
+  );
+}
+
+async function requestJoin() {
+  if (!me.value) return;
+  await runAction(
+    `mutation($object: club_join_requests_insert_input!) {
+      insert_club_join_requests_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        club_id: club.value.id,
+        message: joinMessage.value.trim(),
+      },
+    },
+  );
+}
+
+async function leaveClub() {
+  if (!me.value) return;
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: bigint!) {
+      delete_club_members_by_pk(club_id: $club_id, steam_id: $steam_id) { club_id }
+    }`,
+    { club_id: club.value.id, steam_id: String(me.value.steam_id) },
+  );
+}
+
+async function setPrimary() {
+  await runAction(
+    `mutation($club_id: uuid!) { setPrimaryClub(club_id: $club_id) { success } }`,
+    { club_id: club.value.id },
+  );
+}
+
+async function sendInvite() {
+  const sid = inviteSteamId.value.trim();
+  if (!sid) return;
+  await runAction(
+    `mutation($object: club_invites_insert_input!) {
+      insert_club_invites_one(object: $object) { id }
+    }`,
+    { object: { club_id: club.value.id, steam_id: sid } },
+  );
+  inviteSteamId.value = "";
+}
+
+async function createLink() {
+  busy.value = true;
+  try {
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation(
+          $club_id: uuid!
+          $max_uses: Int
+          $expires_hours: Int
+          $bypass_requirements: Boolean
+        ) {
+          createClubInviteLink(
+            club_id: $club_id
+            max_uses: $max_uses
+            expires_hours: $expires_hours
+            bypass_requirements: $bypass_requirements
+          ) {
+            success
+            code
+          }
+        }
+      `,
+      variables: {
+        club_id: club.value.id,
+        max_uses: linkMaxUses.value,
+        expires_hours: linkHours.value,
+        bypass_requirements: linkBypass.value,
+      },
+    });
+    createdLinkCode.value = data?.createClubInviteLink?.code || "";
+    await load();
+  } catch (e: any) {
+    error.value = e?.message || t("pages.clubs.action_failed");
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function reviewRequest(id: string, accept: boolean) {
+  await runAction(
+    `mutation($request_id: uuid!, $accept: Boolean!) {
+      reviewClubJoinRequest(request_id: $request_id, accept: $accept) { success }
+    }`,
+    { request_id: id, accept },
+  );
+}
+
+async function banMember(steamId: string) {
+  await runAction(
+    `mutation($object: club_bans_insert_input!) {
+      insert_club_bans_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        club_id: club.value.id,
+        steam_id: steamId,
+        reason: "Banned by admin",
+      },
+    },
+  );
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: bigint!) {
+      delete_club_members_by_pk(club_id: $club_id, steam_id: $steam_id) { club_id }
+    }`,
+    { club_id: club.value.id, steam_id: steamId },
+  );
+}
+
+async function saveRequirements() {
+  await runAction(
+    `mutation($id: uuid!, $_set: clubs_set_input!) {
+      update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) { id }
+    }`,
+    {
+      id: club.value.id,
+      _set: {
+        min_elo: minElo.value,
+        min_faceit_level: minLevel.value,
+      },
+    },
+  );
+}
+
+async function sendChat() {
+  if (!activeChannel.value || !chatBody.value.trim() || !me.value) return;
+  await runAction(
+    `mutation($object: club_messages_insert_input!) {
+      insert_club_messages_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        channel_id: activeChannel.value.id,
+        club_id: club.value.id,
+        body: chatBody.value.trim(),
+      },
+    },
+  );
+  chatBody.value = "";
+}
+
+async function deleteMessage(id: string) {
+  await runAction(
+    `mutation($id: uuid!, $deleted_at: timestamptz!) {
+      update_club_messages_by_pk(pk_columns: { id: $id }, _set: { deleted_at: $deleted_at }) { id }
+    }`,
+    { id, deleted_at: new Date().toISOString() },
+  );
+}
+
+async function createSeasonLb() {
+  await runAction(
+    `mutation($object: club_leaderboards_insert_input!) {
+      insert_club_leaderboards_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        club_id: club.value.id,
+        name: seasonLbName.value.trim() || "Season",
+        type: "season",
+        points_win: 25,
+        points_loss: -15,
+        starting_points: 1000,
+        starts_at: new Date().toISOString(),
+      },
+    },
+  );
+}
+
+async function freezeLb(id: string, frozen: boolean) {
+  await runAction(
+    `mutation($id: uuid!, $frozen: Boolean!) {
+      update_club_leaderboards_by_pk(pk_columns: { id: $id }, _set: { frozen: $frozen }) { id }
+    }`,
+    { id, frozen },
+  );
+}
+
+async function createQueue() {
+  await runAction(
+    `mutation($object: club_queues_insert_input!) {
+      insert_club_queues_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        club_id: club.value.id,
+        name: newQueueName.value.trim() || "In-house",
+        team_size: 5,
+        min_players: 10,
+        enabled: true,
+      },
+    },
+  );
+}
+
+async function joinQueue(queueId: string) {
+  await runAction(
+    `mutation($queue_id: uuid!) { joinClubQueue(queue_id: $queue_id) { success queued } }`,
+    { queue_id: queueId },
+  );
+}
+
+async function leaveQueue(queueId: string) {
+  await runAction(
+    `mutation($queue_id: uuid!) { leaveClubQueue(queue_id: $queue_id) { success } }`,
+    { queue_id: queueId },
+  );
+}
+
+async function createParty() {
+  if (!me.value) return;
+  await runAction(
+    `mutation($object: club_parties_insert_input!) {
+      insert_club_parties_one(object: $object) { id }
+    }`,
+    {
+      object: {
+        club_id: club.value.id,
+        title: newPartyTitle.value.trim() || "Looking for players",
+        listed: true,
+      },
+    },
+  );
+  // auto-add leader
+  const { data } = await client.query({
+    query: gql`
+      query($club_id: uuid!, $steam_id: bigint!) {
+        club_parties(
+          where: {
+            club_id: { _eq: $club_id }
+            leader_steam_id: { _eq: $steam_id }
+          }
+          order_by: [{ created_at: desc }]
+          limit: 1
+        ) {
+          id
+        }
+      }
+    `,
+    variables: {
+      club_id: club.value.id,
+      steam_id: String(me.value.steam_id),
+    },
+    fetchPolicy: "network-only",
+  });
+  const partyId = data?.club_parties?.[0]?.id;
+  if (partyId) {
+    await client.mutate({
+      mutation: gql`
+        mutation($object: club_party_members_insert_input!) {
+          insert_club_party_members_one(object: $object) { party_id }
+        }
+      `,
+      variables: {
+        object: {
+          party_id: partyId,
+          steam_id: String(me.value.steam_id),
+          is_guest: false,
+        },
+      },
+    });
+  }
+  newPartyTitle.value = "";
+  await load();
+}
+
+async function joinParty(partyId: string, asGuest = false) {
+  if (!me.value) return;
+  await runAction(
+    `mutation($object: club_party_members_insert_input!) {
+      insert_club_party_members_one(object: $object) { party_id }
+    }`,
+    {
+      object: {
+        party_id: partyId,
+        steam_id: String(me.value.steam_id),
+        is_guest: asGuest,
+      },
+    },
+  );
+}
+
+async function leaveParty(partyId: string) {
+  if (!me.value) return;
+  await runAction(
+    `mutation($party_id: uuid!, $steam_id: bigint!) {
+      delete_club_party_members_by_pk(party_id: $party_id, steam_id: $steam_id) { party_id }
+    }`,
+    { party_id: partyId, steam_id: String(me.value.steam_id) },
+  );
+}
+
+async function addGuest(partyId: string) {
+  const sid = guestSteamId.value.trim();
+  if (!sid) return;
+  await runAction(
+    `mutation($party_id: uuid!, $steam_id: String!) {
+      addClubPartyGuest(party_id: $party_id, steam_id: $steam_id) { success }
+    }`,
+    { party_id: partyId, steam_id: sid },
+  );
+  guestSteamId.value = "";
+}
+
+async function queuePartyToLobby(party: any) {
+  const mm = useMatchmakingStore();
+  const lobbyId = await mm.createLobby();
+  if (!lobbyId) return;
+  for (const m of party.members || []) {
+    if (String(m.steam_id) === String(me.value?.steam_id)) continue;
+    try {
+      await mm.inviteToLobby(String(m.steam_id));
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+}
+
+async function registerClash(eventId: string) {
+  await runAction(
+    `mutation($event_id: uuid!, $club_id: uuid!) {
+      registerClubClash(event_id: $event_id, club_id: $club_id) { success }
+    }`,
+    { event_id: eventId, club_id: club.value.id },
+  );
+}
+
+const clashEvents = ref<any[]>([]);
+async function loadClash() {
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query ClubClashEvents {
+          club_clash_events(order_by: [{ starts_at: desc }], limit: 20) {
+            id
+            name
+            starts_at
+            ends_at
+            locked
+            entries(order_by: [{ points: desc }]) {
+              club_id
+              points
+              club {
+                name
+                slug
+              }
+            }
+          }
+        }
+      `,
+      fetchPolicy: "network-only",
+    });
+    clashEvents.value = data?.club_clash_events ?? [];
+  } catch {
+    clashEvents.value = [];
+  }
+}
+
+watch(tab, (v) => {
+  if (v === "clash") void loadClash();
+});
+
+const tabs = computed(() => {
+  const base: { id: Tab; label: string; icon: any }[] = [
+    { id: "overview", label: t("pages.clubs.tabs.overview"), icon: Shield },
+    { id: "members", label: t("pages.clubs.tabs.members"), icon: Users },
+    { id: "chat", label: t("pages.clubs.tabs.chat"), icon: MessageSquare },
+    {
+      id: "leaderboard",
+      label: t("pages.clubs.tabs.leaderboard"),
+      icon: ListOrdered,
+    },
+    { id: "queues", label: t("pages.clubs.tabs.queues"), icon: Swords },
+    { id: "parties", label: t("pages.clubs.tabs.parties"), icon: PartyPopper },
+    { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
+  ];
+  if (canManage.value) {
+    base.push({
+      id: "admin",
+      label: t("pages.clubs.tabs.admin"),
+      icon: Crown,
+    });
+  }
+  return base;
+});
+</script>
+
+<template>
+  <div v-if="loading" class="text-sm text-muted-foreground">
+    {{ t("common.loading") }}
+  </div>
+  <div v-else-if="!club" class="text-sm text-destructive">
+    {{ error || t("pages.clubs.not_found") }}
+  </div>
+  <template v-else>
+    <PageTransition>
+      <div
+        class="relative mb-6 overflow-hidden border border-border bg-card/40"
+        :style="
+          club.cover_url
+            ? {
+                backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.75)), url(${club.cover_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : undefined
+        "
+      >
+        <div class="flex flex-wrap items-end gap-4 p-5 md:p-7">
+          <div
+            class="flex h-20 w-20 items-center justify-center border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.12)] text-2xl font-bold uppercase text-[hsl(var(--tac-amber))]"
+          >
+            <img
+              v-if="club.avatar_url"
+              :src="club.avatar_url"
+              class="h-full w-full object-cover"
+              alt=""
+            />
+            <span v-else>{{ (club.short_name || club.name).slice(0, 2) }}</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <TacticalPageHeader>
+              <template #title>{{ club.name }}</template>
+            </TacticalPageHeader>
+            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">
+              {{ club.description || t("pages.clubs.no_description") }}
+            </p>
+            <div class="mt-2 flex flex-wrap gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+              <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
+              <span>{{ club.join_mode }}</span>
+              <span v-if="club.min_elo">Elo ≥ {{ club.min_elo }}</span>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-if="!isMember && club.join_mode === 'open' && me"
+              :disabled="busy"
+              :class="tacticalCtaButtonClasses"
+              @click="joinOpen"
+            >
+              {{ t("pages.clubs.join") }}
+            </Button>
+            <div
+              v-else-if="!isMember && club.join_mode === 'request' && me"
+              class="flex gap-2"
+            >
+              <Input v-model="joinMessage" :placeholder="t('pages.clubs.request_message')" class="w-40" />
+              <Button :disabled="busy" @click="requestJoin">
+                {{ t("pages.clubs.request_join") }}
+              </Button>
+            </div>
+            <Button
+              v-if="isMember && !myMembership?.is_primary"
+              variant="outline"
+              :disabled="busy"
+              @click="setPrimary"
+            >
+              {{ t("pages.clubs.set_primary") }}
+            </Button>
+            <Button
+              v-if="isMember && myMembership?.role !== 'owner'"
+              variant="outline"
+              :disabled="busy"
+              @click="leaveClub"
+            >
+              {{ t("pages.clubs.leave") }}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </PageTransition>
+
+    <p v-if="error" class="mb-3 text-sm text-destructive">{{ error }}</p>
+
+    <div class="mb-4 flex flex-wrap gap-1 border-b border-border pb-2">
+      <button
+        v-for="item in tabs"
+        :key="item.id"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition"
+        :class="
+          tab === item.id
+            ? 'text-[hsl(var(--tac-amber))]'
+            : 'text-muted-foreground hover:text-foreground'
+        "
+        @click="tab = item.id"
+      >
+        <component :is="item.icon" class="h-3.5 w-3.5" />
+        {{ item.label }}
+      </button>
+    </div>
+
+    <!-- Overview -->
+    <section v-if="tab === 'overview'" class="grid gap-6 lg:grid-cols-2">
+      <div>
+        <h3 class="mb-3 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.activity") }}
+        </h3>
+        <ul class="space-y-2 text-sm">
+          <li
+            v-for="a in club.activity"
+            :key="a.id"
+            class="border-b border-border/60 py-2 text-muted-foreground"
+          >
+            <span class="text-foreground">{{ a.kind }}</span>
+            <span class="ml-2 text-xs">{{ new Date(a.created_at).toLocaleString() }}</span>
+          </li>
+          <li v-if="!club.activity?.length" class="text-muted-foreground">
+            {{ t("pages.clubs.no_activity") }}
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="mb-3 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.stats") }}
+        </h3>
+        <dl class="grid grid-cols-2 gap-3 text-sm">
+          <div class="border border-border p-3">
+            <dt class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</dt>
+            <dd class="text-xl font-bold">{{ club.members_aggregate?.aggregate?.count ?? 0 }}</dd>
+          </div>
+          <div class="border border-border p-3">
+            <dt class="text-xs text-muted-foreground">{{ t("pages.clubs.channels") }}</dt>
+            <dd class="text-xl font-bold">{{ club.channels?.length ?? 0 }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Members -->
+    <section v-else-if="tab === 'members'" class="space-y-2">
+      <div
+        v-for="m in club.members"
+        :key="m.steam_id"
+        class="flex items-center gap-3 border-b border-border/50 py-2"
+      >
+        <NuxtLink
+          :to="`/players/${m.steam_id}`"
+          class="font-medium hover:text-[hsl(var(--tac-amber))]"
+        >
+          {{ m.player?.name || m.steam_id }}
+        </NuxtLink>
+        <span class="text-xs uppercase text-muted-foreground">{{ m.role }}</span>
+        <span v-if="m.is_primary" class="text-xs text-[hsl(var(--tac-amber))]">
+          {{ t("pages.clubs.primary_badge") }}
+        </span>
+        <Button
+          v-if="canManage && m.role !== 'owner'"
+          size="sm"
+          variant="ghost"
+          class="ml-auto text-destructive"
+          @click="banMember(String(m.steam_id))"
+        >
+          {{ t("pages.clubs.ban") }}
+        </Button>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section v-else-if="tab === 'chat'" class="grid gap-4 md:grid-cols-[180px_1fr]">
+      <div class="space-y-1">
+        <button
+          v-for="ch in club.channels"
+          :key="ch.id"
+          type="button"
+          class="block w-full truncate px-2 py-1.5 text-left text-sm"
+          :class="
+            activeChannel?.id === ch.id
+              ? 'bg-[hsl(var(--tac-amber)/0.12)] text-[hsl(var(--tac-amber))]'
+              : 'text-muted-foreground hover:text-foreground'
+          "
+          @click="activeChannelId = ch.id"
+        >
+          #{{ ch.name }}
+        </button>
+      </div>
+      <div v-if="isMember" class="flex min-h-[320px] flex-col border border-border">
+        <div class="flex-1 space-y-2 overflow-y-auto p-3">
+          <div
+            v-for="msg in [...(activeChannel?.messages || [])].reverse()"
+            :key="msg.id"
+            class="text-sm"
+            :class="{ 'opacity-40 line-through': msg.deleted_at }"
+          >
+            <span class="font-medium">{{ msg.author?.name || msg.author_steam_id }}</span>
+            <span class="ml-2 text-muted-foreground">{{ msg.body }}</span>
+            <button
+              v-if="canModerate && !msg.deleted_at"
+              type="button"
+              class="ml-2 text-xs text-destructive"
+              @click="deleteMessage(msg.id)"
+            >
+              {{ t("common.delete") }}
+            </button>
+          </div>
+        </div>
+        <form class="flex gap-2 border-t border-border p-2" @submit.prevent="sendChat">
+          <Input v-model="chatBody" class="flex-1" :placeholder="t('pages.clubs.chat_placeholder')" />
+          <Button type="submit" :disabled="busy">{{ t("pages.clubs.send") }}</Button>
+        </form>
+      </div>
+      <p v-else class="text-sm text-muted-foreground">{{ t("pages.clubs.chat_members_only") }}</p>
+    </section>
+
+    <!-- Leaderboard -->
+    <section v-else-if="tab === 'leaderboard'" class="space-y-6">
+      <div v-if="canManage" class="flex flex-wrap items-end gap-2">
+        <Input v-model="seasonLbName" class="w-48" />
+        <Button :disabled="busy" @click="createSeasonLb">
+          {{ t("pages.clubs.create_season_lb") }}
+        </Button>
+      </div>
+      <div v-for="lb in club.leaderboards" :key="lb.id" class="border border-border p-4">
+        <div class="mb-3 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold uppercase">{{ lb.name }}</h3>
+            <p class="text-xs text-muted-foreground">
+              {{ lb.type }} · +{{ lb.points_win }} / {{ lb.points_loss }}
+              <span v-if="lb.frozen"> · {{ t("pages.clubs.frozen") }}</span>
+            </p>
+          </div>
+          <Button
+            v-if="canManage"
+            size="sm"
+            variant="outline"
+            @click="freezeLb(lb.id, !lb.frozen)"
+          >
+            {{ lb.frozen ? t("pages.clubs.unfreeze") : t("pages.clubs.freeze") }}
+          </Button>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th class="py-1">#</th>
+              <th>{{ t("pages.clubs.player") }}</th>
+              <th>{{ t("pages.clubs.points") }}</th>
+              <th>W/L</th>
+              <th>{{ t("pages.clubs.streak") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(e, i) in lb.entries" :key="e.steam_id" class="border-t border-border/50">
+              <td class="py-1.5">{{ i + 1 }}</td>
+              <td>
+                <NuxtLink :to="`/players/${e.steam_id}`" class="hover:text-[hsl(var(--tac-amber))]">
+                  {{ e.player?.name || e.steam_id }}
+                </NuxtLink>
+              </td>
+              <td>{{ e.points }}</td>
+              <td>{{ e.wins }}/{{ e.losses }}</td>
+              <td>{{ e.streak }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Queues -->
+    <section v-else-if="tab === 'queues'" class="space-y-4">
+      <div v-if="canManage" class="flex gap-2">
+        <Input v-model="newQueueName" class="max-w-xs" />
+        <Button :disabled="busy" @click="createQueue">
+          {{ t("pages.clubs.create_queue") }}
+        </Button>
+      </div>
+      <div
+        v-for="q in club.queues"
+        :key="q.id"
+        class="flex flex-wrap items-center justify-between gap-3 border border-border p-4"
+      >
+        <div>
+          <h3 class="font-bold uppercase">{{ q.name }}</h3>
+          <p class="text-xs text-muted-foreground">
+            {{ q.players?.length || 0 }} / {{ q.min_players }} · {{ q.team_size }}v{{ q.team_size }}
+          </p>
+          <p class="mt-1 text-xs text-muted-foreground">
+            {{ (q.players || []).map((p: any) => p.player?.name).join(", ") }}
+          </p>
+        </div>
+        <div class="flex gap-2" v-if="isMember">
+          <Button size="sm" :disabled="busy" @click="joinQueue(q.id)">
+            {{ t("pages.clubs.join_queue") }}
+          </Button>
+          <Button size="sm" variant="outline" :disabled="busy" @click="leaveQueue(q.id)">
+            {{ t("pages.clubs.leave_queue") }}
+          </Button>
+        </div>
+      </div>
+      <p v-if="!club.queues?.length" class="text-sm text-muted-foreground">
+        {{ t("pages.clubs.no_queues") }}
+      </p>
+    </section>
+
+    <!-- Parties -->
+    <section v-else-if="tab === 'parties'" class="space-y-4">
+      <div v-if="isMember" class="flex gap-2">
+        <Input v-model="newPartyTitle" :placeholder="t('pages.clubs.party_title')" class="max-w-xs" />
+        <Button :disabled="busy" @click="createParty">
+          {{ t("pages.clubs.create_party") }}
+        </Button>
+      </div>
+      <div
+        v-for="p in club.parties"
+        :key="p.id"
+        class="border border-border p-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold">{{ p.title || t("pages.clubs.party") }}</h3>
+            <p class="text-xs text-muted-foreground">
+              {{ (p.members || []).map((m: any) => m.player?.name + (m.is_guest ? " (guest)" : "")).join(", ") }}
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" @click="joinParty(p.id, !isMember)">
+              {{ t("pages.clubs.join_party") }}
+            </Button>
+            <Button size="sm" variant="ghost" @click="leaveParty(p.id)">
+              {{ t("pages.clubs.leave_party") }}
+            </Button>
+            <Button
+              v-if="String(p.leader_steam_id) === String(me?.steam_id)"
+              size="sm"
+              :class="tacticalCtaButtonClasses"
+              @click="queuePartyToLobby(p)"
+            >
+              {{ t("pages.clubs.queue_party") }}
+            </Button>
+          </div>
+        </div>
+        <div
+          v-if="String(p.leader_steam_id) === String(me?.steam_id)"
+          class="mt-3 flex gap-2"
+        >
+          <Input v-model="guestSteamId" :placeholder="t('pages.clubs.guest_steam')" class="max-w-xs" />
+          <Button size="sm" variant="outline" @click="addGuest(p.id)">
+            {{ t("pages.clubs.add_guest") }}
+          </Button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clash -->
+    <section v-else-if="tab === 'clash'" class="space-y-4">
+      <p class="text-sm text-muted-foreground">{{ t("pages.clubs.clash_hint") }}</p>
+      <div
+        v-for="ev in clashEvents"
+        :key="ev.id"
+        class="border border-border p-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold uppercase">{{ ev.name }}</h3>
+            <p class="text-xs text-muted-foreground">
+              {{ new Date(ev.starts_at).toLocaleString() }} →
+              {{ new Date(ev.ends_at).toLocaleString() }}
+              <span v-if="ev.locked"> · locked</span>
+            </p>
+          </div>
+          <Button
+            size="sm"
+            :disabled="busy || !myMembership?.is_primary"
+            @click="registerClash(ev.id)"
+          >
+            {{ t("pages.clubs.register_clash") }}
+          </Button>
+        </div>
+        <ul class="mt-3 space-y-1 text-sm">
+          <li v-for="e in ev.entries" :key="e.club_id">
+            <NuxtLink :to="`/clubs/${e.club?.slug || e.club_id}`" class="hover:text-[hsl(var(--tac-amber))]">
+              {{ e.club?.name }}
+            </NuxtLink>
+            — {{ e.points }} pts
+          </li>
+        </ul>
+      </div>
+      <p v-if="!clashEvents.length" class="text-sm text-muted-foreground">
+        {{ t("pages.clubs.no_clash") }}
+      </p>
+    </section>
+
+    <!-- Admin -->
+    <section v-else-if="tab === 'admin' && canManage" class="grid gap-8 lg:grid-cols-2">
+      <div class="space-y-3">
+        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.invites") }}
+        </h3>
+        <div class="flex gap-2">
+          <Input v-model="inviteSteamId" :placeholder="t('pages.clubs.steam_id')" />
+          <Button :disabled="busy" @click="sendInvite">{{ t("pages.clubs.send_invite") }}</Button>
+        </div>
+        <ul class="text-sm text-muted-foreground">
+          <li v-for="inv in club.invites" :key="inv.id">
+            {{ inv.player?.name || inv.steam_id }}
+          </li>
+        </ul>
+      </div>
+      <div class="space-y-3">
+        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.invite_links") }}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          <Input v-model.number="linkHours" type="number" class="w-24" :placeholder="'hrs'" />
+          <Input v-model.number="linkMaxUses" type="number" class="w-24" :placeholder="'max'" />
+          <label class="flex items-center gap-2 text-xs">
+            <input v-model="linkBypass" type="checkbox" />
+            {{ t("pages.clubs.bypass_req") }}
+          </label>
+          <Button :disabled="busy" @click="createLink">{{ t("pages.clubs.create_link") }}</Button>
+        </div>
+        <p v-if="createdLinkCode" class="text-sm">
+          {{ t("pages.clubs.link_created") }}:
+          <NuxtLink :to="`/clubs/join/${createdLinkCode}`" class="underline">
+            /clubs/join/{{ createdLinkCode }}
+          </NuxtLink>
+        </p>
+        <ul class="text-xs text-muted-foreground">
+          <li v-for="l in club.invite_links" :key="l.id">
+            {{ l.code }} · {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
+            <span v-if="l.revoked_at"> (revoked)</span>
+          </li>
+        </ul>
+      </div>
+      <div class="space-y-3">
+        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.requests") }}
+        </h3>
+        <div
+          v-for="r in club.join_requests"
+          :key="r.id"
+          class="flex items-center gap-2 text-sm"
+        >
+          <span>{{ r.player?.name }} — {{ r.message }}</span>
+          <Button size="sm" @click="reviewRequest(r.id, true)">{{ t("common.accept") }}</Button>
+          <Button size="sm" variant="outline" @click="reviewRequest(r.id, false)">
+            {{ t("common.decline") }}
+          </Button>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.requirements") }}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          <Input v-model.number="minElo" type="number" :placeholder="'Min Elo'" class="w-32" />
+          <Input v-model.number="minLevel" type="number" :placeholder="'Min FACEIT lvl'" class="w-36" />
+          <Button :disabled="busy" @click="saveRequirements">{{ t("common.save") }}</Button>
+        </div>
+        <h3 class="mt-6 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+          {{ t("pages.clubs.bans") }}
+        </h3>
+        <ul class="text-sm text-muted-foreground">
+          <li v-for="b in club.bans" :key="b.id">
+            {{ b.player?.name || b.steam_id }} — {{ b.reason }}
+          </li>
+        </ul>
+      </div>
+    </section>
+  </template>
+</template>
