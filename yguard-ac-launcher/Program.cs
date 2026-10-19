@@ -168,6 +168,10 @@ internal sealed class MainForm : Form
     /// Never reports to the API / never bans.
     /// </summary>
     private GameModuleGuard? _moduleGuard;
+    /// <summary>
+    /// Runtime Process Integrity Monitor (audit-only by default).
+    /// </summary>
+    private RuntimeProcessIntegrityMonitor? _integrityMonitor;
     private CancellationTokenSource? _loginCts;
     private bool _reportedCheats;
     private bool _platformBanned;
@@ -253,9 +257,25 @@ internal sealed class MainForm : Form
                     try { _unsignedGuard?.NotifyGameRunning(); } catch { }
                 }
                 try { CheatUiGuard.ScanAndClose(); } catch { }
+
+                // Soft status from integrity monitor (audit or gate).
+                try
+                {
+                    if (_integrityMonitor is { SessionRestricted: true } im &&
+                        !string.IsNullOrWhiteSpace(im.BlockReason) &&
+                        !_platformBanned)
+                    {
+                        SetStatus($"Blocked | Close {im.BlockReason} to play CS2", false);
+                    }
+                }
+                catch { }
             }
             else
             {
+                if (_gameRunningNotified)
+                {
+                    try { _integrityMonitor?.NotifyGameExited(); } catch { }
+                }
                 _gameRunningNotified = false;
             }
         };
@@ -284,6 +304,20 @@ internal sealed class MainForm : Form
 
             // Monitor DLLs inside CS2; unload/close foreign unsigned modules only.
             _moduleGuard ??= new GameModuleGuard();
+
+            // Runtime Process Integrity Monitor — audit-only until explicitly enabled.
+            RuntimeProcessIntegrityMonitor.AuditOnly = true;
+            _integrityMonitor ??= new RuntimeProcessIntegrityMonitor(
+                status: msg =>
+                {
+                    try
+                    {
+                        if (IsHandleCreated && !_platformBanned)
+                            BeginInvoke(() => SetStatus(msg, msg.StartsWith("Audit", StringComparison.Ordinal)));
+                    }
+                    catch { }
+                },
+                onConfirmedTamperReport: ReportIntegrityTamperAsync);
         };
 
         FormClosing += (_, _) =>
@@ -292,6 +326,8 @@ internal sealed class MainForm : Form
             _unsignedGuard = null;
             try { _moduleGuard?.Dispose(); } catch { }
             _moduleGuard = null;
+            try { _integrityMonitor?.Dispose(); } catch { }
+            _integrityMonitor = null;
 
             // Closing AC while CS2 is open must kill the game — otherwise players
             // can drop AC mid-match and enable cheats.
@@ -1130,6 +1166,63 @@ internal sealed class MainForm : Form
             : " — " + body.Replace('\n', ' ').Trim();
         if (shortBody.Length > 80) shortBody = shortBody[..80] + "…";
         return $"AC {step} failed ({status}){shortBody}";
+    }
+
+    /// <summary>
+    /// Confirmed multi-signal integrity tamper → report like a cheat hit (enforce mode only).
+    /// </summary>
+    private async Task ReportIntegrityTamperAsync()
+    {
+        if (string.IsNullOrEmpty(_deviceToken)) return;
+        if (RuntimeProcessIntegrityMonitor.AuditOnly) return;
+
+        var recent = _integrityMonitor?.SnapshotRecent(12) ?? Array.Empty<IntegrityEvent>();
+        var hits = new List<object>();
+        foreach (var e in recent.Where(x => x.Confidence >= 60).Take(10))
+        {
+            hits.Add(new
+            {
+                signature = $"runtime_integrity:{e.Kind}",
+                path = e.Evidence.TryGetValue("module", out var m) ? m
+                    : e.Evidence.TryGetValue("path", out var p) ? p : null,
+                process_name = e.Evidence.TryGetValue("process", out var pn) ? pn : "cs2",
+                details = new Dictionary<string, object?>
+                {
+                    ["message"] = e.Message,
+                    ["confidence"] = e.Confidence,
+                    ["utc"] = e.Utc.ToString("o"),
+                    ["evidence"] = e.Evidence,
+                },
+            });
+        }
+
+        if (hits.Count == 0)
+        {
+            hits.Add(new
+            {
+                signature = "runtime_integrity:confirmed_tamper",
+                path = (string?)null,
+                process_name = "cs2",
+                details = new Dictionary<string, object?>
+                {
+                    ["message"] = "Multi-signal runtime integrity confirmation",
+                    ["confidence"] = 95,
+                    ["utc"] = DateTime.UtcNow.ToString("o"),
+                },
+            });
+        }
+
+        try
+        {
+            using var http = Http();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _deviceToken);
+            await http.PostAsJsonAsync("/plugins/ac/report", new { clean = false, hits });
+            KillGameIfRunning();
+            _connectedOk = false;
+            SetStatus("Banned | Runtime integrity tamper confirmed", false);
+        }
+        catch { /* retry next cycle */ }
     }
 
     /// <summary>
