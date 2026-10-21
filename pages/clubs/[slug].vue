@@ -20,6 +20,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import { clubErrorMessage } from "~/utilities/clubErrors";
 
 const VALID_TABS = [
   "overview",
@@ -74,6 +75,7 @@ const minElo = ref<number | null>(null);
 const minLevel = ref<number | null>(null);
 const createdLinkCode = ref("");
 const memberQuery = ref("");
+const transferSteamId = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -85,6 +87,11 @@ const myMembership = computed(() => {
 });
 const canManage = computed(() =>
   ["owner", "admin"].includes(myMembership.value?.role),
+);
+const isOwner = computed(
+  () =>
+    myMembership.value?.role === "owner" ||
+    String(club.value?.owner_steam_id) === String(me.value?.steam_id),
 );
 const canModerate = computed(() =>
   ["owner", "admin", "moderator"].includes(myMembership.value?.role),
@@ -321,7 +328,7 @@ async function runAction(mutation: string, variables: Record<string, unknown>) {
     await client.mutate({ mutation: gql(mutation), variables });
     await load();
   } catch (e: any) {
-    error.value = e?.message || t("pages.clubs.action_failed");
+    error.value = clubErrorMessage(e, t);
   } finally {
     busy.value = false;
   }
@@ -352,11 +359,21 @@ async function requestJoin() {
 async function leaveClub() {
   if (!me.value) return;
   await runAction(
-    `mutation($club_id: uuid!, $steam_id: bigint!) {
-      delete_club_members_by_pk(club_id: $club_id, steam_id: $steam_id) { club_id }
-    }`,
-    { club_id: club.value.id, steam_id: String(me.value.steam_id) },
+    `mutation($club_id: uuid!) { leaveClub(club_id: $club_id) { success } }`,
+    { club_id: club.value.id },
   );
+}
+
+async function transferClub() {
+  const sid = transferSteamId.value.trim();
+  if (!sid) return;
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: String!) {
+      transferClub(club_id: $club_id, steam_id: $steam_id) { success }
+    }`,
+    { club_id: club.value.id, steam_id: sid },
+  );
+  transferSteamId.value = "";
 }
 
 async function setPrimary() {
@@ -1272,6 +1289,22 @@ function activityTitle(kind: string) {
               @uploaded="onCoverUploaded"
               @removed="onCoverRemoved"
             />
+          </div>
+          <div
+            v-if="isOwner"
+            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
+          >
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.transfer") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.transfer_hint") }}</p>
+            <div class="flex gap-2">
+              <Input
+                v-model="transferSteamId"
+                :placeholder="t('pages.clubs.transfer_to')"
+              />
+              <Button :disabled="busy" @click="transferClub">
+                {{ t("pages.clubs.transfer") }}
+              </Button>
+            </div>
           </div>
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.invites") }}</h3>

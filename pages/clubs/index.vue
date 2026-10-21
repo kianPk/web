@@ -13,6 +13,7 @@ import {
   tacticalCtaButtonClasses,
   tacticalHeaderActionClasses,
 } from "~/utilities/tacticalClasses";
+import { OWN_CLUB_TAG } from "~/utilities/clubErrors";
 
 const { t } = useI18n();
 const auth = useAuthStore();
@@ -21,6 +22,7 @@ const { client } = useApolloClient();
 const query = ref("");
 const clubs = ref<any[]>([]);
 const loading = ref(true);
+const canCreateClub = ref(false);
 
 const myClubs = computed(() =>
   clubs.value.filter((c) => (c.members || []).length > 0),
@@ -89,8 +91,33 @@ async function load() {
 watch(query, () => {
   void load();
 });
+async function loadOwnClub() {
+  canCreateClub.value = !!auth.isAdmin;
+  if (!me.value?.steam_id) return;
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query MyOwnClubTag($steam_id: bigint!, $tag: String!) {
+          player_tags(
+            where: { steam_id: { _eq: $steam_id }, tag: { _eq: $tag } }
+            limit: 1
+          ) {
+            tag
+          }
+        }
+      `,
+      variables: { steam_id: String(me.value.steam_id), tag: OWN_CLUB_TAG },
+      fetchPolicy: "network-only",
+    });
+    canCreateClub.value = !!auth.isAdmin || (data?.player_tags?.length ?? 0) > 0;
+  } catch {
+    canCreateClub.value = !!auth.isAdmin;
+  }
+}
+
 onMounted(() => {
   void load();
+  void loadOwnClub();
 });
 </script>
 
@@ -106,7 +133,7 @@ onMounted(() => {
           {{ t("pages.clubs.party_finder") }}
         </NuxtLink>
         <NuxtLink
-          v-if="me"
+          v-if="me && canCreateClub"
           to="/clubs/create"
           :class="[
             tacticalCtaButtonClasses,

@@ -94,6 +94,7 @@ import PluginRemote from "~/components/plugins/PluginRemote.vue";
 import { usePluginsStore, type Plugin } from "~/stores/Plugins";
 import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
+import { OWN_CLUB_TAG } from "~/utilities/clubErrors";
 import { $, order_by, e_tournament_status_enum } from "~/generated/zeus";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { playerMatchSummaryQuery } from "~/graphql/playerMatchAggStatsGraphql";
@@ -751,6 +752,74 @@ async function loadPlayerClubs() {
   }
 }
 watch(playerIdRef, () => void loadPlayerClubs(), { immediate: true });
+
+const hasOwnClub = ref(false);
+const ownClubBusy = ref(false);
+const canGrantOwnClub = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
+);
+
+async function loadOwnClubTag() {
+  if (!playerIdRef.value) {
+    hasOwnClub.value = false;
+    return;
+  }
+  try {
+    const { useApolloClient } = await import("@vue/apollo-composable");
+    const { gql } = await import("@apollo/client/core");
+    const { client } = useApolloClient();
+    const { data } = await client.query({
+      query: gql`
+        query PlayerOwnClubTag($steam_id: bigint!, $tag: String!) {
+          player_tags(
+            where: { steam_id: { _eq: $steam_id }, tag: { _eq: $tag } }
+            limit: 1
+          ) {
+            tag
+          }
+        }
+      `,
+      variables: { steam_id: playerIdRef.value, tag: OWN_CLUB_TAG },
+      fetchPolicy: "network-only",
+    });
+    hasOwnClub.value = (data?.player_tags?.length ?? 0) > 0;
+  } catch {
+    hasOwnClub.value = false;
+  }
+}
+
+async function toggleOwnClub() {
+  if (!playerIdRef.value || !canGrantOwnClub.value || ownClubBusy.value) return;
+  ownClubBusy.value = true;
+  try {
+    const { useApolloClient } = await import("@vue/apollo-composable");
+    const { gql } = await import("@apollo/client/core");
+    const { client } = useApolloClient();
+    await client.mutate({
+      mutation: hasOwnClub.value
+        ? gql`
+            mutation RevokeOwnClub($steam_id: String!, $tag: String!) {
+              revokePlayerTag(steam_id: $steam_id, tag: $tag) {
+                success
+              }
+            }
+          `
+        : gql`
+            mutation GrantOwnClub($steam_id: String!, $tag: String!) {
+              grantPlayerTag(steam_id: $steam_id, tag: $tag) {
+                success
+              }
+            }
+          `,
+      variables: { steam_id: String(playerIdRef.value), tag: OWN_CLUB_TAG },
+    });
+    hasOwnClub.value = !hasOwnClub.value;
+  } finally {
+    ownClubBusy.value = false;
+  }
+}
+
+watch(playerIdRef, () => void loadOwnClubTag(), { immediate: true });
 
 watch(playerIdRef, () => clearCompareTarget());
 
@@ -1925,6 +1994,31 @@ const playerHeroTeamChipDotClasses =
                   </div>
                   <span v-else :class="playerHeroInlineRoleChipClasses">
                     {{ $t(`player_roles.${player.role || "user"}`) }}
+                  </span>
+                </template>
+
+                <template v-if="canGrantOwnClub || hasOwnClub">
+                  <span
+                    :class="playerHeroMetaDividerClasses"
+                    aria-hidden="true"
+                  ></span>
+                  <button
+                    v-if="canGrantOwnClub"
+                    type="button"
+                    :disabled="ownClubBusy"
+                    :class="playerHeroInlineRoleChipClasses"
+                    :title="$t('pages.clubs.ownclub_hint')"
+                    @click="toggleOwnClub"
+                  >
+                    {{ $t("pages.clubs.ownclub_grant") }}
+                    {{ hasOwnClub ? "✓" : "" }}
+                  </button>
+                  <span
+                    v-else
+                    :class="playerHeroInlineRoleChipClasses"
+                    :title="$t('pages.clubs.ownclub_hint')"
+                  >
+                    {{ $t("pages.clubs.ownclub_granted") }}
                   </span>
                 </template>
 

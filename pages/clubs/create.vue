@@ -7,6 +7,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
+import { clubErrorMessage, OWN_CLUB_TAG } from "~/utilities/clubErrors";
+
 const { t } = useI18n();
 const router = useRouter();
 const { client } = useApolloClient();
@@ -18,10 +20,52 @@ const description = ref("");
 const joinMode = ref<"open" | "request" | "invite_only">("open");
 const saving = ref(false);
 const error = ref("");
+const canOwnClub = ref(false);
+const checkingTag = ref(true);
+
+const isAdmin = computed(() => !!auth.isAdmin);
+
+async function loadOwnClub() {
+  checkingTag.value = true;
+  canOwnClub.value = isAdmin.value;
+  if (!auth.me) {
+    checkingTag.value = false;
+    return;
+  }
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query MyOwnClubTag($steam_id: bigint!, $tag: String!) {
+          player_tags(
+            where: { steam_id: { _eq: $steam_id }, tag: { _eq: $tag } }
+            limit: 1
+          ) {
+            tag
+          }
+        }
+      `,
+      variables: { steam_id: String(auth.me.steam_id), tag: OWN_CLUB_TAG },
+      fetchPolicy: "network-only",
+    });
+    canOwnClub.value = isAdmin.value || (data?.player_tags?.length ?? 0) > 0;
+  } catch {
+    canOwnClub.value = isAdmin.value;
+  } finally {
+    checkingTag.value = false;
+  }
+}
+
+onMounted(() => {
+  void loadOwnClub();
+});
 
 async function createClub() {
   if (!auth.me) {
     await navigateTo("/login");
+    return;
+  }
+  if (!canOwnClub.value) {
+    error.value = t("pages.clubs.ownclub_required");
     return;
   }
   const n = name.value.trim();
@@ -38,16 +82,15 @@ async function createClub() {
           $name: String!
           $short_name: String
           $description: String!
-          $join_mode: e_club_join_modes_enum!
+          $join_mode: String!
         ) {
-          insert_clubs_one(
-            object: {
-              name: $name
-              short_name: $short_name
-              description: $description
-              join_mode: $join_mode
-            }
+          createClub(
+            name: $name
+            short_name: $short_name
+            description: $description
+            join_mode: $join_mode
           ) {
+            success
             id
             slug
           }
@@ -60,11 +103,11 @@ async function createClub() {
         join_mode: joinMode.value,
       },
     });
-    const club = data?.insert_clubs_one;
+    const club = data?.createClub;
     if (!club?.id) throw new Error("create failed");
     await router.push(`/clubs/${club.slug || club.id}`);
   } catch (e: any) {
-    error.value = e?.message || t("pages.clubs.form.create_failed");
+    error.value = clubErrorMessage(e, t) || t("pages.clubs.form.create_failed");
   } finally {
     saving.value = false;
   }
@@ -120,8 +163,15 @@ async function createClub() {
             </option>
           </select>
         </label>
+        <p v-if="!checkingTag && !canOwnClub" class="text-sm text-destructive">
+          {{ t("pages.clubs.ownclub_required") }}
+        </p>
         <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
-        <Button type="submit" :disabled="saving" :class="tacticalCtaButtonClasses">
+        <Button
+          type="submit"
+          :disabled="saving || checkingTag || !canOwnClub"
+          :class="tacticalCtaButtonClasses"
+        >
           {{ saving ? t("common.saving") : t("pages.clubs.form.submit") }}
         </Button>
       </form>

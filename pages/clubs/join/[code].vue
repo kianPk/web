@@ -5,6 +5,7 @@ import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import { clubErrorMessage } from "~/utilities/clubErrors";
 
 const route = useRoute();
 const { t } = useI18n();
@@ -38,7 +39,7 @@ async function redeem() {
     done.value = true;
     if (clubId) await navigateTo(`/clubs/${clubId}`);
   } catch (e: any) {
-    error.value = e?.message || t("pages.clubs.invite.link_failed");
+    error.value = clubErrorMessage(e, t) || t("pages.clubs.invite.link_failed");
   } finally {
     busy.value = false;
   }
