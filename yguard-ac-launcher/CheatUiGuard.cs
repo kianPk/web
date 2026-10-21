@@ -16,6 +16,8 @@ internal static class CheatUiGuard
         "aimbot", "wallhack", "ragebot", "legitbot", "triggerbot",
         "neverlose", "fatality", "onetap", "nixware", "gamesense", "skeet",
         "exloader", "primordial", "interium", "rawetrip", "spirthack",
+        "memesense", "memsense", "meme sense", "iniuria", "aimware",
+        "superluminal", "asphyxia", "undetek",
         "cs-go2", "csgo2", "cs2 cheat", "esp menu",
         "visuals", "misc", "snap line", "eye ray", "visible check",
         "maximum render distance", "box rounding", "health bar",
@@ -100,6 +102,9 @@ internal static class CheatUiGuard
         if (string.IsNullOrWhiteSpace(blob)) return false;
         var t = blob.ToLowerInvariant();
 
+        if (CheatBrandTokens.Matches(t))
+            return true;
+
         // Single hard hits
         if (SuspiciousParts.Any(p => p.Length >= 6 && t.Contains(p)))
         {
@@ -107,7 +112,8 @@ internal static class CheatUiGuard
             var strong = StrongCheatUiTokens.Count(tok => t.Contains(tok));
             if (strong >= 2) return true;
             if (t.Contains("aimbot") || t.Contains("wallhack") || t.Contains("neverlose")
-                || t.Contains("fatality") || t.Contains("onetap") || t.Contains("exloader"))
+                || t.Contains("fatality") || t.Contains("onetap") || t.Contains("exloader")
+                || t.Contains("memesense") || t.Contains("memsense") || t.Contains("aimware"))
                 return true;
         }
 

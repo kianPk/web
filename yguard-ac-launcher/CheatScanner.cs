@@ -57,6 +57,18 @@ internal static class CheatScanner
             ["cheatengine"] = "cheatengine",
             ["undetek-v10.47"] = "undetek",
             ["undetek"] = "undetek",
+            ["memesense"] = "memesense",
+            ["memesense_loader"] = "memesense",
+            ["memesenseloader"] = "memesense",
+            ["memsense"] = "memesense",
+            ["memsense_loader"] = "memesense",
+            ["meme_sense"] = "memesense",
+            ["iniuria"] = "iniuria",
+            ["iniuria_loader"] = "iniuria",
+            ["superluminal"] = "superluminal",
+            ["asphyxia"] = "asphyxia",
+            ["aimware"] = "aimware",
+            ["aimware_loader"] = "aimware",
         };
 
     /// <summary>
@@ -103,6 +115,17 @@ internal static class CheatScanner
         ("SpirtHack", "spirt"),
         ("neverlose_loader", "neverlose"),
         ("fatality_loader", "fatality"),
+        ("MemeSense", "memesense"),
+        ("memesense", "memesense"),
+        ("Meme Sense", "memesense"),
+        ("Memsense", "memesense"),
+        ("memsense", "memesense"),
+        ("Iniuria", "iniuria"),
+        ("Superluminal", "superluminal"),
+        ("Asphyxia", "asphyxia"),
+        ("Aimware", "aimware"),
+        ("Undetek", "undetek"),
+        ("undetek", "undetek"),
     ];
 
     /// <summary>
@@ -158,6 +181,18 @@ internal static class CheatScanner
         "cheatengine.exe",
         "undetek-v10.47.exe",
         "undetek.exe",
+        "memesense.exe",
+        "memesense_loader.exe",
+        "memesenseloader.exe",
+        "memsense.exe",
+        "memsense_loader.exe",
+        "meme_sense.exe",
+        "iniuria.exe",
+        "iniuria_loader.exe",
+        "superluminal.exe",
+        "asphyxia.exe",
+        "aimware.exe",
+        "aimware_loader.exe",
     ];
 
     /// <summary>
@@ -168,6 +203,14 @@ internal static class CheatScanner
     [
         "undetek-v10.47.exe",
         "undetek*.exe",
+        "memesense*.exe",
+        "*memesense*.exe",
+        "memsense*.exe",
+        "*memsense*.exe",
+        "iniuria*.exe",
+        "aimware*.exe",
+        "superluminal*.exe",
+        "asphyxia*.exe",
     ];
 
     private static readonly string[] SearchRoots = BuildSearchRoots();
@@ -193,6 +236,8 @@ internal static class CheatScanner
 
         try { ScanInstallTrees(Add); } catch { /* never throw out of Scan */ }
         try { ScanProcesses(Add); } catch { /* ignore */ }
+        try { CheatBrandGuard.Scan(Add); } catch { /* ignore */ }
+        try { ScanShortcuts(Add); } catch { /* ignore */ }
         try { ScanGlobalBannedFiles(Add); } catch { /* ignore */ }
 
         return hits;
@@ -222,7 +267,8 @@ internal static class CheatScanner
             if (string.IsNullOrWhiteSpace(hit.Path)) continue;
             // Global banned filenames (undetek-*.exe, …) may sit anywhere —
             // still safe to delete that exact file, not arbitrary trees.
-            var allowAnywhere = IsGlobalBannedFileName(hit.Path);
+            var allowAnywhere = IsGlobalBannedFileName(hit.Path)
+                                || CheatBrandGuard.FileLooksBranded(hit.Path);
             if (!allowAnywhere && !IsUnderAllowedRoot(hit.Path, allowedRoots))
                 continue;
             try
@@ -444,9 +490,10 @@ internal static class CheatScanner
             {
                 var name = (p.ProcessName ?? "").Trim();
                 if (name.Length == 0) continue;
-                if (!ExactProcesses.ContainsKey(name)) continue;
+                var branded = CheatBrandGuard.ShouldKill(p);
+                if (!ExactProcesses.ContainsKey(name) && !branded) continue;
 
-                if (AmbiguousProcessNames.Contains(name))
+                if (!branded && AmbiguousProcessNames.Contains(name))
                 {
                     string? path = null;
                     try { path = p.MainModule?.FileName; } catch { }
@@ -529,6 +576,8 @@ internal static class CheatScanner
         if (CheatFilesInsideRoots.Any(f =>
                 f.Equals(name, StringComparison.OrdinalIgnoreCase)))
             return true;
+        if (CheatBrandTokens.Matches(name))
+            return true;
         return IsGlobalBannedFileName(path);
     }
 
@@ -556,15 +605,59 @@ internal static class CheatScanner
 
     private static bool MatchesSimpleGlob(string name, string glob)
     {
-        // Only supports a single '*' (e.g. undetek*.exe).
-        var star = glob.IndexOf('*');
-        if (star < 0)
+        if (string.IsNullOrEmpty(glob)) return false;
+        if (!glob.Contains('*', StringComparison.Ordinal))
             return name.Equals(glob, StringComparison.OrdinalIgnoreCase);
-        var prefix = glob[..star];
-        var suffix = glob[(star + 1)..];
-        return name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-               && name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
-               && name.Length >= prefix.Length + suffix.Length;
+
+        var parts = glob.Split('*');
+        var idx = 0;
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i];
+            if (part.Length == 0) continue;
+            var found = name.IndexOf(part, idx, StringComparison.OrdinalIgnoreCase);
+            if (found < 0) return false;
+            if (i == 0 && !glob.StartsWith('*') && found != 0) return false;
+            idx = found + part.Length;
+        }
+
+        if (!glob.EndsWith('*') && parts[^1].Length > 0
+            && !name.EndsWith(parts[^1], StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return true;
+    }
+
+    private static string SignatureFromFileName(string path)
+    {
+        try
+        {
+            var name = Path.GetFileName(path);
+            var tok = CheatBrandTokens.FirstMatch(name);
+            if (tok != null) return CheatBrandTokens.Canonical(tok);
+        }
+        catch { /* ignore */ }
+        return "undetek";
+    }
+
+    private static void ScanShortcuts(Action<Hit> add)
+    {
+        foreach (var root in SearchRoots)
+        {
+            if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+                continue;
+            try
+            {
+                foreach (var lnk in Directory.EnumerateFiles(root, "*.lnk", SearchOption.TopDirectoryOnly))
+                {
+                    var name = Path.GetFileNameWithoutExtension(lnk);
+                    var tok = CheatBrandTokens.FirstMatch(name);
+                    if (tok == null) continue;
+                    add(new Hit(CheatBrandTokens.Canonical(tok), lnk, null));
+                }
+            }
+            catch { /* ACL */ }
+        }
     }
 
     private static void ScanGlobalBannedFiles(Action<Hit> add)
@@ -694,7 +787,7 @@ internal static class CheatScanner
                         foreach (var file in Directory.EnumerateFiles(dir, glob))
                         {
                             if (!seen.Add(file)) continue;
-                            found.Add(new Hit("undetek", file, null));
+                            found.Add(new Hit(SignatureFromFileName(file), file, null));
                         }
                     }
                     catch { /* ACL */ }
@@ -747,6 +840,9 @@ internal static class CheatScanner
         AddSpecial(Environment.SpecialFolder.CommonApplicationData);
         AddSpecial(Environment.SpecialFolder.DesktopDirectory);
         AddSpecial(Environment.SpecialFolder.MyDocuments);
+        AddSpecial(Environment.SpecialFolder.StartMenu);
+        AddSpecial(Environment.SpecialFolder.CommonStartMenu);
+        AddSpecial(Environment.SpecialFolder.Programs);
 
         try
         {

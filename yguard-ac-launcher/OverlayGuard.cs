@@ -109,8 +109,12 @@ internal static class OverlayGuard
                 if (IsAllowlisted(procName, path)) return true;
 
                 // Named windows are usually legitimate UI; WH overlays are blank.
+                // Exception: the product name is still in the title (Memesense, …).
                 var title = GetWindowTitle(hWnd);
-                if (!string.IsNullOrEmpty(title))
+                var branded = CheatBrandTokens.Matches(title)
+                              || CheatBrandTokens.Matches(procName)
+                              || CheatBrandTokens.Matches(path);
+                if (!string.IsNullOrEmpty(title) && !branded)
                     return true;
 
                 // Soft close only — never Kill (avoids nuking innocent apps).

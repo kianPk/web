@@ -256,6 +256,7 @@ internal sealed class MainForm : Form
                     _gameRunningNotified = true;
                     try { _unsignedGuard?.NotifyGameRunning(); } catch { }
                 }
+                try { OverlayGuard.ScanAndClose(); } catch { }
                 try { CheatUiGuard.ScanAndClose(); } catch { }
 
                 // Soft status from integrity monitor (audit or gate).
@@ -869,7 +870,7 @@ internal sealed class MainForm : Form
                 else
                 {
                     _updateRequired = true;
-                    SetStatus("Update required — download 0.4.9+ from yguard.ir", false);
+                    SetStatus("Update required — download latest from yguard.ir", false);
                 }
                 return;
             }
@@ -1233,7 +1234,7 @@ internal sealed class MainForm : Form
         if (string.IsNullOrEmpty(_deviceToken)) return;
 
         var cs2Running = IsGameRunning();
-        _cheatScan.Interval = cs2Running ? 8_000 : 20_000;
+        _cheatScan.Interval = cs2Running ? 5_000 : 15_000;
         RefreshConnectedStatus(force: false);
 
         List<CheatScanner.Hit> hits;

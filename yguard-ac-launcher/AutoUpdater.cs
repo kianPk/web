@@ -134,6 +134,41 @@ internal static class AutoUpdater
             if (payloadExe == null)
                 return (false, "YGuardAC.exe missing in update zip");
 
+            // Refuse a zip that would install an older/equal build — that is the
+            // classic update loop (API min_version ahead of download_url).
+            var payloadVer = ReadFileVersion(payloadExe);
+            var wantVer = string.IsNullOrWhiteSpace(release.Version)
+                ? ""
+                : Normalize(release.Version);
+            var minVer = string.IsNullOrWhiteSpace(release.MinVersion)
+                ? wantVer
+                : Normalize(release.MinVersion!);
+            if (!string.IsNullOrEmpty(payloadVer))
+            {
+                if (!string.IsNullOrEmpty(wantVer) &&
+                    !IsNewer(payloadVer, wantVer) &&
+                    !string.Equals(Normalize(payloadVer), wantVer, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (false,
+                        $"update zip is {payloadVer} but API advertises {wantVer} — " +
+                        "server download_url is stale; download from yguard.ir instead");
+                }
+                if (!string.IsNullOrEmpty(minVer) && IsNewer(minVer, payloadVer))
+                {
+                    return (false,
+                        $"update zip is {payloadVer} but min_version is {minVer} — " +
+                        "refusing install that would loop");
+                }
+                // Also skip no-op replace of the same or older file we already run.
+                if (!IsNewer(payloadVer, CurrentVersion) &&
+                    !string.Equals(Normalize(payloadVer), Normalize(CurrentVersion),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return (false,
+                        $"update zip ({payloadVer}) is not newer than running {CurrentVersion}");
+                }
+            }
+
             var bat = Path.Combine(updateRoot, "apply.bat");
             var pid = Environment.ProcessId;
             // Escape for batch: paths with spaces need quotes; use short waits + move.
@@ -186,5 +221,19 @@ internal static class AutoUpdater
         foreach (var f in Directory.EnumerateFiles(extractDir, "YGuardAC.exe", SearchOption.AllDirectories))
             return f;
         return null;
+    }
+
+    private static string ReadFileVersion(string exePath)
+    {
+        try
+        {
+            var info = FileVersionInfo.GetVersionInfo(exePath);
+            var v = info.FileVersion ?? info.ProductVersion ?? "";
+            return Normalize(v.Split('+')[0]);
+        }
+        catch
+        {
+            return "";
+        }
     }
 }
