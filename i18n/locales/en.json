@@ -6826,7 +6826,7 @@
       "tournaments_hint": "Tournaments tagged with this club. Anyone on the site can join.",
       "no_tournaments": "This club has not created a tournament yet.",
       "challenges": {
-        "hint": "Pick challenges for Duels, Aim, AWP, 2x2 or Bhop. Players click Join to connect to that mode. Progress shows in-game on death and every few minutes, and here on the site.",
+        "hint": "Pick challenges for Duels, Aim, AWP, 2x2, Bhop, Competitive or Scrim. Normal challenges take at least about 15 minutes. Players click Join to go to that mode. Progress shows in-game on death and every few minutes, and here on the site.",
         "loading": "Loading challenges…",
         "active": "Active challenges",
         "empty": "No active challenges right now.",
@@ -6840,7 +6840,9 @@
         "no_server": "No public server of that mode is online.",
         "your_progress": "Your progress",
         "completed": "Done",
-        "need_players": "Pick at least one player for this challenge.",
+        "need_players": "Search and add at least one player for this challenge.",
+        "player_search": "Search by name, Steam ID or Steam64",
+        "player_search_hint": "Type a name, Steam ID or Steam64 and add the player.",
         "audience_label": "Who can see it",
         "prize_scope_label": "Who can win the prize",
         "audience": {
@@ -6858,9 +6860,12 @@
           "dm": "Aim / DM",
           "awp": "AWP",
           "2x2": "2x2",
-          "bhop": "Bhop"
+          "bhop": "Bhop",
+          "competitive": "Competitive",
+          "scrim": "Scrim"
         },
         "ends_at": "Active until",
+        "ends_at_shamsi": "Shamsi: {date}",
         "prize_ypoints": "YPoint prize",
         "prize_other": "Other prize",
         "prize": "Prize",
@@ -10027,7 +10032,7 @@
     "search": {
       "no_players_found": "No Players Found.",
       "found_players": "Players Found",
-      "placeholder": "Search players...",
+      "placeholder": "Search by name, Steam ID or Steam64...",
       "loading_more": "Loading more...",
       "ineligible": {
         "in_lineup": "Already in this match's lineup.",

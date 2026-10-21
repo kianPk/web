@@ -26,5 +26,8 @@ export function formatSiteDate(
   if (value == null || value === "") return "";
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString(dateLocale(), options);
+  return date.toLocaleString(dateLocale(), {
+    calendar: "persian",
+    ...options,
+  });
 }

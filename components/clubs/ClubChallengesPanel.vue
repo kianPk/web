@@ -13,6 +13,7 @@ import {
   type FleetMode,
 } from "~/composables/usePublicServerFleet";
 import type { ServerModeKey } from "~/utilities/serverModes";
+import PlayerSearch from "~/components/PlayerSearch.vue";
 
 const DIFFICULTIES = [
   "easy",
@@ -21,7 +22,15 @@ const DIFFICULTIES = [
   "elite",
   "legendary",
 ] as const;
-const MODES = ["duels", "dm", "awp", "2x2", "bhop"] as const;
+const MODES = [
+  "duels",
+  "dm",
+  "awp",
+  "2x2",
+  "bhop",
+  "competitive",
+  "scrim",
+] as const;
 const AUDIENCES = ["site", "club", "club_vip", "players"] as const;
 const PRIZE_SCOPES = ["club", "site"] as const;
 
@@ -81,9 +90,13 @@ const prizeYpoints = ref<number | "">("");
 const prizeOther = ref("");
 const prizeScope = ref<(typeof PRIZE_SCOPES)[number]>("club");
 const audience = ref<(typeof AUDIENCES)[number]>("club");
-const audienceSteamIds = ref<string[]>([]);
+const audiencePlayers = ref<Array<{ steam_id: string; name: string }>>([]);
 const endsAt = ref(defaultEndLocal());
 const joining = ref("");
+const endsAtShamsi = computed(() => {
+  const d = new Date(endsAt.value);
+  return Number.isNaN(d.getTime()) ? "" : formatSiteDate(d);
+});
 
 function defaultEndLocal() {
   const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -260,7 +273,7 @@ async function activate() {
     error.value = t("pages.clubs.challenges.need_prize");
     return;
   }
-  if (audience.value === "players" && !audienceSteamIds.value.length) {
+  if (audience.value === "players" && !audiencePlayers.value.length) {
     error.value = t("pages.clubs.challenges.need_players");
     return;
   }
@@ -298,9 +311,9 @@ async function activate() {
         `,
         variables: {
           objects: created.flatMap((row: { id: string }) =>
-            audienceSteamIds.value.map((steam_id) => ({
+            audiencePlayers.value.map((player) => ({
               challenge_id: row.id,
-              steam_id,
+              steam_id: player.steam_id,
             })),
           ),
         },
@@ -341,6 +354,14 @@ async function deactivate(id: string) {
 }
 
 async function joinServer(mode: string) {
+  if (mode === "competitive" || mode === "comp") {
+    await navigateTo("/play");
+    return;
+  }
+  if (mode === "scrim") {
+    await navigateTo("/scrims");
+    return;
+  }
   const key = (mode === "aim" ? "dm" : mode) as ServerModeKey;
   const fleet: FleetMode | undefined = modes.value.find((m) => m.key === key);
   const server = pickQuickPlayServer(fleet?.servers || []);
@@ -385,12 +406,24 @@ function diffClass(diff: string) {
   }
 }
 
-function toggleAudienceMember(id: string) {
-  if (audienceSteamIds.value.includes(id)) {
-    audienceSteamIds.value = audienceSteamIds.value.filter((row) => row !== id);
-  } else {
-    audienceSteamIds.value = [...audienceSteamIds.value, id];
-  }
+const audienceExclude = computed(() =>
+  audiencePlayers.value.map((row) => row.steam_id),
+);
+
+function addAudiencePlayer(player: { steam_id?: string | number; name?: string }) {
+  const steamId = String(player?.steam_id || "").trim();
+  if (!steamId) return;
+  if (audiencePlayers.value.some((row) => row.steam_id === steamId)) return;
+  audiencePlayers.value = [
+    ...audiencePlayers.value,
+    { steam_id: steamId, name: player.name || steamId },
+  ];
+}
+
+function removeAudiencePlayer(steamId: string) {
+  audiencePlayers.value = audiencePlayers.value.filter(
+    (row) => row.steam_id !== steamId,
+  );
 }
 
 watch(
@@ -597,27 +630,35 @@ onMounted(() => {
           </select>
         </label>
       </div>
-      <div
-        v-if="audience === 'players'"
-        class="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border/60 p-2"
-      >
-        <label
-          v-for="m in members || []"
-          :key="String(m.steam_id)"
-          class="flex items-center gap-2 text-sm"
-        >
-          <input
-            type="checkbox"
-            :checked="audienceSteamIds.includes(String(m.steam_id))"
-            @change="toggleAudienceMember(String(m.steam_id))"
-          />
-          {{ m.player?.name || m.steam_id }}
-        </label>
+      <div v-if="audience === 'players'" class="space-y-2">
+        <PlayerSearch
+          :label="t('pages.clubs.challenges.player_search')"
+          :exclude="audienceExclude"
+          @selected="addAudiencePlayer"
+        />
+        <div v-if="audiencePlayers.length" class="flex flex-wrap gap-1.5">
+          <button
+            v-for="p in audiencePlayers"
+            :key="p.steam_id"
+            type="button"
+            class="rounded-full border border-border/70 bg-muted/40 px-2 py-0.5 text-xs"
+            @click="removeAudiencePlayer(p.steam_id)"
+          >
+            {{ p.name }}
+            <span class="ml-1 text-muted-foreground">×</span>
+          </button>
+        </div>
+        <p v-else class="text-xs text-muted-foreground">
+          {{ t("pages.clubs.challenges.player_search_hint") }}
+        </p>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="space-y-1 text-xs">
           <span>{{ t("pages.clubs.challenges.ends_at") }}</span>
           <Input v-model="endsAt" type="datetime-local" />
+          <span v-if="endsAtShamsi" class="block text-muted-foreground">
+            {{ t("pages.clubs.challenges.ends_at_shamsi", { date: endsAtShamsi }) }}
+          </span>
         </label>
         <label class="space-y-1 text-xs">
           <span>{{ t("pages.clubs.challenges.prize_ypoints") }}</span>

@@ -64,7 +64,9 @@ export function formatHostedDate(value: string, locale: string): string {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleString(locale?.startsWith("fa") ? "fa-IR" : "en-US", {
+  const tag = locale?.startsWith("fa") ? "fa-IR-u-ca-persian" : "en-US-u-ca-persian";
+  return date.toLocaleString(tag, {
+    calendar: "persian",
     dateStyle: "medium",
     timeStyle: "short",
   });

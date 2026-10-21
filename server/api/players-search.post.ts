@@ -59,7 +59,7 @@ const apolloClient = new ApolloClient({
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
-  let query = body.query?.trim();
+  let query = toSteam64(body.query?.trim() || "") || body.query?.trim();
 
   let queryBy = "name,steam_id";
 
@@ -288,4 +288,23 @@ async function searchByAcountName(accountName: string) {
   } = await steamResponse.json();
 
   return searchBySteamId(steamId);
+}
+
+const STEAM64_BASE = 76561197960265728n;
+
+function toSteam64(raw: string): string {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  const profile = value.match(
+    /steamcommunity\.com\/(?:profiles)\/(\d{17})/i,
+  );
+  if (profile) return profile[1];
+  if (/^\d{17}$/.test(value)) return value;
+  const steam2 = value.match(/^STEAM_[0-5]:([01]):(\d+)$/i);
+  if (steam2) {
+    return String(BigInt(steam2[2]) * 2n + BigInt(steam2[1]) + STEAM64_BASE);
+  }
+  const steam3 = value.match(/^\[?U:1:(\d+)\]?$/i);
+  if (steam3) return String(BigInt(steam3[1]) + STEAM64_BASE);
+  return "";
 }
