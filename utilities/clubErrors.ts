@@ -27,5 +27,14 @@ export function clubErrorMessage(
   if (msg.includes("Cannot join a club")) {
     return t("pages.clubs.cooldown_locked");
   }
+  if (
+    msg.includes("Join request already pending") ||
+    msg.includes("club_join_requests_club_id_steam_id_key")
+  ) {
+    return t("pages.clubs.already_requested");
+  }
+  if (msg.includes("Already a club member")) {
+    return t("pages.clubs.already_member");
+  }
   return msg || t("pages.clubs.action_failed");
 }

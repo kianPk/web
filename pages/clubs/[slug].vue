@@ -110,6 +110,14 @@ const canModerate = computed(() =>
   ["owner", "admin", "moderator"].includes(myMembership.value?.role),
 );
 const isMember = computed(() => !!myMembership.value);
+const myPendingRequest = computed(() => {
+  if (!me.value || !club.value) return null;
+  return (
+    (club.value.join_requests ?? []).find(
+      (row: any) => String(row.steam_id) === String(me.value.steam_id),
+    ) ?? null
+  );
+});
 const apiDomain = useRuntimeConfig().public.apiDomain as string;
 const coverSrc = computed(() =>
   resolveAvatarUrl(club.value?.cover_url, apiDomain),
@@ -1077,10 +1085,18 @@ function activityTitle(kind: string) {
               v-else-if="!isMember && club.join_mode === 'request' && me"
               class="flex gap-2"
             >
-              <Input v-model="joinMessage" :placeholder="t('pages.clubs.request_message')" class="w-40" />
-              <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="requestJoin">
-                {{ t("pages.clubs.request_join") }}
-              </Button>
+              <p
+                v-if="myPendingRequest"
+                class="self-center text-sm text-muted-foreground"
+              >
+                {{ t("pages.clubs.request_pending") }}
+              </p>
+              <template v-else>
+                <Input v-model="joinMessage" :placeholder="t('pages.clubs.request_message')" class="w-40" />
+                <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="requestJoin">
+                  {{ t("pages.clubs.request_join") }}
+                </Button>
+              </template>
             </div>
             <Button
               v-if="isMember && !myMembership?.is_primary"
