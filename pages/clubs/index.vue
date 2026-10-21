@@ -108,6 +108,7 @@ async function loadOwnClub() {
       `,
       variables: { steam_id: String(me.value.steam_id), tag: OWN_CLUB_TAG },
       fetchPolicy: "network-only",
+      context: { optional: true },
     });
     canCreateClub.value = !!auth.isAdmin || (data?.player_tags?.length ?? 0) > 0;
   } catch {

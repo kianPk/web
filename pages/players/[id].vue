@@ -781,6 +781,7 @@ async function loadOwnClubTag() {
       `,
       variables: { steam_id: playerIdRef.value, tag: OWN_CLUB_TAG },
       fetchPolicy: "network-only",
+      context: { optional: true },
     });
     hasOwnClub.value = (data?.player_tags?.length ?? 0) > 0;
   } catch {

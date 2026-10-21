@@ -16,11 +16,13 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
+import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
+import { parseInstagramUrl, parseTelegramUrl } from "~/utilities/clubSocials";
 
 const VALID_TABS = [
   "overview",
@@ -76,6 +78,8 @@ const minLevel = ref<number | null>(null);
 const createdLinkCode = ref("");
 const memberQuery = ref("");
 const transferSteamId = ref("");
+const telegramInput = ref("");
+const instagramInput = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -107,6 +111,9 @@ const avatarSrc = computed(() =>
 const bannerUploadUrl = computed(
   () => `https://${apiDomain}/avatars/clubs/${club.value?.id}/banner`,
 );
+const avatarUploadUrl = computed(
+  () => `https://${apiDomain}/avatars/clubs/${club.value?.id}/avatar`,
+);
 
 function onCoverUploaded(path: string) {
   if (!club.value) return;
@@ -115,6 +122,14 @@ function onCoverUploaded(path: string) {
 function onCoverRemoved() {
   if (!club.value) return;
   club.value.cover_url = null;
+}
+function onAvatarUploaded(path: string) {
+  if (!club.value) return;
+  club.value.avatar_url = path || club.value.avatar_url;
+}
+function onAvatarRemoved() {
+  if (!club.value) return;
+  club.value.avatar_url = null;
 }
 
 const activeChannel = computed(() => {
@@ -306,6 +321,9 @@ async function load() {
     else {
       minElo.value = club.value.min_elo;
       minLevel.value = club.value.min_faceit_level;
+      telegramInput.value = club.value.telegram_url || "";
+      instagramInput.value = club.value.instagram_url || "";
+      void loadSocials(club.value.id);
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
       }
@@ -320,6 +338,32 @@ async function load() {
 
 onMounted(() => void load());
 watch(slugParam, () => void load());
+
+async function loadSocials(clubId: string) {
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query ClubSocials($id: uuid!) {
+          clubs_by_pk(id: $id) {
+            telegram_url
+            instagram_url
+          }
+        }
+      `,
+      variables: { id: clubId },
+      fetchPolicy: "network-only",
+      context: { optional: true },
+    });
+    const row = data?.clubs_by_pk;
+    if (!row || !club.value || club.value.id !== clubId) return;
+    club.value.telegram_url = row.telegram_url;
+    club.value.instagram_url = row.instagram_url;
+    telegramInput.value = row.telegram_url || "";
+    instagramInput.value = row.instagram_url || "";
+  } catch {
+    // Columns land after the Hasura metadata apply.
+  }
+}
 
 async function runAction(mutation: string, variables: Record<string, unknown>) {
   busy.value = true;
@@ -473,6 +517,35 @@ async function saveRequirements() {
       _set: {
         min_elo: minElo.value,
         min_faceit_level: minLevel.value,
+      },
+    },
+  );
+}
+
+async function saveSocials() {
+  const telegram = parseTelegramUrl(telegramInput.value);
+  const instagram = parseInstagramUrl(instagramInput.value);
+  if (!telegram.ok) {
+    error.value = t("pages.clubs.invalid_telegram");
+    return;
+  }
+  if (!instagram.ok) {
+    error.value = t("pages.clubs.invalid_instagram");
+    return;
+  }
+  await runAction(
+    `mutation($id: uuid!, $_set: clubs_set_input!) {
+      update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
+        id
+        telegram_url
+        instagram_url
+      }
+    }`,
+    {
+      id: club.value.id,
+      _set: {
+        telegram_url: telegram.url,
+        instagram_url: instagram.url,
       },
     },
   );
@@ -802,7 +875,23 @@ function activityTitle(kind: string) {
         </div>
         <div class="relative flex flex-wrap items-end gap-4 px-4 pb-4 sm:px-6 sm:pb-5">
           <div class="-mt-12 sm:-mt-14">
+            <ImageUploadTile
+              v-if="canManage"
+              class="h-[7.25rem] w-[7.25rem] overflow-hidden rounded-full [&>div]:rounded-full [&>div]:border-2 [&>div]:border-[hsl(var(--tac-amber)/0.5)]"
+              aspect="square"
+              fit="cover"
+              filename="profile.webp"
+              :crop-output="{ w: 512, h: 512 }"
+              crop
+              :upload-url="avatarUploadUrl"
+              :delete-url="avatarUploadUrl"
+              :has-custom="!!club.avatar_url"
+              :current-src="avatarSrc"
+              @uploaded="onAvatarUploaded"
+              @removed="onAvatarRemoved"
+            />
             <ClubAvatar
+              v-else
               :name="club.name"
               :short-name="club.short_name"
               :src="avatarSrc"
@@ -830,6 +919,11 @@ function activityTitle(kind: string) {
             <p class="mt-2 max-w-2xl text-sm text-muted-foreground line-clamp-2">
               {{ club.description || t("pages.clubs.no_description") }}
             </p>
+            <ClubSocialLinks
+              class="mt-2"
+              :telegram="club.telegram_url"
+              :instagram="club.instagram_url"
+            />
             <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
               <span class="text-border">·</span>
@@ -1273,6 +1367,39 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.profile") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.profile_hint") }}</p>
+            <ImageUploadTile
+              class="max-w-[9rem]"
+              aspect="square"
+              fit="cover"
+              filename="profile.webp"
+              :crop-output="{ w: 512, h: 512 }"
+              crop
+              :upload-url="avatarUploadUrl"
+              :delete-url="avatarUploadUrl"
+              :has-custom="!!club.avatar_url"
+              :current-src="avatarSrc"
+              @uploaded="onAvatarUploaded"
+              @removed="onAvatarRemoved"
+            />
+          </div>
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.socials") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.socials_hint") }}</p>
+            <Input
+              v-model="telegramInput"
+              :placeholder="t('pages.clubs.telegram_placeholder')"
+            />
+            <Input
+              v-model="instagramInput"
+              :placeholder="t('pages.clubs.instagram_placeholder')"
+            />
+            <Button :disabled="busy" @click="saveSocials">
+              {{ t("common.save") }}
+            </Button>
+          </div>
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.banner") }}</h3>
             <p class="text-xs text-muted-foreground">{{ t("pages.clubs.banner_hint") }}</p>
