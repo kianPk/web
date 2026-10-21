@@ -1,3 +1,5 @@
+import { formatSiteDate } from "~/utilities/dateLocale";
+
 export const OWN_CLUB_TAG = "OwnClub";
 
 function collectErrorText(raw: unknown): string {
@@ -42,7 +44,7 @@ export function clubErrorMessage(
     return t("pages.clubs.cooldown_until", {
       when: Number.isNaN(parsed.getTime())
         ? until[1].trim()
-        : parsed.toLocaleString(),
+        : formatSiteDate(parsed),
     });
   }
   if (msg.includes("Cannot join a club") || msg.includes("club_join_cooldown")) {

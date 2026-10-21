@@ -42,6 +42,7 @@ import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
 import { parseInstagramUrl, parseTelegramUrl } from "~/utilities/clubSocials";
+import { formatSiteDate } from "~/utilities/dateLocale";
 
 const VALID_TABS = [
   "overview",
@@ -93,7 +94,7 @@ const leaveBlockedWhen = computed(() => {
   const parsed = new Date(leaveBlockedUntil.value);
   return Number.isNaN(parsed.getTime())
     ? leaveBlockedUntil.value
-    : parsed.toLocaleString();
+    : formatSiteDate(parsed);
 });
 const chatBody = ref("");
 const activeChannelId = ref<string | null>(null);
@@ -226,6 +227,7 @@ async function load() {
               steam_id
               role
               is_primary
+              is_vip
               joined_at
               player {
                 steam_id
@@ -558,6 +560,17 @@ async function reviewRequest(id: string, accept: boolean) {
       reviewClubJoinRequest(request_id: $request_id, accept: $accept) { success }
     }`,
     { request_id: id, accept },
+  );
+}
+
+async function toggleVip(steamId: string, isVip: boolean) {
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: String!, $is_vip: Boolean!) {
+      setClubMemberVip(club_id: $club_id, steam_id: $steam_id, is_vip: $is_vip) {
+        success
+      }
+    }`,
+    { club_id: club.value.id, steam_id: steamId, is_vip: isVip },
   );
 }
 
@@ -1212,7 +1225,7 @@ function activityTitle(kind: string) {
               >
                 <div class="text-sm font-medium capitalize">{{ activityTitle(a.kind) }}</div>
                 <div class="mt-0.5 text-xs text-muted-foreground">
-                  {{ new Date(a.created_at).toLocaleString() }}
+                  {{ formatSiteDate(a.created_at) }}
                 </div>
               </li>
               <li v-if="!club.activity?.length" class="py-8 text-center text-sm text-muted-foreground">
@@ -1266,6 +1279,25 @@ function activityTitle(kind: string) {
               >
                 {{ roleLabel(m.role) }}
               </span>
+              <span
+                v-if="m.is_vip"
+                class="shrink-0 rounded-full border border-[hsl(var(--tac-amber))]/40 px-2 py-0.5 text-[0.65rem] font-medium uppercase text-[hsl(var(--tac-amber))]"
+              >
+                {{ t("pages.clubs.vip_badge") }}
+              </span>
+              <Button
+                v-if="isOwner && m.role !== 'owner'"
+                size="sm"
+                variant="outline"
+                :disabled="busy"
+                @click="toggleVip(String(m.steam_id), !m.is_vip)"
+              >
+                {{
+                  m.is_vip
+                    ? t("pages.clubs.vip_remove")
+                    : t("pages.clubs.vip_grant")
+                }}
+              </Button>
               <Button
                 v-if="canManage && m.role !== 'owner'"
                 size="sm"
@@ -1662,6 +1694,7 @@ function activityTitle(kind: string) {
             v-if="club?.id"
             :club-id="club.id"
             :is-owner="isOwner"
+            :members="club.members || []"
           />
         </section>
 
@@ -1677,8 +1710,8 @@ function activityTitle(kind: string) {
               <div>
                 <h3 class="font-semibold">{{ ev.name }}</h3>
                 <p class="text-xs text-muted-foreground">
-                  {{ new Date(ev.starts_at).toLocaleString() }} →
-                  {{ new Date(ev.ends_at).toLocaleString() }}
+                  {{ formatSiteDate(ev.starts_at) }} →
+                  {{ formatSiteDate(ev.ends_at) }}
                 </p>
               </div>
               <Button

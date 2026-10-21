@@ -5,6 +5,14 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
+import { formatSiteDate } from "~/utilities/dateLocale";
+import {
+  acAllowsJoin,
+  pickQuickPlayServer,
+  usePublicServerFleet,
+  type FleetMode,
+} from "~/composables/usePublicServerFleet";
+import type { ServerModeKey } from "~/utilities/serverModes";
 
 const DIFFICULTIES = [
   "easy",
@@ -13,18 +21,9 @@ const DIFFICULTIES = [
   "elite",
   "legendary",
 ] as const;
-const CATEGORIES = [
-  "aim",
-  "clutch",
-  "utility",
-  "objective",
-  "eco",
-  "grind",
-  "teamwork",
-  "consistency",
-  "social",
-  "fun",
-] as const;
+const MODES = ["duels", "dm", "awp", "2x2", "bhop"] as const;
+const AUDIENCES = ["site", "club", "club_vip", "players"] as const;
+const PRIZE_SCOPES = ["club", "site"] as const;
 
 type CatalogRow = {
   id: string;
@@ -35,6 +34,10 @@ type CatalogRow = {
   title_fa: string;
   description: string;
   description_fa: string;
+  server_mode: string;
+  weapon: string;
+  metric: string;
+  target: number;
 };
 type Activation = {
   id: string;
@@ -42,18 +45,28 @@ type Activation = {
   ends_at: string;
   prize_ypoints: number | null;
   prize_other: string;
+  prize_scope: string;
+  audience: string;
   active: boolean;
   created_at: string;
   catalog?: CatalogRow | null;
+  progress?: Array<{ progress: number; completed_at: string | null }>;
 };
 
 const props = defineProps<{
   clubId: string;
   isOwner: boolean;
+  members?: Array<{
+    steam_id: string | number;
+    is_vip?: boolean;
+    player?: { name?: string | null } | null;
+  }>;
 }>();
 
 const { t, locale } = useI18n();
 const { client } = useApolloClient();
+const auth = useAuthStore();
+const { modes } = usePublicServerFleet();
 
 const catalog = ref<CatalogRow[]>([]);
 const activations = ref<Activation[]>([]);
@@ -62,11 +75,15 @@ const busy = ref(false);
 const error = ref("");
 const search = ref("");
 const difficultyFilter = ref("");
-const categoryFilter = ref("");
+const modeFilter = ref("");
 const selected = ref<string[]>([]);
 const prizeYpoints = ref<number | "">("");
 const prizeOther = ref("");
+const prizeScope = ref<(typeof PRIZE_SCOPES)[number]>("club");
+const audience = ref<(typeof AUDIENCES)[number]>("club");
+const audienceSteamIds = ref<string[]>([]);
 const endsAt = ref(defaultEndLocal());
+const joining = ref("");
 
 function defaultEndLocal() {
   const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -75,6 +92,9 @@ function defaultEndLocal() {
 }
 
 const fa = computed(() => String(locale.value).startsWith("fa"));
+const meSteam = computed(() =>
+  auth.me?.steam_id ? String(auth.me.steam_id) : "0",
+);
 
 function catalogTitle(row: CatalogRow) {
   return fa.value ? row.title_fa || row.title : row.title;
@@ -112,9 +132,7 @@ const filteredCatalog = computed(() => {
     if (difficultyFilter.value && row.difficulty !== difficultyFilter.value) {
       return false;
     }
-    if (categoryFilter.value && row.category !== categoryFilter.value) {
-      return false;
-    }
+    if (modeFilter.value && row.server_mode !== modeFilter.value) return false;
     if (!q) return true;
     return (
       catalogTitle(row).toLowerCase().includes(q) ||
@@ -133,13 +151,24 @@ function toggle(id: string) {
   }
 }
 
+function myProgress(row: Activation) {
+  const hit = row.progress?.[0];
+  return {
+    current: Number(hit?.progress || 0),
+    done: !!hit?.completed_at,
+    target: Number(row.catalog?.target || 0),
+  };
+}
+
 async function load() {
   loading.value = true;
   error.value = "";
   try {
     const { data } = await client.query({
       query: gql`
-        query ClubChallenges($clubId: uuid!) {
+        query ClubChallenges($clubId: uuid!${
+            meSteam.value !== "0" ? ", $me: bigint!" : ""
+          }) {
           club_challenge_catalog(order_by: { sort_order: asc }) {
             id
             code
@@ -149,6 +178,10 @@ async function load() {
             title_fa
             description
             description_fa
+            server_mode
+            weapon
+            metric
+            target
           }
           club_challenges(
             where: { club_id: { _eq: $clubId } }
@@ -159,6 +192,8 @@ async function load() {
             ends_at
             prize_ypoints
             prize_other
+            prize_scope
+            audience
             active
             created_at
             catalog {
@@ -170,11 +205,26 @@ async function load() {
               title_fa
               description
               description_fa
+              server_mode
+              weapon
+              metric
+              target
+            }
+            ${
+              meSteam.value !== "0"
+                ? `progress(where: { steam_id: { _eq: $me } }) {
+              progress
+              completed_at
+            }`
+                : ""
             }
           }
         }
       `,
-      variables: { clubId: props.clubId },
+      variables:
+        meSteam.value !== "0"
+          ? { clubId: props.clubId, me: meSteam.value }
+          : { clubId: props.clubId },
       fetchPolicy: "network-only",
       context: { optional: true },
     });
@@ -210,13 +260,17 @@ async function activate() {
     error.value = t("pages.clubs.challenges.need_prize");
     return;
   }
+  if (audience.value === "players" && !audienceSteamIds.value.length) {
+    error.value = t("pages.clubs.challenges.need_players");
+    return;
+  }
   busy.value = true;
   try {
-    await client.mutate({
+    const { data } = await client.mutate({
       mutation: gql`
         mutation ActivateClubChallenges($objects: [club_challenges_insert_input!]!) {
           insert_club_challenges(objects: $objects) {
-            affected_rows
+            returning { id }
           }
         }
       `,
@@ -227,9 +281,31 @@ async function activate() {
           ends_at: ends.toISOString(),
           prize_ypoints: ypoints && ypoints > 0 ? ypoints : null,
           prize_other: other,
+          prize_scope: prizeScope.value,
+          audience: audience.value,
         })),
       },
     });
+    const created = data?.insert_club_challenges?.returning ?? [];
+    if (audience.value === "players" && created.length) {
+      await client.mutate({
+        mutation: gql`
+          mutation TargetClubChallenges($objects: [club_challenge_targets_insert_input!]!) {
+            insert_club_challenge_targets(objects: $objects) {
+              affected_rows
+            }
+          }
+        `,
+        variables: {
+          objects: created.flatMap((row: { id: string }) =>
+            audienceSteamIds.value.map((steam_id) => ({
+              challenge_id: row.id,
+              steam_id,
+            })),
+          ),
+        },
+      });
+    }
     selected.value = [];
     await load();
   } catch (e) {
@@ -264,6 +340,23 @@ async function deactivate(id: string) {
   }
 }
 
+async function joinServer(mode: string) {
+  const key = (mode === "aim" ? "dm" : mode) as ServerModeKey;
+  const fleet: FleetMode | undefined = modes.value.find((m) => m.key === key);
+  const server = pickQuickPlayServer(fleet?.servers || []);
+  if (!server?.connection_link) {
+    error.value = t("pages.clubs.challenges.no_server");
+    return;
+  }
+  joining.value = key;
+  try {
+    if (!(await acAllowsJoin())) return;
+    window.location.href = server.connection_link;
+  } finally {
+    joining.value = "";
+  }
+}
+
 function prizeLabel(row: Activation) {
   const parts: string[] = [];
   if (row.prize_ypoints && row.prize_ypoints > 0) {
@@ -289,6 +382,14 @@ function diffClass(diff: string) {
       return "border-violet-500/40 bg-violet-500/10 text-violet-300";
     default:
       return "border-[hsl(var(--tac-amber))]/40 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))]";
+  }
+}
+
+function toggleAudienceMember(id: string) {
+  if (audienceSteamIds.value.includes(id)) {
+    audienceSteamIds.value = audienceSteamIds.value.filter((row) => row !== id);
+  } else {
+    audienceSteamIds.value = [...audienceSteamIds.value, id];
   }
 }
 
@@ -342,23 +443,63 @@ onMounted(() => {
               {{ t(`pages.clubs.challenges.difficulty.${row.catalog.difficulty}`) }}
             </span>
           </div>
+          <p class="mt-2 text-xs text-muted-foreground">
+            {{ t(`pages.clubs.challenges.mode.${row.catalog?.server_mode || "dm"}`) }}
+            ·
+            {{ t(`pages.clubs.challenges.audience.${row.audience || "club"}`) }}
+            ·
+            {{ t(`pages.clubs.challenges.prize_scope.${row.prize_scope || "club"}`) }}
+          </p>
+          <div class="mt-3">
+            <div class="mb-1 flex justify-between text-xs">
+              <span>{{ t("pages.clubs.challenges.your_progress") }}</span>
+              <span class="tabular-nums">
+                {{ myProgress(row).current }}/{{ myProgress(row).target || "—" }}
+                <span v-if="myProgress(row).done">
+                  · {{ t("pages.clubs.challenges.completed") }}
+                </span>
+              </span>
+            </div>
+            <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                class="h-full bg-[hsl(var(--tac-amber))]"
+                :style="{
+                  width: `${Math.min(
+                    100,
+                    myProgress(row).target
+                      ? (myProgress(row).current / myProgress(row).target) * 100
+                      : 0,
+                  )}%`,
+                }"
+              />
+            </div>
+          </div>
           <p class="mt-3 text-sm">
             {{ t("pages.clubs.challenges.prize") }}: {{ prizeLabel(row) }}
           </p>
           <p class="text-xs text-muted-foreground">
             {{ t("pages.clubs.challenges.until") }}:
-            {{ new Date(row.ends_at).toLocaleString() }}
+            {{ formatSiteDate(row.ends_at) }}
           </p>
-          <Button
-            v-if="isOwner"
-            size="sm"
-            variant="outline"
-            class="mt-3"
-            :disabled="busy"
-            @click="deactivate(row.id)"
-          >
-            {{ t("pages.clubs.challenges.deactivate") }}
-          </Button>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              :class="tacticalCtaButtonClasses"
+              :disabled="joining === (row.catalog?.server_mode || '')"
+              @click="joinServer(row.catalog?.server_mode || 'duels')"
+            >
+              {{ t("pages.clubs.challenges.join_server") }}
+            </Button>
+            <Button
+              v-if="isOwner"
+              size="sm"
+              variant="outline"
+              :disabled="busy"
+              @click="deactivate(row.id)"
+            >
+              {{ t("pages.clubs.challenges.deactivate") }}
+            </Button>
+          </div>
         </article>
       </div>
       <p
@@ -392,12 +533,12 @@ onMounted(() => {
           </option>
         </select>
         <select
-          v-model="categoryFilter"
+          v-model="modeFilter"
           class="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
         >
-          <option value="">{{ t("pages.clubs.challenges.all_categories") }}</option>
-          <option v-for="c in CATEGORIES" :key="c" :value="c">
-            {{ t(`pages.clubs.challenges.category.${c}`) }}
+          <option value="">{{ t("pages.clubs.challenges.all_modes") }}</option>
+          <option v-for="m in MODES" :key="m" :value="m">
+            {{ t(`pages.clubs.challenges.mode.${m}`) }}
           </option>
         </select>
       </div>
@@ -423,10 +564,54 @@ onMounted(() => {
             >
               {{ t(`pages.clubs.challenges.difficulty.${row.difficulty}`) }}
             </span>
+            <span class="ml-1 text-[10px] uppercase text-muted-foreground">
+              {{ t(`pages.clubs.challenges.mode.${row.server_mode}`) }}
+            </span>
             <span class="block text-xs text-muted-foreground">
               {{ catalogDesc(row) }}
             </span>
           </span>
+        </label>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="space-y-1 text-xs">
+          <span>{{ t("pages.clubs.challenges.audience_label") }}</span>
+          <select
+            v-model="audience"
+            class="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+          >
+            <option v-for="a in AUDIENCES" :key="a" :value="a">
+              {{ t(`pages.clubs.challenges.audience.${a}`) }}
+            </option>
+          </select>
+        </label>
+        <label class="space-y-1 text-xs">
+          <span>{{ t("pages.clubs.challenges.prize_scope_label") }}</span>
+          <select
+            v-model="prizeScope"
+            class="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+          >
+            <option v-for="s in PRIZE_SCOPES" :key="s" :value="s">
+              {{ t(`pages.clubs.challenges.prize_scope.${s}`) }}
+            </option>
+          </select>
+        </label>
+      </div>
+      <div
+        v-if="audience === 'players'"
+        class="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border/60 p-2"
+      >
+        <label
+          v-for="m in members || []"
+          :key="String(m.steam_id)"
+          class="flex items-center gap-2 text-sm"
+        >
+          <input
+            type="checkbox"
+            :checked="audienceSteamIds.includes(String(m.steam_id))"
+            @change="toggleAudienceMember(String(m.steam_id))"
+          />
+          {{ m.player?.name || m.steam_id }}
         </label>
       </div>
       <div class="grid gap-3 sm:grid-cols-3">
@@ -465,7 +650,7 @@ onMounted(() => {
         <li v-for="row in past.slice(0, 12)" :key="row.id">
           {{ row.catalog ? catalogTitle(row.catalog) : row.catalog_id }}
           —
-          {{ new Date(row.ends_at).toLocaleString() }}
+          {{ formatSiteDate(row.ends_at) }}
         </li>
       </ul>
     </div>
