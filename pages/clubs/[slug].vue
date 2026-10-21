@@ -41,7 +41,13 @@ import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
-import { parseInstagramUrl, parseTelegramUrl } from "~/utilities/clubSocials";
+import {
+  parseBaleUrl,
+  parseInstagramUrl,
+  parseRubikaUrl,
+  parseSoroushUrl,
+  parseTelegramUrl,
+} from "~/utilities/clubSocials";
 import { formatSiteDate } from "~/utilities/dateLocale";
 
 const VALID_TABS = [
@@ -115,6 +121,9 @@ const memberQuery = ref("");
 const transferSteamId = ref("");
 const telegramInput = ref("");
 const instagramInput = ref("");
+const baleInput = ref("");
+const rubikaInput = ref("");
+const soroushInput = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -394,6 +403,9 @@ async function load() {
       minLevel.value = club.value.min_faceit_level;
       telegramInput.value = club.value.telegram_url || "";
       instagramInput.value = club.value.instagram_url || "";
+      baleInput.value = club.value.bale_url || "";
+      rubikaInput.value = club.value.rubika_url || "";
+      soroushInput.value = club.value.soroush_url || "";
       void loadSocials(club.value.id);
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
@@ -418,6 +430,9 @@ async function loadSocials(clubId: string) {
           clubs_by_pk(id: $id) {
             telegram_url
             instagram_url
+            bale_url
+            rubika_url
+            soroush_url
           }
         }
       `,
@@ -429,8 +444,14 @@ async function loadSocials(clubId: string) {
     if (!row || !club.value || club.value.id !== clubId) return;
     club.value.telegram_url = row.telegram_url;
     club.value.instagram_url = row.instagram_url;
+    club.value.bale_url = row.bale_url;
+    club.value.rubika_url = row.rubika_url;
+    club.value.soroush_url = row.soroush_url;
     telegramInput.value = row.telegram_url || "";
     instagramInput.value = row.instagram_url || "";
+    baleInput.value = row.bale_url || "";
+    rubikaInput.value = row.rubika_url || "";
+    soroushInput.value = row.soroush_url || "";
   } catch {
     // Columns land after the Hasura metadata apply.
   }
@@ -630,6 +651,9 @@ async function saveRequirements() {
 async function saveSocials() {
   const telegram = parseTelegramUrl(telegramInput.value);
   const instagram = parseInstagramUrl(instagramInput.value);
+  const bale = parseBaleUrl(baleInput.value);
+  const rubika = parseRubikaUrl(rubikaInput.value);
+  const soroush = parseSoroushUrl(soroushInput.value);
   if (!telegram.ok) {
     error.value = t("pages.clubs.invalid_telegram");
     return;
@@ -638,12 +662,27 @@ async function saveSocials() {
     error.value = t("pages.clubs.invalid_instagram");
     return;
   }
+  if (!bale.ok) {
+    error.value = t("pages.clubs.invalid_bale");
+    return;
+  }
+  if (!rubika.ok) {
+    error.value = t("pages.clubs.invalid_rubika");
+    return;
+  }
+  if (!soroush.ok) {
+    error.value = t("pages.clubs.invalid_soroush");
+    return;
+  }
   await runAction(
     `mutation($id: uuid!, $_set: clubs_set_input!) {
       update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
         id
         telegram_url
         instagram_url
+        bale_url
+        rubika_url
+        soroush_url
       }
     }`,
     {
@@ -651,6 +690,9 @@ async function saveSocials() {
       _set: {
         telegram_url: telegram.url,
         instagram_url: instagram.url,
+        bale_url: bale.url,
+        rubika_url: rubika.url,
+        soroush_url: soroush.url,
       },
     },
   );
@@ -1197,6 +1239,9 @@ function activityTitle(kind: string) {
               class="mt-2"
               :telegram="club.telegram_url"
               :instagram="club.instagram_url"
+              :bale="club.bale_url"
+              :rubika="club.rubika_url"
+              :soroush="club.soroush_url"
             />
             <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
@@ -1874,14 +1919,51 @@ function activityTitle(kind: string) {
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.socials") }}</h3>
             <p class="text-xs text-muted-foreground">{{ t("pages.clubs.socials_hint") }}</p>
-            <Input
-              v-model="telegramInput"
-              :placeholder="t('pages.clubs.telegram_placeholder')"
-            />
-            <Input
-              v-model="instagramInput"
-              :placeholder="t('pages.clubs.instagram_placeholder')"
-            />
+            <label class="block space-y-1 text-xs font-medium text-[#2AABEE]">
+              {{ t("pages.clubs.telegram") }}
+              <Input
+                v-model="telegramInput"
+                dir="ltr"
+                class="font-mono text-foreground"
+                :placeholder="t('pages.clubs.telegram_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium text-[#E1306C]">
+              {{ t("pages.clubs.instagram") }}
+              <Input
+                v-model="instagramInput"
+                dir="ltr"
+                class="font-mono text-foreground"
+                :placeholder="t('pages.clubs.instagram_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium text-[#00A86B]">
+              {{ t("pages.clubs.bale") }}
+              <Input
+                v-model="baleInput"
+                dir="ltr"
+                class="font-mono text-foreground"
+                :placeholder="t('pages.clubs.bale_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium text-[#7B2FBE]">
+              {{ t("pages.clubs.rubika") }}
+              <Input
+                v-model="rubikaInput"
+                dir="ltr"
+                class="font-mono text-foreground"
+                :placeholder="t('pages.clubs.rubika_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium text-[#1E88E5]">
+              {{ t("pages.clubs.soroush") }}
+              <Input
+                v-model="soroushInput"
+                dir="ltr"
+                class="font-mono text-foreground"
+                :placeholder="t('pages.clubs.soroush_placeholder')"
+              />
+            </label>
             <Button :disabled="busy" @click="saveSocials">
               {{ t("common.save") }}
             </Button>
