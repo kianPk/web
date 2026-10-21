@@ -3518,6 +3518,8 @@
         "recent_wins_and_losses": "بردها و باخت های اخیر",
         "elo_history": "تاریخچه ELO",
         "no_elo_history": "بازی برای تولید ELO",
+        "site_level": "لول سایت",
+        "site_level_title": "لول سایت {level} · {xp} ایکس‌پی",
         "play_a_match": "بازی کنید",
         "matches": "مسابقات",
         "no_matches": "هنوز هیچ مسابقه ای وجود ندارد",

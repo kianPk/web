@@ -88,6 +88,7 @@ import PlayerQueuePartners from "~/components/PlayerQueuePartners.vue";
 import PlayerElo from "~/components/PlayerElo.vue";
 import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
 import PluginRemote from "~/components/plugins/PluginRemote.vue";
@@ -2363,6 +2364,7 @@ const playerHeroTeamChipDotClasses =
                   :faceit-url="displayFaceitUrl"
                   :faceit-nickname="displayFaceitNickname"
                 />
+                <PlayerSiteLevel :steam-id="player.steam_id" />
                 <PlayerPremierRank
                   :premier-rank="player.premier_rank"
                   :premier-rank-updated-at="player.premier_rank_updated_at"

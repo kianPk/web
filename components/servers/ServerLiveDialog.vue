@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import QuickServerConnect from "~/components/match/QuickServerConnect.vue";
-import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import { mapLabel } from "~/utilities/serverModes";
 import { csRankIcon } from "~/utilities/csRank";
 import type { FleetServer } from "~/composables/usePublicServerFleet";
@@ -30,6 +30,8 @@ type LivePlayer = {
   rank_name?: string;
   section_rating?: number;
   section_level?: number;
+  site_xp?: number;
+  site_level?: number;
 };
 
 const props = defineProps<{
@@ -73,33 +75,24 @@ async function load() {
   }
 }
 
-async function setSectionLevel(player: LivePlayer, level: number) {
-  const mode = sectionMode.value || props.server?.modeKey;
-  if (!mode || !isAdmin.value) return;
-  if (player.section_level === level) return;
+async function setSiteLevel(player: LivePlayer, level: number) {
+  if (!isAdmin.value) return;
+  if ((player.site_level ?? 1) === level) return;
   savingLevel.value = player.steam_id;
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
     const data = await $fetch<{
-      player: { steam_id: string; rating: number; level: number };
-    }>(`https://${apiDomain}/hosted-servers/section-ratings/${mode}/admin-set`, {
+      player: { steam_id: string; xp: number; level: number };
+    }>(`https://${apiDomain}/hosted-servers/site-xp/admin-set`, {
       method: "POST",
       credentials: "include",
-      body: {
-        steam_id: player.steam_id,
-        level,
-        name: player.name || undefined,
-      },
+      body: { steam_id: player.steam_id, level },
     });
     const updated = data?.player;
     if (updated) {
       players.value = players.value.map((row) =>
         row.steam_id === player.steam_id
-          ? {
-              ...row,
-              section_level: updated.level,
-              section_rating: Math.round(updated.rating),
-            }
+          ? { ...row, site_level: updated.level, site_xp: updated.xp }
           : row,
       );
     }
@@ -311,11 +304,7 @@ function onAvatarError(e: Event) {
               class="grid grid-cols-[1fr_auto] gap-3 border-b border-border/60 px-3 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
             >
               <span>{{ $t("pages.servers.dialog.player") }}</span>
-              <span>{{
-                usesSectionLevels
-                  ? $t("pages.servers.dialog.level")
-                  : $t("pages.servers.dialog.rank")
-              }}</span>
+              <span>{{ $t("pages.servers.dialog.level") }}</span>
             </div>
 
             <div class="max-h-72 overflow-y-auto">
@@ -360,53 +349,36 @@ function onAvatarError(e: Event) {
                       {{ player.name || player.steam_id }}
                     </span>
                   </NuxtLink>
-                  <PlayerFaceitRank
-                    v-if="
-                      usesSectionLevels &&
-                      (player.section_level ?? null) !== null
-                    "
+                  <PlayerSiteLevel
                     class="shrink-0"
-                    :faceit-skill-level="player.section_level"
-                    :faceit-elo="player.section_rating"
+                    :level="player.site_level ?? 1"
+                    :xp="player.site_xp ?? 0"
                   />
                 </div>
                 <div class="flex items-center gap-2">
-                  <template v-if="usesSectionLevels">
-                    <select
-                      v-if="isAdmin"
-                      class="h-7 rounded-md border border-border bg-card px-1.5 font-mono text-xs"
-                      dir="ltr"
-                      :disabled="savingLevel === player.steam_id"
-                      :value="String(player.section_level ?? 4)"
-                      :aria-label="$t('pages.servers.dialog.set_level')"
-                      @change="
-                        setSectionLevel(
-                          player,
-                          Number(($event.target as HTMLSelectElement).value),
-                        )
-                      "
-                    >
-                      <option v-for="n in 10" :key="n" :value="String(n)">
-                        {{ $t("pages.servers.dialog.level_n", { level: n }) }}
-                      </option>
-                    </select>
-                    <span
-                      v-else-if="(player.section_rating ?? 0) > 0"
-                      class="font-mono text-xs tabular-nums text-muted-foreground"
-                    >
-                      {{ player.section_rating }}
-                    </span>
-                    <span
-                      v-else
-                      class="text-xs text-muted-foreground/60"
-                      >—</span
-                    >
-                    <Loader2
-                      v-if="savingLevel === player.steam_id"
-                      class="h-3.5 w-3.5 animate-spin text-muted-foreground"
-                    />
-                  </template>
-                  <template v-else>
+                  <select
+                    v-if="isAdmin"
+                    class="h-7 rounded-md border border-border bg-card px-1.5 font-mono text-xs"
+                    dir="ltr"
+                    :disabled="savingLevel === player.steam_id"
+                    :value="String(player.site_level ?? 1)"
+                    :aria-label="$t('pages.servers.dialog.set_level')"
+                    @change="
+                      setSiteLevel(
+                        player,
+                        Number(($event.target as HTMLSelectElement).value),
+                      )
+                    "
+                  >
+                    <option v-for="n in 10" :key="n" :value="String(n)">
+                      {{ $t("pages.servers.dialog.level_n", { level: n }) }}
+                    </option>
+                  </select>
+                  <Loader2
+                    v-if="savingLevel === player.steam_id"
+                    class="h-3.5 w-3.5 animate-spin text-muted-foreground"
+                  />
+                  <template v-if="!usesSectionLevels">
                     <span
                       v-if="player.points > 0"
                       class="font-mono text-xs tabular-nums text-muted-foreground"

@@ -3518,6 +3518,8 @@
         "recent_wins_and_losses": "Recent Wins and Losses",
         "elo_history": "ELO History",
         "no_elo_history": "Play a match to generate ELO",
+        "site_level": "Site level",
+        "site_level_title": "Site level {level} · {xp} XP",
         "play_a_match": "Play",
         "matches": "Matches",
         "no_matches": "No matches yet",
