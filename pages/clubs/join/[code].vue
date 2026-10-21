@@ -50,17 +50,19 @@ async function redeem() {
     <TacticalPageHeader>
       <template #title>{{ t("pages.clubs.invite.redeem_title") }}</template>
     </TacticalPageHeader>
-    <p class="mt-4 text-sm text-muted-foreground">
-      {{ t("pages.clubs.invite.redeem_desc") }}
-    </p>
-    <p v-if="error" class="mt-3 text-sm text-destructive">{{ error }}</p>
-    <Button
-      class="mt-6"
-      :class="tacticalCtaButtonClasses"
-      :disabled="busy || done"
-      @click="redeem"
-    >
-      {{ busy ? t("common.loading") : t("pages.clubs.invite.redeem") }}
-    </Button>
+    <div class="mt-6 overflow-hidden rounded-xl border border-border/70 bg-card/40 p-6">
+      <p class="text-sm text-muted-foreground">
+        {{ t("pages.clubs.invite.redeem_desc") }}
+      </p>
+      <p v-if="error" class="mt-3 text-sm text-destructive">{{ error }}</p>
+      <Button
+        class="mt-6"
+        :class="tacticalCtaButtonClasses"
+        :disabled="busy || done"
+        @click="redeem"
+      >
+        {{ busy ? t("common.loading") : t("pages.clubs.invite.redeem") }}
+      </Button>
+    </div>
   </PageTransition>
 </template>

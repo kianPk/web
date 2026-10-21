@@ -6627,6 +6627,13 @@
       "search": "Search clubs...",
       "empty_title": "No clubs yet",
       "empty_desc": "Create a club or join one from an invite.",
+      "my_clubs": "My Clubs",
+      "discover": "Discover",
+      "representing": "Representing",
+      "member_badge": "Member",
+      "search_members": "Search members",
+      "winrate": "WR",
+      "queued_count": "{n} in queue",
       "no_description": "No description",
       "not_found": "Club not found",
       "load_failed": "Failed to load club",
@@ -6679,14 +6686,29 @@
       "requirements": "Join requirements",
       "bans": "Bans",
       "tabs": {
-        "overview": "Overview",
+        "overview": "Feed",
         "members": "Members",
         "chat": "Chat",
-        "leaderboard": "Leaderboard",
-        "queues": "Queues",
+        "leaderboard": "Leaderboards",
+        "queues": "Club Queues",
         "parties": "Parties",
         "clash": "Clash",
-        "admin": "Admin"
+        "admin": "Settings"
+      },
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "member": "Member"
+      },
+      "activity_kinds": {
+        "join": "joined the club",
+        "leave": "left the club",
+        "invite": "sent an invite",
+        "ban": "banned a member",
+        "post": "posted in the feed",
+        "queue": "joined a queue",
+        "party": "created a party"
       },
       "join_modes": {
         "open": "Open",

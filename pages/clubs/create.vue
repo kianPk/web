@@ -78,48 +78,53 @@ async function createClub() {
     </TacticalPageHeader>
   </PageTransition>
   <PageTransition :delay="80" class="mx-auto mt-6 w-full max-w-2xl">
-    <form class="grid gap-4" @submit.prevent="createClub">
-      <label class="grid gap-1.5 text-sm">
-        <span class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.form.name") }}
-        </span>
-        <Input v-model="name" maxlength="48" required />
-      </label>
-      <label class="grid gap-1.5 text-sm">
-        <span class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.form.short_name") }}
-        </span>
-        <Input v-model="shortName" maxlength="5" class="font-mono uppercase" />
-      </label>
-      <label class="grid gap-1.5 text-sm">
-        <span class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.form.description") }}
-        </span>
-        <textarea
-          v-model="description"
-          rows="4"
-          class="rounded-md border border-border bg-card/60 px-3 py-2 text-sm outline-none focus:border-[hsl(var(--tac-amber)/0.5)]"
-        />
-      </label>
-      <label class="grid gap-1.5 text-sm">
-        <span class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.form.join_mode") }}
-        </span>
-        <select
-          v-model="joinMode"
-          class="h-9 rounded-md border border-border bg-card/60 px-3 text-sm"
-        >
-          <option value="open">{{ t("pages.clubs.join_modes.open") }}</option>
-          <option value="request">{{ t("pages.clubs.join_modes.request") }}</option>
-          <option value="invite_only">
-            {{ t("pages.clubs.join_modes.invite_only") }}
-          </option>
-        </select>
-      </label>
-      <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
-      <Button type="submit" :disabled="saving" :class="tacticalCtaButtonClasses">
-        {{ saving ? t("common.saving") : t("pages.clubs.form.submit") }}
-      </Button>
-    </form>
+    <div class="overflow-hidden rounded-xl border border-border/70 bg-card/40">
+      <div
+        class="h-28 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.32),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0b0b0d_100%)]"
+      />
+      <form class="grid gap-4 p-5 sm:p-6" @submit.prevent="createClub">
+        <label class="grid gap-1.5 text-sm">
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ t("pages.clubs.form.name") }}
+          </span>
+          <Input v-model="name" maxlength="48" required />
+        </label>
+        <label class="grid gap-1.5 text-sm">
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ t("pages.clubs.form.short_name") }}
+          </span>
+          <Input v-model="shortName" maxlength="5" class="font-mono uppercase" />
+        </label>
+        <label class="grid gap-1.5 text-sm">
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ t("pages.clubs.form.description") }}
+          </span>
+          <textarea
+            v-model="description"
+            rows="4"
+            class="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm outline-none focus:border-[hsl(var(--tac-amber)/0.5)]"
+          />
+        </label>
+        <label class="grid gap-1.5 text-sm">
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ t("pages.clubs.form.join_mode") }}
+          </span>
+          <select
+            v-model="joinMode"
+            class="h-9 rounded-lg border border-border bg-background/40 px-3 text-sm"
+          >
+            <option value="open">{{ t("pages.clubs.join_modes.open") }}</option>
+            <option value="request">{{ t("pages.clubs.join_modes.request") }}</option>
+            <option value="invite_only">
+              {{ t("pages.clubs.join_modes.invite_only") }}
+            </option>
+          </select>
+        </label>
+        <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
+        <Button type="submit" :disabled="saving" :class="tacticalCtaButtonClasses">
+          {{ saving ? t("common.saving") : t("pages.clubs.form.submit") }}
+        </Button>
+      </form>
+    </div>
   </PageTransition>
 </template>

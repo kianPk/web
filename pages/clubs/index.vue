@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlusCircle, Search, Users } from "lucide-vue-next";
+import { PlusCircle, Search } from "lucide-vue-next";
 import { gql } from "@apollo/client/core";
 import { useApolloClient } from "@vue/apollo-composable";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
@@ -7,6 +7,8 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
+import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
+import ClubCoverCard from "~/components/clubs/ClubCoverCard.vue";
 import {
   tacticalCtaButtonClasses,
   tacticalHeaderActionClasses,
@@ -20,13 +22,21 @@ const query = ref("");
 const clubs = ref<any[]>([]);
 const loading = ref(true);
 
+const myClubs = computed(() =>
+  clubs.value.filter((c) => (c.members || []).length > 0),
+);
+const discoverClubs = computed(() =>
+  clubs.value.filter((c) => !(c.members || []).length),
+);
+const searching = computed(() => query.value.trim().length > 0);
+
 async function load() {
   loading.value = true;
   try {
     const q = query.value.trim();
     const { data } = await client.query({
       query: gql`
-        query ClubsList($where: clubs_bool_exp!) {
+        query ClubsList($where: clubs_bool_exp!, $me: bigint!) {
           clubs(
             where: $where
             order_by: [{ created_at: desc }]
@@ -37,6 +47,7 @@ async function load() {
             slug
             short_name
             avatar_url
+            cover_url
             description
             join_mode
             members_aggregate {
@@ -44,10 +55,16 @@ async function load() {
                 count
               }
             }
+            members(where: { steam_id: { _eq: $me } }, limit: 1) {
+              steam_id
+              is_primary
+              role
+            }
           }
         }
       `,
       variables: {
+        me: me.value?.steam_id ? String(me.value.steam_id) : "0",
         where: q
           ? {
               _or: [
@@ -113,51 +130,72 @@ onMounted(() => {
         v-model="query"
         type="search"
         :placeholder="t('pages.clubs.search')"
-        class="h-9 w-full rounded-md border border-border bg-card/60 pl-9 pr-3 text-sm outline-none focus:border-[hsl(var(--tac-amber)/0.5)]"
+        class="h-10 w-full rounded-lg border border-border bg-card/70 pl-9 pr-3 text-sm outline-none transition focus:border-[hsl(var(--tac-amber)/0.5)]"
       />
     </div>
   </PageTransition>
 
-  <PageTransition :delay="120" class="mt-6">
-    <div v-if="loading" class="text-sm text-muted-foreground">
-      {{ t("common.loading") }}
+  <PageTransition :delay="120" class="mt-8">
+    <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Skeleton v-for="i in 6" :key="i" class="h-44 rounded-xl" />
     </div>
+
     <Empty v-else-if="!clubs.length">
       <EmptyTitle>{{ t("pages.clubs.empty_title") }}</EmptyTitle>
       <EmptyDescription>{{ t("pages.clubs.empty_desc") }}</EmptyDescription>
     </Empty>
-    <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink
-        v-for="club in clubs"
-        :key="club.id"
-        :to="`/clubs/${club.slug || club.id}`"
-        class="group flex gap-4 rounded-lg border border-border bg-card/40 p-4 transition hover:border-[hsl(var(--tac-amber)/0.45)] hover:bg-card/70"
-      >
-        <div
-          class="flex h-14 w-14 shrink-0 items-center justify-center border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.1)] text-lg font-bold uppercase text-[hsl(var(--tac-amber))]"
+
+    <div v-else class="space-y-10">
+      <section v-if="!searching && myClubs.length">
+        <h2 class="mb-4 font-sans text-sm font-semibold tracking-wide text-muted-foreground">
+          {{ t("pages.clubs.my_clubs") }}
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <NuxtLink
+            v-for="club in myClubs"
+            :key="club.id"
+            :to="`/clubs/${club.slug || club.id}`"
+          >
+            <ClubCoverCard
+              :name="club.name"
+              :short-name="club.short_name"
+              :avatar-url="club.avatar_url"
+              :cover-url="club.cover_url"
+              :member-count="club.members_aggregate?.aggregate?.count ?? 0"
+              :join-mode="t(`pages.clubs.join_modes.${club.join_mode}`)"
+              :member="true"
+              :primary="!!club.members?.[0]?.is_primary"
+            />
+          </NuxtLink>
+        </div>
+      </section>
+
+      <section>
+        <h2
+          v-if="!searching && myClubs.length && discoverClubs.length"
+          class="mb-4 font-sans text-sm font-semibold tracking-wide text-muted-foreground"
         >
-          <img
-            v-if="club.avatar_url"
-            :src="club.avatar_url"
-            class="h-full w-full object-cover"
-            alt=""
-          />
-          <span v-else>{{ (club.short_name || club.name || "?").slice(0, 2) }}</span>
+          {{ t("pages.clubs.discover") }}
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <NuxtLink
+            v-for="club in searching ? clubs : discoverClubs"
+            :key="club.id"
+            :to="`/clubs/${club.slug || club.id}`"
+          >
+            <ClubCoverCard
+              :name="club.name"
+              :short-name="club.short_name"
+              :avatar-url="club.avatar_url"
+              :cover-url="club.cover_url"
+              :member-count="club.members_aggregate?.aggregate?.count ?? 0"
+              :join-mode="t(`pages.clubs.join_modes.${club.join_mode}`)"
+              :member="(club.members || []).length > 0"
+              :primary="!!club.members?.[0]?.is_primary"
+            />
+          </NuxtLink>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="truncate font-sans text-base font-bold uppercase tracking-wide">
-            {{ club.name }}
-          </div>
-          <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-            <Users class="h-3.5 w-3.5" />
-            {{ club.members_aggregate?.aggregate?.count ?? 0 }}
-            <span class="uppercase tracking-wider">{{ club.join_mode }}</span>
-          </div>
-          <p class="mt-2 line-clamp-2 text-xs text-muted-foreground">
-            {{ club.description || t("pages.clubs.no_description") }}
-          </p>
-        </div>
-      </NuxtLink>
+      </section>
     </div>
   </PageTransition>
 </template>

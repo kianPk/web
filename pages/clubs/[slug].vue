@@ -2,19 +2,21 @@
 import { gql } from "@apollo/client/core";
 import { useApolloClient } from "@vue/apollo-composable";
 import {
-  Crown,
   MessageSquare,
-  Shield,
   Trophy,
   Users,
   Swords,
   ListOrdered,
   PartyPopper,
+  Settings,
+  Newspaper,
+  Search,
 } from "lucide-vue-next";
-import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
+import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const VALID_TABS = [
@@ -69,6 +71,7 @@ const seasonLbName = ref("Season");
 const minElo = ref<number | null>(null);
 const minLevel = ref<number | null>(null);
 const createdLinkCode = ref("");
+const memberQuery = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -181,6 +184,9 @@ async function load() {
                 player {
                   name
                   steam_id
+                  avatar_url
+                  faceit_elo
+                  faceit_skill_level
                 }
               }
             }
@@ -212,6 +218,8 @@ async function load() {
                 is_guest
                 player {
                   name
+                  steam_id
+                  avatar_url
                 }
               }
             }
@@ -671,7 +679,7 @@ watch(tab, (v) => {
 
 const tabs = computed(() => {
   const base: { id: Tab; label: string; icon: any }[] = [
-    { id: "overview", label: t("pages.clubs.tabs.overview"), icon: Shield },
+    { id: "overview", label: t("pages.clubs.tabs.overview"), icon: Newspaper },
     { id: "members", label: t("pages.clubs.tabs.members"), icon: Users },
     { id: "chat", label: t("pages.clubs.tabs.chat"), icon: MessageSquare },
     {
@@ -687,60 +695,120 @@ const tabs = computed(() => {
     base.push({
       id: "admin",
       label: t("pages.clubs.tabs.admin"),
-      icon: Crown,
+      icon: Settings,
     });
   }
   return base;
 });
+
+const filteredMembers = computed(() => {
+  const list = club.value?.members ?? [];
+  const q = memberQuery.value.trim().toLowerCase();
+  if (!q) return list;
+  return list.filter((m: any) =>
+    String(m.player?.name || m.steam_id).toLowerCase().includes(q),
+  );
+});
+
+function roleLabel(role: string) {
+  const key = `pages.clubs.roles.${role}`;
+  const out = t(key);
+  return out === key ? role : String(out);
+}
+
+function roleChipClass(role: string) {
+  if (role === "owner")
+    return "bg-[hsl(var(--tac-amber)/0.18)] text-[hsl(var(--tac-amber))]";
+  if (role === "admin") return "bg-orange-500/15 text-orange-300";
+  if (role === "moderator") return "bg-sky-500/15 text-sky-300";
+  return "bg-muted text-muted-foreground";
+}
+
+function winRate(wins: number, losses: number) {
+  const total = (wins || 0) + (losses || 0);
+  if (!total) return "—";
+  return `${Math.round(((wins || 0) / total) * 100)}%`;
+}
+
+function activityTitle(kind: string) {
+  const key = `pages.clubs.activity_kinds.${kind}`;
+  const out = t(key);
+  return out === key ? String(kind).replace(/_/g, " ") : String(out);
+}
 </script>
 
 <template>
-  <div v-if="loading" class="text-sm text-muted-foreground">
-    {{ t("common.loading") }}
+  <div v-if="loading" class="space-y-4">
+    <div class="h-44 animate-pulse rounded-xl bg-muted/40" />
+    <div class="grid gap-6 md:grid-cols-[13rem_1fr]">
+      <div class="hidden h-64 animate-pulse rounded-xl bg-muted/30 md:block" />
+      <div class="h-64 animate-pulse rounded-xl bg-muted/30" />
+    </div>
   </div>
-  <div v-else-if="!club" class="text-sm text-destructive">
+  <div v-else-if="!club" class="rounded-xl border border-border bg-card/40 p-8 text-sm text-destructive">
     {{ error || t("pages.clubs.not_found") }}
   </div>
-  <template v-else>
+  <div v-else class="pb-8">
     <PageTransition>
-      <div
-        class="relative mb-6 overflow-hidden border border-border bg-card/40"
-        :style="
-          club.cover_url
-            ? {
-                backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.75)), url(${club.cover_url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }
-            : undefined
-        "
-      >
-        <div class="flex flex-wrap items-end gap-4 p-5 md:p-7">
-          <div
-            class="flex h-20 w-20 items-center justify-center border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.12)] text-2xl font-bold uppercase text-[hsl(var(--tac-amber))]"
-          >
-            <img
-              v-if="club.avatar_url"
+      <header class="overflow-hidden rounded-xl border border-border/70 bg-card/30">
+        <div
+          class="relative h-36 w-full sm:h-44"
+          :style="
+            club.cover_url
+              ? {
+                  backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.1) 0%, rgba(8,8,10,0.78) 100%), url(${club.cover_url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : undefined
+          "
+          :class="
+            club.cover_url
+              ? ''
+              : 'bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.32),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0b0b0d_100%)]'
+          "
+        />
+        <div class="relative flex flex-wrap items-end gap-4 px-4 pb-4 sm:px-6 sm:pb-5">
+          <div class="-mt-12 sm:-mt-14">
+            <ClubAvatar
+              :name="club.name"
+              :short-name="club.short_name"
               :src="club.avatar_url"
-              class="h-full w-full object-cover"
-              alt=""
+              size="xl"
             />
-            <span v-else>{{ (club.short_name || club.name).slice(0, 2) }}</span>
           </div>
-          <div class="min-w-0 flex-1">
-            <TacticalPageHeader>
-              <template #title>{{ club.name }}</template>
-            </TacticalPageHeader>
-            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">
+          <div class="min-w-0 flex-1 py-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="truncate font-sans text-[1.65rem] font-bold leading-none tracking-tight sm:text-3xl">
+                {{ club.name }}
+              </h1>
+              <span
+                v-if="club.short_name"
+                class="rounded bg-[hsl(var(--tac-amber)/0.14)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+              >
+                {{ club.short_name }}
+              </span>
+              <span
+                v-if="myMembership?.is_primary"
+                class="rounded-full bg-[hsl(var(--tac-amber)/0.16)] px-2 py-0.5 text-[0.65rem] font-medium text-[hsl(var(--tac-amber))]"
+              >
+                {{ t("pages.clubs.representing") }}
+              </span>
+            </div>
+            <p class="mt-2 max-w-2xl text-sm text-muted-foreground line-clamp-2">
               {{ club.description || t("pages.clubs.no_description") }}
             </p>
-            <div class="mt-2 flex flex-wrap gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
-              <span>{{ club.join_mode }}</span>
-              <span v-if="club.min_elo">Elo ≥ {{ club.min_elo }}</span>
+              <span class="text-border">·</span>
+              <span>{{ t(`pages.clubs.join_modes.${club.join_mode}`) }}</span>
+              <template v-if="club.min_elo">
+                <span class="text-border">·</span>
+                <span>Elo ≥ {{ club.min_elo }}</span>
+              </template>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap items-center gap-2 pb-1">
             <Button
               v-if="!isMember && club.join_mode === 'open' && me"
               :disabled="busy"
@@ -754,7 +822,7 @@ const tabs = computed(() => {
               class="flex gap-2"
             >
               <Input v-model="joinMessage" :placeholder="t('pages.clubs.request_message')" class="w-40" />
-              <Button :disabled="busy" @click="requestJoin">
+              <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="requestJoin">
                 {{ t("pages.clubs.request_join") }}
               </Button>
             </div>
@@ -768,7 +836,7 @@ const tabs = computed(() => {
             </Button>
             <Button
               v-if="isMember && myMembership?.role !== 'owner'"
-              variant="outline"
+              variant="ghost"
               :disabled="busy"
               @click="leaveClub"
             >
@@ -776,394 +844,458 @@ const tabs = computed(() => {
             </Button>
           </div>
         </div>
-      </div>
+      </header>
     </PageTransition>
 
-    <p v-if="error" class="mb-3 text-sm text-destructive">{{ error }}</p>
+    <p v-if="error" class="mt-3 text-sm text-destructive">{{ error }}</p>
 
-    <div class="mb-4 flex flex-wrap gap-1 border-b border-border pb-2">
-      <button
-        v-for="item in tabs"
-        :key="item.id"
-        type="button"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition"
-        :class="
-          tab === item.id
-            ? 'text-[hsl(var(--tac-amber))]'
-            : 'text-muted-foreground hover:text-foreground'
-        "
-        @click="tab = item.id"
+    <div class="mt-6 grid items-start gap-6 md:grid-cols-[13.5rem_minmax(0,1fr)]">
+      <nav
+        class="flex gap-1 overflow-x-auto pb-1 md:sticky md:top-4 md:flex-col md:overflow-visible md:rounded-xl md:border md:border-border/70 md:bg-card/40 md:p-2"
       >
-        <component :is="item.icon" class="h-3.5 w-3.5" />
-        {{ item.label }}
-      </button>
-    </div>
-
-    <!-- Overview -->
-    <section v-if="tab === 'overview'" class="grid gap-6 lg:grid-cols-2">
-      <div>
-        <h3 class="mb-3 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.activity") }}
-        </h3>
-        <ul class="space-y-2 text-sm">
-          <li
-            v-for="a in club.activity"
-            :key="a.id"
-            class="border-b border-border/60 py-2 text-muted-foreground"
-          >
-            <span class="text-foreground">{{ a.kind }}</span>
-            <span class="ml-2 text-xs">{{ new Date(a.created_at).toLocaleString() }}</span>
-          </li>
-          <li v-if="!club.activity?.length" class="text-muted-foreground">
-            {{ t("pages.clubs.no_activity") }}
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="mb-3 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.stats") }}
-        </h3>
-        <dl class="grid grid-cols-2 gap-3 text-sm">
-          <div class="border border-border p-3">
-            <dt class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</dt>
-            <dd class="text-xl font-bold">{{ club.members_aggregate?.aggregate?.count ?? 0 }}</dd>
-          </div>
-          <div class="border border-border p-3">
-            <dt class="text-xs text-muted-foreground">{{ t("pages.clubs.channels") }}</dt>
-            <dd class="text-xl font-bold">{{ club.channels?.length ?? 0 }}</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
-
-    <!-- Members -->
-    <section v-else-if="tab === 'members'" class="space-y-2">
-      <div
-        v-for="m in club.members"
-        :key="m.steam_id"
-        class="flex items-center gap-3 border-b border-border/50 py-2"
-      >
-        <NuxtLink
-          :to="`/players/${m.steam_id}`"
-          class="font-medium hover:text-[hsl(var(--tac-amber))]"
-        >
-          {{ m.player?.name || m.steam_id }}
-        </NuxtLink>
-        <span class="text-xs uppercase text-muted-foreground">{{ m.role }}</span>
-        <span v-if="m.is_primary" class="text-xs text-[hsl(var(--tac-amber))]">
-          {{ t("pages.clubs.primary_badge") }}
-        </span>
-        <Button
-          v-if="canManage && m.role !== 'owner'"
-          size="sm"
-          variant="ghost"
-          class="ml-auto text-destructive"
-          @click="banMember(String(m.steam_id))"
-        >
-          {{ t("pages.clubs.ban") }}
-        </Button>
-      </div>
-    </section>
-
-    <!-- Chat -->
-    <section v-else-if="tab === 'chat'" class="grid gap-4 md:grid-cols-[180px_1fr]">
-      <div class="space-y-1">
         <button
-          v-for="ch in club.channels"
-          :key="ch.id"
+          v-for="item in tabs"
+          :key="item.id"
           type="button"
-          class="block w-full truncate px-2 py-1.5 text-left text-sm"
+          class="inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
           :class="
-            activeChannel?.id === ch.id
-              ? 'bg-[hsl(var(--tac-amber)/0.12)] text-[hsl(var(--tac-amber))]'
-              : 'text-muted-foreground hover:text-foreground'
+            tab === item.id
+              ? 'bg-[hsl(var(--tac-amber)/0.12)] text-foreground md:border-l-2 md:border-[hsl(var(--tac-amber))] md:pl-[10px]'
+              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
           "
-          @click="activeChannelId = ch.id"
+          @click="tab = item.id"
         >
-          #{{ ch.name }}
+          <component :is="item.icon" class="h-4 w-4 shrink-0" />
+          {{ item.label }}
         </button>
-      </div>
-      <div v-if="isMember" class="flex min-h-[320px] flex-col border border-border">
-        <div class="flex-1 space-y-2 overflow-y-auto p-3">
-          <div
-            v-for="msg in [...(activeChannel?.messages || [])].reverse()"
-            :key="msg.id"
-            class="text-sm"
-            :class="{ 'opacity-40 line-through': msg.deleted_at }"
-          >
-            <span class="font-medium">{{ msg.author?.name || msg.author_steam_id }}</span>
-            <span class="ml-2 text-muted-foreground">{{ msg.body }}</span>
-            <button
-              v-if="canModerate && !msg.deleted_at"
-              type="button"
-              class="ml-2 text-xs text-destructive"
-              @click="deleteMessage(msg.id)"
+      </nav>
+
+      <div class="min-w-0">
+        <!-- Feed -->
+        <section v-if="tab === 'overview'" class="grid gap-6 lg:grid-cols-[1fr_16rem]">
+          <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+            <h2 class="mb-4 text-sm font-semibold">{{ t("pages.clubs.activity") }}</h2>
+            <ul class="space-y-3">
+              <li
+                v-for="a in club.activity"
+                :key="a.id"
+                class="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5"
+              >
+                <div class="text-sm font-medium capitalize">{{ activityTitle(a.kind) }}</div>
+                <div class="mt-0.5 text-xs text-muted-foreground">
+                  {{ new Date(a.created_at).toLocaleString() }}
+                </div>
+              </li>
+              <li v-if="!club.activity?.length" class="py-8 text-center text-sm text-muted-foreground">
+                {{ t("pages.clubs.no_activity") }}
+              </li>
+            </ul>
+          </div>
+          <aside class="space-y-3">
+            <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</div>
+              <div class="mt-1 text-2xl font-bold tabular-nums">
+                {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+              </div>
+            </div>
+            <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="text-xs text-muted-foreground">{{ t("pages.clubs.channels") }}</div>
+              <div class="mt-1 text-2xl font-bold tabular-nums">{{ club.channels?.length ?? 0 }}</div>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Members -->
+        <section v-else-if="tab === 'members'" class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+          <div class="relative mb-4 max-w-sm">
+            <Search class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              v-model="memberQuery"
+              type="search"
+              :placeholder="t('pages.clubs.search_members')"
+              class="h-9 w-full rounded-lg border border-border bg-background/50 pl-9 pr-3 text-sm outline-none focus:border-[hsl(var(--tac-amber)/0.5)]"
+            />
+          </div>
+          <div class="divide-y divide-border/50">
+            <div
+              v-for="m in filteredMembers"
+              :key="m.steam_id"
+              class="flex items-center gap-3 py-2.5"
             >
-              {{ t("common.delete") }}
+              <PlayerDisplay
+                :player="m.player || { steam_id: m.steam_id, name: String(m.steam_id) }"
+                size="xs"
+                compact
+                linkable
+                :show-flag="false"
+                :show-role="false"
+                match-type="Faceit"
+              />
+              <span
+                class="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide"
+                :class="roleChipClass(m.role)"
+              >
+                {{ roleLabel(m.role) }}
+              </span>
+              <Button
+                v-if="canManage && m.role !== 'owner'"
+                size="sm"
+                variant="ghost"
+                class="text-destructive"
+                @click="banMember(String(m.steam_id))"
+              >
+                {{ t("pages.clubs.ban") }}
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chat -->
+        <section v-else-if="tab === 'chat'" class="grid gap-3 md:grid-cols-[11rem_minmax(0,1fr)]">
+          <div class="flex gap-1 overflow-x-auto md:flex-col md:rounded-xl md:border md:border-border/70 md:bg-card/40 md:p-2">
+            <button
+              v-for="ch in club.channels"
+              :key="ch.id"
+              type="button"
+              class="shrink-0 rounded-md px-3 py-1.5 text-left text-sm"
+              :class="
+                activeChannel?.id === ch.id
+                  ? 'bg-[hsl(var(--tac-amber)/0.12)] text-[hsl(var(--tac-amber))]'
+                  : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+              "
+              @click="activeChannelId = ch.id"
+            >
+              #{{ ch.name }}
             </button>
           </div>
-        </div>
-        <form class="flex gap-2 border-t border-border p-2" @submit.prevent="sendChat">
-          <Input v-model="chatBody" class="flex-1" :placeholder="t('pages.clubs.chat_placeholder')" />
-          <Button type="submit" :disabled="busy">{{ t("pages.clubs.send") }}</Button>
-        </form>
-      </div>
-      <p v-else class="text-sm text-muted-foreground">{{ t("pages.clubs.chat_members_only") }}</p>
-    </section>
-
-    <!-- Leaderboard -->
-    <section v-else-if="tab === 'leaderboard'" class="space-y-6">
-      <div v-if="canManage" class="flex flex-wrap items-end gap-2">
-        <Input v-model="seasonLbName" class="w-48" />
-        <Button :disabled="busy" @click="createSeasonLb">
-          {{ t("pages.clubs.create_season_lb") }}
-        </Button>
-      </div>
-      <div v-for="lb in club.leaderboards" :key="lb.id" class="border border-border p-4">
-        <div class="mb-3 flex items-center justify-between">
-          <div>
-            <h3 class="font-bold uppercase">{{ lb.name }}</h3>
-            <p class="text-xs text-muted-foreground">
-              {{ lb.type }} · +{{ lb.points_win }} / {{ lb.points_loss }}
-              <span v-if="lb.frozen"> · {{ t("pages.clubs.frozen") }}</span>
-            </p>
-          </div>
-          <Button
-            v-if="canManage"
-            size="sm"
-            variant="outline"
-            @click="freezeLb(lb.id, !lb.frozen)"
+          <div
+            v-if="isMember"
+            class="flex min-h-[380px] flex-col overflow-hidden rounded-xl border border-border/70 bg-card/40"
           >
-            {{ lb.frozen ? t("pages.clubs.unfreeze") : t("pages.clubs.freeze") }}
-          </Button>
-        </div>
-        <table class="w-full text-sm">
-          <thead class="text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th class="py-1">#</th>
-              <th>{{ t("pages.clubs.player") }}</th>
-              <th>{{ t("pages.clubs.points") }}</th>
-              <th>W/L</th>
-              <th>{{ t("pages.clubs.streak") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(e, i) in lb.entries" :key="e.steam_id" class="border-t border-border/50">
-              <td class="py-1.5">{{ i + 1 }}</td>
-              <td>
-                <NuxtLink :to="`/players/${e.steam_id}`" class="hover:text-[hsl(var(--tac-amber))]">
-                  {{ e.player?.name || e.steam_id }}
-                </NuxtLink>
-              </td>
-              <td>{{ e.points }}</td>
-              <td>{{ e.wins }}/{{ e.losses }}</td>
-              <td>{{ e.streak }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Queues -->
-    <section v-else-if="tab === 'queues'" class="space-y-4">
-      <div v-if="canManage" class="flex gap-2">
-        <Input v-model="newQueueName" class="max-w-xs" />
-        <Button :disabled="busy" @click="createQueue">
-          {{ t("pages.clubs.create_queue") }}
-        </Button>
-      </div>
-      <div
-        v-for="q in club.queues"
-        :key="q.id"
-        class="flex flex-wrap items-center justify-between gap-3 border border-border p-4"
-      >
-        <div>
-          <h3 class="font-bold uppercase">{{ q.name }}</h3>
-          <p class="text-xs text-muted-foreground">
-            {{ q.players?.length || 0 }} / {{ q.min_players }} · {{ q.team_size }}v{{ q.team_size }}
-          </p>
-          <p class="mt-1 text-xs text-muted-foreground">
-            {{ (q.players || []).map((p: any) => p.player?.name).join(", ") }}
-          </p>
-        </div>
-        <div class="flex gap-2" v-if="isMember">
-          <Button size="sm" :disabled="busy" @click="joinQueue(q.id)">
-            {{ t("pages.clubs.join_queue") }}
-          </Button>
-          <Button size="sm" variant="outline" :disabled="busy" @click="leaveQueue(q.id)">
-            {{ t("pages.clubs.leave_queue") }}
-          </Button>
-        </div>
-      </div>
-      <p v-if="!club.queues?.length" class="text-sm text-muted-foreground">
-        {{ t("pages.clubs.no_queues") }}
-      </p>
-    </section>
-
-    <!-- Parties -->
-    <section v-else-if="tab === 'parties'" class="space-y-4">
-      <div v-if="isMember" class="flex gap-2">
-        <Input v-model="newPartyTitle" :placeholder="t('pages.clubs.party_title')" class="max-w-xs" />
-        <Button :disabled="busy" @click="createParty">
-          {{ t("pages.clubs.create_party") }}
-        </Button>
-      </div>
-      <div
-        v-for="p in club.parties"
-        :key="p.id"
-        class="border border-border p-4"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 class="font-bold">{{ p.title || t("pages.clubs.party") }}</h3>
-            <p class="text-xs text-muted-foreground">
-              {{ (p.members || []).map((m: any) => m.player?.name + (m.is_guest ? " (guest)" : "")).join(", ") }}
-            </p>
+            <div class="border-b border-border/60 px-4 py-2 text-sm font-medium">
+              #{{ activeChannel?.name }}
+            </div>
+            <div class="flex-1 space-y-3 overflow-y-auto p-4">
+              <div
+                v-for="msg in [...(activeChannel?.messages || [])].reverse()"
+                :key="msg.id"
+                class="text-sm"
+                :class="{ 'opacity-40 line-through': msg.deleted_at }"
+              >
+                <span class="font-semibold text-[hsl(var(--tac-amber))]">
+                  {{ msg.author?.name || msg.author_steam_id }}
+                </span>
+                <span class="ml-2 text-foreground/90">{{ msg.body }}</span>
+                <button
+                  v-if="canModerate && !msg.deleted_at"
+                  type="button"
+                  class="ml-2 text-xs text-destructive"
+                  @click="deleteMessage(msg.id)"
+                >
+                  {{ t("common.delete") }}
+                </button>
+              </div>
+            </div>
+            <form class="flex gap-2 border-t border-border/60 p-3" @submit.prevent="sendChat">
+              <Input v-model="chatBody" class="flex-1" :placeholder="t('pages.clubs.chat_placeholder')" />
+              <Button type="submit" :disabled="busy" :class="tacticalCtaButtonClasses">
+                {{ t("pages.clubs.send") }}
+              </Button>
+            </form>
           </div>
-          <div class="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" @click="joinParty(p.id, !isMember)">
-              {{ t("pages.clubs.join_party") }}
+          <p v-else class="rounded-xl border border-border/70 bg-card/40 p-6 text-sm text-muted-foreground">
+            {{ t("pages.clubs.chat_members_only") }}
+          </p>
+        </section>
+
+        <!-- Leaderboard -->
+        <section v-else-if="tab === 'leaderboard'" class="space-y-5">
+          <div v-if="canManage" class="flex flex-wrap items-end gap-2">
+            <Input v-model="seasonLbName" class="w-48" />
+            <Button :disabled="busy" @click="createSeasonLb">
+              {{ t("pages.clubs.create_season_lb") }}
             </Button>
-            <Button size="sm" variant="ghost" @click="leaveParty(p.id)">
-              {{ t("pages.clubs.leave_party") }}
+          </div>
+          <div
+            v-for="lb in club.leaderboards"
+            :key="lb.id"
+            class="overflow-hidden rounded-xl border border-border/70 bg-card/40"
+          >
+            <div class="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
+              <div>
+                <h3 class="font-semibold">{{ lb.name }}</h3>
+                <p class="text-xs text-muted-foreground">
+                  {{ lb.type }} · +{{ lb.points_win }} / {{ lb.points_loss }}
+                  <span v-if="lb.frozen"> · {{ t("pages.clubs.frozen") }}</span>
+                </p>
+              </div>
+              <Button
+                v-if="canManage"
+                size="sm"
+                variant="outline"
+                @click="freezeLb(lb.id, !lb.frozen)"
+              >
+                {{ lb.frozen ? t("pages.clubs.unfreeze") : t("pages.clubs.freeze") }}
+              </Button>
+            </div>
+            <table class="w-full text-sm">
+              <thead class="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                <tr class="border-b border-border/50">
+                  <th class="px-4 py-2 w-10">#</th>
+                  <th>{{ t("pages.clubs.player") }}</th>
+                  <th class="text-right">{{ t("pages.clubs.points") }}</th>
+                  <th class="text-right">W/L</th>
+                  <th class="px-4 text-right">{{ t("pages.clubs.winrate") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(e, i) in lb.entries"
+                  :key="e.steam_id"
+                  class="border-t border-border/40"
+                  :class="i < 3 ? 'bg-[hsl(var(--tac-amber)/0.04)]' : ''"
+                >
+                  <td class="px-4 py-2.5 font-mono tabular-nums" :class="i === 0 ? 'text-[hsl(var(--tac-amber))]' : ''">
+                    {{ i + 1 }}
+                  </td>
+                  <td class="py-1.5">
+                    <PlayerDisplay
+                      :player="e.player || { steam_id: e.steam_id }"
+                      size="xs"
+                      compact
+                      linkable
+                      :show-flag="false"
+                      :show-role="false"
+                      :show-elo="false"
+                    />
+                  </td>
+                  <td class="text-right font-semibold tabular-nums">{{ e.points }}</td>
+                  <td class="text-right tabular-nums text-muted-foreground">{{ e.wins }}/{{ e.losses }}</td>
+                  <td class="px-4 text-right tabular-nums text-muted-foreground">{{ winRate(e.wins, e.losses) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Queues -->
+        <section v-else-if="tab === 'queues'" class="space-y-4">
+          <div v-if="canManage" class="flex gap-2">
+            <Input v-model="newQueueName" class="max-w-xs" />
+            <Button :disabled="busy" @click="createQueue">
+              {{ t("pages.clubs.create_queue") }}
             </Button>
-            <Button
+          </div>
+          <div
+            v-for="q in club.queues"
+            :key="q.id"
+            class="flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-xl border border-border/70 bg-card/40 p-4"
+          >
+            <div class="min-w-0">
+              <h3 class="font-semibold">{{ q.name }}</h3>
+              <p class="mt-1 text-sm text-muted-foreground">
+                {{ t("pages.clubs.queued_count", { n: q.players?.length || 0 }) }}
+                · {{ q.team_size }}v{{ q.team_size }}
+                · {{ q.players?.length || 0 }}/{{ q.min_players }}
+              </p>
+              <div class="mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-muted">
+                <div
+                  class="h-full rounded-full bg-[hsl(var(--tac-amber))]"
+                  :style="{
+                    width: `${Math.min(100, ((q.players?.length || 0) / (q.min_players || 1)) * 100)}%`,
+                  }"
+                />
+              </div>
+            </div>
+            <div v-if="isMember" class="flex gap-2">
+              <Button size="sm" :class="tacticalCtaButtonClasses" :disabled="busy" @click="joinQueue(q.id)">
+                {{ t("pages.clubs.join_queue") }}
+              </Button>
+              <Button size="sm" variant="outline" :disabled="busy" @click="leaveQueue(q.id)">
+                {{ t("pages.clubs.leave_queue") }}
+              </Button>
+            </div>
+          </div>
+          <p
+            v-if="!club.queues?.length"
+            class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
+          >
+            {{ t("pages.clubs.no_queues") }}
+          </p>
+        </section>
+
+        <!-- Parties -->
+        <section v-else-if="tab === 'parties'" class="space-y-4">
+          <div v-if="isMember" class="flex gap-2">
+            <Input v-model="newPartyTitle" :placeholder="t('pages.clubs.party_title')" class="max-w-xs" />
+            <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="createParty">
+              {{ t("pages.clubs.create_party") }}
+            </Button>
+          </div>
+          <div
+            v-for="p in club.parties"
+            :key="p.id"
+            class="rounded-xl border border-border/70 bg-card/40 p-4"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-semibold">{{ p.title || t("pages.clubs.party") }}</h3>
+                <div class="mt-2 flex -space-x-2">
+                  <div
+                    v-for="i in 5"
+                    :key="i"
+                    class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-[0.6rem] text-muted-foreground"
+                  >
+                    <img
+                      v-if="p.members?.[i - 1]?.player?.avatar_url"
+                      :src="p.members[i - 1].player.avatar_url"
+                      alt=""
+                      class="h-full w-full object-cover"
+                    />
+                    <span v-else-if="p.members?.[i - 1]">
+                      {{ (p.members[i - 1].player?.name || "?").slice(0, 1) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" @click="joinParty(p.id, !isMember)">
+                  {{ t("pages.clubs.join_party") }}
+                </Button>
+                <Button size="sm" variant="ghost" @click="leaveParty(p.id)">
+                  {{ t("pages.clubs.leave_party") }}
+                </Button>
+                <Button
+                  v-if="String(p.leader_steam_id) === String(me?.steam_id)"
+                  size="sm"
+                  :class="tacticalCtaButtonClasses"
+                  @click="queuePartyToLobby(p)"
+                >
+                  {{ t("pages.clubs.queue_party") }}
+                </Button>
+              </div>
+            </div>
+            <div
               v-if="String(p.leader_steam_id) === String(me?.steam_id)"
-              size="sm"
-              :class="tacticalCtaButtonClasses"
-              @click="queuePartyToLobby(p)"
+              class="mt-3 flex gap-2"
             >
-              {{ t("pages.clubs.queue_party") }}
-            </Button>
+              <Input v-model="guestSteamId" :placeholder="t('pages.clubs.guest_steam')" class="max-w-xs" />
+              <Button size="sm" variant="outline" @click="addGuest(p.id)">
+                {{ t("pages.clubs.add_guest") }}
+              </Button>
+            </div>
           </div>
-        </div>
-        <div
-          v-if="String(p.leader_steam_id) === String(me?.steam_id)"
-          class="mt-3 flex gap-2"
-        >
-          <Input v-model="guestSteamId" :placeholder="t('pages.clubs.guest_steam')" class="max-w-xs" />
-          <Button size="sm" variant="outline" @click="addGuest(p.id)">
-            {{ t("pages.clubs.add_guest") }}
-          </Button>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Clash -->
-    <section v-else-if="tab === 'clash'" class="space-y-4">
-      <p class="text-sm text-muted-foreground">{{ t("pages.clubs.clash_hint") }}</p>
-      <div
-        v-for="ev in clashEvents"
-        :key="ev.id"
-        class="border border-border p-4"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 class="font-bold uppercase">{{ ev.name }}</h3>
-            <p class="text-xs text-muted-foreground">
-              {{ new Date(ev.starts_at).toLocaleString() }} →
-              {{ new Date(ev.ends_at).toLocaleString() }}
-              <span v-if="ev.locked"> · locked</span>
-            </p>
-          </div>
-          <Button
-            size="sm"
-            :disabled="busy || !myMembership?.is_primary"
-            @click="registerClash(ev.id)"
+        <!-- Clash -->
+        <section v-else-if="tab === 'clash'" class="space-y-4">
+          <p class="text-sm text-muted-foreground">{{ t("pages.clubs.clash_hint") }}</p>
+          <div
+            v-for="ev in clashEvents"
+            :key="ev.id"
+            class="rounded-xl border border-border/70 bg-card/40 p-4"
           >
-            {{ t("pages.clubs.register_clash") }}
-          </Button>
-        </div>
-        <ul class="mt-3 space-y-1 text-sm">
-          <li v-for="e in ev.entries" :key="e.club_id">
-            <NuxtLink :to="`/clubs/${e.club?.slug || e.club_id}`" class="hover:text-[hsl(var(--tac-amber))]">
-              {{ e.club?.name }}
-            </NuxtLink>
-            — {{ e.points }} pts
-          </li>
-        </ul>
-      </div>
-      <p v-if="!clashEvents.length" class="text-sm text-muted-foreground">
-        {{ t("pages.clubs.no_clash") }}
-      </p>
-    </section>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-semibold">{{ ev.name }}</h3>
+                <p class="text-xs text-muted-foreground">
+                  {{ new Date(ev.starts_at).toLocaleString() }} →
+                  {{ new Date(ev.ends_at).toLocaleString() }}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                :class="tacticalCtaButtonClasses"
+                :disabled="busy || !myMembership?.is_primary"
+                @click="registerClash(ev.id)"
+              >
+                {{ t("pages.clubs.register_clash") }}
+              </Button>
+            </div>
+            <ul class="mt-3 space-y-1 text-sm">
+              <li v-for="e in ev.entries" :key="e.club_id">
+                <NuxtLink :to="`/clubs/${e.club?.slug || e.club_id}`" class="hover:text-[hsl(var(--tac-amber))]">
+                  {{ e.club?.name }}
+                </NuxtLink>
+                — {{ e.points }} pts
+              </li>
+            </ul>
+          </div>
+          <p
+            v-if="!clashEvents.length"
+            class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
+          >
+            {{ t("pages.clubs.no_clash") }}
+          </p>
+        </section>
 
-    <!-- Admin -->
-    <section v-else-if="tab === 'admin' && canManage" class="grid gap-8 lg:grid-cols-2">
-      <div class="space-y-3">
-        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.invites") }}
-        </h3>
-        <div class="flex gap-2">
-          <Input v-model="inviteSteamId" :placeholder="t('pages.clubs.steam_id')" />
-          <Button :disabled="busy" @click="sendInvite">{{ t("pages.clubs.send_invite") }}</Button>
-        </div>
-        <ul class="text-sm text-muted-foreground">
-          <li v-for="inv in club.invites" :key="inv.id">
-            {{ inv.player?.name || inv.steam_id }}
-          </li>
-        </ul>
+        <!-- Admin / Settings -->
+        <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.invites") }}</h3>
+            <div class="flex gap-2">
+              <Input v-model="inviteSteamId" :placeholder="t('pages.clubs.steam_id')" />
+              <Button :disabled="busy" @click="sendInvite">{{ t("pages.clubs.send_invite") }}</Button>
+            </div>
+            <ul class="text-sm text-muted-foreground">
+              <li v-for="inv in club.invites" :key="inv.id">
+                {{ inv.player?.name || inv.steam_id }}
+              </li>
+            </ul>
+          </div>
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.invite_links") }}</h3>
+            <div class="flex flex-wrap gap-2">
+              <Input v-model.number="linkHours" type="number" class="w-24" :placeholder="'hrs'" />
+              <Input v-model.number="linkMaxUses" type="number" class="w-24" :placeholder="'max'" />
+              <label class="flex items-center gap-2 text-xs">
+                <input v-model="linkBypass" type="checkbox" />
+                {{ t("pages.clubs.bypass_req") }}
+              </label>
+              <Button :disabled="busy" @click="createLink">{{ t("pages.clubs.create_link") }}</Button>
+            </div>
+            <p v-if="createdLinkCode" class="text-sm">
+              {{ t("pages.clubs.link_created") }}:
+              <NuxtLink :to="`/clubs/join/${createdLinkCode}`" class="underline">
+                /clubs/join/{{ createdLinkCode }}
+              </NuxtLink>
+            </p>
+            <ul class="text-xs text-muted-foreground">
+              <li v-for="l in club.invite_links" :key="l.id">
+                {{ l.code }} · {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
+              </li>
+            </ul>
+          </div>
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requests") }}</h3>
+            <div
+              v-for="r in club.join_requests"
+              :key="r.id"
+              class="flex items-center gap-2 text-sm"
+            >
+              <span>{{ r.player?.name }} — {{ r.message }}</span>
+              <Button size="sm" @click="reviewRequest(r.id, true)">{{ t("common.accept") }}</Button>
+              <Button size="sm" variant="outline" @click="reviewRequest(r.id, false)">
+                {{ t("common.decline") }}
+              </Button>
+            </div>
+          </div>
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requirements") }}</h3>
+            <div class="flex flex-wrap gap-2">
+              <Input v-model.number="minElo" type="number" :placeholder="'Min Elo'" class="w-32" />
+              <Input v-model.number="minLevel" type="number" :placeholder="'Min FACEIT lvl'" class="w-36" />
+              <Button :disabled="busy" @click="saveRequirements">{{ t("common.save") }}</Button>
+            </div>
+            <h3 class="mt-4 text-sm font-semibold">{{ t("pages.clubs.bans") }}</h3>
+            <ul class="text-sm text-muted-foreground">
+              <li v-for="b in club.bans" :key="b.id">
+                {{ b.player?.name || b.steam_id }} — {{ b.reason }}
+              </li>
+            </ul>
+          </div>
+        </section>
       </div>
-      <div class="space-y-3">
-        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.invite_links") }}
-        </h3>
-        <div class="flex flex-wrap gap-2">
-          <Input v-model.number="linkHours" type="number" class="w-24" :placeholder="'hrs'" />
-          <Input v-model.number="linkMaxUses" type="number" class="w-24" :placeholder="'max'" />
-          <label class="flex items-center gap-2 text-xs">
-            <input v-model="linkBypass" type="checkbox" />
-            {{ t("pages.clubs.bypass_req") }}
-          </label>
-          <Button :disabled="busy" @click="createLink">{{ t("pages.clubs.create_link") }}</Button>
-        </div>
-        <p v-if="createdLinkCode" class="text-sm">
-          {{ t("pages.clubs.link_created") }}:
-          <NuxtLink :to="`/clubs/join/${createdLinkCode}`" class="underline">
-            /clubs/join/{{ createdLinkCode }}
-          </NuxtLink>
-        </p>
-        <ul class="text-xs text-muted-foreground">
-          <li v-for="l in club.invite_links" :key="l.id">
-            {{ l.code }} · {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
-            <span v-if="l.revoked_at"> (revoked)</span>
-          </li>
-        </ul>
-      </div>
-      <div class="space-y-3">
-        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.requests") }}
-        </h3>
-        <div
-          v-for="r in club.join_requests"
-          :key="r.id"
-          class="flex items-center gap-2 text-sm"
-        >
-          <span>{{ r.player?.name }} — {{ r.message }}</span>
-          <Button size="sm" @click="reviewRequest(r.id, true)">{{ t("common.accept") }}</Button>
-          <Button size="sm" variant="outline" @click="reviewRequest(r.id, false)">
-            {{ t("common.decline") }}
-          </Button>
-        </div>
-      </div>
-      <div class="space-y-3">
-        <h3 class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.requirements") }}
-        </h3>
-        <div class="flex flex-wrap gap-2">
-          <Input v-model.number="minElo" type="number" :placeholder="'Min Elo'" class="w-32" />
-          <Input v-model.number="minLevel" type="number" :placeholder="'Min FACEIT lvl'" class="w-36" />
-          <Button :disabled="busy" @click="saveRequirements">{{ t("common.save") }}</Button>
-        </div>
-        <h3 class="mt-6 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-          {{ t("pages.clubs.bans") }}
-        </h3>
-        <ul class="text-sm text-muted-foreground">
-          <li v-for="b in club.bans" :key="b.id">
-            {{ b.player?.name || b.steam_id }} — {{ b.reason }}
-          </li>
-        </ul>
-      </div>
-    </section>
-  </template>
+    </div>
+  </div>
 </template>
