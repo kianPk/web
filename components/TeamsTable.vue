@@ -2,8 +2,14 @@
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import TeamsAwardShelf from "~/components/teams/TeamsAwardShelf.vue";
+import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import { Users } from "lucide-vue-next";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import {
+  memberClubsForTeam,
+  officialClubForTeam,
+  type TeamClub,
+} from "~/utilities/teamClubs";
 </script>
 
 <template>
@@ -12,7 +18,12 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
       v-for="(team, index) in teams"
       :key="team.id"
       :to="{ name: 'teams-id', params: { id: team.id } }"
-      class="group team-card relative flex flex-col gap-3 overflow-hidden rounded-lg border border-border bg-card/50 p-4 transition-all duration-200 hover:border-[hsl(var(--tac-amber)/0.45)] hover:bg-card/70 animate-in fade-in slide-in-from-bottom-2"
+      class="group team-card relative flex flex-col gap-3 overflow-hidden rounded-lg border p-4 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2"
+      :class="
+        officialClub(team)
+          ? 'border-[hsl(var(--tac-amber)/0.65)] bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.16)_0%,hsl(var(--card)/0.7)_48%)] hover:border-[hsl(var(--tac-amber)/0.85)]'
+          : 'border-border bg-card/50 hover:border-[hsl(var(--tac-amber)/0.45)] hover:bg-card/70'
+      "
       :style="{ animationDelay: `${index * 40}ms` }"
     >
       <span
@@ -57,6 +68,12 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
               {{ team.short_name }}
             </span>
           </div>
+          <ClubTeamBadge
+            class="mt-1.5"
+            compact
+            :official-club="officialClub(team)"
+            :clubs="memberClubs(team)"
+          />
           <div
             class="mt-1 flex items-center gap-1 text-[0.65rem] font-mono uppercase tracking-[0.18em] text-muted-foreground/80"
           >
@@ -159,6 +176,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    officialByTeamId: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   computed: {
     apiDomain() {
@@ -187,6 +208,18 @@ export default {
     teamAwards(team: { id: string }): TeamAwardEntry[] {
       return (
         (this.awardsByTeamId as Record<string, TeamAwardEntry[]>)[team.id] ?? []
+      );
+    },
+    officialClub(team: any): TeamClub | null {
+      return officialClubForTeam(
+        team,
+        this.officialByTeamId as Record<string, TeamClub>,
+      );
+    },
+    memberClubs(team: any): TeamClub[] {
+      return memberClubsForTeam(
+        team,
+        this.officialByTeamId as Record<string, TeamClub>,
       );
     },
     topStarters(team: { roster?: RosterEntry[] }): RosterEntry[] {

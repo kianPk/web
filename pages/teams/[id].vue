@@ -48,6 +48,7 @@ import TeamLeagueHistory from "~/components/teams/TeamLeagueHistory.vue";
 import TeamScrimManager from "~/components/team/TeamScrimManager.vue";
 import TeamCalendarButton from "~/components/team/TeamCalendarButton.vue";
 import ScrimRequestDialog from "~/components/team/ScrimRequestDialog.vue";
+import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   tacticalSectionLabelClasses,
@@ -85,7 +86,14 @@ const teamHeroActionsClasses =
 
 <template>
   <PageTransition v-if="team">
-    <header :class="teamHeroClasses">
+    <header
+      :class="[
+        teamHeroClasses,
+        officialClub
+          ? 'border-[hsl(var(--tac-amber)/0.7)] [background:linear-gradient(180deg,hsl(var(--tac-amber)_/_0.18)_0%,hsl(var(--card)_/_0.35)_100%)]'
+          : '',
+      ]"
+    >
       <div :class="teamHeroBodyClasses">
         <div :class="teamHeroEmblemFrameClasses">
           <img
@@ -105,6 +113,10 @@ const teamHeroActionsClasses =
             <span v-if="team.short_name" :class="teamHeroTagClasses">
               {{ team.short_name }}
             </span>
+            <ClubTeamBadge
+              :official-club="officialClub"
+              :clubs="ownerClubs"
+            />
             <TeamRankSummary
               :ranks="team.ranks"
               :reputation="team.reputation"
@@ -425,7 +437,14 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { simpleMatchFields } from "~/graphql/simpleMatchFields";
 import { playerFields } from "~/graphql/playerFields";
 import { awardFields } from "~/graphql/awardFields";
+import { gql } from "@apollo/client/core";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import {
+  clubsFromOwner,
+  indexOfficialClubs,
+  memberClubsForTeam,
+  type TeamClub,
+} from "~/utilities/teamClubs";
 
 const VALID_TABS = ["overview", "stats", "highlights", "scrim"];
 
@@ -445,6 +464,8 @@ export default {
       leaveTeamAlertDialog: false,
       deleteTeamAlertDialog: false,
       scrimRequestOpen: false,
+      officialClub: null as TeamClub | null,
+      ownerClubs: [] as TeamClub[],
     };
   },
   watch: {
@@ -540,8 +561,11 @@ export default {
               id: this.team.id,
               name: this.team.name,
             };
+            void this.loadTeamClubs();
           } else {
             ctx.value = null;
+            this.officialClub = null;
+            this.ownerClubs = [];
           }
         },
       },
@@ -705,6 +729,58 @@ export default {
     },
   },
   methods: {
+    async loadTeamClubs() {
+      const team = this.team as any;
+      if (!team?.id) {
+        this.officialClub = null;
+        this.ownerClubs = [];
+        return;
+      }
+      const ownerId = team.owner_steam_id ?? team.owner?.steam_id;
+      try {
+        const { data } = await this.$apollo.query({
+          query: gql`
+            query TeamClubContext($teamId: uuid!, $ownerId: bigint) {
+              clubs(where: { official_team_id: { _eq: $teamId } }) {
+                id
+                name
+                slug
+                short_name
+                avatar_url
+                official_team_id
+              }
+              players(where: { steam_id: { _eq: $ownerId } }) {
+                club_memberships {
+                  is_primary
+                  club {
+                    id
+                    name
+                    slug
+                    short_name
+                    avatar_url
+                  }
+                }
+              }
+            }
+          `,
+          variables: { teamId: team.id, ownerId: ownerId || null },
+          fetchPolicy: "network-only",
+          context: { optional: true },
+        });
+        const officialMap = indexOfficialClubs(data?.clubs ?? []);
+        this.officialClub = officialMap[team.id] ?? null;
+        const owner = {
+          club_memberships: data?.players?.[0]?.club_memberships ?? [],
+        };
+        this.ownerClubs = memberClubsForTeam(
+          { ...team, owner },
+          officialMap,
+        );
+      } catch {
+        this.officialClub = null;
+        this.ownerClubs = clubsFromOwner(team);
+      }
+    },
     async deleteTeam() {
       await this.$apollo.mutate({
         mutation: generateMutation({

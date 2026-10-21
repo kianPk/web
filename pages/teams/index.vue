@@ -173,6 +173,7 @@ import {
           v-else
           :teams="showOnlyMyTeams ? myTeams : teams"
           :awards-by-team-id="awardsByTeamId"
+          :official-by-team-id="officialByTeamId"
         ></teams-table>
       </div>
 
@@ -200,7 +201,13 @@ import { $, order_by } from "~/generated/zeus";
 import { useAuthStore } from "#imports";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { useForm } from "vee-validate";
+import { gql } from "@apollo/client/core";
 import { playerFields } from "~/graphql/playerFields";
+import {
+  indexOfficialClubs,
+  teamOwnerClubSelection,
+  type TeamClub,
+} from "~/utilities/teamClubs";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import * as z from "zod";
 
@@ -214,6 +221,7 @@ export default {
       teams_aggregate: undefined as any,
       myTeams: undefined as any,
       teamAwards: [] as Array<any>,
+      officialByTeamId: {} as Record<string, TeamClub>,
       showOnlyMyTeams: false,
       tournamentWinnersOnly: false,
       scrimsOnly: false,
@@ -282,8 +290,11 @@ export default {
   apollo: {
     teams: {
       fetchPolicy: "network-only",
-      result: function () {
+      result: function (this: any, { data }: { data: any }) {
         this.loading = false;
+        void this.loadOfficialClubs(
+          (data?.teams ?? []).map((team: any) => team?.id).filter(Boolean),
+        );
       },
       query: function (this: any) {
         const nameFilter =
@@ -315,6 +326,8 @@ export default {
               name: true,
               short_name: true,
               avatar_url: true,
+              owner_steam_id: true,
+              owner: teamOwnerClubSelection as any,
               roster: [
                 {},
                 {
@@ -441,6 +454,8 @@ export default {
                     name: true,
                     short_name: true,
                     avatar_url: true,
+                    owner_steam_id: true,
+                    owner: teamOwnerClubSelection as any,
                     roster: [
                       {},
                       {
@@ -458,11 +473,43 @@ export default {
         },
         result: function (this: any, { data }: { data: any }) {
           this.myTeams = data.players?.[0].teams;
+          void this.loadOfficialClubs(
+            (this.myTeams ?? []).map((team: any) => team?.id).filter(Boolean),
+          );
         },
       },
     },
   },
   methods: {
+    async loadOfficialClubs(teamIds: string[]) {
+      const ids = [...new Set(teamIds.filter(Boolean))];
+      if (!ids.length) return;
+      try {
+        const { data } = await this.$apollo.query({
+          query: gql`
+            query OfficialClubsForTeams($ids: [uuid!]!) {
+              clubs(where: { official_team_id: { _in: $ids } }) {
+                id
+                name
+                slug
+                short_name
+                avatar_url
+                official_team_id
+              }
+            }
+          `,
+          variables: { ids },
+          fetchPolicy: "network-only",
+          context: { optional: true },
+        });
+        this.officialByTeamId = {
+          ...this.officialByTeamId,
+          ...indexOfficialClubs(data?.clubs ?? []),
+        };
+      } catch {
+        // official_team_id only exists after the club-tournament Hasura apply
+      }
+    },
     toggleShowOnlyMyTeams() {
       this.showOnlyMyTeams = !this.showOnlyMyTeams;
     },

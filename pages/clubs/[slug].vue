@@ -19,6 +19,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
+import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import TournamentCard from "~/components/tournament/TournamentCard.vue";
 import { tournamentCardFields } from "~/graphql/tournamentCardFields";
 import { generateQuery } from "~/graphql/graphqlGen";
@@ -112,6 +113,19 @@ const isMember = computed(() => !!myMembership.value);
 const apiDomain = useRuntimeConfig().public.apiDomain as string;
 const coverSrc = computed(() =>
   resolveAvatarUrl(club.value?.cover_url, apiDomain),
+);
+const clubAsMemberClub = computed(() =>
+  club.value
+    ? [
+        {
+          id: club.value.id,
+          name: club.value.name,
+          slug: club.value.slug,
+          short_name: club.value.short_name,
+          avatar_url: club.value.avatar_url,
+        },
+      ]
+    : [],
 );
 const avatarSrc = computed(() =>
   resolveAvatarUrl(club.value?.avatar_url, apiDomain),
@@ -1448,11 +1462,22 @@ function activityTitle(kind: string) {
 
         <!-- Teams -->
         <section v-else-if="tab === 'teams'" class="space-y-5">
-          <div class="rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] p-4">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 class="text-sm font-semibold">{{ t("pages.clubs.official_team") }}</h2>
-                <p class="mt-1 text-xs text-muted-foreground">
+          <div
+            class="relative overflow-hidden rounded-2xl border-2 border-[hsl(var(--tac-amber)/0.55)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.22)_0%,hsl(var(--card)/0.85)_42%,hsl(var(--tac-amber)/0.08)_100%)] p-4 sm:p-5"
+          >
+            <img
+              v-if="coverSrc"
+              :src="coverSrc"
+              alt=""
+              class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+            />
+            <div class="relative flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="font-mono text-[0.6rem] font-bold uppercase tracking-[0.22em] text-[hsl(var(--tac-amber))]">
+                  {{ t("pages.clubs.official_identity_label") }}
+                </p>
+                <h2 class="mt-1 text-base font-semibold">{{ t("pages.clubs.official_team") }}</h2>
+                <p class="mt-1 max-w-xl text-xs text-muted-foreground">
                   {{ t("pages.clubs.official_team_hint") }}
                 </p>
               </div>
@@ -1469,21 +1494,27 @@ function activityTitle(kind: string) {
             <NuxtLink
               v-if="officialTeam"
               :to="`/teams/${officialTeam.id}`"
-              class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-[hsl(var(--tac-amber)/0.3)] bg-background/50 px-3 py-2.5 hover:border-[hsl(var(--tac-amber)/0.55)]"
+              class="relative mt-4 flex items-center gap-3 rounded-xl border border-[hsl(var(--tac-amber)/0.45)] bg-black/25 px-3 py-3 hover:border-[hsl(var(--tac-amber)/0.75)]"
             >
-              <div class="min-w-0">
+              <ClubAvatar
+                :name="club.name"
+                :short-name="club.short_name"
+                :src="club.avatar_url"
+                size="md"
+              />
+              <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="font-semibold">{{ officialTeam.name }}</span>
                   <span
                     v-if="officialTeam.short_name"
-                    class="rounded bg-[hsl(var(--tac-amber)/0.16)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                    class="rounded bg-[hsl(var(--tac-amber)/0.2)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
                   >
                     {{ officialTeam.short_name }}
                   </span>
-                  <span class="rounded-full bg-[hsl(var(--tac-amber)/0.16)] px-2 py-0.5 text-[0.65rem] font-medium text-[hsl(var(--tac-amber))]">
-                    {{ t("pages.clubs.official_badge") }}
-                  </span>
                 </div>
+                <p class="mt-0.5 text-xs text-[hsl(var(--tac-amber))]">
+                  {{ t("pages.clubs.official_identity_of", { club: club.name }) }}
+                </p>
               </div>
               <span class="text-xs text-muted-foreground">{{ t("pages.clubs.open_team") }}</span>
             </NuxtLink>
@@ -1510,6 +1541,7 @@ function activityTitle(kind: string) {
                     >
                       {{ team.short_name }}
                     </span>
+                    <ClubTeamBadge :clubs="clubAsMemberClub" />
                   </div>
                   <div class="mt-0.5 text-xs text-muted-foreground">
                     {{ t("pages.clubs.team_owner") }}:

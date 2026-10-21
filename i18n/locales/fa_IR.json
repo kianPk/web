@@ -6803,7 +6803,9 @@
       "bans": "بن‌ها",
       "create_tournament": "ساخت تورنمنت",
       "official_team": "تیم رسمی کلاب",
-      "official_team_hint": "یک تیم که این کلاب را مقابل کلاب‌های دیگر نمایندگی می‌کند.",
+      "official_team_hint": "تیم هویت این کلاب — با همین تیم با کلاب‌های دیگر مسابقه می‌دهند.",
+      "official_identity_label": "هویت کلاب",
+      "official_identity_of": "هویت {club}",
       "create_official_team": "ساخت تیم رسمی",
       "official_badge": "رسمی",
       "member_teams": "تیم‌های داخل کلاب",
@@ -8589,6 +8591,10 @@
       "kd": "K/D",
       "adr": "ADR",
       "kast": "KAST"
+    },
+    "club": {
+      "member_of": "عضو {club}",
+      "identity_of": "هویت {club}"
     },
     "hero": {
       "roster": "Roster",

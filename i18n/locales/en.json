@@ -6803,11 +6803,13 @@
       "bans": "Bans",
       "create_tournament": "Create tournament",
       "official_team": "Official club team",
-      "official_team_hint": "One roster that represents this club against other clubs.",
+      "official_team_hint": "The club's identity roster — this is the team that fights other clubs.",
+      "official_identity_label": "Club identity",
+      "official_identity_of": "Identity of {club}",
       "create_official_team": "Create official team",
       "official_badge": "Official",
       "member_teams": "Teams in this club",
-      "member_teams_hint": "Teams whose owner is a member of this club.",
+      "member_teams_hint": "Teams whose creator is a member of this club.",
       "no_member_teams": "No member teams yet.",
       "team_owner": "Owner",
       "open_team": "Open team",
@@ -8589,6 +8591,10 @@
       "kd": "K/D",
       "adr": "ADR",
       "kast": "KAST"
+    },
+    "club": {
+      "member_of": "Member of {club}",
+      "identity_of": "Identity of {club}"
     },
     "hero": {
       "roster": "Roster",
