@@ -3031,6 +3031,13 @@
           "change_map": "Change map now",
           "change_map_pick": "Pick a map",
           "change_map_sent": "Changing the map on {server}"
+        },
+        "sidebar": {
+          "title": "Sidebar",
+          "section": "Sidebar visibility",
+          "description": "Turn a switch on to hide that sidebar item from regular players. Site administrators still see it.",
+          "admin_only": "Admin only",
+          "item": "Item"
         }
       },
       "language": {

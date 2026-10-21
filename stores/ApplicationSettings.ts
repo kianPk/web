@@ -7,6 +7,7 @@ import { useMatchmakingStore } from "./MatchmakingStore";
 import { useAuthStore } from "./AuthStore";
 import { order_by } from "@/generated/zeus";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
+import { parseSidebarAdminOnly } from "~/utilities/sidebarNavVisibility";
 
 interface Region {
   value: string;
@@ -703,6 +704,18 @@ export const useApplicationSettingsStore = defineStore(
       );
     });
 
+    const sidebarAdminOnly = computed(() => {
+      return parseSidebarAdminOnly(
+        settings.value.find((s) => s.name === "public.sidebar_admin_only")
+          ?.value,
+      );
+    });
+
+    const isSidebarVisibleToUser = (key: string, isAdmin: boolean) => {
+      if (isAdmin) return true;
+      return !sidebarAdminOnly.value.includes(key);
+    };
+
     const showReportIssue = computed(() => {
       return (
         settings.value.find((s) => s.name === "public.show_report_issue")
@@ -781,6 +794,8 @@ export const useApplicationSettingsStore = defineStore(
       logoUrl,
       faviconUrl,
       showSeparators,
+      sidebarAdminOnly,
+      isSidebarVisibleToUser,
       showReportIssue,
       githubUrl,
       globalStream,

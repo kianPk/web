@@ -144,7 +144,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem
-              v-if="isPWA"
+              v-if="isPWA && showNav('dashboard')"
               :tooltip="$t('layouts.app_nav.tooltips.dashboard')"
             >
               <SidebarMenuButton
@@ -167,6 +167,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             </SidebarMenuItem>
 
             <SidebarMenuItem
+              v-if="showNav('search')"
               :tooltip="$t('layouts.app_nav.tooltips.search_players')"
             >
               <SidebarMenuButton
@@ -188,7 +189,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
             <SidebarMenuItem
-              v-if="isMobile && me && !isPWA"
+              v-if="isMobile && me && !isPWA && showNav('dashboard')"
               :tooltip="$t('layouts.app_nav.navigation.dashboard')"
             >
               <SidebarMenuButton
@@ -210,7 +211,10 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem :tooltip="$t('layouts.app_nav.tooltips.play')">
+            <SidebarMenuItem
+              v-if="showNav('play')"
+              :tooltip="$t('layouts.app_nav.tooltips.play')"
+            >
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.play')"
@@ -231,7 +235,10 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem :tooltip="$t('layouts.app_nav.tooltips.watch')">
+            <SidebarMenuItem
+              v-if="showNav('watch')"
+              :tooltip="$t('layouts.app_nav.tooltips.watch')"
+            >
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.watch')"
@@ -252,7 +259,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('tournaments')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.tournaments')"
@@ -278,7 +285,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="leaguesEnabled && hasLeagueSeason">
+            <SidebarMenuItem v-if="showNav('leagues') && leaguesEnabled && hasLeagueSeason">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.leagues')"
@@ -295,7 +302,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="eventsEnabled">
+            <SidebarMenuItem v-if="showNav('events') && eventsEnabled">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.events')"
@@ -312,7 +319,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('game_servers')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.game_servers')"
@@ -331,7 +338,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('hosting')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.navigation.hosting')"
@@ -348,7 +355,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('teamspeak')">
               <SidebarMenuButton
                 as-child
                 tooltip="TeamSpeak"
@@ -372,12 +379,12 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
-        <SidebarGroup>
+        <SidebarGroup v-if="showPluginsGroup">
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.plugins.title")
           }}</SidebarGroupLabel>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('store')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.store')"
@@ -394,7 +401,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('battle_pass')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.battle_pass')"
@@ -411,7 +418,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="utilityLibraryEnabled">
+            <SidebarMenuItem v-if="showNav('utility') && utilityLibraryEnabled">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.utility')"
@@ -428,6 +435,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
+            <template v-if="showNav('plugins')">
             <SidebarMenuItem
               v-for="plugin in ungroupedPlugins"
               :key="plugin.id"
@@ -446,10 +454,11 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            </template>
           </SidebarMenu>
         </SidebarGroup>
 
-        <template v-if="namedPluginGroups.length > 0">
+        <template v-if="showNav('plugins') && namedPluginGroups.length > 0">
           <SidebarGroup
             v-for="group in namedPluginGroups"
             :key="group.name ?? 'apps-named'"
@@ -480,13 +489,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
-        <SidebarGroup>
+        <SidebarGroup v-if="showCommunityGroup">
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.community.title")
           }}</SidebarGroupLabel>
 
           <SidebarMenu>
-            <SidebarMenuItem v-if="isAdmin">
+            <SidebarMenuItem v-if="isAdmin && showNav('players')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.players')"
@@ -505,7 +514,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('teams')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.teams')"
@@ -522,7 +531,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('clubs')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.clubs')"
@@ -539,7 +548,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="scrimFinderEnabled">
+            <SidebarMenuItem v-if="showNav('scrims') && scrimFinderEnabled">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.navigation.scrims')"
@@ -556,7 +565,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="showNav('leaderboard')">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.leaderboard')"
@@ -577,13 +586,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
-        <SidebarGroup>
+        <SidebarGroup v-if="showSocialGroup">
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.social.title")
           }}</SidebarGroupLabel>
 
           <SidebarMenu>
-            <SidebarMenuItem v-if="newsEnabled">
+            <SidebarMenuItem v-if="showNav('news') && newsEnabled">
               <SidebarMenuButton
                 as-child
                 :tooltip="newsLabel || $t('layouts.app_nav.tooltips.news')"
@@ -601,6 +610,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             </SidebarMenuItem>
 
             <SidebarMenuItem
+              v-if="showNav('highlights')"
               :tooltip="$t('layouts.app_nav.navigation.highlights')"
             >
               <SidebarMenuButton
@@ -1335,6 +1345,12 @@ export default {
       });
       window.dispatchEvent(event);
     },
+    showNav(key: string) {
+      return useApplicationSettingsStore().isSidebarVisibleToUser(
+        key,
+        this.isAdmin,
+      );
+    },
   },
   computed: {
     me() {
@@ -1376,6 +1392,28 @@ export default {
     },
     showSeparators() {
       return useApplicationSettingsStore().showSeparators;
+    },
+    showPluginsGroup() {
+      return (
+        this.showNav("store") ||
+        this.showNav("battle_pass") ||
+        (this.showNav("utility") && this.utilityLibraryEnabled) ||
+        (this.showNav("plugins") && this.ungroupedPlugins.length > 0)
+      );
+    },
+    showCommunityGroup() {
+      return (
+        (this.isAdmin && this.showNav("players")) ||
+        this.showNav("teams") ||
+        this.showNav("clubs") ||
+        (this.showNav("scrims") && this.scrimFinderEnabled) ||
+        this.showNav("leaderboard")
+      );
+    },
+    showSocialGroup() {
+      return (
+        (this.showNav("news") && this.newsEnabled) || this.showNav("highlights")
+      );
     },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;

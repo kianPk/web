@@ -151,6 +151,10 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             path: "/settings/application/branding",
             labelKey: "layouts.application_settings.branding_nav",
           },
+          {
+            path: "/settings/application/sidebar",
+            labelKey: "pages.settings.application.sidebar.title",
+          },
         ],
       },
     ],
