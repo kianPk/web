@@ -6801,6 +6801,18 @@
       "requests": "Join requests",
       "requirements": "Join requirements",
       "bans": "Bans",
+      "create_tournament": "Create tournament",
+      "official_team": "Official club team",
+      "official_team_hint": "One roster that represents this club against other clubs.",
+      "create_official_team": "Create official team",
+      "official_badge": "Official",
+      "member_teams": "Teams in this club",
+      "member_teams_hint": "Teams whose owner is a member of this club.",
+      "no_member_teams": "No member teams yet.",
+      "team_owner": "Owner",
+      "open_team": "Open team",
+      "tournaments_hint": "Tournaments tagged with this club. Anyone on the site can join.",
+      "no_tournaments": "This club has not created a tournament yet.",
       "tabs": {
         "overview": "Feed",
         "members": "Members",
@@ -6808,6 +6820,8 @@
         "leaderboard": "Leaderboards",
         "queues": "Club Queues",
         "parties": "Parties",
+        "teams": "Teams",
+        "tournaments": "Tournaments",
         "clash": "Clash",
         "admin": "Settings"
       },
@@ -6824,7 +6838,8 @@
         "ban": "banned a member",
         "post": "posted in the feed",
         "queue": "joined a queue",
-        "party": "created a party"
+        "party": "created a party",
+        "official_team": "created the official club team"
       },
       "join_modes": {
         "open": "Open",
@@ -7751,9 +7766,18 @@
         "link": "Homepage",
         "create_event": "Create an event page"
       },
+      "club_tag": "Club tournament",
+      "participation": {
+        "label": "How players take part",
+        "online": "Public online",
+        "in_person": "In-person (game net)",
+        "online_desc": "Anyone on the site can register and play from home.",
+        "in_person_desc": "Anyone on the site can register, but matches are played on the game-net PCs."
+      },
       "location": {
         "label": "Location",
-        "description": "Search for the venue or city; the map pin is set automatically."
+        "description": "Search for the venue or city; the map pin is set automatically.",
+        "required_in_person": "In-person tournaments need the game-net venue."
       },
       "categories": {
         "label": "Categories"
@@ -8114,6 +8138,10 @@
       "col_hs": "HS%",
       "empty_title": "No stats yet",
       "empty_description": "The leaderboard fills in as tournament matches finish."
+    },
+    "participation": {
+      "online": "Online",
+      "in_person": "In-person"
     },
     "wizard": {
       "information": "Information",

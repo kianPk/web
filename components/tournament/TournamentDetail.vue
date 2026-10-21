@@ -17,6 +17,7 @@ import TournamentFreeAgents from "~/components/tournament/TournamentFreeAgents.v
 import TournamentInviteAccept from "~/components/tournament/TournamentInviteAccept.vue";
 import TournamentStats from "~/components/tournament/TournamentStats.vue";
 import TournamentDetailSkeleton from "~/components/tournament/TournamentDetailSkeleton.vue";
+import ClubTournamentBadge from "~/components/clubs/ClubTournamentBadge.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
 import {
@@ -221,6 +222,11 @@ function clearTeamEnterDelay(el: Element) {
                   <span :class="tournamentHeroTagClasses">
                     {{ tournament.options.type }}
                   </span>
+                  <ClubTournamentBadge
+                    on-card
+                    class="[&_span]:!bg-transparent [&_a]:!bg-[hsl(var(--tac-amber)/0.12)]"
+                    :tournament="tournament"
+                  />
                   <span
                     v-for="category in tournamentCategories"
                     :key="category"
@@ -1004,6 +1010,7 @@ export default {
       tournamentLive: undefined as Record<string, any> | undefined,
       tournamentStatic: undefined as Record<string, any> | undefined,
       tournamentRegistration: null as Record<string, any> | null,
+      tournamentClub: null as Record<string, any> | null,
       statusMenuNow: Date.now(),
       statusMenuClock: null as ReturnType<typeof setInterval> | null,
       checkInTeams: [] as Array<Record<string, any>>,
@@ -1494,6 +1501,36 @@ export default {
       // field the server has never heard of fails the whole document. Kept
       // apart, a stack that has not migrated yet loses the check-in surfaces
       // and nothing else.
+      tournamentClub: {
+        query: generateQuery({
+          tournaments_by_pk: [
+            { id: $("tournamentId", "uuid!") },
+            {
+              id: true,
+              club_id: true,
+              participation_mode: true,
+              club: {
+                id: true,
+                name: true,
+                slug: true,
+                short_name: true,
+                avatar_url: true,
+              },
+            },
+          ],
+        } as any),
+        variables: function (this: any) {
+          return { tournamentId: this.$route.params.tournamentId };
+        },
+        fetchPolicy: "network-only",
+        context: { optional: true },
+        result: function (this: any, { data }: { data: any }) {
+          this.tournamentClub = data?.tournaments_by_pk ?? null;
+        },
+        error: function (this: any) {
+          this.tournamentClub = null;
+        },
+      },
       tournamentRegistration: {
         query: generateSubscription({
           tournaments_by_pk: [
@@ -1769,7 +1806,11 @@ export default {
       if (!this.tournamentLive) {
         return undefined;
       }
-      return { ...this.tournamentStatic, ...this.tournamentLive };
+      return {
+        ...this.tournamentStatic,
+        ...this.tournamentLive,
+        ...this.tournamentClub,
+      };
     },
     chatRoomTournament(): { id: string; name: string } | undefined {
       const id = this.tournament?.id;

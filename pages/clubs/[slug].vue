@@ -11,12 +11,18 @@ import {
   Settings,
   Newspaper,
   Search,
+  Shield,
+  CalendarDays,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
+import TournamentCard from "~/components/tournament/TournamentCard.vue";
+import { tournamentCardFields } from "~/graphql/tournamentCardFields";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { $, order_by } from "~/generated/zeus";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
@@ -31,6 +37,8 @@ const VALID_TABS = [
   "leaderboard",
   "queues",
   "parties",
+  "teams",
+  "tournaments",
   "clash",
   "admin",
 ] as const;
@@ -728,7 +736,107 @@ async function registerClash(eventId: string) {
   );
 }
 
+const officialTeam = ref<any>(null);
+const memberTeams = ref<any[]>([]);
+const clubTournaments = ref<any[]>([]);
 const clashEvents = ref<any[]>([]);
+async function loadTeams() {
+  if (!club.value) return;
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query ClubOfficialTeam($id: uuid!) {
+          clubs_by_pk(id: $id) {
+            official_team_id
+            official_team {
+              id
+              name
+              short_name
+              avatar_url
+              owner_steam_id
+            }
+          }
+        }
+      `,
+      variables: { id: club.value.id },
+      fetchPolicy: "network-only",
+      context: { optional: true },
+    });
+    officialTeam.value = data?.clubs_by_pk?.official_team ?? null;
+  } catch {
+    officialTeam.value = null;
+  }
+  const steamIds = (club.value.members ?? []).map((m: any) => m.steam_id);
+  if (!steamIds.length) {
+    memberTeams.value = [];
+    return;
+  }
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query ClubMemberTeams($ids: [bigint!]!) {
+          teams(
+            where: { owner_steam_id: { _in: $ids } }
+            order_by: [{ name: asc }]
+          ) {
+            id
+            name
+            short_name
+            avatar_url
+            owner_steam_id
+            owner {
+              name
+            }
+          }
+        }
+      `,
+      variables: { ids: steamIds },
+      fetchPolicy: "network-only",
+    });
+    const officialId = officialTeam.value?.id;
+    memberTeams.value = (data?.teams ?? []).filter(
+      (row: any) => row.id !== officialId,
+    );
+  } catch {
+    memberTeams.value = [];
+  }
+}
+
+async function loadTournaments() {
+  if (!club.value) return;
+  try {
+    const { data } = await client.query({
+      query: generateQuery({
+        tournaments: [
+          {
+            where: { club_id: { _eq: $("clubId", "uuid!") } },
+            order_by: [{ start: order_by.desc }],
+            limit: 40,
+          },
+          tournamentCardFields,
+        ],
+      } as any),
+      variables: { clubId: club.value.id },
+      fetchPolicy: "network-only",
+      context: { optional: true },
+    });
+    clubTournaments.value = data?.tournaments ?? [];
+  } catch {
+    clubTournaments.value = [];
+  }
+}
+
+async function createOfficialTeam() {
+  if (!club.value) return;
+  await runAction(
+    `mutation($club_id: uuid!) {
+      createClubOfficialTeam(club_id: $club_id) { success team_id }
+    }`,
+    { club_id: club.value.id },
+  );
+  await loadTeams();
+}
+
 async function loadClash() {
   try {
     const { data } = await client.query({
@@ -761,6 +869,8 @@ async function loadClash() {
 
 watch(tab, (v) => {
   if (v === "clash") void loadClash();
+  if (v === "teams") void loadTeams();
+  if (v === "tournaments") void loadTournaments();
 });
 
 const tabs = computed(() => {
@@ -775,6 +885,12 @@ const tabs = computed(() => {
     },
     { id: "queues", label: t("pages.clubs.tabs.queues"), icon: Swords },
     { id: "parties", label: t("pages.clubs.tabs.parties"), icon: PartyPopper },
+    { id: "teams", label: t("pages.clubs.tabs.teams"), icon: Shield },
+    {
+      id: "tournaments",
+      label: t("pages.clubs.tabs.tournaments"),
+      icon: CalendarDays,
+    },
     { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
   ];
   if (canManage.value) {
@@ -959,6 +1075,13 @@ function activityTitle(kind: string) {
               @click="setPrimary"
             >
               {{ t("pages.clubs.set_primary") }}
+            </Button>
+            <Button
+              v-if="isOwner"
+              :class="tacticalCtaButtonClasses"
+              @click="$router.push(`/tournaments/create?club=${club.id}`)"
+            >
+              {{ t("pages.clubs.create_tournament") }}
             </Button>
             <Button
               v-if="isMember && myMembership?.role !== 'owner'"
@@ -1321,6 +1444,118 @@ function activityTitle(kind: string) {
               </Button>
             </div>
           </div>
+        </section>
+
+        <!-- Teams -->
+        <section v-else-if="tab === 'teams'" class="space-y-5">
+          <div class="rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold">{{ t("pages.clubs.official_team") }}</h2>
+                <p class="mt-1 text-xs text-muted-foreground">
+                  {{ t("pages.clubs.official_team_hint") }}
+                </p>
+              </div>
+              <Button
+                v-if="isOwner && !officialTeam"
+                size="sm"
+                :class="tacticalCtaButtonClasses"
+                :disabled="busy"
+                @click="createOfficialTeam"
+              >
+                {{ t("pages.clubs.create_official_team") }}
+              </Button>
+            </div>
+            <NuxtLink
+              v-if="officialTeam"
+              :to="`/teams/${officialTeam.id}`"
+              class="mt-3 flex items-center justify-between gap-3 rounded-lg border border-[hsl(var(--tac-amber)/0.3)] bg-background/50 px-3 py-2.5 hover:border-[hsl(var(--tac-amber)/0.55)]"
+            >
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-semibold">{{ officialTeam.name }}</span>
+                  <span
+                    v-if="officialTeam.short_name"
+                    class="rounded bg-[hsl(var(--tac-amber)/0.16)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                  >
+                    {{ officialTeam.short_name }}
+                  </span>
+                  <span class="rounded-full bg-[hsl(var(--tac-amber)/0.16)] px-2 py-0.5 text-[0.65rem] font-medium text-[hsl(var(--tac-amber))]">
+                    {{ t("pages.clubs.official_badge") }}
+                  </span>
+                </div>
+              </div>
+              <span class="text-xs text-muted-foreground">{{ t("pages.clubs.open_team") }}</span>
+            </NuxtLink>
+          </div>
+
+          <div>
+            <h2 class="text-sm font-semibold">{{ t("pages.clubs.member_teams") }}</h2>
+            <p class="mt-1 text-xs text-muted-foreground">
+              {{ t("pages.clubs.member_teams_hint") }}
+            </p>
+            <div class="mt-3 grid gap-2">
+              <NuxtLink
+                v-for="team in memberTeams"
+                :key="team.id"
+                :to="`/teams/${team.id}`"
+                class="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/40 px-3 py-2.5 hover:border-[hsl(var(--tac-amber)/0.4)]"
+              >
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-medium">{{ team.name }}</span>
+                    <span
+                      v-if="team.short_name"
+                      class="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground"
+                    >
+                      {{ team.short_name }}
+                    </span>
+                  </div>
+                  <div class="mt-0.5 text-xs text-muted-foreground">
+                    {{ t("pages.clubs.team_owner") }}:
+                    {{ team.owner?.name || team.owner_steam_id }}
+                  </div>
+                </div>
+              </NuxtLink>
+              <p
+                v-if="!memberTeams.length"
+                class="py-8 text-center text-sm text-muted-foreground"
+              >
+                {{ t("pages.clubs.no_member_teams") }}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Club tournaments -->
+        <section v-else-if="tab === 'tournaments'" class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm text-muted-foreground">
+              {{ t("pages.clubs.tournaments_hint") }}
+            </p>
+            <Button
+              v-if="isOwner"
+              size="sm"
+              :class="tacticalCtaButtonClasses"
+              @click="$router.push(`/tournaments/create?club=${club.id}`)"
+            >
+              {{ t("pages.clubs.create_tournament") }}
+            </Button>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <TournamentCard
+              v-for="row in clubTournaments"
+              :key="row.id"
+              variant="compact"
+              :tournament="row"
+            />
+          </div>
+          <p
+            v-if="!clubTournaments.length"
+            class="py-10 text-center text-sm text-muted-foreground"
+          >
+            {{ t("pages.clubs.no_tournaments") }}
+          </p>
         </section>
 
         <!-- Clash -->

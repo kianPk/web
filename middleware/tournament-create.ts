@@ -28,6 +28,19 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo(`/login?redirect=${to.path}`);
   }
 
+  const clubQuery = to.query?.club;
+  const clubId = Array.isArray(clubQuery) ? clubQuery[0] : clubQuery;
+  // Club owners create from /tournaments/create?club=<id>. Ownership is
+  // enforced on insert; this only skips the global organizer-role gate.
+  if (
+    typeof clubId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      clubId,
+    )
+  ) {
+    return;
+  }
+
   const applicationSettings = useApplicationSettingsStore();
 
   // tournamentCreateRole falls back to `user` until the settings arrive.

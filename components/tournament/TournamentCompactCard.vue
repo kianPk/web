@@ -13,6 +13,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import AwardBadge from "~/components/award/AwardBadge.vue";
 import TournamentMapMosaic from "~/components/tournament/TournamentMapMosaic.vue";
+import ClubTournamentBadge from "~/components/clubs/ClubTournamentBadge.vue";
 import { tournamentMapPosters } from "~/utilities/tournamentMapPosters";
 import { tournamentPlayerRankLabel } from "~/utilities/tournamentPlayerRank";
 import { tournamentCurrentStage } from "~/utilities/tournamentCurrentStage";
@@ -341,9 +342,10 @@ const runnerUps = computed(() => {
     </div>
 
     <div
-      v-if="visibleCategories.length"
+      v-if="visibleCategories.length || tournament.club || tournament.participation_mode"
       class="flex flex-wrap items-center gap-1.5 border-b border-border/40 px-3 py-1.5"
     >
+      <ClubTournamentBadge on-card :tournament="tournament" />
       <span
         v-for="category in visibleCategories"
         :key="category.category"

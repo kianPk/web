@@ -5,6 +5,7 @@ import { GitBranch, Trophy, UsersRound } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import TournamentMapMosaic from "~/components/tournament/TournamentMapMosaic.vue";
+import ClubTournamentBadge from "~/components/clubs/ClubTournamentBadge.vue";
 import { formatPrizePool } from "~/utilities/prizePool";
 import { tournamentMapPosters } from "~/utilities/tournamentMapPosters";
 import { tournamentPlayerRankLabel } from "~/utilities/tournamentPlayerRank";
@@ -188,6 +189,7 @@ const statusChipClasses = computed(() => {
           class="h-11 w-11 shrink-0 rounded-md border border-white/20 bg-black/40 object-contain backdrop-blur-sm"
         />
         <div class="flex flex-wrap gap-1.5">
+          <ClubTournamentBadge :tournament="tournament" />
           <span
             v-for="category in categories.slice(0, 3)"
             :key="category"

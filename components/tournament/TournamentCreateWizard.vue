@@ -118,6 +118,66 @@ import { HeightMorph, Fold } from "~/components/ui/transitions";
               </FormItem>
             </FormField>
 
+            <div
+              v-if="club"
+              class="rounded-lg border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2.5"
+            >
+              <div class="text-xs font-semibold text-[hsl(var(--tac-amber))]">
+                {{ $t("tournament.form.club_tag") }}
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                <span class="font-medium">{{ club.name }}</span>
+                <span
+                  v-if="club.short_name"
+                  class="rounded bg-[hsl(var(--tac-amber)/0.16)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                >
+                  {{ club.short_name }}
+                </span>
+              </div>
+            </div>
+
+            <FormField v-if="club" v-slot="{ value, handleChange }" name="participation_mode">
+              <FormItem>
+                <FormLabel>{{ $t("tournament.form.participation.label") }}</FormLabel>
+                <div class="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    class="rounded-lg border px-3 py-2.5 text-left text-sm transition"
+                    :class="
+                      value === 'online'
+                        ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.1)]'
+                        : 'border-border hover:border-border/80'
+                    "
+                    @click="handleChange('online')"
+                  >
+                    <div class="font-semibold">
+                      {{ $t("tournament.form.participation.online") }}
+                    </div>
+                    <div class="mt-1 text-xs text-muted-foreground">
+                      {{ $t("tournament.form.participation.online_desc") }}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-lg border px-3 py-2.5 text-left text-sm transition"
+                    :class="
+                      value === 'in_person'
+                        ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.1)]'
+                        : 'border-border hover:border-border/80'
+                    "
+                    @click="handleChange('in_person')"
+                  >
+                    <div class="font-semibold">
+                      {{ $t("tournament.form.participation.in_person") }}
+                    </div>
+                    <div class="mt-1 text-xs text-muted-foreground">
+                      {{ $t("tournament.form.participation.in_person_desc") }}
+                    </div>
+                  </button>
+                </div>
+              </FormItem>
+            </FormField>
+
             <FormField v-slot="{ componentField }" name="homepage">
               <FormItem>
                 <FormLabel>{{
@@ -212,7 +272,9 @@ import { HeightMorph, Fold } from "~/components/ui/transitions";
                   />
                 </FormControl>
                 <FormDescription>{{
-                  $t("tournament.form.location.description")
+                  form.values.participation_mode === "in_person"
+                    ? $t("tournament.form.location.required_in_person")
+                    : $t("tournament.form.location.description")
                 }}</FormDescription>
               </FormItem>
             </FormField>
@@ -385,7 +447,7 @@ import { HeightMorph, Fold } from "~/components/ui/transitions";
 <script lang="ts">
 import * as z from "zod";
 import { useForm } from "vee-validate";
-import { generateMutation } from "~/graphql/graphqlGen";
+import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import matchOptionsValidator from "~/utilities/match-options-validator";
 import { EXPECTED_PLAYERS } from "~/utilities/matchmakingPartySize";
@@ -397,6 +459,7 @@ import {
 import { effectivePlace, normalizePrize } from "~/utilities/prizes";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
+import { useAuthStore } from "~/stores/AuthStore";
 import {
   setupOptionsVariables,
   setupOptionsSetMutation,
@@ -411,6 +474,13 @@ export default {
       prizeRowSeq: 0,
       prizes: [] as Array<{ id: number; place: string; prize: string }>,
       bannerBlob: null as Blob | null,
+      club: null as null | {
+        id: string;
+        name: string;
+        slug: string;
+        short_name: string | null;
+        owner_steam_id: string;
+      },
       form: useForm({
         keepValuesOnUnmount: true,
         validationSchema: toTypedSchema(
@@ -430,6 +500,9 @@ export default {
               auto_start: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
               substitutes_enabled: z.boolean().default(true),
+              participation_mode: z
+                .enum(["online", "in_person"])
+                .default("online"),
               ...registrationSchemaShape(this),
             },
             useApplicationSettingsStore().settings,
@@ -463,6 +536,45 @@ export default {
         ];
       return expected ? expected / 2 : null;
     },
+  },
+  async created() {
+    this.form.setFieldValue("participation_mode", "online");
+    const clubQuery = this.$route.query.club;
+    const clubId = Array.isArray(clubQuery) ? clubQuery[0] : clubQuery;
+    if (
+      typeof clubId !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        clubId,
+      )
+    ) {
+      return;
+    }
+    try {
+      const { data } = await this.$apollo.query({
+        query: generateQuery({
+          clubs_by_pk: [
+            { id: $("id", "uuid!") },
+            {
+              id: true,
+              name: true,
+              slug: true,
+              short_name: true,
+              owner_steam_id: true,
+            },
+          ],
+        } as any),
+        variables: { id: clubId },
+        fetchPolicy: "network-only",
+        context: { optional: true },
+      });
+      const row = data?.clubs_by_pk;
+      const me = useAuthStore().me;
+      if (row && String(row.owner_steam_id) === String(me?.steam_id)) {
+        this.club = row;
+      }
+    } catch {
+      this.club = null;
+    }
   },
   methods: {
     addPrizeRow(prize: string, place: string) {
@@ -536,13 +648,27 @@ export default {
       // be left in a state worth stopping on.
       const fields: Record<number, string[]> = {
         0: ["name", "start"],
+        1:
+          this.form.values.participation_mode === "in_person"
+            ? ["location"]
+            : [],
         2: [
           REGISTRATION_FIELD.max_elo,
           REGISTRATION_FIELD.check_in_opens_before_minutes,
           REGISTRATION_FIELD.check_in_closes_before_minutes,
         ],
       };
-      if (!fields[step]) {
+      if (step === 1 && this.form.values.participation_mode === "in_person") {
+        const location = String(this.form.values.location || "").trim();
+        if (!location) {
+          toast({
+            variant: "destructive",
+            title: this.$t("tournament.form.location.required_in_person"),
+          });
+          return false;
+        }
+      }
+      if (!fields[step]?.length) {
         return true;
       }
       const results = await Promise.all(
@@ -620,6 +746,13 @@ export default {
                   location: form.location || null,
                   latitude: form.latitude ?? null,
                   longitude: form.longitude ?? null,
+                  ...(this.club
+                    ? {
+                        club_id: this.club.id,
+                        participation_mode:
+                          form.participation_mode || "online",
+                      }
+                    : {}),
                   auto_start: form.negotiated_scheduling
                     ? false
                     : form.auto_start,

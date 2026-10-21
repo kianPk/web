@@ -126,6 +126,18 @@ describe("tournament-create middleware", () => {
     expect(navigateToMock).toHaveBeenCalledWith("/tournaments");
   });
 
+  it("lets a club owner through create even below the organizer role", async () => {
+    settings.tournamentCreateRole = e_player_roles_enum.tournament_organizer;
+    auth.me = { role: e_player_roles_enum.user };
+    const clubTo = {
+      path: "/tournaments/create",
+      query: { club: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" },
+    } as unknown as RouteLocationNormalized;
+
+    await expect(tournamentCreate(clubTo, from)).resolves.toBeUndefined();
+    expect(navigateToMock).not.toHaveBeenCalled();
+  });
+
   it("sends a signed-out visitor to login and back", async () => {
     auth.me = undefined;
     auth.getMe.mockResolvedValue(false);
