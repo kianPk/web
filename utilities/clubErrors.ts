@@ -59,6 +59,9 @@ export function clubErrorMessage(
   if (msg.includes("Already a club member")) {
     return t("pages.clubs.already_member");
   }
+  if (msg.includes("Only the club owner or an admin can post news")) {
+    return t("pages.clubs.news_staff_only");
+  }
   if (msg.includes("Only the club owner can activate challenges")) {
     return t("pages.clubs.challenges.owner_only");
   }
