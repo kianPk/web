@@ -79,7 +79,6 @@ async function joinAsGuest(partyId: string) {
     variables: {
       object: {
         party_id: partyId,
-        steam_id: String(auth.me.steam_id),
         is_guest: true,
       },
     },

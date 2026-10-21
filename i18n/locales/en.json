@@ -6669,6 +6669,7 @@
       "party": "Party",
       "join_party": "Join",
       "leave_party": "Leave",
+      "delete_party": "Delete party",
       "queue_party": "Queue to ranked lobby",
       "guest_steam": "Guest Steam ID",
       "add_guest": "Add guest",

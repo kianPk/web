@@ -535,50 +535,11 @@ async function createParty() {
         club_id: club.value.id,
         title: newPartyTitle.value.trim() || "Looking for players",
         listed: true,
+        members: { data: [{ is_guest: false }] },
       },
     },
   );
-  // auto-add leader
-  const { data } = await client.query({
-    query: gql`
-      query($club_id: uuid!, $steam_id: bigint!) {
-        club_parties(
-          where: {
-            club_id: { _eq: $club_id }
-            leader_steam_id: { _eq: $steam_id }
-          }
-          order_by: [{ created_at: desc }]
-          limit: 1
-        ) {
-          id
-        }
-      }
-    `,
-    variables: {
-      club_id: club.value.id,
-      steam_id: String(me.value.steam_id),
-    },
-    fetchPolicy: "network-only",
-  });
-  const partyId = data?.club_parties?.[0]?.id;
-  if (partyId) {
-    await client.mutate({
-      mutation: gql`
-        mutation($object: club_party_members_insert_input!) {
-          insert_club_party_members_one(object: $object) { party_id }
-        }
-      `,
-      variables: {
-        object: {
-          party_id: partyId,
-          steam_id: String(me.value.steam_id),
-          is_guest: false,
-        },
-      },
-    });
-  }
   newPartyTitle.value = "";
-  await load();
 }
 
 async function joinParty(partyId: string, asGuest = false) {
@@ -590,11 +551,24 @@ async function joinParty(partyId: string, asGuest = false) {
     {
       object: {
         party_id: partyId,
-        steam_id: String(me.value.steam_id),
         is_guest: asGuest,
       },
     },
   );
+}
+
+async function deleteParty(partyId: string) {
+  await runAction(
+    `mutation($id: uuid!) {
+      delete_club_parties_by_pk(id: $id) { id }
+    }`,
+    { id: partyId },
+  );
+}
+
+function canDeleteParty(party: { leader_steam_id?: string | number }) {
+  if (canManage.value) return true;
+  return String(party.leader_steam_id) === String(me.value?.steam_id);
 }
 
 async function leaveParty(partyId: string) {
@@ -1172,6 +1146,16 @@ function activityTitle(kind: string) {
                   @click="queuePartyToLobby(p)"
                 >
                   {{ t("pages.clubs.queue_party") }}
+                </Button>
+                <Button
+                  v-if="canDeleteParty(p)"
+                  size="sm"
+                  variant="ghost"
+                  class="text-destructive"
+                  :disabled="busy"
+                  @click="deleteParty(p.id)"
+                >
+                  {{ t("pages.clubs.delete_party") }}
                 </Button>
               </div>
             </div>
