@@ -17,6 +17,16 @@ import {
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
 import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
@@ -73,6 +83,15 @@ const busy = ref(false);
 const inviteSteamId = ref("");
 const inviteMessage = ref("");
 const joinMessage = ref("");
+const leaveConfirmOpen = ref(false);
+const leaveBlockedUntil = ref<string | null>(null);
+const leaveBlockedWhen = computed(() => {
+  if (!leaveBlockedUntil.value) return "";
+  const parsed = new Date(leaveBlockedUntil.value);
+  return Number.isNaN(parsed.getTime())
+    ? leaveBlockedUntil.value
+    : parsed.toLocaleString();
+});
 const chatBody = ref("");
 const activeChannelId = ref<string | null>(null);
 const linkMaxUses = ref<number | null>(null);
@@ -418,20 +437,43 @@ async function joinOpen() {
 async function requestJoin() {
   if (!me.value) return;
   await runAction(
-    `mutation($object: club_join_requests_insert_input!) {
-      insert_club_join_requests_one(object: $object) { id }
+    `mutation($club_id: uuid!, $message: String) {
+      requestClubJoin(club_id: $club_id, message: $message) { success }
     }`,
     {
-      object: {
-        club_id: club.value.id,
-        message: joinMessage.value.trim(),
-      },
+      club_id: club.value.id,
+      message: joinMessage.value.trim(),
     },
   );
 }
 
+async function openLeaveConfirm() {
+  if (!me.value || !club.value) return;
+  leaveBlockedUntil.value = null;
+  leaveConfirmOpen.value = true;
+  try {
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation($club_id: uuid!) {
+          previewClubLeave(club_id: $club_id) {
+            blocked_until
+            leave_count
+          }
+        }
+      `,
+      variables: { club_id: club.value.id },
+      context: { optional: true },
+    });
+    leaveBlockedUntil.value = data?.previewClubLeave?.blocked_until ?? null;
+  } catch (e: any) {
+    leaveConfirmOpen.value = false;
+    error.value = clubErrorMessage(e, t);
+  }
+}
+
 async function leaveClub() {
   if (!me.value) return;
+  leaveConfirmOpen.value = false;
   await runAction(
     `mutation($club_id: uuid!) { leaveClub(club_id: $club_id) { success } }`,
     { club_id: club.value.id },
@@ -1117,7 +1159,7 @@ function activityTitle(kind: string) {
               v-if="isMember && myMembership?.role !== 'owner'"
               variant="ghost"
               :disabled="busy"
-              @click="leaveClub"
+              @click="openLeaveConfirm"
             >
               {{ t("pages.clubs.leave") }}
             </Button>
@@ -1783,4 +1825,29 @@ function activityTitle(kind: string) {
       </div>
     </div>
   </div>
+
+  <AlertDialog v-model:open="leaveConfirmOpen">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{{ t("pages.clubs.leave_confirm_title") }}</AlertDialogTitle>
+        <AlertDialogDescription>
+          {{
+            leaveBlockedWhen
+              ? t("pages.clubs.leave_confirm_body", { when: leaveBlockedWhen })
+              : t("pages.clubs.leave_confirm_body_unknown")
+          }}
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
+        <AlertDialogAction
+          class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          :disabled="busy"
+          @click="leaveClub"
+        >
+          {{ t("pages.clubs.leave_confirm_action") }}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>
