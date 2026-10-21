@@ -3144,12 +3144,33 @@
         "channel_matches": "مسابقات زنده",
         "channel_tournaments": "مسابقات",
         "channel_highlights": "نکات برجسته",
-        "channel_status": "در انتظار سیگنال"
+        "channel_status": "در انتظار سیگنال",
+        "sign_in": "ورود",
+        "start_match": "شروع مچ",
+        "create_tournament": "ساخت تورنمنت"
       },
       "events": {
         "count_players": "بازیکن | بازیکن",
         "count_teams": "تیم | تیم",
-        "in_prizes": "{amount} جایزه"
+        "in_prizes": "{amount} جایزه",
+        "progress": "پیشرفت {name}",
+        "step_done": "انجام شد",
+        "live_count": "{count} زنده | {count} زنده",
+        "title": "ایونت‌ها",
+        "ghost": "شب‌های کامیونیتی و تورنمنت‌ها",
+        "day_of": "روز {day} از {total}",
+        "day": "روز {day}",
+        "organized_by": "برگزارکننده: {names}",
+        "open_event": "باز کردن ایونت",
+        "starts": "شروع {time}",
+        "top_plays": "بهترین پلی‌ها",
+        "all_plays": "همه پلی‌ها",
+        "leaderboard": "لیدربورد",
+        "full_leaderboard": "لیدربورد کامل",
+        "matches_played": "{count} مچ | {count} مچ",
+        "media": "رسانه",
+        "all_media": "همه رسانه‌ها",
+        "more_media": "{count} مورد دیگر"
       },
       "tournaments": {
         "best_of": "Best of {count}",
@@ -3162,7 +3183,78 @@
         "register": "ثبت‌نام تیم",
         "registered_count": "{count} از {max}",
         "results": "نتایج",
-        "sign_in_to_register": "برای ثبت‌نام وارد شوید"
+        "sign_in_to_register": "برای ثبت‌نام وارد شوید",
+        "title": "تورنمنت‌ها"
+      },
+      "ticker": {
+        "check_in": "{checked}/{total} چک‌این",
+        "on_stage": "روی استیج",
+        "you": "تو",
+        "nothing_live_next": "چیزی زنده نیست · بعدی {time}",
+        "nothing_live": "چیزی زنده نیست",
+        "up_next": "بعدی",
+        "match_count": "مچ | مچ",
+        "nothing_upcoming": "مچ پیش‌رویی نیست",
+        "results": "نتایج",
+        "no_results": "هنوز نتیجه‌ای نیست",
+        "label": "تیکر مچ‌ها",
+        "ghost_caption": "مچ‌های زنده، پیش‌رو و اخیر",
+        "filters_label": "فیلتر",
+        "loading_older": "بارگذاری نتایج قدیمی‌تر",
+        "end": "پایان نتایج",
+        "today": "امروز",
+        "yesterday": "دیروز",
+        "final_best_of": "فینال · BO{count}",
+        "final_overtime": "فینال · OT",
+        "final": "فینال",
+        "step_check_in": "چک‌این",
+        "going_live": "در حال شروع",
+        "step_server": "سرور",
+        "overtime_short": "OT",
+        "round_short": "راند {round}",
+        "tbd": "نامشخص",
+        "filter_all": "همه",
+        "filter_live": "زنده",
+        "filter_upcoming": "پیش‌رو",
+        "filter_results": "نتایج"
+      },
+      "stage": {
+        "title": "در حال پخش",
+        "streams": "استریم | استریم",
+        "watching": "بیننده | بیننده",
+        "login": "برای دیدن این استریم وارد شو",
+        "login_action": "ورود",
+        "playing_elsewhere": "تو داخل این مچ هستی — نمی‌تونی تماشاش کنی",
+        "fullscreen": "تمام‌صفحه",
+        "more_streams": "بیشتر | بیشتر",
+        "watch": "تماشا",
+        "open_match": "باز کردن مچ",
+        "others": "استریم‌های دیگر",
+        "more_live": "زندهٔ بیشتر | زندهٔ بیشتر",
+        "login_short": "ورود"
+      },
+      "highlights": {
+        "kinds": {
+          "all": "همه",
+          "aces": "ایس",
+          "fourks": "۴ک",
+          "label": "نوع"
+        },
+        "range": {
+          "today": "امروز",
+          "week": "این هفته",
+          "all": "همه زمان‌ها",
+          "label": "بازه"
+        },
+        "tag": {
+          "today": "امروز",
+          "all": "همه زمان‌ها",
+          "week": "این هفته"
+        },
+        "title": "هایلایت‌ها",
+        "ghost": "کلیپ‌های مچ‌های اخیر",
+        "empty": "هنوز هایلایتی نیست",
+        "show_all_time": "نمایش همه زمان‌ها"
       }
     },
     "highlights": {
@@ -4792,7 +4884,7 @@
         "more": "{count} مورد دیگه",
         "fewer": "کمتر",
         "back": "همه‌ی نقطه‌ها",
-        "lineups": "{count} لاین‌آپ"
+        "lineups": "{count} لاین‌آپ | {count} لاین‌آپ"
       },
       "sheet": {
         "expand": "نمایش بیشتر لیست",
@@ -7153,7 +7245,11 @@
       "pop_out_tooltip": "باز کردن در پنجره",
       "close_tooltip": "بستن گفتگو",
       "no_chats_title": "هنوز گفتگویی نیست",
-      "no_chats_description": "وقتی به گفتگویی بپیوندید، اینجا نمایش داده می‌شود."
+      "no_chats_description": "وقتی به گفتگویی بپیوندید، اینجا نمایش داده می‌شود.",
+      "tournament_ended_days": "{count} روز | {count} روز",
+      "tournament_ended_hours": "{count} ساعت | {count} ساعت",
+      "tournament_ended": "چت تا {time} دیگر بسته می‌شود",
+      "tournament_ended_tooltip": "چت این تورنمنت تا مدتی بعد از پایان ایونت باز می‌ماند."
     },
     "recent_games": {
       "title": "بازی‌های اخیر",
@@ -7167,6 +7263,36 @@
     },
     "public_header": {
       "secure_channel": "کانال امن"
+    },
+    "party_room": {
+      "leader_picks": "{name} مود را انتخاب می‌کند",
+      "open_match": "باز کردن مچ",
+      "title": "پارتی",
+      "members": "{count} عضو | {count} عضو",
+      "join_voice": "ورود به ویس",
+      "remove": "حذف {name}",
+      "invite": "دعوت",
+      "open_seat": "جای خالی",
+      "ready_count": "{confirmed}/{players} آماده",
+      "searching": "جستجو · {mode}",
+      "cancel": "لغو",
+      "pick_regions": "انتخاب ریجن",
+      "queue": "پیدا کردن مچ"
+    },
+    "queue": {
+      "in_queue": "{count} در صف | {count} در صف",
+      "pick_mode": "انتخاب مود",
+      "party_too_big": "پارتی بزرگ است ({count})",
+      "all_modes": "همه مودها"
+    },
+    "voice_bar": {
+      "you_are_muted": "میکروفونت بسته است",
+      "talking": "{name} در حال صحبت",
+      "in_call": "{count} در تماس | {count} در تماس",
+      "open": "باز کردن ویس",
+      "unmute": "باز کردن میکروفون",
+      "mute": "بستن میکروفون",
+      "leave": "خروج"
     }
   },
   "alt_text": {
@@ -8602,7 +8728,16 @@
       "signal_lost": "سیگنال قطع شد",
       "idle": "بیکار",
       "access_denied": "استریم در دسترس نیست",
-      "access_denied_hint": "به این پخش زنده دسترسی ندارید — بازیکنان نمی‌توانند مسابقه‌ای را که در آن هستند تماشا کنند."
+      "access_denied_hint": "به این پخش زنده دسترسی ندارید — بازیکنان نمی‌توانند مسابقه‌ای را که در آن هستند تماشا کنند.",
+      "card": {
+        "scheduled": "زمان‌بندی‌شده",
+        "veto": "وتو",
+        "warmup": "گرم‌کردن",
+        "knife": "نایف",
+        "up_next": "بعدی",
+        "paused": "متوقف",
+        "map_over": "مپ تمام شد"
+      }
     },
     "elo_details": {
       "title": "جزئیات تغییر ELO",

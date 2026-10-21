@@ -3144,12 +3144,33 @@
         "channel_matches": "Live matches",
         "channel_tournaments": "Tournaments",
         "channel_highlights": "Highlights",
-        "channel_status": "Awaiting signal"
+        "channel_status": "Awaiting signal",
+        "sign_in": "Sign in",
+        "start_match": "Start a match",
+        "create_tournament": "Create a tournament"
       },
       "events": {
         "count_players": "player | players",
         "count_teams": "team | teams",
-        "in_prizes": "{amount} in prizes"
+        "in_prizes": "{amount} in prizes",
+        "progress": "{name} progress",
+        "step_done": "Done",
+        "live_count": "{count} live | {count} live",
+        "title": "Events",
+        "ghost": "Community nights and tournaments",
+        "day_of": "Day {day} of {total}",
+        "day": "Day {day}",
+        "organized_by": "Organized by {names}",
+        "open_event": "Open event",
+        "starts": "Starts {time}",
+        "top_plays": "Top plays",
+        "all_plays": "All plays",
+        "leaderboard": "Leaderboard",
+        "full_leaderboard": "Full leaderboard",
+        "matches_played": "{count} match | {count} matches",
+        "media": "Media",
+        "all_media": "All media",
+        "more_media": "{count} more"
       },
       "tournaments": {
         "best_of": "Best of {count}",
@@ -3162,7 +3183,78 @@
         "register": "Register a team",
         "registered_count": "{count} of {max}",
         "results": "Results",
-        "sign_in_to_register": "Sign in to register"
+        "sign_in_to_register": "Sign in to register",
+        "title": "Tournaments"
+      },
+      "ticker": {
+        "check_in": "{checked}/{total} checked in",
+        "on_stage": "On stage",
+        "you": "You",
+        "nothing_live_next": "Nothing live · next at {time}",
+        "nothing_live": "Nothing live",
+        "up_next": "Up next",
+        "match_count": "match | matches",
+        "nothing_upcoming": "Nothing upcoming",
+        "results": "Results",
+        "no_results": "No results yet",
+        "label": "Match ticker",
+        "ghost_caption": "Live, upcoming, and recent matches",
+        "filters_label": "Filter",
+        "loading_older": "Load older results",
+        "end": "End of results",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "final_best_of": "Final · BO{count}",
+        "final_overtime": "Final · OT",
+        "final": "Final",
+        "step_check_in": "Check-in",
+        "going_live": "Going live",
+        "step_server": "Server",
+        "overtime_short": "OT",
+        "round_short": "R{round}",
+        "tbd": "TBD",
+        "filter_all": "All",
+        "filter_live": "Live",
+        "filter_upcoming": "Upcoming",
+        "filter_results": "Results"
+      },
+      "stage": {
+        "title": "Now streaming",
+        "streams": "stream | streams",
+        "watching": "watching | watching",
+        "login": "Sign in to watch this stream",
+        "login_action": "Sign in",
+        "playing_elsewhere": "You're in this match — you can't watch it",
+        "fullscreen": "Fullscreen",
+        "more_streams": "more | more",
+        "watch": "Watch",
+        "open_match": "Open match",
+        "others": "Other streams",
+        "more_live": "more live | more live",
+        "login_short": "Sign in"
+      },
+      "highlights": {
+        "kinds": {
+          "all": "All",
+          "aces": "Aces",
+          "fourks": "4Ks",
+          "label": "Kind"
+        },
+        "range": {
+          "today": "Today",
+          "week": "This week",
+          "all": "All time",
+          "label": "Range"
+        },
+        "tag": {
+          "today": "Today",
+          "all": "All time",
+          "week": "This week"
+        },
+        "title": "Highlights",
+        "ghost": "Clips from recent matches",
+        "empty": "No highlights yet",
+        "show_all_time": "Show all time"
       }
     },
     "highlights": {
@@ -7153,7 +7245,11 @@
       "pop_out_tooltip": "Pop out to window",
       "close_tooltip": "Close conversation",
       "no_chats_title": "No chats yet",
-      "no_chats_description": "Once you join a chat, it will appear here."
+      "no_chats_description": "Once you join a chat, it will appear here.",
+      "tournament_ended_days": "{count} day | {count} days",
+      "tournament_ended_hours": "{count} hour | {count} hours",
+      "tournament_ended": "Chat ends in {time}",
+      "tournament_ended_tooltip": "This tournament chat stays open for a while after the event ends."
     },
     "recent_games": {
       "title": "Recent Games",
@@ -7167,6 +7263,36 @@
     },
     "public_header": {
       "secure_channel": "SECURE CHANNEL"
+    },
+    "party_room": {
+      "leader_picks": "{name} picks the mode",
+      "open_match": "Open match",
+      "title": "Party",
+      "members": "{count} member | {count} members",
+      "join_voice": "Join voice",
+      "remove": "Remove {name}",
+      "invite": "Invite",
+      "open_seat": "Open seat",
+      "ready_count": "{confirmed}/{players} ready",
+      "searching": "Searching · {mode}",
+      "cancel": "Cancel",
+      "pick_regions": "Pick regions",
+      "queue": "Find match"
+    },
+    "queue": {
+      "in_queue": "{count} in queue | {count} in queue",
+      "pick_mode": "Pick a mode",
+      "party_too_big": "Party too big ({count})",
+      "all_modes": "All modes"
+    },
+    "voice_bar": {
+      "you_are_muted": "You're muted",
+      "talking": "{name} talking",
+      "in_call": "{count} in call | {count} in call",
+      "open": "Open voice",
+      "unmute": "Unmute",
+      "mute": "Mute",
+      "leave": "Leave"
     }
   },
   "alt_text": {
@@ -8602,7 +8728,16 @@
       "signal_lost": "Signal lost",
       "idle": "Idle",
       "access_denied": "Stream unavailable",
-      "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in."
+      "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in.",
+      "card": {
+        "scheduled": "Scheduled",
+        "veto": "Veto",
+        "warmup": "Warmup",
+        "knife": "Knife",
+        "up_next": "Up next",
+        "paused": "Paused",
+        "map_over": "Map over"
+      }
     },
     "elo_details": {
       "title": "Elo Change Details",

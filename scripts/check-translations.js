@@ -393,7 +393,25 @@ function checkLocaleParity(enFlat) {
     `\n${results.length - broken.length}/${results.length} locales match en.json`,
   );
 
-  return broken.length === 0;
+  // This fork only maintains en + fa_IR. Crowdin is gone, so the other 16
+  // locales are thousands of keys behind and would fail every push. Set
+  // CHECK_I18N_LOCALES to a comma-separated list to fail only those; unset
+  // keeps the upstream rule (every locale must match en.json).
+  const required = (process.env.CHECK_I18N_LOCALES || "")
+    .split(",")
+    .map((locale) => locale.trim())
+    .filter(Boolean);
+  const failing = required.length
+    ? broken.filter((result) => required.includes(result.locale))
+    : broken;
+
+  if (required.length) {
+    console.log(
+      `CI fails only on: ${required.join(", ")} (${failing.length} failing)`,
+    );
+  }
+
+  return failing.length === 0;
 }
 
 // Main function

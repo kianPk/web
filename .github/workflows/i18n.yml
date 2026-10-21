@@ -61,6 +61,9 @@ jobs:
 
       - name: Check translations
         id: check
+        env:
+          # Only en + fa_IR are maintained on this fork.
+          CHECK_I18N_LOCALES: fa_IR
         run: |
           set -o pipefail
           yarn check-translations 2>&1 | tee /tmp/i18n.log
