@@ -57,6 +57,21 @@ export function clubErrorMessage(
   if (msg.includes("Already a club member")) {
     return t("pages.clubs.already_member");
   }
+  if (msg.includes("Only the club owner can activate challenges")) {
+    return t("pages.clubs.challenges.owner_only");
+  }
+  if (msg.includes("Challenge end time must be in the future")) {
+    return t("pages.clubs.challenges.need_future_end");
+  }
+  if (msg.includes("Challenge needs a YPoint prize")) {
+    return t("pages.clubs.challenges.need_prize");
+  }
+  if (
+    msg.includes("club_challenges_one_active_catalog") ||
+    msg.includes("already active")
+  ) {
+    return t("pages.clubs.challenges.already_active");
+  }
   if (msg.includes("database query error")) {
     return t("pages.clubs.action_failed");
   }

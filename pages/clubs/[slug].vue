@@ -13,6 +13,7 @@ import {
   Search,
   Shield,
   CalendarDays,
+  Flame,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
@@ -30,6 +31,7 @@ import {
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
 import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
+import ClubChallengesPanel from "~/components/clubs/ClubChallengesPanel.vue";
 import TournamentCard from "~/components/tournament/TournamentCard.vue";
 import { tournamentCardFields } from "~/graphql/tournamentCardFields";
 import { generateQuery } from "~/graphql/graphqlGen";
@@ -50,6 +52,7 @@ const VALID_TABS = [
   "parties",
   "teams",
   "tournaments",
+  "challenges",
   "clash",
   "admin",
 ] as const;
@@ -955,6 +958,11 @@ const tabs = computed(() => {
       label: t("pages.clubs.tabs.tournaments"),
       icon: CalendarDays,
     },
+    {
+      id: "challenges",
+      label: t("pages.clubs.tabs.challenges"),
+      icon: Flame,
+    },
     { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
   ];
   if (canManage.value) {
@@ -1646,6 +1654,15 @@ function activityTitle(kind: string) {
           >
             {{ t("pages.clubs.no_tournaments") }}
           </p>
+        </section>
+
+        <!-- Club challenges -->
+        <section v-else-if="tab === 'challenges'" class="space-y-4">
+          <ClubChallengesPanel
+            v-if="club?.id"
+            :club-id="club.id"
+            :is-owner="isOwner"
+          />
         </section>
 
         <!-- Clash -->
