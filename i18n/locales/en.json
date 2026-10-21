@@ -6639,6 +6639,8 @@
       "load_failed": "Failed to load club",
       "action_failed": "Action failed",
       "members_label": "members",
+      "banner": "Club banner",
+      "banner_hint": "Wide cover image. 8:3 works best.",
       "join": "Join club",
       "request_join": "Request to join",
       "request_message": "Message (optional)",

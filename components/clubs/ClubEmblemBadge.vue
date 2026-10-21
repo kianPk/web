@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { gql } from "@apollo/client/core";
 import { useApolloClient } from "@vue/apollo-composable";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const props = defineProps<{ steamId: string | number | bigint }>();
 const { client } = useApolloClient();
+const apiDomain = useRuntimeConfig().public.apiDomain as string;
 const club = ref<{
   id: string;
   slug: string;
@@ -11,6 +13,9 @@ const club = ref<{
   name: string;
   avatar_url?: string | null;
 } | null>(null);
+const emblemSrc = computed(() =>
+  resolveAvatarUrl(club.value?.avatar_url, apiDomain),
+);
 
 async function load() {
   if (!props.steamId) {
@@ -56,8 +61,8 @@ watch(() => props.steamId, () => void load(), { immediate: true });
     @click.stop
   >
     <img
-      v-if="club.avatar_url"
-      :src="club.avatar_url"
+      v-if="emblemSrc"
+      :src="emblemSrc"
       alt=""
       class="h-3 w-3 shrink-0 object-cover"
     />

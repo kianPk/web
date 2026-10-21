@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const props = withDefaults(
   defineProps<{
@@ -11,6 +12,9 @@ const props = withDefaults(
   }>(),
   { size: "md", ring: true },
 );
+
+const apiDomain = useRuntimeConfig().public.apiDomain as string;
+const resolvedSrc = computed(() => resolveAvatarUrl(props.src, apiDomain));
 
 const sizeClass = computed(
   () =>
@@ -38,7 +42,7 @@ const initials = computed(() =>
         : 'border border-border',
     ]"
   >
-    <AvatarImage v-if="src" :src="src" :alt="name" class="h-full w-full object-cover" />
+    <AvatarImage v-if="resolvedSrc" :src="resolvedSrc" :alt="name" class="h-full w-full object-cover" />
     <AvatarFallback class="bg-transparent font-bold tracking-wide">
       {{ initials }}
     </AvatarFallback>

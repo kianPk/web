@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Users } from "lucide-vue-next";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
-defineProps<{
+const props = defineProps<{
   name: string;
   shortName?: string | null;
   avatarUrl?: string | null;
@@ -14,6 +15,13 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
+const apiDomain = useRuntimeConfig().public.apiDomain as string;
+const resolvedCover = computed(() =>
+  resolveAvatarUrl(props.coverUrl, apiDomain),
+);
+const resolvedAvatar = computed(() =>
+  resolveAvatarUrl(props.avatarUrl, apiDomain),
+);
 </script>
 
 <template>
@@ -23,16 +31,16 @@ const { t } = useI18n();
     <div
       class="relative h-28 w-full overflow-hidden sm:h-32"
       :style="
-        coverUrl
+        resolvedCover
           ? {
-              backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.15) 0%, rgba(8,8,10,0.82) 100%), url(${coverUrl})`,
+              backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.15) 0%, rgba(8,8,10,0.82) 100%), url(${resolvedCover})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }
           : undefined
       "
       :class="
-        coverUrl
+        resolvedCover
           ? ''
           : 'bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.28),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0c0c0e_100%)]'
       "
@@ -41,7 +49,7 @@ const { t } = useI18n();
       <ClubAvatar
         :name="name"
         :short-name="shortName"
-        :src="avatarUrl"
+        :src="resolvedAvatar"
         size="md"
       />
       <div class="min-w-0 flex-1 pb-0.5">

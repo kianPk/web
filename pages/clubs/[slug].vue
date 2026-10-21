@@ -17,6 +17,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import ImageUploadTile from "~/components/ImageUploadTile.vue";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const VALID_TABS = [
@@ -88,6 +90,26 @@ const canModerate = computed(() =>
   ["owner", "admin", "moderator"].includes(myMembership.value?.role),
 );
 const isMember = computed(() => !!myMembership.value);
+const apiDomain = useRuntimeConfig().public.apiDomain as string;
+const coverSrc = computed(() =>
+  resolveAvatarUrl(club.value?.cover_url, apiDomain),
+);
+const avatarSrc = computed(() =>
+  resolveAvatarUrl(club.value?.avatar_url, apiDomain),
+);
+const bannerUploadUrl = computed(
+  () => `https://${apiDomain}/avatars/clubs/${club.value?.id}/banner`,
+);
+
+function onCoverUploaded(path: string) {
+  if (!club.value) return;
+  club.value.cover_url = path || club.value.cover_url;
+}
+function onCoverRemoved() {
+  if (!club.value) return;
+  club.value.cover_url = null;
+}
+
 const activeChannel = computed(() => {
   const channels = club.value?.channels ?? [];
   return (
@@ -725,29 +747,48 @@ function activityTitle(kind: string) {
   <div v-else class="pb-8">
     <PageTransition>
       <header class="overflow-hidden rounded-xl border border-border/70 bg-card/30">
-        <div
-          class="relative h-36 w-full sm:h-44"
-          :style="
-            club.cover_url
-              ? {
-                  backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.1) 0%, rgba(8,8,10,0.78) 100%), url(${club.cover_url})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }
-              : undefined
-          "
-          :class="
-            club.cover_url
-              ? ''
-              : 'bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.32),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0b0b0d_100%)]'
-          "
-        />
+        <div class="relative">
+          <ImageUploadTile
+            v-if="canManage"
+            class="[&>div]:rounded-none [&>div]:border-0"
+            :aspect="8 / 3"
+            fit="cover"
+            filename="banner.webp"
+            :crop-output="{ w: 1600, h: 600 }"
+            crop
+            :hint="t('pages.clubs.banner_hint')"
+            :upload-url="bannerUploadUrl"
+            :delete-url="bannerUploadUrl"
+            :has-custom="!!club.cover_url"
+            :current-src="coverSrc"
+            @uploaded="onCoverUploaded"
+            @removed="onCoverRemoved"
+          />
+          <div
+            v-else
+            class="h-36 w-full sm:h-44"
+            :style="
+              coverSrc
+                ? {
+                    backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.1) 0%, rgba(8,8,10,0.78) 100%), url(${coverSrc})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }
+                : undefined
+            "
+            :class="
+              coverSrc
+                ? ''
+                : 'bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.32),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0b0b0d_100%)]'
+            "
+          />
+        </div>
         <div class="relative flex flex-wrap items-end gap-4 px-4 pb-4 sm:px-6 sm:pb-5">
           <div class="-mt-12 sm:-mt-14">
             <ClubAvatar
               :name="club.name"
               :short-name="club.short_name"
-              :src="club.avatar_url"
+              :src="avatarSrc"
               size="xl"
             />
           </div>
@@ -1215,6 +1256,23 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.banner") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.banner_hint") }}</p>
+            <ImageUploadTile
+              :aspect="8 / 3"
+              fit="cover"
+              filename="banner.webp"
+              :crop-output="{ w: 1600, h: 600 }"
+              crop
+              :upload-url="bannerUploadUrl"
+              :delete-url="bannerUploadUrl"
+              :has-custom="!!club.cover_url"
+              :current-src="coverSrc"
+              @uploaded="onCoverUploaded"
+              @removed="onCoverRemoved"
+            />
+          </div>
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.invites") }}</h3>
             <div class="flex gap-2">
