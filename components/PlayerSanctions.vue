@@ -102,7 +102,7 @@ const tabCountClasses =
             {{ activeSanctions }}
           </Badge>
           <Badge
-            v-else-if="sanctions.length > 0 || abandonedMatchesCount > 0"
+            v-else-if="allSanctions.length > 0 || abandonedMatchesCount > 0"
             variant="secondary"
             class="ml-0.5 h-4 px-1.5 text-xs"
           >
@@ -205,8 +205,8 @@ const tabCountClasses =
               :class="[tacticalTabsTriggerClasses, 'flex items-center']"
             >
               {{ $t("player.sanctions.sanctions") }}
-              <span v-if="sanctions.length > 0" :class="tabCountClasses">
-                {{ sanctions.length }}
+              <span v-if="allSanctions.length > 0" :class="tabCountClasses">
+                {{ allSanctions.length }}
               </span>
             </TabsTrigger>
             <TabsTrigger
@@ -225,14 +225,14 @@ const tabCountClasses =
               class="inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"
             ></span>
             {{ $t("player.sanctions.record") }}
-            <span v-if="sanctions.length > 0" :class="tabCountClasses">
-              {{ sanctions.length }}
+            <span v-if="allSanctions.length > 0" :class="tabCountClasses">
+              {{ allSanctions.length }}
             </span>
           </div>
 
           <TabsContent value="sanctions" class="mt-4">
             <div
-              v-if="!sanctions || sanctions.length === 0"
+              v-if="allSanctions.length === 0"
               class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border/70 bg-card/20 px-6 py-10 text-center"
             >
               <ShieldCheck class="h-7 w-7 text-muted-foreground/50" />
@@ -249,7 +249,7 @@ const tabCountClasses =
             </div>
             <div v-else class="flex flex-col gap-3">
               <div
-                v-for="sanction in sanctions"
+                v-for="sanction in allSanctions"
                 :key="sanction.id"
                 class="relative overflow-hidden rounded-lg border border-border bg-card/40"
                 :class="{ 'opacity-70': isExpired(sanction) }"
@@ -286,7 +286,11 @@ const tabCountClasses =
                           <span
                             class="text-sm font-semibold uppercase tracking-wider"
                           >
-                            {{ sanction.type }}
+                            {{
+                              sanction.clubLeave
+                                ? $t("player.sanctions.club_leave")
+                                : sanction.type
+                            }}
                           </span>
                           <span
                             class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
@@ -308,10 +312,10 @@ const tabCountClasses =
                       </div>
                     </div>
                     <div
-                      v-if="canManageSanctions"
+                      v-if="sanction.clubLeave ? isSiteAdmin : canManageSanctions"
                       class="flex gap-1 items-center shrink-0"
                     >
-                      <TooltipProvider v-if="!isExpired(sanction)">
+                      <TooltipProvider v-if="!isExpired(sanction) && !sanction.clubLeave">
                         <Tooltip>
                           <TooltipTrigger as-child>
                             <Button
@@ -654,6 +658,7 @@ export default {
   data() {
     return {
       sanctions: [] as any[],
+      clubLeave: null as any,
       abandonedMatches: [] as any[],
       editDialogOpen: false,
       editingSanction: null as any,
@@ -701,6 +706,32 @@ export default {
           (this as any).sanctions = data?.player_sanctions ?? [];
         },
       },
+      club_leave_cooldowns: {
+        query: gql`
+          subscription ClubLeaveCooldown($playerId: bigint!) {
+            club_leave_cooldowns(where: { steam_id: { _eq: $playerId } }) {
+              steam_id
+              leave_count
+              last_left_at
+              blocked_until
+            }
+          }
+        `,
+        variables: function (): { playerId: string } {
+          return {
+            playerId: (this as any).playerId,
+          };
+        },
+        skip: function (): boolean {
+          const auth = useAuthStore();
+          if (auth.isRoleAbove(e_player_roles_enum.moderator)) return false;
+          return String(auth.me?.steam_id || "") !== String((this as any).playerId);
+        },
+        result: function ({ data }: { data: any }) {
+          const rows = data?.club_leave_cooldowns ?? [];
+          (this as any).clubLeave = rows[0] ?? null;
+        },
+      },
       abandoned_matches: {
         query: typedGql("subscription")({
           abandoned_matches: [
@@ -739,8 +770,27 @@ export default {
     },
   },
   computed: {
+    clubLeaveBan(): any | null {
+      const row = this.clubLeave;
+      if (!row?.blocked_until) return null;
+      if (new Date(row.blocked_until).getTime() <= Date.now()) return null;
+      return {
+        id: `club-leave-${row.steam_id}`,
+        type: "ban",
+        clubLeave: true,
+        reason: this.$t("player.sanctions.club_leave_reason", {
+          count: row.leave_count || 1,
+        }),
+        created_at: row.last_left_at,
+        remove_sanction_date: row.blocked_until,
+      };
+    },
+    allSanctions(): any[] {
+      const extra = this.clubLeaveBan ? [this.clubLeaveBan] : [];
+      return extra.concat(this.sanctions || []);
+    },
     activeSanctions() {
-      return this.sanctions.filter((sanction) => {
+      return this.allSanctions.filter((sanction) => {
         if (sanction.remove_sanction_date) {
           return new Date(sanction.remove_sanction_date) > new Date();
         }
@@ -748,7 +798,10 @@ export default {
       }).length;
     },
     sanctionCount(): number {
-      return this.sanctions?.length ?? 0;
+      return this.allSanctions.length;
+    },
+    isSiteAdmin(): boolean {
+      return useAuthStore().isAdmin;
     },
     hasActiveSanctions(): boolean {
       return this.activeSanctions > 0;
@@ -812,12 +865,12 @@ export default {
     },
     hasAnyData() {
       return (
-        (this.sanctions && this.sanctions.length > 0) ||
+        this.allSanctions.length > 0 ||
         (this.abandonedMatches && this.abandonedMatches.length > 0)
       );
     },
     totalCount() {
-      return this.sanctions.length + this.abandonedMatchesCount;
+      return this.allSanctions.length + this.abandonedMatchesCount;
     },
   },
   watch: {
@@ -978,6 +1031,24 @@ export default {
       this.removingSanction = true;
 
       try {
+        if (this.sanctionToDelete.clubLeave) {
+          await (this as any).$apollo.mutate({
+            mutation: gql`
+              mutation ClearClubLeaveBan($steam_id: bigint!) {
+                update_club_leave_cooldowns_by_pk(
+                  pk_columns: { steam_id: $steam_id }
+                  _set: { blocked_until: null }
+                ) {
+                  steam_id
+                }
+              }
+            `,
+            variables: { steam_id: this.playerId },
+          });
+          toast({ title: this.$t("player.sanctions.removed") });
+          this.sanctionToDelete = null;
+          return;
+        }
         await (this as any).$apollo.mutate({
           mutation: gql`
             mutation UnsanctionServerPlayer(

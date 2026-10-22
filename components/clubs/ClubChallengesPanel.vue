@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
-import { formatSiteDate } from "~/utilities/dateLocale";
+import { dateFromShamsi, formatShamsi, shamsiParts } from "~/utilities/jalali";
 import {
   acAllowsJoin,
   pickQuickPlayServer,
@@ -91,18 +91,8 @@ const prizeOther = ref("");
 const prizeScope = ref<(typeof PRIZE_SCOPES)[number]>("club");
 const audience = ref<(typeof AUDIENCES)[number]>("club");
 const audiencePlayers = ref<Array<{ steam_id: string; name: string }>>([]);
-const endsAt = ref(defaultEndLocal());
+const shamsiEnd = ref(shamsiParts(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
 const joining = ref("");
-const endsAtShamsi = computed(() => {
-  const d = new Date(endsAt.value);
-  return Number.isNaN(d.getTime()) ? "" : formatSiteDate(d);
-});
-
-function defaultEndLocal() {
-  const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 const fa = computed(() => String(locale.value).startsWith("fa"));
 const meSteam = computed(() =>
@@ -259,8 +249,8 @@ async function activate() {
     error.value = t("pages.clubs.challenges.pick_one");
     return;
   }
-  const ends = new Date(endsAt.value);
-  if (Number.isNaN(ends.getTime()) || ends.getTime() <= Date.now()) {
+  const ends = dateFromShamsi(shamsiEnd.value);
+  if (!ends || ends.getTime() <= Date.now()) {
     error.value = t("pages.clubs.challenges.need_future_end");
     return;
   }
@@ -512,7 +502,7 @@ onMounted(() => {
           </p>
           <p class="text-xs text-muted-foreground">
             {{ t("pages.clubs.challenges.until") }}:
-            {{ formatSiteDate(row.ends_at) }}
+            {{ formatShamsi(row.ends_at) }}
           </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <Button
@@ -655,9 +645,15 @@ onMounted(() => {
       <div class="grid gap-3 sm:grid-cols-3">
         <label class="space-y-1 text-xs">
           <span>{{ t("pages.clubs.challenges.ends_at") }}</span>
-          <Input v-model="endsAt" type="datetime-local" />
-          <span v-if="endsAtShamsi" class="block text-muted-foreground">
-            {{ t("pages.clubs.challenges.ends_at_shamsi", { date: endsAtShamsi }) }}
+          <span class="grid grid-cols-5 gap-1" dir="ltr">
+            <Input v-model="shamsiEnd.y" inputmode="numeric" placeholder="1405" class="px-1 text-center" />
+            <Input v-model="shamsiEnd.m" inputmode="numeric" placeholder="8" class="px-1 text-center" />
+            <Input v-model="shamsiEnd.d" inputmode="numeric" placeholder="1" class="px-1 text-center" />
+            <Input v-model="shamsiEnd.hh" inputmode="numeric" placeholder="21" class="px-1 text-center" />
+            <Input v-model="shamsiEnd.mm" inputmode="numeric" placeholder="00" class="px-1 text-center" />
+          </span>
+          <span class="block text-muted-foreground">
+            {{ t("pages.clubs.challenges.ends_at_shamsi_fields") }}
           </span>
         </label>
         <label class="space-y-1 text-xs">
@@ -691,7 +687,7 @@ onMounted(() => {
         <li v-for="row in past.slice(0, 12)" :key="row.id">
           {{ row.catalog ? catalogTitle(row.catalog) : row.catalog_id }}
           —
-          {{ formatSiteDate(row.ends_at) }}
+          {{ formatShamsi(row.ends_at) }}
         </li>
       </ul>
     </div>

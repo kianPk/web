@@ -88,6 +88,7 @@ watch(tab, (value) => {
 const club = ref<any>(null);
 const loading = ref(true);
 const error = ref("");
+const socialError = ref("");
 const busy = ref(false);
 const inviteSteamId = ref("");
 const inviteMessage = ref("");
@@ -213,8 +214,8 @@ const newsPosts = computed(() => {
     );
 });
 
-async function load() {
-  loading.value = true;
+async function load(options?: { silent?: boolean }) {
+  if (!options?.silent) loading.value = true;
   error.value = "";
   try {
     const isUuid =
@@ -364,11 +365,6 @@ async function load() {
     else {
       minElo.value = club.value.min_elo;
       minLevel.value = club.value.min_faceit_level;
-      telegramInput.value = club.value.telegram_url || "";
-      instagramInput.value = club.value.instagram_url || "";
-      baleInput.value = club.value.bale_url || "";
-      rubikaInput.value = club.value.rubika_url || "";
-      soroushInput.value = club.value.soroush_url || "";
       void loadSocials(club.value.id);
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
@@ -425,7 +421,7 @@ async function runAction(mutation: string, variables: Record<string, unknown>) {
   error.value = "";
   try {
     await client.mutate({ mutation: gql(mutation), variables });
-    await load();
+    await load({ silent: true });
   } catch (e: any) {
     error.value = clubErrorMessage(e, t);
   } finally {
@@ -617,48 +613,69 @@ async function saveSocials() {
   const bale = parseBaleUrl(baleInput.value);
   const rubika = parseRubikaUrl(rubikaInput.value);
   const soroush = parseSoroushUrl(soroushInput.value);
+  socialError.value = "";
   if (!telegram.ok) {
-    error.value = t("pages.clubs.invalid_telegram");
+    socialError.value = t("pages.clubs.invalid_telegram");
     return;
   }
   if (!instagram.ok) {
-    error.value = t("pages.clubs.invalid_instagram");
+    socialError.value = t("pages.clubs.invalid_instagram");
     return;
   }
   if (!bale.ok) {
-    error.value = t("pages.clubs.invalid_bale");
+    socialError.value = t("pages.clubs.invalid_bale");
     return;
   }
   if (!rubika.ok) {
-    error.value = t("pages.clubs.invalid_rubika");
+    socialError.value = t("pages.clubs.invalid_rubika");
     return;
   }
   if (!soroush.ok) {
-    error.value = t("pages.clubs.invalid_soroush");
+    socialError.value = t("pages.clubs.invalid_soroush");
     return;
   }
-  await runAction(
-    `mutation($id: uuid!, $_set: clubs_set_input!) {
-      update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
-        id
-        telegram_url
-        instagram_url
-        bale_url
-        rubika_url
-        soroush_url
-      }
-    }`,
-    {
-      id: club.value.id,
-      _set: {
-        telegram_url: telegram.url,
-        instagram_url: instagram.url,
-        bale_url: bale.url,
-        rubika_url: rubika.url,
-        soroush_url: soroush.url,
+  busy.value = true;
+  try {
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation($id: uuid!, $_set: clubs_set_input!) {
+          update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
+            id
+            telegram_url
+            instagram_url
+            bale_url
+            rubika_url
+            soroush_url
+          }
+        }
+      `,
+      variables: {
+        id: club.value.id,
+        _set: {
+          telegram_url: telegram.url,
+          instagram_url: instagram.url,
+          bale_url: bale.url,
+          rubika_url: rubika.url,
+          soroush_url: soroush.url,
+        },
       },
-    },
-  );
+    });
+    const row = data?.update_clubs_by_pk;
+    if (!row) {
+      socialError.value = t("pages.clubs.action_failed");
+      return;
+    }
+    Object.assign(club.value, row);
+    telegramInput.value = row.telegram_url || "";
+    instagramInput.value = row.instagram_url || "";
+    baleInput.value = row.bale_url || "";
+    rubikaInput.value = row.rubika_url || "";
+    soroushInput.value = row.soroush_url || "";
+  } catch (e: any) {
+    socialError.value = clubErrorMessage(e, t);
+  } finally {
+    busy.value = false;
+  }
 }
 
 function clearNewsImage() {
@@ -1699,7 +1716,8 @@ function activityTitle(kind: string) {
                 :placeholder="t('pages.clubs.soroush_placeholder')"
               />
             </label>
-            <Button :disabled="busy" @click="saveSocials">
+            <p v-if="socialError" class="text-xs text-destructive">{{ socialError }}</p>
+            <Button type="button" :disabled="busy" @click="saveSocials">
               {{ t("common.save") }}
             </Button>
           </div>
