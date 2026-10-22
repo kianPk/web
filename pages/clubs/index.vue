@@ -128,12 +128,6 @@ onMounted(() => {
       <template #title>{{ t("pages.clubs.title") }}</template>
       <template #actions>
         <NuxtLink
-          to="/clubs/parties"
-          :class="[tacticalHeaderActionClasses, 'text-sm text-muted-foreground']"
-        >
-          {{ t("pages.clubs.party_finder") }}
-        </NuxtLink>
-        <NuxtLink
           v-if="me && canCreateClub"
           to="/clubs/create"
           :class="[

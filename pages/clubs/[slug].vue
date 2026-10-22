@@ -5,9 +5,8 @@ import {
   Megaphone,
   Trophy,
   Users,
-  Swords,
   ListOrdered,
-  PartyPopper,
+  Server,
   Settings,
   Newspaper,
   Search,
@@ -32,6 +31,7 @@ import ClubAvatar from "~/components/clubs/ClubAvatar.vue";
 import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
 import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import ClubChallengesPanel from "~/components/clubs/ClubChallengesPanel.vue";
+import ClubServersPanel from "~/components/clubs/ClubServersPanel.vue";
 import TournamentCard from "~/components/tournament/TournamentCard.vue";
 import { tournamentCardFields } from "~/graphql/tournamentCardFields";
 import { generateQuery } from "~/graphql/graphqlGen";
@@ -55,8 +55,7 @@ const VALID_TABS = [
   "members",
   "chat",
   "leaderboard",
-  "queues",
-  "parties",
+  "servers",
   "teams",
   "tournaments",
   "challenges",
@@ -110,9 +109,6 @@ const activeChannelId = ref<string | null>(null);
 const linkMaxUses = ref<number | null>(null);
 const linkHours = ref<number | null>(24);
 const linkBypass = ref(false);
-const newQueueName = ref("In-house 5v5");
-const newPartyTitle = ref("");
-const guestSteamId = ref("");
 const seasonLbName = ref("Season");
 const minElo = ref<number | null>(null);
 const minLevel = ref<number | null>(null);
@@ -311,39 +307,6 @@ async function load() {
                   avatar_url
                   faceit_elo
                   faceit_skill_level
-                }
-              }
-            }
-            queues(order_by: [{ created_at: asc }]) {
-              id
-              name
-              region
-              team_size
-              min_players
-              enabled
-              map_pool
-              players {
-                steam_id
-                joined_at
-                player {
-                  name
-                }
-              }
-            }
-            parties(order_by: [{ created_at: desc }], limit: 30) {
-              id
-              title
-              listed
-              min_elo
-              max_elo
-              leader_steam_id
-              members {
-                steam_id
-                is_guest
-                player {
-                  name
-                  steam_id
-                  avatar_url
                 }
               }
             }
@@ -808,120 +771,6 @@ async function freezeLb(id: string, frozen: boolean) {
   );
 }
 
-async function createQueue() {
-  await runAction(
-    `mutation($object: club_queues_insert_input!) {
-      insert_club_queues_one(object: $object) { id }
-    }`,
-    {
-      object: {
-        club_id: club.value.id,
-        name: newQueueName.value.trim() || "In-house",
-        team_size: 5,
-        min_players: 10,
-        enabled: true,
-      },
-    },
-  );
-}
-
-async function joinQueue(queueId: string) {
-  await runAction(
-    `mutation($queue_id: uuid!) { joinClubQueue(queue_id: $queue_id) { success queued } }`,
-    { queue_id: queueId },
-  );
-}
-
-async function leaveQueue(queueId: string) {
-  await runAction(
-    `mutation($queue_id: uuid!) { leaveClubQueue(queue_id: $queue_id) { success } }`,
-    { queue_id: queueId },
-  );
-}
-
-async function createParty() {
-  if (!me.value) return;
-  await runAction(
-    `mutation($object: club_parties_insert_input!) {
-      insert_club_parties_one(object: $object) { id }
-    }`,
-    {
-      object: {
-        club_id: club.value.id,
-        title: newPartyTitle.value.trim() || "Looking for players",
-        listed: true,
-        members: { data: [{ is_guest: false }] },
-      },
-    },
-  );
-  newPartyTitle.value = "";
-}
-
-async function joinParty(partyId: string, asGuest = false) {
-  if (!me.value) return;
-  await runAction(
-    `mutation($object: club_party_members_insert_input!) {
-      insert_club_party_members_one(object: $object) { party_id }
-    }`,
-    {
-      object: {
-        party_id: partyId,
-        is_guest: asGuest,
-      },
-    },
-  );
-}
-
-async function deleteParty(partyId: string) {
-  await runAction(
-    `mutation($id: uuid!) {
-      delete_club_parties_by_pk(id: $id) { id }
-    }`,
-    { id: partyId },
-  );
-}
-
-function canDeleteParty(party: { leader_steam_id?: string | number }) {
-  if (canManage.value) return true;
-  return String(party.leader_steam_id) === String(me.value?.steam_id);
-}
-
-async function leaveParty(partyId: string) {
-  if (!me.value) return;
-  await runAction(
-    `mutation($party_id: uuid!, $steam_id: bigint!) {
-      delete_club_party_members_by_pk(party_id: $party_id, steam_id: $steam_id) { party_id }
-    }`,
-    { party_id: partyId, steam_id: String(me.value.steam_id) },
-  );
-}
-
-async function addGuest(partyId: string) {
-  const sid = guestSteamId.value.trim();
-  if (!sid) return;
-  await runAction(
-    `mutation($party_id: uuid!, $steam_id: String!) {
-      addClubPartyGuest(party_id: $party_id, steam_id: $steam_id) { success }
-    }`,
-    { party_id: partyId, steam_id: sid },
-  );
-  guestSteamId.value = "";
-}
-
-async function queuePartyToLobby(party: any) {
-  const mm = useMatchmakingStore();
-  const lobbyId = await mm.createLobby();
-  if (!lobbyId) return;
-  for (const m of party.members || []) {
-    if (String(m.steam_id) === String(me.value?.steam_id)) continue;
-    try {
-      await mm.inviteToLobby(String(m.steam_id));
-    } catch (e) {
-      console.warn(e);
-    }
-  }
-}
-
 async function registerClash(eventId: string) {
   await runAction(
     `mutation($event_id: uuid!, $club_id: uuid!) {
@@ -1078,8 +927,7 @@ const tabs = computed(() => {
       label: t("pages.clubs.tabs.leaderboard"),
       icon: ListOrdered,
     },
-    { id: "queues", label: t("pages.clubs.tabs.queues"), icon: Swords },
-    { id: "parties", label: t("pages.clubs.tabs.parties"), icon: PartyPopper },
+    { id: "servers", label: t("pages.clubs.tabs.servers"), icon: Server },
     { id: "teams", label: t("pages.clubs.tabs.teams"), icon: Shield },
     {
       id: "tournaments",
@@ -1595,124 +1443,11 @@ function activityTitle(kind: string) {
           </div>
         </section>
 
-        <!-- Queues -->
-        <section v-else-if="tab === 'queues'" class="space-y-4">
-          <div v-if="canManage" class="flex gap-2">
-            <Input v-model="newQueueName" class="max-w-xs" />
-            <Button :disabled="busy" @click="createQueue">
-              {{ t("pages.clubs.create_queue") }}
-            </Button>
-          </div>
-          <div
-            v-for="q in club.queues"
-            :key="q.id"
-            class="flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-xl border border-border/70 bg-card/40 p-4"
-          >
-            <div class="min-w-0">
-              <h3 class="font-semibold">{{ q.name }}</h3>
-              <p class="mt-1 text-sm text-muted-foreground">
-                {{ t("pages.clubs.queued_count", { n: q.players?.length || 0 }) }}
-                · {{ q.team_size }}v{{ q.team_size }}
-                · {{ q.players?.length || 0 }}/{{ q.min_players }}
-              </p>
-              <div class="mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-muted">
-                <div
-                  class="h-full rounded-full bg-[hsl(var(--tac-amber))]"
-                  :style="{
-                    width: `${Math.min(100, ((q.players?.length || 0) / (q.min_players || 1)) * 100)}%`,
-                  }"
-                />
-              </div>
-            </div>
-            <div v-if="isMember" class="flex gap-2">
-              <Button size="sm" :class="tacticalCtaButtonClasses" :disabled="busy" @click="joinQueue(q.id)">
-                {{ t("pages.clubs.join_queue") }}
-              </Button>
-              <Button size="sm" variant="outline" :disabled="busy" @click="leaveQueue(q.id)">
-                {{ t("pages.clubs.leave_queue") }}
-              </Button>
-            </div>
-          </div>
-          <p
-            v-if="!club.queues?.length"
-            class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
-          >
-            {{ t("pages.clubs.no_queues") }}
-          </p>
-        </section>
-
-        <!-- Parties -->
-        <section v-else-if="tab === 'parties'" class="space-y-4">
-          <div v-if="isMember" class="flex gap-2">
-            <Input v-model="newPartyTitle" :placeholder="t('pages.clubs.party_title')" class="max-w-xs" />
-            <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="createParty">
-              {{ t("pages.clubs.create_party") }}
-            </Button>
-          </div>
-          <div
-            v-for="p in club.parties"
-            :key="p.id"
-            class="rounded-xl border border-border/70 bg-card/40 p-4"
-          >
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 class="font-semibold">{{ p.title || t("pages.clubs.party") }}</h3>
-                <div class="mt-2 flex -space-x-2">
-                  <div
-                    v-for="i in 5"
-                    :key="i"
-                    class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-[0.6rem] text-muted-foreground"
-                  >
-                    <img
-                      v-if="p.members?.[i - 1]?.player?.avatar_url"
-                      :src="p.members[i - 1].player.avatar_url"
-                      alt=""
-                      class="h-full w-full object-cover"
-                    />
-                    <span v-else-if="p.members?.[i - 1]">
-                      {{ (p.members[i - 1].player?.name || "?").slice(0, 1) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" @click="joinParty(p.id, !isMember)">
-                  {{ t("pages.clubs.join_party") }}
-                </Button>
-                <Button size="sm" variant="ghost" @click="leaveParty(p.id)">
-                  {{ t("pages.clubs.leave_party") }}
-                </Button>
-                <Button
-                  v-if="String(p.leader_steam_id) === String(me?.steam_id)"
-                  size="sm"
-                  :class="tacticalCtaButtonClasses"
-                  @click="queuePartyToLobby(p)"
-                >
-                  {{ t("pages.clubs.queue_party") }}
-                </Button>
-                <Button
-                  v-if="canDeleteParty(p)"
-                  size="sm"
-                  variant="ghost"
-                  class="text-destructive"
-                  :disabled="busy"
-                  @click="deleteParty(p.id)"
-                >
-                  {{ t("pages.clubs.delete_party") }}
-                </Button>
-              </div>
-            </div>
-            <div
-              v-if="String(p.leader_steam_id) === String(me?.steam_id)"
-              class="mt-3 flex gap-2"
-            >
-              <Input v-model="guestSteamId" :placeholder="t('pages.clubs.guest_steam')" class="max-w-xs" />
-              <Button size="sm" variant="outline" @click="addGuest(p.id)">
-                {{ t("pages.clubs.add_guest") }}
-              </Button>
-            </div>
-          </div>
-        </section>
+        <ClubServersPanel
+          v-else-if="tab === 'servers'"
+          :club-id="club.id"
+          :can-manage="canManage || auth.isAdmin"
+        />
 
         <!-- Teams -->
         <section v-else-if="tab === 'teams'" class="space-y-5">
