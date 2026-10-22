@@ -73,11 +73,27 @@ import {
 import { liveMapName, sectionModeKey } from "~/utilities/serverModes";
 
 const route = useRoute();
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean;
+    clubId?: string;
+    modelValue?: string;
+  }>(),
+  { embedded: false, clubId: "", modelValue: "" },
+);
+defineEmits<{
+  "update:modelValue": [mode: string];
+  back: [];
+}>();
 const { t } = useI18n();
 const auth = useAuthStore();
-const { loading, modes } = usePublicServerFleet();
+const { loading, modes } = usePublicServerFleet(props.clubId || undefined);
 
-const modeKey = computed(() => String(route.params.mode || ""));
+const modeKey = computed(() =>
+  props.embedded
+    ? String(props.modelValue || "")
+    : String(route.params.mode || ""),
+);
 const mode = computed<FleetMode | null>(
   () => modes.value.find((m) => m.key === modeKey.value) ?? null,
 );
@@ -131,6 +147,10 @@ function hostToFleet(h: HostedServer): FleetServer | null {
 }
 
 async function loadMyHosts() {
+  if (props.clubId) {
+    myHosts.value = [];
+    return;
+  }
   if (!loggedIn.value) {
     myHosts.value = [];
     return;
@@ -153,6 +173,7 @@ watch([loggedIn, modeKey], () => void loadMyHosts(), { immediate: true });
 /** Public fleet + the signed-in user's Host rentals for this mode. */
 const modeServers = computed(() => {
   const publicList = mode.value?.servers || [];
+  if (props.clubId) return publicList;
   const publicIds = new Set(publicList.map((s) => s.id));
   const hosts = myHosts.value.filter((h) => !publicIds.has(h.id));
   return [...hosts, ...publicList];
@@ -336,32 +357,53 @@ function onImgError(e: Event) {
   if (!img.src.endsWith(fallback)) img.src = fallback;
 }
 
-useHead(() => ({
-  title: modeName.value || t("pages.servers.title"),
-}));
+if (!props.embedded) {
+  useHead(() => ({
+    title: modeName.value || t("pages.servers.title"),
+  }));
+}
 </script>
 
 <template>
   <PageTransition :delay="0">
     <nav class="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
-      <NuxtLink
-        v-for="m in modes"
-        :key="m.key"
-        :to="`/game-servers/${m.key}`"
-        class="flex shrink-0 flex-col items-start rounded-lg px-3 py-1.5 leading-tight transition-colors"
-        :class="
-          m.key === modeKey
-            ? 'bg-card text-[#e3d39a]'
-            : 'text-foreground hover:bg-card/60'
-        "
-      >
-        <span class="text-sm font-medium">{{
-          $t(`pages.servers.modes.${m.key}.name`)
-        }}</span>
-        <span class="text-[0.7rem] tabular-nums text-muted-foreground">
-          {{ m.players }}
-        </span>
-      </NuxtLink>
+      <template v-for="m in modes" :key="m.key">
+        <button
+          v-if="embedded"
+          type="button"
+          class="flex shrink-0 flex-col items-start rounded-lg border-0 bg-transparent px-3 py-1.5 font-inherit leading-tight transition-colors"
+          :class="
+            m.key === modeKey
+              ? 'bg-card text-[#e3d39a]'
+              : 'text-foreground hover:bg-card/60'
+          "
+          @click="$emit('update:modelValue', m.key)"
+        >
+          <span class="text-sm font-medium">{{
+            $t(`pages.servers.modes.${m.key}.name`)
+          }}</span>
+          <span class="text-[0.7rem] tabular-nums text-muted-foreground">
+            {{ m.players }}
+          </span>
+        </button>
+        <NuxtLink
+          v-else
+          :to="`/game-servers/${m.key}`"
+          class="flex shrink-0 flex-col items-start rounded-lg px-3 py-1.5 leading-tight transition-colors"
+          :class="
+            m.key === modeKey
+              ? 'bg-card text-[#e3d39a]'
+              : 'text-foreground hover:bg-card/60'
+          "
+        >
+          <span class="text-sm font-medium">{{
+            $t(`pages.servers.modes.${m.key}.name`)
+          }}</span>
+          <span class="text-[0.7rem] tabular-nums text-muted-foreground">
+            {{ m.players }}
+          </span>
+        </NuxtLink>
+      </template>
     </nav>
   </PageTransition>
 
@@ -375,7 +417,10 @@ useHead(() => ({
   <Empty v-else-if="!mode" class="mt-6 min-h-[220px]">
     <EmptyTitle>{{ $t("pages.servers.mode_missing_title") }}</EmptyTitle>
     <EmptyDescription>{{ $t("pages.servers.mode_missing") }}</EmptyDescription>
-    <Button as-child>
+    <Button v-if="embedded" type="button" @click="$emit('back')">
+      {{ $t("pages.servers.back_to_modes") }}
+    </Button>
+    <Button v-else as-child>
       <NuxtLink to="/game-servers">{{
         $t("pages.servers.back_to_modes")
       }}</NuxtLink>

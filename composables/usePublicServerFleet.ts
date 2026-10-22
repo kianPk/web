@@ -44,22 +44,27 @@ export type FleetMode = ServerModeDefinition & {
  * status ping. All modes are returned even with no servers, so the tabs never
  * shift around.
  */
-export function usePublicServerFleet() {
+export function usePublicServerFleet(clubId?: string | null) {
   // Do NOT filter/select hosted_section here: production Hasura may not have
   // tracked that column yet, and a single unknown field empties the whole fleet
   // ("No servers online" on every mode). Public boxes are labeled "Duels #1";
   // paid Host rentals use other labels — we drop those client-side instead.
+  // club_id is only added for a club page. The public fleet must stay exactly
+  // this query, or a missing column on production Hasura blanks every mode.
+  const where: Array<Record<string, unknown>> = [
+    { section_mode: { _is_null: false } },
+    { connection_string: { _is_null: false } },
+    { enabled: { _eq: true } },
+    { connected: { _eq: true } },
+  ];
+  if (clubId) where.push({ club_id: { _eq: clubId } });
+
   const { result: serversResult, loading } = useSubscription(
     generateSubscription({
       servers: [
         {
           where: {
-            _and: [
-              { section_mode: { _is_null: false } } as any,
-              { connection_string: { _is_null: false } },
-              { enabled: { _eq: true } },
-              { connected: { _eq: true } },
-            ],
+            _and: where as any,
           },
           order_by: [{ label: "asc" as any }],
         },
@@ -107,13 +112,14 @@ export function usePublicServerFleet() {
       Record<string, any>
     >;
     const list: FleetServer[] = [];
+    const unlabeled: FleetServer[] = [];
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
       // Paid Host rentals share section_mode but use custom / "Host …" labels.
       // Public fleet rows are always "Duels #1", "AWP #2", …
       const number = serverNumber(row.label);
-      if (number == null) continue;
+      if (number == null && !clubId) continue;
       const modeKey = sectionModeKey(row.section_mode);
       if (!modeKey) continue;
 
@@ -123,9 +129,9 @@ export function usePublicServerFleet() {
         Number(row.max_players) ||
         SERVER_MODES.find((m) => m.key === modeKey)!.slots;
 
-      list.push({
+      const server: FleetServer = {
         id: row.id,
-        number,
+        number: number ?? 0,
         label: row.label,
         type: row.type,
         game: row.game,
@@ -139,7 +145,27 @@ export function usePublicServerFleet() {
         players,
         capacity,
         full: players >= capacity,
-      });
+      };
+      list.push(server);
+      if (number == null) unlabeled.push(server);
+    }
+
+    if (unlabeled.length > 0) {
+      const used = new Map<string, Set<number>>();
+      for (const server of list) {
+        if (!server.number) continue;
+        const taken = used.get(server.modeKey) ?? new Set<number>();
+        taken.add(server.number);
+        used.set(server.modeKey, taken);
+      }
+      for (const server of unlabeled) {
+        const taken = used.get(server.modeKey) ?? new Set<number>();
+        let next = 1;
+        while (taken.has(next)) next++;
+        server.number = next;
+        taken.add(next);
+        used.set(server.modeKey, taken);
+      }
     }
 
     return list.sort((a, b) => a.number - b.number);
