@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Loader2, Server } from "lucide-vue-next";
+import { Loader2 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { SERVER_MODES, type ServerModeKey } from "~/utilities/serverModes";
 
@@ -17,52 +17,28 @@ type ClubServer = {
   link: string | null;
 };
 
-type AvailableServer = {
-  id: string;
-  label: string | null;
-  section_mode: string | null;
-};
-
 const { t } = useI18n();
 const servers = ref<ClubServer[]>([]);
-const available = ref<AvailableServer[]>([]);
 const manage = ref(false);
 const loading = ref(true);
 const busy = ref(false);
 const error = ref("");
-const attachId = ref("");
 const mapChoice = ref<Record<string, string>>({});
 const changingMap = ref("");
 const pools = ref<Record<string, Array<{ id: string; name: string }>>>({});
 
-const grouped = computed(() => {
-  const known = new Set(SERVER_MODES.map((mode) => mode.key));
-  return SERVER_MODES.map((mode) => ({
-    key: mode.key,
-    servers: servers.value.filter((server) => server.section_mode === mode.key),
-  })).concat(
-    servers.value.some((server) => !known.has(server.section_mode as ServerModeKey))
-      ? [
-          {
-            key: "other" as const,
-            servers: servers.value.filter(
-              (server) => !known.has(server.section_mode as ServerModeKey),
-            ),
-          },
-        ]
-      : [],
-  );
-});
-
-function serverLabel(server: AvailableServer) {
-  const name = server.label || server.id;
-  return server.section_mode ? `${name} · ${server.section_mode}` : name;
-}
+const dedicated = computed(() =>
+  servers.value.length === 1 ? servers.value[0] : null,
+);
 
 function statusOf(server: ClubServer) {
   if (!server.enabled) return "disabled";
   if (server.connected) return "online";
   return "booting";
+}
+
+function serversFor(mode: ServerModeKey) {
+  return servers.value.filter((server) => server.section_mode === mode);
 }
 
 async function load() {
@@ -73,13 +49,13 @@ async function load() {
     const data = await $fetch<{
       servers: ClubServer[];
       manage: boolean;
-      available: AvailableServer[];
-    }>(`https://${apiDomain}/clubs/${props.clubId}/servers`, {
+      provision_error?: string | null;
+    }>(`https://${apiDomain}/hosted-servers/clubs/${props.clubId}/servers`, {
       credentials: "include",
     });
     servers.value = data.servers ?? [];
-    available.value = data.available ?? [];
     manage.value = !!data.manage && props.canManage;
+    error.value = data.provision_error || "";
     if (manage.value) void loadPools();
   } catch (err: any) {
     error.value = err?.data?.message || err?.message || String(err);
@@ -104,34 +80,19 @@ async function loadPools() {
   );
 }
 
-async function attach() {
-  if (!attachId.value) return;
-  busy.value = true;
-  error.value = "";
-  try {
-    const apiDomain = useRuntimeConfig().public.apiDomain;
-    await $fetch(`https://${apiDomain}/clubs/${props.clubId}/servers`, {
-      method: "POST",
-      credentials: "include",
-      body: { server_id: attachId.value },
-    });
-    attachId.value = "";
-    await load();
-  } catch (err: any) {
-    error.value = err?.data?.message || err?.message || String(err);
-  } finally {
-    busy.value = false;
-  }
-}
-
-async function detach(serverId: string) {
+async function runMode(mode: ServerModeKey) {
+  if (!manage.value || dedicated.value?.section_mode === mode) return;
   busy.value = true;
   error.value = "";
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain;
     await $fetch(
-      `https://${apiDomain}/clubs/${props.clubId}/servers/${serverId}`,
-      { method: "DELETE", credentials: "include" },
+      `https://${apiDomain}/hosted-servers/clubs/${props.clubId}/servers/mode`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: { mode },
+      },
     );
     await load();
   } catch (err: any) {
@@ -149,7 +110,7 @@ async function changeMap(server: ClubServer) {
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain;
     await $fetch(
-      `https://${apiDomain}/clubs/${props.clubId}/servers/${server.id}/map`,
+      `https://${apiDomain}/hosted-servers/clubs/${props.clubId}/servers/${server.id}/map`,
       {
         method: "POST",
         credentials: "include",
@@ -171,60 +132,50 @@ watch(() => props.clubId, () => void load(), { immediate: true });
     <p class="text-sm text-muted-foreground">
       {{ t("pages.clubs.servers_hint") }}
     </p>
-
     <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
     <p v-if="loading" class="text-sm text-muted-foreground">...</p>
 
-    <div
-      v-else-if="manage"
-      class="flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-card/40 p-3"
-    >
-      <Server class="h-4 w-4 text-muted-foreground" />
-      <select
-        v-model="attachId"
-        class="h-9 min-w-0 flex-1 rounded-md border border-border bg-card px-2 text-sm"
-      >
-        <option value="">{{ t("pages.clubs.servers_pick") }}</option>
-        <option v-for="server in available" :key="server.id" :value="server.id">
-          {{ serverLabel(server) }}
-        </option>
-      </select>
-      <Button :disabled="busy || !attachId" @click="attach">
-        {{ t("pages.clubs.servers_attach") }}
-      </Button>
-      <p v-if="!available.length" class="w-full text-xs text-muted-foreground">
-        {{ t("pages.clubs.servers_none_available") }}
-      </p>
-    </div>
-
-    <p
-      v-if="!loading && !servers.length && !manage"
-      class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
-    >
-      {{ t("pages.clubs.servers_empty") }}
-    </p>
-
-    <div v-if="!loading && (servers.length || manage)" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <div
-        v-for="group in grouped.filter((group) => group.servers.length || manage)"
-        :key="group.key"
+        v-for="mode in SERVER_MODES"
+        :key="mode.key"
         class="rounded-xl border border-border/70 bg-card/40 p-3"
+        :class="
+          dedicated?.section_mode === mode.key
+            ? 'border-[hsl(var(--tac-amber)/0.7)]'
+            : ''
+        "
       >
-        <p class="mb-2 text-sm font-semibold">
-          {{
-            group.key === "other"
-              ? t("pages.clubs.servers_other")
-              : t(`pages.servers.modes.${group.key}.name`)
-          }}
-          <span class="font-mono text-xs text-muted-foreground">
-            {{ group.servers.length }}
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <p class="text-sm font-semibold">
+            {{ t(`pages.servers.modes.${mode.key}.name`) }}
+          </p>
+          <Button
+            v-if="manage && dedicated && dedicated.section_mode !== mode.key"
+            size="sm"
+            variant="outline"
+            class="h-7 px-2 text-xs"
+            :disabled="busy"
+            @click="runMode(mode.key)"
+          >
+            {{ t("pages.clubs.servers_run_mode") }}
+          </Button>
+          <span
+            v-else-if="dedicated?.section_mode === mode.key"
+            class="text-xs text-[hsl(var(--tac-amber))]"
+          >
+            {{ t("pages.clubs.servers_active_mode") }}
           </span>
-        </p>
-        <p v-if="!group.servers.length" class="text-xs text-muted-foreground">
+        </div>
+
+        <p
+          v-if="!serversFor(mode.key).length"
+          class="text-xs text-muted-foreground"
+        >
           {{ t("pages.clubs.servers_empty") }}
         </p>
         <ul class="space-y-2">
-          <li v-for="server in group.servers" :key="server.id">
+          <li v-for="server in serversFor(mode.key)" :key="server.id">
             <div class="flex items-center gap-2 text-xs">
               <span
                 class="h-2 w-2 shrink-0 rounded-full"
@@ -251,19 +202,9 @@ watch(() => props.clubId, () => void load(), { immediate: true });
               >
                 {{ t("pages.clubs.servers_connect") }}
               </a>
-              <Button
-                v-if="manage"
-                size="sm"
-                variant="ghost"
-                class="h-7 px-2 text-xs text-destructive"
-                :disabled="busy"
-                @click="detach(server.id)"
-              >
-                {{ t("pages.clubs.servers_detach") }}
-              </Button>
             </div>
             <div
-              v-if="manage && server.enabled && pools[server.section_mode || '']"
+              v-if="manage && server.enabled && pools[mode.key]"
               class="mt-1 flex items-center gap-1"
             >
               <select
@@ -279,7 +220,7 @@ watch(() => props.clubId, () => void load(), { immediate: true });
                   }}
                 </option>
                 <option
-                  v-for="map in pools[server.section_mode || '']"
+                  v-for="map in pools[mode.key]"
                   :key="map.id"
                   :value="map.id"
                 >
