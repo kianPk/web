@@ -86,6 +86,13 @@ watch(tab, (value) => {
 });
 
 const club = ref<any>(null);
+
+// Apollo freezes query results, and Vue will not wrap a frozen object, so
+// later writes such as social links throw on `id`.
+function thaw<T>(value: T): T {
+  if (value == null || typeof value !== "object") return value;
+  return JSON.parse(JSON.stringify(value)) as T;
+}
 const loading = ref(true);
 const error = ref("");
 const socialError = ref("");
@@ -360,7 +367,7 @@ async function load(options?: { silent?: boolean }) {
       },
       fetchPolicy: "network-only",
     });
-    club.value = data?.clubs?.[0] ?? null;
+    club.value = data?.clubs?.[0] ? thaw(data.clubs[0]) : null;
     if (!club.value) error.value = t("pages.clubs.not_found");
     else {
       minElo.value = club.value.min_elo;
@@ -661,11 +668,18 @@ async function saveSocials() {
       },
     });
     const row = data?.update_clubs_by_pk;
-    if (!row) {
+    if (!row || !club.value) {
       socialError.value = t("pages.clubs.action_failed");
       return;
     }
-    Object.assign(club.value, row);
+    club.value = {
+      ...club.value,
+      telegram_url: row.telegram_url ?? null,
+      instagram_url: row.instagram_url ?? null,
+      bale_url: row.bale_url ?? null,
+      rubika_url: row.rubika_url ?? null,
+      soroush_url: row.soroush_url ?? null,
+    };
     telegramInput.value = row.telegram_url || "";
     instagramInput.value = row.instagram_url || "";
     baleInput.value = row.bale_url || "";

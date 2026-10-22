@@ -21,7 +21,6 @@ function collectErrorText(raw: unknown): string {
     walk(rec.error);
   };
   walk(raw);
-  if (raw instanceof Error) parts.push(raw.message);
   return parts.join("\n");
 }
 
