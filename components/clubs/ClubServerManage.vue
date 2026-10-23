@@ -12,12 +12,19 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { useAuthStore } from "~/stores/AuthStore";
+import { e_player_roles_enum } from "~/generated/zeus";
 import { SERVER_MODES, type ServerModeKey } from "~/utilities/serverModes";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const props = defineProps<{
   clubId: string;
 }>();
+
+const auth = useAuthStore();
+const isSiteAdmin = computed(
+  () => auth.me?.role === e_player_roles_enum.administrator,
+);
 
 type ClubServer = {
   id: string;
@@ -149,10 +156,17 @@ async function save(mode: ServerModeKey) {
   error.value = "";
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain;
-    const count = Math.min(
-      MAX_PER_MODE,
-      Math.max(0, Math.floor(Number(counts.value[mode]) || 0)),
-    );
+    const body: {
+      mode: ServerModeKey;
+      maps: MapEntry[];
+      count?: number;
+    } = { mode, maps };
+    if (isSiteAdmin.value) {
+      body.count = Math.min(
+        MAX_PER_MODE,
+        Math.max(0, Math.floor(Number(counts.value[mode]) || 0)),
+      );
+    }
     const data = await $fetch<{
       servers: ClubServer[];
       config?: Record<string, { count?: number; maps?: MapEntry[] }>;
@@ -162,7 +176,7 @@ async function save(mode: ServerModeKey) {
       {
         method: "POST",
         credentials: "include",
-        body: { mode, count, maps },
+        body,
       },
     );
     apply(data);
@@ -230,7 +244,7 @@ watch(() => props.clubId, () => void load(), { immediate: true });
         </span>
       </div>
 
-      <label class="block space-y-1.5">
+      <label v-if="isSiteAdmin" class="block space-y-1.5">
         <span class="text-xs text-muted-foreground">
           {{ t("pages.settings.application.servers_section.count_hint") }}
         </span>
