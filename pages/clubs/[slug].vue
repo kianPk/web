@@ -142,6 +142,8 @@ const descriptionInput = ref("");
 const promoInput = ref("");
 const benefitsInput = ref("");
 const profileError = ref("");
+const joinModeInput = ref<"open" | "request" | "invite_only">("open");
+const joinModeError = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -422,6 +424,11 @@ async function load(options?: { silent?: boolean }) {
       descriptionInput.value = club.value.description || "";
       promoInput.value = club.value.promo_text || "";
       benefitsInput.value = club.value.join_benefits || "";
+      {
+        const mode = String(club.value.join_mode || "");
+        joinModeInput.value =
+          mode === "request" || mode === "invite_only" ? mode : "open";
+      }
       void loadSocials(club.value.id);
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
@@ -662,6 +669,39 @@ async function saveRequirements() {
       },
     },
   );
+}
+
+async function saveJoinMode() {
+  if (!club.value || !isOwner.value) return;
+  joinModeError.value = "";
+  busy.value = true;
+  try {
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation($id: uuid!, $_set: clubs_set_input!) {
+          update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
+            id
+            join_mode
+          }
+        }
+      `,
+      variables: {
+        id: club.value.id,
+        _set: { join_mode: joinModeInput.value },
+      },
+    });
+    const row = data?.update_clubs_by_pk;
+    if (!row || !club.value) {
+      joinModeError.value = t("pages.clubs.action_failed");
+      return;
+    }
+    club.value = { ...club.value, join_mode: row.join_mode };
+    joinModeInput.value = row.join_mode;
+  } catch (e: any) {
+    joinModeError.value = clubErrorMessage(e, t);
+  } finally {
+    busy.value = false;
+  }
 }
 
 async function saveClubProfile() {
@@ -2037,6 +2077,70 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <div
+            v-if="isOwner"
+            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
+          >
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.form.join_mode") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.join_mode_hint") }}</p>
+            <div class="flex flex-wrap items-end gap-2">
+              <label class="block min-w-[12rem] flex-1 space-y-1 text-xs font-medium">
+                {{ t("pages.clubs.form.join_mode") }}
+                <select
+                  v-model="joinModeInput"
+                  class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm font-normal text-foreground"
+                >
+                  <option value="open">{{ t("pages.clubs.join_modes.open") }}</option>
+                  <option value="request">{{ t("pages.clubs.join_modes.request") }}</option>
+                  <option value="invite_only">
+                    {{ t("pages.clubs.join_modes.invite_only") }}
+                  </option>
+                </select>
+              </label>
+              <Button type="button" :disabled="busy" @click="saveJoinMode">
+                {{ t("common.save") }}
+              </Button>
+            </div>
+            <p v-if="joinModeError" class="text-xs text-destructive">{{ joinModeError }}</p>
+          </div>
+          <div
+            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
+          >
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requests") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.requests_hint") }}</p>
+            <p
+              v-if="!(club.join_requests || []).length"
+              class="text-sm text-muted-foreground"
+            >
+              {{ t("pages.clubs.requests_empty") }}
+            </p>
+            <div
+              v-for="r in club.join_requests"
+              :key="r.id"
+              class="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm"
+            >
+              <span class="min-w-0 flex-1 truncate font-medium">
+                {{ r.player?.name || r.steam_id }}
+              </span>
+              <span
+                v-if="r.message"
+                class="w-full text-xs text-muted-foreground sm:w-auto sm:flex-1"
+              >
+                {{ r.message }}
+              </span>
+              <Button size="sm" :disabled="busy" @click="reviewRequest(r.id, true)">
+                {{ t("common.accept") }}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                :disabled="busy"
+                @click="reviewRequest(r.id, false)"
+              >
+                {{ t("common.decline") }}
+              </Button>
+            </div>
+          </div>
           <ClubLevelSettings
             v-if="canManageLevels && club"
             :club-id="club.id"
@@ -2217,20 +2321,6 @@ function activityTitle(kind: string) {
                 {{ l.code }} · {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
               </li>
             </ul>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requests") }}</h3>
-            <div
-              v-for="r in club.join_requests"
-              :key="r.id"
-              class="flex items-center gap-2 text-sm"
-            >
-              <span>{{ r.player?.name }} — {{ r.message }}</span>
-              <Button size="sm" @click="reviewRequest(r.id, true)">{{ t("common.accept") }}</Button>
-              <Button size="sm" variant="outline" @click="reviewRequest(r.id, false)">
-                {{ t("common.decline") }}
-              </Button>
-            </div>
           </div>
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.requirements") }}</h3>

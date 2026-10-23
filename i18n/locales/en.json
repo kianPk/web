@@ -6449,6 +6449,8 @@
       "mode_missing": "This mode doesn't exist.",
       "back_to_modes": "All modes",
       "host_badge": "Host",
+      "club_badge": "Club",
+      "open_club": "Open club",
       "your_host": "Your Host server",
       "public": {
         "name": "Public",
@@ -6854,6 +6856,9 @@
       "create_link": "Create link",
       "link_created": "Link created",
       "requests": "Join requests",
+      "requests_hint": "Approve or decline players who asked to join while the club is set to request mode.",
+      "requests_empty": "No pending join requests.",
+      "join_mode_hint": "Open: anyone can join. Request: staff approve each ask. Invite only: invites or invite links only.",
       "requirements": "Join requirements",
       "bans": "Bans",
       "create_tournament": "Create tournament",

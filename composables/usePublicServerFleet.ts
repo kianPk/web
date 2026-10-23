@@ -27,10 +27,13 @@ export type FleetServer = {
   players: number;
   capacity: number;
   full: boolean;
-  /** Public fleet box vs the signed-in user's paid Host rental. */
-  kind?: "public" | "host";
+  /** Public fleet box, club fleet box, or the signed-in user's paid Host rental. */
+  kind?: "public" | "club" | "host";
   /** hosted_servers.id when kind === "host". */
   hostedId?: string | null;
+  clubId?: string | null;
+  clubName?: string | null;
+  clubSlug?: string | null;
 };
 
 export type FleetMode = ServerModeDefinition & {
@@ -49,9 +52,9 @@ export function usePublicServerFleet(clubId?: string | null) {
   // tracked that column yet, and a single unknown field empties the whole fleet
   // ("No servers online" on every mode). Public boxes are labeled "Duels #1";
   // paid Host rentals use other labels — we drop those client-side instead.
-  // Club fleet boxes reuse the same "Duels #N" labels, so the site Servers
-  // page must exclude club_id; the club page passes clubId to show only that
-  // club's boxes.
+  // The site Servers page lists public + club boxes together; club rows carry
+  // club name/slug for the "open club" affordance. A club page passes clubId
+  // to show only that club's boxes.
   const where: Array<Record<string, unknown>> = [
     { section_mode: { _is_null: false } },
     { connection_string: { _is_null: false } },
@@ -59,7 +62,6 @@ export function usePublicServerFleet(clubId?: string | null) {
     { connected: { _eq: true } },
   ];
   if (clubId) where.push({ club_id: { _eq: clubId } });
-  else where.push({ club_id: { _is_null: true } });
 
   const { result: serversResult, loading } = useSubscription(
     generateSubscription({
@@ -81,6 +83,12 @@ export function usePublicServerFleet(clubId?: string | null) {
           max_players: true,
           section_mode: true,
           club_id: true,
+          club: {
+            id: true,
+            name: true,
+            slug: true,
+            short_name: true,
+          },
           server_region: {
             is_lan: true,
             description: true,
@@ -119,13 +127,12 @@ export function usePublicServerFleet(clubId?: string | null) {
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
-      // Defense in depth if a club row slips past the where clause.
-      if (!clubId && row.club_id) continue;
       if (clubId && row.club_id && row.club_id !== clubId) continue;
       // Paid Host rentals share section_mode but use custom / "Host …" labels.
-      // Public fleet rows are always "Duels #1", "AWP #2", …
+      // Public fleet rows are "Duels #1"; club fleet rows carry club_id.
       const number = serverNumber(row.label);
-      if (number == null && !clubId) continue;
+      const isClub = !!row.club_id;
+      if (number == null && !clubId && !isClub) continue;
       const modeKey = sectionModeKey(row.section_mode);
       if (!modeKey) continue;
 
@@ -134,6 +141,10 @@ export function usePublicServerFleet(clubId?: string | null) {
       const capacity =
         Number(row.max_players) ||
         SERVER_MODES.find((m) => m.key === modeKey)!.slots;
+      const clubName =
+        row.club?.name ||
+        row.club?.short_name ||
+        null;
 
       const server: FleetServer = {
         id: row.id,
@@ -151,6 +162,10 @@ export function usePublicServerFleet(clubId?: string | null) {
         players,
         capacity,
         full: players >= capacity,
+        kind: isClub ? "club" : "public",
+        clubId: row.club_id || row.club?.id || null,
+        clubName,
+        clubSlug: row.club?.slug || null,
       };
       list.push(server);
       if (number == null) unlabeled.push(server);

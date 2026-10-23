@@ -15,6 +15,7 @@ import {
   Play,
   Server,
   Settings,
+  Users,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
@@ -680,7 +681,9 @@ if (!props.embedded) {
               :class="
                 server.kind === 'host'
                   ? 'border border-[hsl(var(--tac-amber)/0.4)] bg-gradient-to-r from-[hsl(var(--tac-amber)/0.14)] via-card to-card hover:border-[hsl(var(--tac-amber)/0.7)]'
-                  : 'border border-white/5 bg-card hover:border-white/15'
+                  : server.kind === 'club'
+                    ? 'border border-sky-400/25 bg-gradient-to-r from-sky-500/10 via-card to-card hover:border-sky-400/45'
+                    : 'border border-white/5 bg-card hover:border-white/15'
               "
               @click="
                 server.kind === 'host' && server.hostedId
@@ -719,6 +722,17 @@ if (!props.embedded) {
                       server.label
                     }}</span>
                   </template>
+                  <template v-else-if="server.kind === 'club'">
+                    <span
+                      class="inline-flex max-w-[55%] items-center gap-1 truncate rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-300"
+                    >
+                      <Users class="h-3 w-3 shrink-0" />
+                      <span class="truncate">{{
+                        server.clubName || $t("pages.servers.club_badge")
+                      }}</span>
+                    </span>
+                    <b class="font-bold">#{{ server.number }}</b>
+                  </template>
                   <template v-else>
                     <b class="font-bold">#{{ server.number }}</b>
                     <span
@@ -754,6 +768,16 @@ if (!props.embedded) {
               </div>
 
               <div class="relative flex shrink-0 items-center gap-2.5">
+                <NuxtLink
+                  v-if="server.kind === 'club' && server.clubSlug && !clubId"
+                  :to="`/clubs/${server.clubSlug}`"
+                  class="inline-flex h-7 items-center gap-1 rounded-md border border-sky-400/40 bg-sky-500/10 px-2 text-[10px] font-semibold uppercase tracking-wide text-sky-200 opacity-80 transition-opacity hover:opacity-100"
+                  :title="$t('pages.servers.open_club')"
+                  @click.stop
+                >
+                  <Users class="h-3 w-3" />
+                  {{ $t("pages.servers.open_club") }}
+                </NuxtLink>
                 <button
                   type="button"
                   class="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-white opacity-50 transition-opacity hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-20"
@@ -816,7 +840,9 @@ if (!props.embedded) {
                   :class="
                     server.kind === 'host'
                       ? 'bg-[hsl(var(--tac-amber)/0.06)]'
-                      : ''
+                      : server.kind === 'club'
+                        ? 'bg-sky-500/[0.06]'
+                        : ''
                   "
                   @click="
                     server.kind === 'host' && server.hostedId
@@ -830,6 +856,18 @@ if (!props.embedded) {
                       class="text-[11px] uppercase tracking-wide text-[hsl(var(--tac-amber))]"
                       >{{ $t("pages.servers.host_badge") }}</span
                     >
+                    <span
+                      v-else-if="server.kind === 'club'"
+                      class="inline-flex flex-col gap-0.5"
+                    >
+                      <span
+                        class="text-[10px] font-semibold uppercase tracking-wide text-sky-300"
+                        >{{
+                          server.clubName || $t("pages.servers.club_badge")
+                        }}</span
+                      >
+                      <span>#{{ server.number }}</span>
+                    </span>
                     <template v-else>{{ server.number }}</template>
                   </td>
                   <td
@@ -855,20 +893,32 @@ if (!props.embedded) {
                     }}
                   </td>
                   <td class="px-4 py-1.5 text-end">
-                    <Button
-                      size="sm"
-                      class="h-8 min-w-20 rounded-lg"
-                      :class="server.full ? '' : 'tac-amber-cta'"
-                      :variant="server.full ? 'secondary' : 'default'"
-                      :disabled="server.full || !server.connection_link"
-                      @click.stop="connect(server)"
-                    >
-                      {{
-                        server.full
-                          ? $t("pages.servers.full")
-                          : $t("pages.servers.join")
-                      }}
-                    </Button>
+                    <div class="inline-flex items-center justify-end gap-2">
+                      <NuxtLink
+                        v-if="
+                          server.kind === 'club' && server.clubSlug && !clubId
+                        "
+                        :to="`/clubs/${server.clubSlug}`"
+                        class="inline-flex h-8 items-center rounded-lg border border-sky-400/40 px-3 text-xs font-semibold text-sky-200 hover:bg-sky-500/10"
+                        @click.stop
+                      >
+                        {{ $t("pages.servers.open_club") }}
+                      </NuxtLink>
+                      <Button
+                        size="sm"
+                        class="h-8 min-w-20 rounded-lg"
+                        :class="server.full ? '' : 'tac-amber-cta'"
+                        :variant="server.full ? 'secondary' : 'default'"
+                        :disabled="server.full || !server.connection_link"
+                        @click.stop="connect(server)"
+                      >
+                        {{
+                          server.full
+                            ? $t("pages.servers.full")
+                            : $t("pages.servers.join")
+                        }}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
