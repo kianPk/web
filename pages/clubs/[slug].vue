@@ -35,6 +35,12 @@ import ClubSocialLinks from "~/components/clubs/ClubSocialLinks.vue";
 import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import ClubChallengesPanel from "~/components/clubs/ClubChallengesPanel.vue";
 import ClubServersPanel from "~/components/clubs/ClubServersPanel.vue";
+import ClubLevelSettings from "~/components/clubs/ClubLevelSettings.vue";
+import {
+  clubLevelLabel,
+  DEFAULT_LEVEL_PERMISSIONS,
+  type ClubPermKey,
+} from "~/utilities/clubLevels";
 import TournamentCard from "~/components/tournament/TournamentCard.vue";
 import { tournamentCardFields } from "~/graphql/tournamentCardFields";
 import { generateQuery } from "~/graphql/graphqlGen";
@@ -145,17 +151,38 @@ const myMembership = computed(() => {
     ) ?? null
   );
 });
-const canManage = computed(() =>
-  ["owner", "admin"].includes(myMembership.value?.role),
+const myLevel = computed(() => Number(myMembership.value?.level) || 0);
+
+function memberHasPerm(perm: ClubPermKey) {
+  const level = myLevel.value;
+  if (!level) return false;
+  const override = (club.value?.perm_overrides || []).find(
+    (o: any) =>
+      String(o.steam_id) === String(me.value?.steam_id) && o.perm_key === perm,
+  );
+  if (override?.allowed === true) return true;
+  if (override?.allowed === false) return false;
+  const min = Number(
+    club.value?.level_permissions?.[perm]?.min ??
+      DEFAULT_LEVEL_PERMISSIONS[perm].min,
+  );
+  return level >= min;
+}
+
+const canManage = computed(
+  () => myLevel.value >= 8 || memberHasPerm("manage_settings"),
 );
 const isOwner = computed(
   () =>
+    myLevel.value >= 10 ||
     myMembership.value?.role === "owner" ||
     String(club.value?.owner_steam_id) === String(me.value?.steam_id),
 );
-const canModerate = computed(() =>
-  ["owner", "admin", "moderator"].includes(myMembership.value?.role),
+const canModerate = computed(
+  () => myLevel.value >= 7 || memberHasPerm("moderate_news"),
 );
+const canPostNews = computed(() => memberHasPerm("post_news"));
+const canManageLevels = computed(() => memberHasPerm("manage_levels"));
 const isMember = computed(() => !!myMembership.value);
 const myPendingRequest = computed(() => {
   if (!me.value || !club.value) return null;
@@ -250,6 +277,7 @@ async function load(options?: { silent?: boolean }) {
             description
             promo_text
             join_benefits
+            level_permissions
             join_mode
             min_elo
             min_faceit_level
@@ -262,9 +290,13 @@ async function load(options?: { silent?: boolean }) {
                 count
               }
             }
-            members(order_by: [{ role: asc }, { joined_at: asc }]) {
+            members(order_by: [{ level: desc }, { joined_at: asc }]) {
               steam_id
               role
+              level
+              xp
+              title
+              staff_level
               is_primary
               is_vip
               joined_at
@@ -275,6 +307,11 @@ async function load(options?: { silent?: boolean }) {
                 faceit_elo
                 faceit_skill_level
               }
+            }
+            perm_overrides {
+              steam_id
+              perm_key
+              allowed
             }
             activity(order_by: [{ created_at: desc }], limit: 40) {
               id
@@ -874,6 +911,59 @@ async function registerClash(eventId: string) {
     }`,
     { event_id: eventId, club_id: club.value.id },
   );
+  await loadClash();
+}
+
+function clashStatus(ev: { starts_at: string; ends_at: string; locked?: boolean }) {
+  if (ev.locked) return t("pages.clubs.clash_locked");
+  const now = Date.now();
+  const start = new Date(ev.starts_at).getTime();
+  const end = new Date(ev.ends_at).getTime();
+  if (now < start) return t("pages.clubs.clash_upcoming");
+  if (now > end) return t("pages.clubs.clash_ended");
+  return t("pages.clubs.clash_active");
+}
+
+function isRegisteredForClash(ev: { players?: Array<{ steam_id: string | number; club_id: string }> }) {
+  if (!me.value || !club.value) return false;
+  return (ev.players || []).some(
+    (p) =>
+      String(p.steam_id) === String(me.value.steam_id) &&
+      String(p.club_id) === String(club.value.id),
+  );
+}
+
+async function onStaffLevelChange(member: any, value: string) {
+  if (!club.value) return;
+  const staff_level = value === "" ? null : Number(value);
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: String!, $staff_level: Int, $title: String) {
+      setClubMemberStaffLevel(
+        club_id: $club_id
+        steam_id: $steam_id
+        staff_level: $staff_level
+        title: $title
+      ) { success }
+    }`,
+    {
+      club_id: club.value.id,
+      steam_id: String(member.steam_id),
+      staff_level,
+      title: member.title || null,
+    },
+  );
+  await load({ silent: true });
+}
+
+async function setMemberTitle(steamId: string, title: string) {
+  if (!club.value) return;
+  await runAction(
+    `mutation($club_id: uuid!, $steam_id: String!, $title: String) {
+      setClubMemberTitle(club_id: $club_id, steam_id: $steam_id, title: $title) { success }
+    }`,
+    { club_id: club.value.id, steam_id: steamId, title: title || null },
+  );
+  await load({ silent: true });
 }
 
 const officialTeam = ref<any>(null);
@@ -996,6 +1086,10 @@ async function loadClash() {
                 slug
               }
             }
+            players {
+              steam_id
+              club_id
+            }
           }
         }
       `,
@@ -1110,6 +1204,7 @@ function roleLabel(role: string) {
 function roleChipClass(role: string) {
   if (role === "owner")
     return "bg-[hsl(var(--tac-amber)/0.18)] text-[hsl(var(--tac-amber))]";
+  if (role === "co_owner") return "bg-violet-500/15 text-violet-300";
   if (role === "admin") return "bg-orange-500/15 text-orange-300";
   if (role === "moderator") return "bg-sky-500/15 text-sky-300";
   return "bg-muted text-muted-foreground";
@@ -1464,11 +1559,12 @@ function activityTitle(kind: string) {
               class="h-9 w-full rounded-lg border border-border bg-background/50 pl-9 pr-3 text-sm outline-none focus:border-[hsl(var(--tac-amber)/0.5)]"
             />
           </div>
+          <p class="mb-3 text-xs text-muted-foreground">{{ t("pages.clubs.levels_members_hint") }}</p>
           <div class="divide-y divide-border/50">
             <div
               v-for="m in filteredMembers"
               :key="m.steam_id"
-              class="flex items-center gap-3 py-2.5"
+              class="flex flex-wrap items-center gap-2 py-2.5 sm:gap-3"
             >
               <PlayerDisplay
                 :player="m.player || { steam_id: m.steam_id, name: String(m.steam_id) }"
@@ -1480,19 +1576,45 @@ function activityTitle(kind: string) {
                 match-type="Faceit"
               />
               <span
-                class="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide"
+                class="shrink-0 rounded-full bg-[hsl(var(--tac-amber)/0.14)] px-2 py-0.5 text-[0.65rem] font-semibold text-[hsl(var(--tac-amber))]"
+              >
+                L{{ m.level || 1 }} · {{ clubLevelLabel(Number(m.level) || 1, t) }}
+              </span>
+              <span
+                v-if="m.title"
+                class="shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+              >
+                {{ m.title }}
+              </span>
+              <span class="text-[0.65rem] tabular-nums text-muted-foreground">
+                {{ m.xp || 0 }} XP
+              </span>
+              <span
+                class="ms-auto shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide"
                 :class="roleChipClass(m.role)"
               >
                 {{ roleLabel(m.role) }}
               </span>
-              <span
-                v-if="m.is_vip"
-                class="shrink-0 rounded-full border border-[hsl(var(--tac-amber))]/40 px-2 py-0.5 text-[0.65rem] font-medium uppercase text-[hsl(var(--tac-amber))]"
-              >
-                {{ t("pages.clubs.vip_badge") }}
-              </span>
+              <template v-if="canManageLevels && Number(m.level) !== 10">
+                <select
+                  class="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                  :value="m.staff_level ?? ''"
+                  @change="onStaffLevelChange(m, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">{{ t("pages.clubs.staff_auto") }}</option>
+                  <option value="7">{{ t("pages.clubs.levels.7") }}</option>
+                  <option value="8">{{ t("pages.clubs.levels.8") }}</option>
+                  <option value="9">{{ t("pages.clubs.levels.9") }}</option>
+                </select>
+                <Input
+                  class="h-8 w-28 text-xs"
+                  :model-value="m.title || ''"
+                  :placeholder="t('pages.clubs.title_placeholder')"
+                  @blur="setMemberTitle(String(m.steam_id), ($event.target as HTMLInputElement).value)"
+                />
+              </template>
               <Button
-                v-if="isOwner && m.role !== 'owner'"
+                v-if="isOwner && Number(m.level) !== 10"
                 size="sm"
                 variant="outline"
                 :disabled="busy"
@@ -1501,7 +1623,7 @@ function activityTitle(kind: string) {
                 {{
                   m.is_vip
                     ? t("pages.clubs.vip_remove")
-                    : t("pages.clubs.vip_grant")
+                    : t("pages.clubs.club_vip_grant")
                 }}
               </Button>
               <Button
@@ -1520,7 +1642,7 @@ function activityTitle(kind: string) {
         <!-- News -->
         <section v-else-if="tab === 'chat'" class="space-y-4">
           <form
-            v-if="canManage"
+            v-if="canPostNews"
             class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
             @submit.prevent="sendNews"
           >
@@ -1849,7 +1971,15 @@ function activityTitle(kind: string) {
 
         <!-- Clash -->
         <section v-else-if="tab === 'clash'" class="space-y-4">
-          <p class="text-sm text-muted-foreground">{{ t("pages.clubs.clash_hint") }}</p>
+          <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+            <h2 class="text-sm font-semibold">{{ t("pages.clubs.clash_title") }}</h2>
+            <p class="mt-2 text-sm text-muted-foreground">{{ t("pages.clubs.clash_how") }}</p>
+            <ul class="mt-3 list-disc space-y-1 ps-5 text-xs text-muted-foreground">
+              <li>{{ t("pages.clubs.clash_rule_primary") }}</li>
+              <li>{{ t("pages.clubs.clash_rule_points") }}</li>
+              <li>{{ t("pages.clubs.clash_rule_window") }}</li>
+            </ul>
+          </div>
           <div
             v-for="ev in clashEvents"
             :key="ev.id"
@@ -1857,13 +1987,19 @@ function activityTitle(kind: string) {
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 class="font-semibold">{{ ev.name }}</h3>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-semibold">{{ ev.name }}</h3>
+                  <span class="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground">
+                    {{ clashStatus(ev) }}
+                  </span>
+                </div>
                 <p class="text-xs text-muted-foreground">
                   {{ formatSiteDate(ev.starts_at) }} →
                   {{ formatSiteDate(ev.ends_at) }}
                 </p>
               </div>
               <Button
+                v-if="!isRegisteredForClash(ev) && !ev.locked && clashStatus(ev) !== t('pages.clubs.clash_ended')"
                 size="sm"
                 :class="tacticalCtaButtonClasses"
                 :disabled="busy || !myMembership?.is_primary"
@@ -1871,15 +2007,25 @@ function activityTitle(kind: string) {
               >
                 {{ t("pages.clubs.register_clash") }}
               </Button>
+              <span
+                v-else-if="isRegisteredForClash(ev)"
+                class="text-xs font-medium text-[hsl(var(--tac-amber))]"
+              >
+                {{ t("pages.clubs.clash_registered") }}
+              </span>
             </div>
-            <ul class="mt-3 space-y-1 text-sm">
-              <li v-for="e in ev.entries" :key="e.club_id">
+            <ol class="mt-3 space-y-1 text-sm">
+              <li v-for="(e, idx) in ev.entries" :key="e.club_id" class="flex gap-2">
+                <span class="w-5 tabular-nums text-muted-foreground">{{ idx + 1 }}.</span>
                 <NuxtLink :to="`/clubs/${e.club?.slug || e.club_id}`" class="hover:text-[hsl(var(--tac-amber))]">
                   {{ e.club?.name }}
                 </NuxtLink>
-                — {{ e.points }} pts
+                <span class="ms-auto tabular-nums text-muted-foreground">{{ e.points }} {{ t("pages.clubs.clash_pts") }}</span>
               </li>
-            </ul>
+            </ol>
+            <p v-if="!ev.entries?.length" class="mt-2 text-xs text-muted-foreground">
+              {{ t("pages.clubs.clash_no_entries") }}
+            </p>
           </div>
           <p
             v-if="!clashEvents.length"
@@ -1891,6 +2037,13 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <ClubLevelSettings
+            v-if="canManageLevels && club"
+            :club-id="club.id"
+            :level-permissions="club.level_permissions"
+            :members="club.members || []"
+            @saved="(perms) => { if (club) club.level_permissions = perms; }"
+          />
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.profile") }}</h3>
             <p class="text-xs text-muted-foreground">{{ t("pages.clubs.profile_hint") }}</p>
