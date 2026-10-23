@@ -17,6 +17,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import HostedAdminsPanel from "~/components/hosting/HostedAdminsPanel.vue";
 import HostedChatAdsPanel from "~/components/hosting/HostedChatAdsPanel.vue";
 import HostedGameplayPanel from "~/components/hosting/HostedGameplayPanel.vue";
+import HostedClubMapsPanel from "~/components/hosting/HostedClubMapsPanel.vue";
 import HostedVipManagePanel from "~/components/hosting/HostedVipManagePanel.vue";
 import HostedVipShopPanel from "~/components/hosting/HostedVipShopPanel.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
@@ -72,7 +73,7 @@ import {
   type HostedSlotsQuote,
 } from "~/composables/useHostedServers";
 
-const MAPS = [
+const DEFAULT_MAPS = [
   "de_dust2",
   "de_mirage",
   "de_inferno",
@@ -125,6 +126,13 @@ const addressLabel = computed(() => {
   return `${server.value.host}:${server.value.port}`;
 });
 const isClubPanel = computed(() => !!server.value?.club_id);
+const clubPoolMaps = ref<Array<{ id: string; name: string }>>([]);
+const consoleMaps = computed(() => {
+  if (isClubPanel.value && clubPoolMaps.value.length) {
+    return clubPoolMaps.value.map((map) => map.id);
+  }
+  return DEFAULT_MAPS;
+});
 const isActualOwner = computed(
   () =>
     !!server.value &&
@@ -836,6 +844,19 @@ onUnmounted(() => window.clearInterval(poll));
                 :gameplay="server.gameplay"
                 @updated="(next) => (server = next)"
               />
+              <HostedClubMapsPanel
+                v-if="
+                  isClubPanel &&
+                  server.club_id &&
+                  server.server_id &&
+                  server.section_mode
+                "
+                :club-id="server.club_id"
+                :server-id="server.server_id"
+                :section-mode="server.section_mode"
+                :connected="!!server.connected"
+                @maps-updated="(maps) => (clubPoolMaps = maps)"
+              />
             </div>
             <p v-else class="m-0 text-sm text-muted-foreground">
               {{ $t("pages.hosting.panel.subtitle") }}
@@ -893,7 +914,11 @@ onUnmounted(() => window.clearInterval(poll));
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="map in MAPS" :key="map" :value="map">
+                    <SelectItem
+                      v-for="map in consoleMaps"
+                      :key="map"
+                      :value="map"
+                    >
                       {{ map }}
                     </SelectItem>
                   </SelectContent>
