@@ -8,6 +8,7 @@ import TournamentPrizes from "~/components/tournament/TournamentPrizes.vue";
 import TournamentManage from "~/components/tournament/TournamentManage.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
+import EventCountdown from "~/components/common/EventCountdown.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentMatches from "~/components/tournament/TournamentMatches.vue";
 import TournamentCheckInPanel from "~/components/tournament/TournamentCheckInPanel.vue";
@@ -249,9 +250,20 @@ function clearTeamEnterDelay(el: Element) {
                     tournamentLogoSrc && 'col-span-2 sm:col-span-1',
                   ]"
                 >
-                  <span class="inline-flex items-center gap-1.5">
-                    <CalendarDays class="h-3.5 w-3.5" />
-                    {{ startLabel }}
+                  <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span class="inline-flex items-center gap-1.5">
+                      <CalendarDays class="h-3.5 w-3.5" />
+                      {{ startLabel }}
+                    </span>
+                    <EventCountdown
+                      v-if="startUpcoming"
+                      :at="tournament.start"
+                      compact
+                    >
+                      <template #prefix>
+                        <span>{{ $t("tournament.stats.starts_in") }}</span>
+                      </template>
+                    </EventCountdown>
                   </span>
                   <span
                     v-if="shortLocation"
@@ -967,7 +979,7 @@ import { bracketProposalSelection } from "~/graphql/bracketNegotiation";
 import { formatPrizePool } from "~/utilities/prizePool";
 import { freeAgentPoolWhere } from "~/graphql/tournamentCardFields";
 import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
-import { dateLocale } from "~/utilities/dateLocale";
+import { formatShamsi } from "~/utilities/jalali";
 import { tournamentHomepageLink } from "~/utilities/tournamentHomepage";
 import {
   getRequestedRouteTab,
@@ -2126,13 +2138,12 @@ export default {
       if (!this.tournament?.start) {
         return "";
       }
-      return new Intl.DateTimeFormat(dateLocale(), {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date(this.tournament.start));
+      return formatShamsi(this.tournament.start);
+    },
+    startUpcoming() {
+      if (!this.tournament?.start) return false;
+      const at = new Date(this.tournament.start).getTime();
+      return Number.isFinite(at) && at > Date.now();
     },
     // can_open_tournament_registration's refusals, in its order, for an
     // organizer the api would otherwise let open it. Out of Registration

@@ -1,141 +1,74 @@
 <script setup lang="ts">
 import { Calendar as CalendarIcon } from "lucide-vue-next";
-import { Calendar } from "@/components/ui/calendar";
+import { computed, ref, watch } from "vue";
 import { Button } from "@/components/ui/button";
-import { Input } from "~/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import ShamsiDateTimePanel from "~/components/common/ShamsiDateTimePanel.vue";
+import { formatShamsi } from "~/utilities/jalali";
+
+const props = withDefaults(
+  defineProps<{
+    modelValue?: Date | string | null;
+    disablePastDates?: boolean;
+    disabled?: boolean;
+  }>(),
+  {
+    modelValue: null,
+    disablePastDates: false,
+    disabled: false,
+  },
+);
+
+const emit = defineEmits<{
+  "update:modelValue": [value: Date];
+}>();
+
+const open = ref(false);
+
+const label = computed(() => {
+  if (!props.modelValue) return "";
+  return formatShamsi(props.modelValue);
+});
+
+watch(
+  () => props.disabled,
+  (value) => {
+    if (value) open.value = false;
+  },
+);
+
+function onPick(date: Date) {
+  emit("update:modelValue", date);
+}
 </script>
 
 <template>
-  <!-- Date and time are two controls over one value, so `disabled` has to reach
-       both: locking only the calendar leaves a live time input that can still
-       move the very timestamp the lock exists to pin. -->
-  <div class="flex">
-    <Popover>
-      <PopoverTrigger as-child :disabled="disabled">
-        <Button
-          variant="outline"
-          class="w-[280px] justify-start text-left font-normal"
-          :class="{ ['text-muted-foreground']: !startDate }"
-          :disabled="disabled"
-        >
-          <CalendarIcon class="mr-2 h-4 w-4" />
-          {{ startDate || $t("common.pick_date") }}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
-        <Calendar
-          :is-date-disabled="disablePastDates ? checkDate : undefined"
-          v-model="startDate"
-          initial-focus
-        />
-      </PopoverContent>
-    </Popover>
-
-    <Input
-      type="time"
-      v-model="startTime"
-      :disabled="disabled"
-      style="color-scheme: dark"
-    />
-  </div>
+  <Popover v-model:open="open">
+    <PopoverTrigger as-child :disabled="disabled">
+      <Button
+        type="button"
+        variant="outline"
+        class="w-full max-w-[22rem] justify-start text-left font-normal"
+        :class="{ 'text-muted-foreground': !label }"
+        :disabled="disabled"
+      >
+        <CalendarIcon class="mr-2 h-4 w-4 shrink-0" />
+        <span class="truncate" dir="rtl">
+          {{ label || $t("common.pick_date") }}
+        </span>
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent class="w-auto border-border/70 p-0" align="start">
+      <ShamsiDateTimePanel
+        :model-value="modelValue"
+        :disable-past-dates="disablePastDates"
+        :disabled="disabled"
+        @update:model-value="onPick"
+      />
+    </PopoverContent>
+  </Popover>
 </template>
-
-<script lang="ts">
-import { fromDate, toCalendarDate } from "@internationalized/date";
-
-export default {
-  props: {
-    modelValue: {
-      type: [Date, String],
-      required: false,
-      default: null,
-    },
-    // Create disables past days; editing an existing start must allow them.
-    disablePastDates: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-  },
-  emits: ["update:modelValue"],
-  data() {
-    return {
-      startDate: undefined as any,
-      startTime: undefined as string | undefined,
-      // Set while syncing local state down from modelValue so the compose
-      // watchers don't echo the same value back up and loop.
-      internalUpdate: false,
-    };
-  },
-  watch: {
-    modelValue: {
-      immediate: true,
-      handler(value) {
-        if (!value) {
-          return;
-        }
-        const date = new Date(value);
-        const nextDate = toCalendarDate(
-          fromDate(date, Intl.DateTimeFormat().resolvedOptions().timeZone),
-        );
-        const nextTime = `${date.getHours().toString().padStart(2, "0")}:${date
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`;
-
-        if (
-          String(this.startDate) !== String(nextDate) ||
-          this.startTime !== nextTime
-        ) {
-          this.internalUpdate = true;
-          this.startDate = nextDate;
-          this.startTime = nextTime;
-          this.$nextTick(() => {
-            this.internalUpdate = false;
-          });
-        }
-      },
-    },
-    startDate() {
-      this.compose();
-    },
-    startTime() {
-      this.compose();
-    },
-  },
-  methods: {
-    checkDate({
-      day,
-      month,
-      year,
-    }: {
-      day: number;
-      month: number;
-      year: number;
-    }) {
-      return new Date(year, month - 1, day + 1) < new Date();
-    },
-    compose() {
-      if (this.internalUpdate || !this.startDate || !this.startTime) {
-        return;
-      }
-      // Space-separated date/time parsing is engine-dependent; the ISO
-      // "T"-joined form is the only portable local-time format.
-      this.$emit(
-        "update:modelValue",
-        new Date(`${this.startDate}T${this.startTime}`),
-      );
-    },
-  },
-};
-</script>

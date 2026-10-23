@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { dateLocale } from "~/utilities/dateLocale";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MapPin } from "lucide-vue-next";
 import AnimatedStat from "~/components/AnimatedStat.vue";
+import EventCountdown from "~/components/common/EventCountdown.vue";
+import { formatShamsi } from "~/utilities/jalali";
 import type { TournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
 
 const props = defineProps<{
@@ -24,7 +25,13 @@ const startLabel = computed(() => {
   if (isNaN(date.getTime())) {
     return null;
   }
-  return date.toLocaleDateString(dateLocale(), { month: "short", day: "numeric" });
+  return formatShamsi(date);
+});
+
+const startUpcoming = computed(() => {
+  if (!props.start) return false;
+  const at = new Date(props.start).getTime();
+  return Number.isFinite(at) && at > Date.now();
 });
 
 // Only render cells that actually have a value; the grid sizes itself to the
@@ -113,12 +120,25 @@ const cells = computed(() => {
 
       <div
         v-else
-        class="mt-1 truncate font-sans text-xl font-bold leading-tight tabular-nums"
+        class="mt-1 space-y-1 font-sans text-xl font-bold leading-tight tabular-nums"
         :class="cell.accent ? 'text-[hsl(var(--tac-amber))]' : 'text-foreground'"
         :title="cell.value"
       >
         <AnimatedStat v-if="cell.kind === 'count'" :value="cell.value" />
-        <template v-else>{{ cell.value }}</template>
+        <template v-else>
+          <span class="block truncate text-base sm:text-xl">{{ cell.value }}</span>
+          <EventCountdown
+            v-if="cell.key === 'starts' && startUpcoming"
+            :at="start"
+            compact
+          >
+            <template #prefix>
+              <span class="text-[0.65rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                {{ t("tournament.stats.starts_in") }}
+              </span>
+            </template>
+          </EventCountdown>
+        </template>
       </div>
     </div>
   </div>

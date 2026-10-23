@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
-import { dateFromShamsi, formatShamsi, shamsiParts } from "~/utilities/jalali";
+import { formatShamsi } from "~/utilities/jalali";
 import {
   acAllowsJoin,
   pickQuickPlayServer,
@@ -14,6 +14,8 @@ import {
 } from "~/composables/usePublicServerFleet";
 import type { ServerModeKey } from "~/utilities/serverModes";
 import PlayerSearch from "~/components/PlayerSearch.vue";
+import ShamsiDateTimePanel from "~/components/common/ShamsiDateTimePanel.vue";
+import EventCountdown from "~/components/common/EventCountdown.vue";
 
 const DIFFICULTIES = [
   "easy",
@@ -91,7 +93,7 @@ const prizeOther = ref("");
 const prizeScope = ref<(typeof PRIZE_SCOPES)[number]>("club");
 const audience = ref<(typeof AUDIENCES)[number]>("club");
 const audiencePlayers = ref<Array<{ steam_id: string; name: string }>>([]);
-const shamsiEnd = ref(shamsiParts(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
+const endsAt = ref<Date>(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
 const joining = ref("");
 
 const fa = computed(() => String(locale.value).startsWith("fa"));
@@ -249,7 +251,7 @@ async function activate() {
     error.value = t("pages.clubs.challenges.pick_one");
     return;
   }
-  const ends = dateFromShamsi(shamsiEnd.value);
+  const ends = endsAt.value;
   if (!ends || ends.getTime() <= Date.now()) {
     error.value = t("pages.clubs.challenges.need_future_end");
     return;
@@ -500,10 +502,17 @@ onMounted(() => {
           <p class="mt-3 text-sm">
             {{ t("pages.clubs.challenges.prize") }}: {{ prizeLabel(row) }}
           </p>
-          <p class="text-xs text-muted-foreground">
-            {{ t("pages.clubs.challenges.until") }}:
-            {{ formatShamsi(row.ends_at) }}
-          </p>
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {{ t("pages.clubs.challenges.until") }}:
+              {{ formatShamsi(row.ends_at) }}
+            </span>
+            <EventCountdown :at="row.ends_at" compact>
+              <template #prefix>
+                <span>{{ t("pages.clubs.challenges.ends_in") }}</span>
+              </template>
+            </EventCountdown>
+          </div>
           <div class="mt-3 flex flex-wrap gap-2">
             <Button
               size="sm"
@@ -642,28 +651,27 @@ onMounted(() => {
           {{ t("pages.clubs.challenges.player_search_hint") }}
         </p>
       </div>
-      <div class="grid gap-3 sm:grid-cols-3">
-        <label class="space-y-1 text-xs">
-          <span>{{ t("pages.clubs.challenges.ends_at") }}</span>
-          <span class="grid grid-cols-5 gap-1" dir="ltr">
-            <Input v-model="shamsiEnd.y" inputmode="numeric" placeholder="1405" class="px-1 text-center" />
-            <Input v-model="shamsiEnd.m" inputmode="numeric" placeholder="8" class="px-1 text-center" />
-            <Input v-model="shamsiEnd.d" inputmode="numeric" placeholder="1" class="px-1 text-center" />
-            <Input v-model="shamsiEnd.hh" inputmode="numeric" placeholder="21" class="px-1 text-center" />
-            <Input v-model="shamsiEnd.mm" inputmode="numeric" placeholder="00" class="px-1 text-center" />
-          </span>
-          <span class="block text-muted-foreground">
-            {{ t("pages.clubs.challenges.ends_at_shamsi_fields") }}
-          </span>
-        </label>
-        <label class="space-y-1 text-xs">
-          <span>{{ t("pages.clubs.challenges.prize_ypoints") }}</span>
-          <Input v-model.number="prizeYpoints" type="number" min="0" />
-        </label>
-        <label class="space-y-1 text-xs">
-          <span>{{ t("pages.clubs.challenges.prize_other") }}</span>
-          <Input v-model="prizeOther" />
-        </label>
+      <div class="grid gap-3 lg:grid-cols-[auto_1fr]">
+        <div class="space-y-2 text-xs">
+          <p class="m-0 font-medium">{{ t("pages.clubs.challenges.ends_at") }}</p>
+          <ShamsiDateTimePanel
+            v-model="endsAt"
+            disable-past-dates
+          />
+          <p class="m-0 text-muted-foreground">
+            {{ t("pages.clubs.challenges.ends_at_shamsi_panel") }}
+          </p>
+        </div>
+        <div class="grid gap-3 content-start sm:grid-cols-2">
+          <label class="space-y-1 text-xs">
+            <span>{{ t("pages.clubs.challenges.prize_ypoints") }}</span>
+            <Input v-model.number="prizeYpoints" type="number" min="0" />
+          </label>
+          <label class="space-y-1 text-xs">
+            <span>{{ t("pages.clubs.challenges.prize_other") }}</span>
+            <Input v-model="prizeOther" />
+          </label>
+        </div>
       </div>
       <Button
         size="sm"

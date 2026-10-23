@@ -10,6 +10,7 @@ import {
   UsersRound,
 } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
+import EventCountdown from "~/components/common/EventCountdown.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import AwardBadge from "~/components/award/AwardBadge.vue";
 import TournamentMapMosaic from "~/components/tournament/TournamentMapMosaic.vue";
@@ -220,6 +221,12 @@ const timeLabel = computed(() => {
   if (isLive.value) return t("tournament.compact_card.live");
   if (isFinished.value) return t("tournament.compact_card.ended");
   return t("tournament.compact_card.starts");
+});
+
+const startUpcoming = computed(() => {
+  if (isLive.value || isFinished.value || !props.tournament?.start) return false;
+  const at = new Date(props.tournament.start).getTime();
+  return Number.isFinite(at) && at > Date.now();
 });
 
 const playerRankLabel = computed(() =>
@@ -462,12 +469,15 @@ const runnerUps = computed(() => {
           {{ $t("tournament.stage.stage_tab", { stage: currentStage.order }) }}
         </span>
       </span>
-      <span class="inline-flex items-center gap-1.5">
+      <span class="inline-flex flex-wrap items-center gap-1.5">
         <CalendarClock class="h-3 w-3" />
-        <span class="text-foreground">
-          {{ timeLabel }}
-          <TimeAgo :date="tournament.start" />
-        </span>
+        <span class="text-foreground">{{ timeLabel }}</span>
+        <EventCountdown
+          v-if="startUpcoming"
+          :at="tournament.start"
+          compact
+        />
+        <TimeAgo v-else :date="tournament.start" />
       </span>
     </div>
 

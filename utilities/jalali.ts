@@ -110,11 +110,11 @@ export function shamsiParts(date: Date) {
 }
 
 export function dateFromShamsi(parts: {
-  y: string;
-  m: string;
-  d: string;
-  hh: string;
-  mm: string;
+  y: string | number;
+  m: string | number;
+  d: string | number;
+  hh: string | number;
+  mm: string | number;
 }): Date | null {
   const y = Number(parts.y);
   const m = Number(parts.m);
@@ -124,6 +124,7 @@ export function dateFromShamsi(parts: {
   if (![y, m, d, hh, mm].every((n) => Number.isInteger(n))) return null;
   if (y < 1300 || y > 1500 || m < 1 || m > 12 || d < 1 || d > 31) return null;
   if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+  if (d > daysInJalaliMonth(y, m)) return null;
   const g = jalaliToGregorian(y, m, d);
   const date = new Date(g.gy, g.gm - 1, g.gd, hh, mm, 0, 0);
   if (
@@ -135,3 +136,27 @@ export function dateFromShamsi(parts: {
   }
   return date;
 }
+
+export function jalaliMonthName(jm: number) {
+  return MONTHS[jm - 1] || "";
+}
+
+export function daysInJalaliMonth(jy: number, jm: number) {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  for (let day = 30; day >= 29; day--) {
+    const g = jalaliToGregorian(jy, jm, day);
+    const back = gregorianToJalali(g.gy, g.gm, g.gd);
+    if (back.jy === jy && back.jm === jm && back.jd === day) return day;
+  }
+  return 29;
+}
+
+/** Saturday = 0 … Friday = 6 (Iranian week). */
+export function jalaliWeekday(jy: number, jm: number, jd: number) {
+  const g = jalaliToGregorian(jy, jm, jd);
+  const day = new Date(g.gy, g.gm - 1, g.gd).getDay(); // Sun=0
+  return (day + 1) % 7;
+}
+
+export const JALALI_WEEKDAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"] as const;
