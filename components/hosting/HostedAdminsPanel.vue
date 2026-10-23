@@ -24,7 +24,11 @@ type HostedBan = {
   expires_at: string | null;
 };
 
-const props = defineProps<{ hostedId: string }>();
+const props = defineProps<{
+  hostedId: string;
+  /** Club staff who can open the panel but are not the listed owner. */
+  allowManage?: boolean;
+}>();
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();
@@ -36,7 +40,7 @@ const newAdmin = ref("");
 const busy = ref(false);
 
 const canManageAdmins = computed(() => {
-  if (auth.isAdmin) return true;
+  if (auth.isAdmin || props.allowManage) return true;
   return String(ownerSteamId.value) === String(auth.me?.steam_id || "");
 });
 

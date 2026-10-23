@@ -124,6 +124,7 @@ const addressLabel = computed(() => {
   if (!server.value?.host || !server.value?.port) return "—";
   return `${server.value.host}:${server.value.port}`;
 });
+const isClubPanel = computed(() => !!server.value?.club_id);
 const isActualOwner = computed(
   () =>
     !!server.value &&
@@ -132,10 +133,16 @@ const isActualOwner = computed(
 const isServerOwner = computed(() => {
   if (!server.value) return false;
   if (isAdmin.value) return true;
-  return isActualOwner.value;
+  if (isActualOwner.value) return true;
+  // Club staff already passed API access to open this panel.
+  return isClubPanel.value;
 });
 const managingAsSiteAdmin = computed(
-  () => isAdmin.value && !!server.value && !isActualOwner.value,
+  () =>
+    isAdmin.value &&
+    !!server.value &&
+    !isActualOwner.value &&
+    !isClubPanel.value,
 );
 const connectCommand = computed(() =>
   server.value ? hostedConnectCommand(server.value) : null,
@@ -186,6 +193,7 @@ const slotsRoom = computed(() =>
 );
 const canBuySlots = computed(
   () =>
+    !isClubPanel.value &&
     isServerOwner.value &&
     isActive.value &&
     (overview.value?.slot_price_irr || 0) > 0 &&
@@ -263,6 +271,7 @@ function buySlots(payWith: "bale" | "ypoint") {
 }
 const canRenew = computed(
   () =>
+    !isClubPanel.value &&
     isServerOwner.value &&
     !!server.value &&
     ["active", "expired", "deleted"].includes(server.value.status),
@@ -620,7 +629,7 @@ onUnmounted(() => window.clearInterval(poll));
                   {{ $t("pages.hosting.slots_buy.button") }}
                 </Button>
                 <Button
-                  v-if="isAdmin"
+                  v-if="isAdmin && !isClubPanel"
                   size="sm"
                   variant="ghost"
                   class="h-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
@@ -651,10 +660,23 @@ onUnmounted(() => window.clearInterval(poll));
               </div>
               <div class="hosted-metric">
                 <p class="hosted-metric__label">
-                  {{ $t("pages.hosting.panel.expires") }}
+                  {{
+                    isClubPanel
+                      ? $t("pages.hosting.panel.club_server")
+                      : $t("pages.hosting.panel.expires")
+                  }}
                 </p>
                 <p class="hosted-metric__value">
-                  {{ formatHostedDate(server.expires_at, locale) }}
+                  <template v-if="isClubPanel">
+                    {{
+                      server.section_mode
+                        ? $t(`pages.servers.modes.${server.section_mode}.name`)
+                        : "—"
+                    }}
+                  </template>
+                  <template v-else>
+                    {{ formatHostedDate(server.expires_at, locale) }}
+                  </template>
                 </p>
               </div>
               <div class="hosted-metric">
@@ -824,6 +846,7 @@ onUnmounted(() => window.clearInterval(poll));
             <HostedAdminsPanel
               v-if="server.status !== 'deleted'"
               :hosted-id="hostedId"
+              :allow-manage="isClubPanel && isServerOwner"
             />
             <HostedVipManagePanel
               v-if="isActive && isServerOwner"

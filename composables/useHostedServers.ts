@@ -102,6 +102,8 @@ export type HostedServer = {
   product_id: string | null;
   type: string | null;
   section_mode?: string | null;
+  /** Present when this panel manages a club fleet server. */
+  club_id?: string | null;
   host: string | null;
   port: number | null;
   connect_password: string | null;

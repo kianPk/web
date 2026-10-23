@@ -6,12 +6,14 @@ import {
   ArrowUp,
   Loader2,
   Plus,
+  Settings2,
   Trash2,
 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { SERVER_MODES, type ServerModeKey } from "~/utilities/serverModes";
+import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const props = defineProps<{
   clubId: string;
@@ -24,6 +26,7 @@ type ClubServer = {
   connected: boolean;
   enabled: boolean;
   link: string | null;
+  hosted_id: string | null;
 };
 
 type MapEntry = { id: string; name: string };
@@ -327,7 +330,7 @@ watch(() => props.clubId, () => void load(), { immediate: true });
         </p>
         <ul class="space-y-2">
           <li v-for="server in serversByMode[mode.key]" :key="server.id">
-            <div class="flex items-center gap-2 text-xs">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
               <span
                 class="h-2 w-2 shrink-0 rounded-full"
                 :class="{
@@ -336,7 +339,7 @@ watch(() => props.clubId, () => void load(), { immediate: true });
                   'bg-muted-foreground/40': statusOf(server) === 'disabled',
                 }"
               />
-              <span class="flex-1 truncate">{{ server.label || server.id }}</span>
+              <span class="min-w-0 flex-1 truncate">{{ server.label || server.id }}</span>
               <span class="text-muted-foreground">
                 {{
                   t(
@@ -344,6 +347,17 @@ watch(() => props.clubId, () => void load(), { immediate: true });
                   )
                 }}
               </span>
+              <NuxtLink
+                v-if="server.hosted_id"
+                :to="`/hosting/${server.hosted_id}`"
+                :class="[
+                  tacticalCtaButtonClasses,
+                  '!h-7 !gap-1 !px-2.5 !text-[0.65rem]',
+                ]"
+              >
+                <Settings2 class="h-3 w-3" />
+                {{ t("pages.clubs.servers_admin_panel") }}
+              </NuxtLink>
               <a
                 v-if="server.link"
                 :href="server.link"
