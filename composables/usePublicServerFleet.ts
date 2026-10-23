@@ -49,8 +49,9 @@ export function usePublicServerFleet(clubId?: string | null) {
   // tracked that column yet, and a single unknown field empties the whole fleet
   // ("No servers online" on every mode). Public boxes are labeled "Duels #1";
   // paid Host rentals use other labels — we drop those client-side instead.
-  // club_id is only added for a club page. The public fleet must stay exactly
-  // this query, or a missing column on production Hasura blanks every mode.
+  // Club fleet boxes reuse the same "Duels #N" labels, so the site Servers
+  // page must exclude club_id; the club page passes clubId to show only that
+  // club's boxes.
   const where: Array<Record<string, unknown>> = [
     { section_mode: { _is_null: false } },
     { connection_string: { _is_null: false } },
@@ -58,6 +59,7 @@ export function usePublicServerFleet(clubId?: string | null) {
     { connected: { _eq: true } },
   ];
   if (clubId) where.push({ club_id: { _eq: clubId } });
+  else where.push({ club_id: { _is_null: true } });
 
   const { result: serversResult, loading } = useSubscription(
     generateSubscription({
@@ -78,6 +80,7 @@ export function usePublicServerFleet(clubId?: string | null) {
           connection_string: true,
           max_players: true,
           section_mode: true,
+          club_id: true,
           server_region: {
             is_lan: true,
             description: true,
@@ -116,6 +119,9 @@ export function usePublicServerFleet(clubId?: string | null) {
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
+      // Defense in depth if a club row slips past the where clause.
+      if (!clubId && row.club_id) continue;
+      if (clubId && row.club_id && row.club_id !== clubId) continue;
       // Paid Host rentals share section_mode but use custom / "Host …" labels.
       // Public fleet rows are always "Duels #1", "AWP #2", …
       const number = serverNumber(row.label);
