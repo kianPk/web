@@ -6730,6 +6730,17 @@
       "winrate": "WR",
       "queued_count": "{n} in queue",
       "no_description": "No description",
+      "about": "About",
+      "promo": "Promo",
+      "promo_placeholder": "Ads or promotions for your club",
+      "join_benefits": "Join benefits",
+      "join_benefits_placeholder": "One benefit per line",
+      "description_placeholder": "What this club is about",
+      "page_content": "Club page",
+      "page_content_hint": "Description, promo, and join benefits shown on the club page.",
+      "no_socials": "No social links yet",
+      "news_as_club_hint": "Your posts are published as the club name.",
+      "news_as_account_hint": "Your posts are published under your account name.",
       "not_found": "Club not found",
       "load_failed": "Failed to load club",
       "action_failed": "Action failed",
@@ -6935,8 +6946,15 @@
           "fun": "Fun"
         }
       },
+      "tab_groups": {
+        "club": "Club",
+        "play": "Play",
+        "compete": "Compete",
+        "manage": "Manage"
+      },
       "tabs": {
-        "overview": "Feed",
+        "overview": "Club page",
+        "feed": "Feed",
         "members": "Members",
         "chat": "News",
         "leaderboard": "Leaderboards",

@@ -13,6 +13,9 @@ import {
   Shield,
   CalendarDays,
   Flame,
+  Activity,
+  Gift,
+  BadgePercent,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
@@ -52,6 +55,7 @@ import { formatSiteDate } from "~/utilities/dateLocale";
 
 const VALID_TABS = [
   "overview",
+  "feed",
   "members",
   "chat",
   "leaderboard",
@@ -128,6 +132,10 @@ const instagramInput = ref("");
 const baleInput = ref("");
 const rubikaInput = ref("");
 const soroushInput = ref("");
+const descriptionInput = ref("");
+const promoInput = ref("");
+const benefitsInput = ref("");
+const profileError = ref("");
 
 const myMembership = computed(() => {
   if (!me.value || !club.value) return null;
@@ -240,6 +248,8 @@ async function load(options?: { silent?: boolean }) {
             avatar_url
             cover_url
             description
+            promo_text
+            join_benefits
             join_mode
             min_elo
             min_faceit_level
@@ -372,6 +382,9 @@ async function load(options?: { silent?: boolean }) {
     else {
       minElo.value = club.value.min_elo;
       minLevel.value = club.value.min_faceit_level;
+      descriptionInput.value = club.value.description || "";
+      promoInput.value = club.value.promo_text || "";
+      benefitsInput.value = club.value.join_benefits || "";
       void loadSocials(club.value.id);
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
@@ -612,6 +625,58 @@ async function saveRequirements() {
       },
     },
   );
+}
+
+async function saveClubProfile() {
+  if (!club.value) return;
+  profileError.value = "";
+  busy.value = true;
+  try {
+    const { data } = await client.mutate({
+      mutation: gql`
+        mutation($id: uuid!, $_set: clubs_set_input!) {
+          update_clubs_by_pk(pk_columns: { id: $id }, _set: $_set) {
+            id
+            description
+            promo_text
+            join_benefits
+          }
+        }
+      `,
+      variables: {
+        id: club.value.id,
+        _set: {
+          description: descriptionInput.value.trim() || null,
+          promo_text: promoInput.value.trim() || null,
+          join_benefits: benefitsInput.value.trim() || null,
+        },
+      },
+    });
+    const row = data?.update_clubs_by_pk;
+    if (!row || !club.value) {
+      profileError.value = t("pages.clubs.action_failed");
+      return;
+    }
+    club.value = {
+      ...club.value,
+      description: row.description ?? null,
+      promo_text: row.promo_text ?? null,
+      join_benefits: row.join_benefits ?? null,
+    };
+  } catch (e: any) {
+    profileError.value = clubErrorMessage(e, t);
+  } finally {
+    busy.value = false;
+  }
+}
+
+function isOwnerNewsPost(msg: { author_steam_id?: string | number | null }) {
+  if (!club.value?.owner_steam_id || msg?.author_steam_id == null) return false;
+  return String(msg.author_steam_id) === String(club.value.owner_steam_id);
+}
+
+function openClubPage() {
+  tab.value = "overview";
 }
 
 async function saveSocials() {
@@ -942,45 +1007,90 @@ async function loadClash() {
   }
 }
 
+watch([tab, isOwner, loading], () => {
+  if (loading.value) return;
+  if (tab.value === "feed" && !isOwner.value) {
+    tab.value = "overview";
+  }
+});
+
 watch(tab, (v) => {
   if (v === "clash") void loadClash();
   if (v === "teams") void loadTeams();
   if (v === "tournaments") void loadTournaments();
 });
 
-const tabs = computed(() => {
-  const base: { id: Tab; label: string; icon: any }[] = [
+type TabItem = { id: Tab; label: string; icon: any };
+type TabGroup = { id: string; label: string; items: TabItem[] };
+
+const tabGroups = computed((): TabGroup[] => {
+  const clubItems: TabItem[] = [
     { id: "overview", label: t("pages.clubs.tabs.overview"), icon: Newspaper },
-    { id: "members", label: t("pages.clubs.tabs.members"), icon: Users },
     { id: "chat", label: t("pages.clubs.tabs.chat"), icon: Megaphone },
-    {
-      id: "leaderboard",
-      label: t("pages.clubs.tabs.leaderboard"),
-      icon: ListOrdered,
-    },
-    { id: "servers", label: t("pages.clubs.tabs.servers"), icon: Server },
-    { id: "teams", label: t("pages.clubs.tabs.teams"), icon: Shield },
-    {
-      id: "tournaments",
-      label: t("pages.clubs.tabs.tournaments"),
-      icon: CalendarDays,
-    },
-    {
-      id: "challenges",
-      label: t("pages.clubs.tabs.challenges"),
-      icon: Flame,
-    },
-    { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
+    { id: "members", label: t("pages.clubs.tabs.members"), icon: Users },
   ];
-  if (canManage.value) {
-    base.push({
-      id: "admin",
-      label: t("pages.clubs.tabs.admin"),
-      icon: Settings,
+  if (isOwner.value) {
+    clubItems.splice(1, 0, {
+      id: "feed",
+      label: t("pages.clubs.tabs.feed"),
+      icon: Activity,
     });
   }
-  return base;
+  const groups: TabGroup[] = [
+    {
+      id: "club",
+      label: t("pages.clubs.tab_groups.club"),
+      items: clubItems,
+    },
+    {
+      id: "play",
+      label: t("pages.clubs.tab_groups.play"),
+      items: [
+        { id: "servers", label: t("pages.clubs.tabs.servers"), icon: Server },
+        {
+          id: "challenges",
+          label: t("pages.clubs.tabs.challenges"),
+          icon: Flame,
+        },
+        {
+          id: "leaderboard",
+          label: t("pages.clubs.tabs.leaderboard"),
+          icon: ListOrdered,
+        },
+      ],
+    },
+    {
+      id: "compete",
+      label: t("pages.clubs.tab_groups.compete"),
+      items: [
+        { id: "teams", label: t("pages.clubs.tabs.teams"), icon: Shield },
+        {
+          id: "tournaments",
+          label: t("pages.clubs.tabs.tournaments"),
+          icon: CalendarDays,
+        },
+        { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
+      ],
+    },
+  ];
+  if (canManage.value) {
+    groups.push({
+      id: "manage",
+      label: t("pages.clubs.tab_groups.manage"),
+      items: [
+        { id: "admin", label: t("pages.clubs.tabs.admin"), icon: Settings },
+      ],
+    });
+  }
+  return groups;
 });
+
+const benefitLines = computed(() =>
+  String(club.value?.join_benefits || "")
+    .split(/\r?\n/)
+    .map((line: string) => line.trim())
+    .filter(Boolean),
+);
 
 const filteredMembers = computed(() => {
   const list = club.value?.members ?? [];
@@ -1095,9 +1205,13 @@ function activityTitle(kind: string) {
           </div>
           <div class="min-w-0 flex-1 py-1">
             <div class="flex flex-wrap items-center gap-2">
-              <h1 class="truncate font-sans text-[1.65rem] font-bold leading-none tracking-tight sm:text-3xl">
+              <button
+                type="button"
+                class="truncate text-start font-sans text-[1.65rem] font-bold leading-none tracking-tight hover:text-[hsl(var(--tac-amber))] sm:text-3xl"
+                @click="openClubPage"
+              >
                 {{ club.name }}
-              </h1>
+              </button>
               <span
                 v-if="club.short_name"
                 class="rounded bg-[hsl(var(--tac-amber)/0.14)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
@@ -1188,30 +1302,125 @@ function activityTitle(kind: string) {
 
     <p v-if="error" class="mt-3 text-sm text-destructive">{{ error }}</p>
 
-    <div class="mt-6 grid items-start gap-6 md:grid-cols-[13.5rem_minmax(0,1fr)]">
+    <div class="mt-6 grid items-start gap-6 md:grid-cols-[14rem_minmax(0,1fr)]">
       <nav
-        class="flex gap-1 overflow-x-auto pb-1 md:sticky md:top-4 md:flex-col md:overflow-visible md:rounded-xl md:border md:border-border/70 md:bg-card/40 md:p-2"
+        class="flex gap-3 overflow-x-auto pb-1 md:sticky md:top-4 md:flex-col md:gap-4 md:overflow-visible md:rounded-xl md:border md:border-border/70 md:bg-card/40 md:p-3"
       >
-        <button
-          v-for="item in tabs"
-          :key="item.id"
-          type="button"
-          class="inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
-          :class="
-            tab === item.id
-              ? 'bg-[hsl(var(--tac-amber)/0.12)] text-foreground md:border-l-2 md:border-[hsl(var(--tac-amber))] md:pl-[10px]'
-              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-          "
-          @click="tab = item.id"
+        <div
+          v-for="group in tabGroups"
+          :key="group.id"
+          class="flex shrink-0 gap-1 md:flex-col md:gap-0.5"
         >
-          <component :is="item.icon" class="h-4 w-4 shrink-0" />
-          {{ item.label }}
-        </button>
+          <div
+            class="hidden px-2 pb-1 pt-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground/80 md:block"
+          >
+            {{ group.label }}
+          </div>
+          <button
+            v-for="item in group.items"
+            :key="item.id"
+            type="button"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
+            :class="
+              tab === item.id
+                ? 'bg-[hsl(var(--tac-amber)/0.12)] text-foreground md:border-l-2 md:border-[hsl(var(--tac-amber))] md:pl-[10px]'
+                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+            "
+            @click="tab = item.id"
+          >
+            <component :is="item.icon" class="h-4 w-4 shrink-0" />
+            {{ item.label }}
+          </button>
+        </div>
       </nav>
 
       <div class="min-w-0">
-        <!-- Feed -->
-        <section v-if="tab === 'overview'" class="grid gap-6 lg:grid-cols-[1fr_16rem]">
+        <!-- Club page -->
+        <section v-if="tab === 'overview'" class="space-y-4">
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+            <div class="space-y-4">
+              <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+                <h2 class="mb-3 text-sm font-semibold">{{ t("pages.clubs.about") }}</h2>
+                <p class="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                  {{ club.description || t("pages.clubs.no_description") }}
+                </p>
+              </div>
+
+              <div
+                v-if="club.promo_text"
+                class="rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] p-4 sm:p-5"
+              >
+                <div class="mb-2 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--tac-amber))]">
+                  <BadgePercent class="h-4 w-4" />
+                  {{ t("pages.clubs.promo") }}
+                </div>
+                <p class="whitespace-pre-wrap text-sm leading-relaxed">
+                  {{ club.promo_text }}
+                </p>
+              </div>
+
+              <div
+                v-if="benefitLines.length"
+                class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5"
+              >
+                <div class="mb-3 flex items-center gap-2 text-sm font-semibold">
+                  <Gift class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
+                  {{ t("pages.clubs.join_benefits") }}
+                </div>
+                <ul class="space-y-2">
+                  <li
+                    v-for="(line, idx) in benefitLines"
+                    :key="idx"
+                    class="flex gap-2 text-sm text-muted-foreground"
+                  >
+                    <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(var(--tac-amber))]" />
+                    <span>{{ line }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <aside class="space-y-3">
+              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</div>
+                <div class="mt-1 text-2xl font-bold tabular-nums">
+                  {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+                </div>
+              </div>
+              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.news_stat") }}</div>
+                <div class="mt-1 text-2xl font-bold tabular-nums">{{ newsPosts.length }}</div>
+              </div>
+              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {{ t("pages.clubs.socials") }}
+                </h3>
+                <ClubSocialLinks
+                  :telegram="club.telegram_url"
+                  :instagram="club.instagram_url"
+                  :bale="club.bale_url"
+                  :rubika="club.rubika_url"
+                  :soroush="club.soroush_url"
+                />
+                <p
+                  v-if="
+                    !club.telegram_url &&
+                    !club.instagram_url &&
+                    !club.bale_url &&
+                    !club.rubika_url &&
+                    !club.soroush_url
+                  "
+                  class="text-xs text-muted-foreground"
+                >
+                  {{ t("pages.clubs.no_socials") }}
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Owner-only activity feed -->
+        <section v-else-if="tab === 'feed' && isOwner" class="grid gap-6 lg:grid-cols-[1fr_16rem]">
           <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
             <h2 class="mb-4 text-sm font-semibold">{{ t("pages.clubs.activity") }}</h2>
             <ul class="space-y-3">
@@ -1315,6 +1524,13 @@ function activityTitle(kind: string) {
             class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
             @submit.prevent="sendNews"
           >
+            <p class="text-xs text-muted-foreground">
+              {{
+                isOwner
+                  ? t("pages.clubs.news_as_club_hint")
+                  : t("pages.clubs.news_as_account_hint")
+              }}
+            </p>
             <textarea
               v-model="chatBody"
               rows="3"
@@ -1367,7 +1583,18 @@ function activityTitle(kind: string) {
             :class="{ 'opacity-40': msg.deleted_at }"
           >
             <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <span class="text-sm font-semibold text-[hsl(var(--tac-amber))]">
+              <button
+                v-if="isOwnerNewsPost(msg)"
+                type="button"
+                class="text-sm font-semibold text-[hsl(var(--tac-amber))] hover:underline"
+                @click="openClubPage"
+              >
+                {{ club.name }}
+              </button>
+              <span
+                v-else
+                class="text-sm font-semibold text-[hsl(var(--tac-amber))]"
+              >
                 {{ msg.author?.name || msg.author_steam_id }}
               </span>
               <span class="text-xs text-muted-foreground">
@@ -1681,6 +1908,41 @@ function activityTitle(kind: string) {
               @uploaded="onAvatarUploaded"
               @removed="onAvatarRemoved"
             />
+          </div>
+          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
+            <h3 class="text-sm font-semibold">{{ t("pages.clubs.page_content") }}</h3>
+            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.page_content_hint") }}</p>
+            <label class="block space-y-1 text-xs font-medium">
+              {{ t("pages.clubs.form.description") }}
+              <textarea
+                v-model="descriptionInput"
+                rows="4"
+                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                :placeholder="t('pages.clubs.description_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium">
+              {{ t("pages.clubs.promo") }}
+              <textarea
+                v-model="promoInput"
+                rows="3"
+                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                :placeholder="t('pages.clubs.promo_placeholder')"
+              />
+            </label>
+            <label class="block space-y-1 text-xs font-medium">
+              {{ t("pages.clubs.join_benefits") }}
+              <textarea
+                v-model="benefitsInput"
+                rows="4"
+                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                :placeholder="t('pages.clubs.join_benefits_placeholder')"
+              />
+            </label>
+            <p v-if="profileError" class="text-xs text-destructive">{{ profileError }}</p>
+            <Button type="button" :disabled="busy" @click="saveClubProfile">
+              {{ t("common.save") }}
+            </Button>
           </div>
           <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
             <h3 class="text-sm font-semibold">{{ t("pages.clubs.socials") }}</h3>

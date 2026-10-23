@@ -6730,6 +6730,17 @@
       "winrate": "درصد برد",
       "queued_count": "{n} نفر در صف",
       "no_description": "بدون توضیحات",
+      "about": "درباره کلاب",
+      "promo": "تبلیغات",
+      "promo_placeholder": "تبلیغ یا پرومو برای کلاب",
+      "join_benefits": "مزایای جوین",
+      "join_benefits_placeholder": "هر مزیت در یک خط",
+      "description_placeholder": "کلاب درباره چیست",
+      "page_content": "صفحه کلاب",
+      "page_content_hint": "توضیحات، تبلیغات و مزایای جوین که در صفحه کلاب دیده می‌شود.",
+      "no_socials": "هنوز شبکه اجتماعی ثبت نشده",
+      "news_as_club_hint": "پست‌های تو به اسم کلاب منتشر می‌شوند.",
+      "news_as_account_hint": "پست‌های تو به اسم اکانت خودت منتشر می‌شوند.",
       "not_found": "کلاب پیدا نشد",
       "load_failed": "بارگذاری کلاب ناموفق بود",
       "action_failed": "عملیات ناموفق بود",
@@ -6935,8 +6946,15 @@
           "fun": "فان"
         }
       },
+      "tab_groups": {
+        "club": "کلاب",
+        "play": "بازی",
+        "compete": "رقابت",
+        "manage": "مدیریت"
+      },
       "tabs": {
-        "overview": "فید",
+        "overview": "صفحه کلاب",
+        "feed": "فید",
         "members": "اعضا",
         "chat": "اخبار",
         "leaderboard": "لیدربورد",
