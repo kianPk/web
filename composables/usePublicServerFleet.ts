@@ -127,7 +127,7 @@ export function usePublicServerFleet(clubId?: string | null) {
 
     for (const row of rows) {
       if (row.server_region?.is_lan) continue;
-      if (clubId && row.club_id && row.club_id !== clubId) continue;
+      if (clubId && row.club_id !== clubId) continue;
       // Paid Host rentals share section_mode but use custom / "Host …" labels.
       // Public fleet rows are "Duels #1"; club fleet rows carry club_id.
       const number = serverNumber(row.label);

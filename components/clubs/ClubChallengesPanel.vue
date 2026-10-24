@@ -6,12 +6,7 @@ import { Input } from "~/components/ui/input";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
 import { formatShamsi } from "~/utilities/jalali";
-import {
-  acAllowsJoin,
-  pickQuickPlayServer,
-  usePublicServerFleet,
-  type FleetMode,
-} from "~/composables/usePublicServerFleet";
+import { acAllowsJoin } from "~/composables/usePublicServerFleet";
 import type { ServerModeKey } from "~/utilities/serverModes";
 import PlayerSearch from "~/components/PlayerSearch.vue";
 import ShamsiDateTimePanel from "~/components/common/ShamsiDateTimePanel.vue";
@@ -77,7 +72,6 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 const { client } = useApolloClient();
 const auth = useAuthStore();
-const { modes } = usePublicServerFleet();
 
 const catalog = ref<CatalogRow[]>([]);
 const activations = ref<Activation[]>([]);
@@ -355,16 +349,32 @@ async function joinServer(mode: string) {
     return;
   }
   const key = (mode === "aim" ? "dm" : mode) as ServerModeKey;
-  const fleet: FleetMode | undefined = modes.value.find((m) => m.key === key);
-  const server = pickQuickPlayServer(fleet?.servers || []);
-  if (!server?.connection_link) {
-    error.value = t("pages.clubs.challenges.no_server");
-    return;
-  }
   joining.value = key;
   try {
+    const apiDomain = useRuntimeConfig().public.apiDomain;
+    const data = await $fetch<{
+      servers?: Array<{
+        section_mode: string | null;
+        link: string | null;
+        enabled: boolean;
+        connected: boolean;
+      }>;
+    }>(`https://${apiDomain}/hosted-servers/clubs/${props.clubId}/servers`, {
+      credentials: "include",
+    });
+    const matches = (data.servers || []).filter(
+      (server) =>
+        server.section_mode === key && server.enabled && server.link,
+    );
+    const server = matches.find((row) => row.connected) || matches[0];
+    if (!server?.link) {
+      error.value = t("pages.clubs.challenges.no_server");
+      return;
+    }
     if (!(await acAllowsJoin())) return;
-    window.location.href = server.connection_link;
+    window.location.href = server.link;
+  } catch (e) {
+    error.value = clubErrorMessage(e, t);
   } finally {
     joining.value = "";
   }

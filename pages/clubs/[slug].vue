@@ -1866,7 +1866,6 @@ function activityTitle(kind: string) {
         <ClubServersPanel
           v-else-if="tab === 'servers'"
           :club-id="club.id"
-          :can-manage="canManage || auth.isAdmin"
         />
 
         <!-- Teams -->

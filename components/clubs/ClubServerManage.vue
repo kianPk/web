@@ -54,6 +54,12 @@ const serversByMode = computed(() => {
   ) as Record<ServerModeKey, ClubServer[]>;
 });
 
+const visibleModes = computed(() =>
+  isSiteAdmin.value
+    ? SERVER_MODES
+    : SERVER_MODES.filter((mode) => serversByMode.value[mode.key].length > 0),
+);
+
 function statusOf(server: ClubServer) {
   if (!server.enabled) return "disabled";
   if (server.connected) return "online";
@@ -169,8 +175,14 @@ watch(() => props.clubId, () => void load(), { immediate: true });
     <p v-if="loading" class="text-sm text-muted-foreground">...</p>
 
     <template v-else>
+      <p
+        v-if="visibleModes.length === 0"
+        class="text-sm text-muted-foreground"
+      >
+        {{ t("pages.settings.application.servers_section.none") }}
+      </p>
       <article
-        v-for="mode in SERVER_MODES"
+        v-for="mode in visibleModes"
         :key="mode.key"
         class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
       >
