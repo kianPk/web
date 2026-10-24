@@ -29,7 +29,7 @@ import {
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
 import PlayerVacBadge from "~/components/PlayerVacBadge.vue";
-import PlayerElo from "~/components/PlayerElo.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import RenderHighlightForPlayerDialog from "~/components/match/RenderHighlightForPlayerDialog.vue";
 import { ref } from "vue";
@@ -203,11 +203,9 @@ const DASH = "—";
                       :country="member.player.country"
                       class="shrink-0"
                     />
-                    <PlayerElo
+                    <PlayerSiteLevel
                       v-if="!isExternalMatch"
-                      :elo="member.player.elo"
-                      :at-elo="memberStartElo"
-                      :type="match?.options?.type"
+                      :steam-id="member.player.steam_id"
                     />
                     <PlayerFaceitRank
                       v-else-if="

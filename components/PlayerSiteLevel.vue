@@ -41,6 +41,11 @@ const badgeStyle = computed(() => {
   };
 });
 
+const numberStyle = computed(() => ({
+  color: levelColor.value,
+  textShadow: `0 0 8px color-mix(in srgb, ${levelColor.value} 40%, transparent)`,
+}));
+
 watch(
   () => props.steamId,
   async (steamId) => {
@@ -52,7 +57,9 @@ watch(
         players: Array<{ steam_id: string; xp: number; level: number }>;
       }>(`https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}`);
       const row = data?.players?.[0];
-      if (row) fetched.value = { level: row.level, xp: row.xp };
+      fetched.value = row
+        ? { level: row.level, xp: row.xp }
+        : { level: 1, xp: 0 };
     } catch {
       fetched.value = { level: 1, xp: 0 };
     }
@@ -64,26 +71,14 @@ watch(
 <template>
   <span
     v-if="shown"
-    class="inline-flex h-[26px] items-center gap-1.5 rounded border px-[0.6rem] leading-none"
-    :style="{
-      borderColor: `color-mix(in srgb, ${levelColor} 40%, transparent)`,
-      backgroundColor: 'hsl(var(--card) / 0.55)',
-    }"
+    class="relative inline-grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full align-middle"
+    :style="badgeStyle"
     :title="t('pages.players.detail.site_level_title', { level: shown.level, xp: shown.xp })"
   >
+    <span class="absolute inset-[2px] rounded-full bg-[hsl(240_8%_10%)]"></span>
     <span
-      class="grid h-4 w-4 place-items-center rounded-full"
-      :style="badgeStyle"
-    >
-      <span
-        class="grid h-3 w-3 place-items-center rounded-full bg-card font-mono text-[0.55rem] font-bold"
-        :style="{ color: levelColor }"
-      >
-        {{ shown.level }}
-      </span>
-    </span>
-    <span class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-      {{ t("pages.players.detail.site_level") }}
-    </span>
+      class="relative font-mono text-[0.62rem] font-bold tabular-nums leading-none"
+      :style="numberStyle"
+    >{{ shown.level }}</span>
   </span>
 </template>

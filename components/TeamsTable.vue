@@ -80,15 +80,6 @@ import {
             <Users class="w-3 h-3" />
             <span class="tabular-nums">{{ rosterCount(team) }}</span>
             <span>{{ $t("team.roster_short") }}</span>
-            <template v-if="avgElo(team) !== null">
-              <span class="mx-1 opacity-40">·</span>
-              <span class="tabular-nums text-[hsl(var(--tac-amber))]">
-                {{ avgElo(team) }}
-              </span>
-              <span class="text-[hsl(var(--tac-amber))]">{{
-                $t("common.avg")
-              }}</span>
-            </template>
             <template v-if="topCountries(team).length">
               <span class="mx-1 opacity-40">·</span>
               <span class="flex items-center gap-1">
@@ -111,11 +102,7 @@ import {
             v-for="rosterItem in topStarters(team)"
             :key="rosterItem.player?.steam_id"
             class="h-7 w-7 rounded border-2 border-card shadow-sm"
-            :title="`${rosterItem.player?.name}${
-              rosterItem.player?.elo?.competitive
-                ? ' · ' + rosterItem.player.elo.competitive
-                : ''
-            }`"
+            :title="rosterItem.player?.name"
           >
             <AvatarImage
               :src="rosterPlayerImage(rosterItem)"

@@ -3,7 +3,7 @@ import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { UserPlus } from "lucide-vue-next";
 import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
-import PlayerElo from "~/components/PlayerElo.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerSkillGroupRank from "~/components/PlayerSkillGroupRank.vue";
@@ -242,11 +242,9 @@ import PlayerContextMenu from "~/components/player/PlayerContextMenu.vue";
                 v-else-if="matchRank.rankType === 11"
                 :premier-rank="matchRank.rank"
               />
-              <PlayerElo
+              <PlayerSiteLevel
                 v-else-if="!external"
-                :elo="player.elo"
-                :at-elo="atElo"
-                :type="matchType"
+                :steam-id="player.steam_id"
               />
             </template>
             <PlayerPremierRank
@@ -267,11 +265,9 @@ import PlayerContextMenu from "~/components/player/PlayerContextMenu.vue";
               :faceit-url="player.faceit_url"
               :faceit-nickname="player.faceit_nickname"
             />
-            <PlayerElo
+            <PlayerSiteLevel
               v-else-if="showElo && !external"
-              :elo="player.elo"
-              :at-elo="atElo"
-              :type="matchType"
+              :steam-id="player.steam_id"
             />
             <!-- Always surface linked FACEIT level next to site ELO when present. -->
             <PlayerFaceitRank

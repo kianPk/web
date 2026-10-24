@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlayerElo from "~/components/PlayerElo.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 
@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <div class="flex flex-wrap items-center gap-1.5">
-    <PlayerElo :elo="player?.elo" :bordered="true" />
+    <PlayerSiteLevel :steam-id="player?.steam_id" />
     <PlayerPremierRank
       :premier-rank="player?.premier_rank"
       :premier-rank-updated-at="player?.premier_rank_updated_at"

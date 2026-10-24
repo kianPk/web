@@ -28,7 +28,6 @@ import {
 import { FadeSwap, HeightSwap } from "~/components/ui/transitions";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
-import PlayerElo from "~/components/PlayerElo.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerSearch from "~/components/PlayerSearch.vue";
@@ -45,10 +44,7 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 import { runTournamentAction } from "~/utilities/tournamentActions";
-import {
-  tournamentEloLadder,
-  tournamentPlayerElo,
-} from "~/utilities/tournamentElo";
+import { tournamentPlayerElo } from "~/utilities/tournamentElo";
 
 const props = defineProps<{
   tournament: Record<string, any>;
@@ -133,8 +129,6 @@ const teamSize = computed(
 
 // The ladder the DRAFT rates on, not the one the player looks best on:
 // draft_tournament_free_agent_teams orders the pool by get_tournament_player_elo.
-const eloLadder = computed(() => tournamentEloLadder(props.tournament));
-
 function playerElo(agent: Agent) {
   return tournamentPlayerElo(props.tournament, agent?.player);
 }
@@ -705,17 +699,7 @@ async function draftTeams() {
               />
             </span>
             <span class="flex w-14 shrink-0 justify-end">
-              <PlayerElo
-                v-if="playerElo(row.agent) !== null"
-                :elo="row.agent.player?.elo"
-                :type="eloLadder"
-              />
-              <span
-                v-else
-                class="font-mono text-[0.78rem] text-muted-foreground"
-              >
-                &mdash;
-              </span>
+              <PlayerSiteLevel :steam-id="row.agent.player?.steam_id" />
             </span>
             <span
               class="w-14 shrink-0 text-right font-mono text-[0.72rem] tabular-nums text-muted-foreground"
@@ -853,17 +837,7 @@ async function draftTeams() {
                 :show-role="false"
               />
               <span class="flex shrink-0 justify-end">
-                <PlayerElo
-                  v-if="playerElo(member) !== null"
-                  :elo="member.player?.elo"
-                  :type="eloLadder"
-                />
-                <span
-                  v-else
-                  class="font-mono text-[0.7rem] text-muted-foreground"
-                >
-                  &mdash;
-                </span>
+                <PlayerSiteLevel :steam-id="member.player?.steam_id" />
               </span>
             </div>
           </div>

@@ -2,7 +2,6 @@
 import { Button } from "~/components/ui/button";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
-import PlayerElo from "~/components/PlayerElo.vue";
 import {
   ArrowUpIcon,
   ArrowDownIcon,
@@ -439,13 +438,7 @@ definePageMeta({
                 </span>
               </TableCell>
               <TableCell>
-                <PlayerElo
-                  :elo="{
-                    competitive: player.elo_competitive,
-                    wingman: player.elo_wingman,
-                    duel: player.elo_duel,
-                  }"
-                ></PlayerElo>
+                <PlayerSiteLevel :steam-id="player.steam_id" />
               </TableCell>
             </NuxtLink>
             <TableCell v-if="canViewAdditionalDetails">
