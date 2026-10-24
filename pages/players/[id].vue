@@ -24,7 +24,7 @@ import RecentTournaments from "~/components/tournament/RecentTournaments.vue";
 import AwardCase from "~/components/award/AwardCase.vue";
 import AwardComposer from "~/components/award/AwardComposer.vue";
 import { Button } from "~/components/ui/button";
-import { Plus, Star } from "lucide-vue-next";
+import { Crown, Plus, Star } from "lucide-vue-next";
 import { CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { e_player_roles_enum } from "~/generated/zeus";
@@ -89,6 +89,7 @@ import PlayerElo from "~/components/PlayerElo.vue";
 import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
+import PlayerSiteLevelPanel from "~/components/player/PlayerSiteLevelPanel.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
 import PluginRemote from "~/components/plugins/PluginRemote.vue";
@@ -712,9 +713,19 @@ const playerIdRef = computed<string | null>(() => {
   return useAuthStore().me?.steam_id ?? null;
 });
 
+const siteLevelTick = ref(0);
 const playerClubs = ref<
-  Array<{ id: string; slug?: string | null; name: string; short_name?: string | null }>
+  Array<{
+    id: string;
+    slug?: string | null;
+    name: string;
+    short_name?: string | null;
+    role?: string | null;
+  }>
 >([]);
+const ownedClubs = computed(() =>
+  playerClubs.value.filter((club) => club.role === "owner"),
+);
 async function loadPlayerClubs() {
   if (!playerIdRef.value) {
     playerClubs.value = [];
@@ -732,6 +743,7 @@ async function loadPlayerClubs() {
             order_by: [{ is_primary: desc }, { joined_at: asc }]
             limit: 8
           ) {
+            role
             is_primary
             club {
               id
@@ -746,7 +758,7 @@ async function loadPlayerClubs() {
       fetchPolicy: "cache-first",
     });
     playerClubs.value = (data?.club_members ?? [])
-      .map((m: any) => m.club)
+      .map((m: any) => (m.club ? { ...m.club, role: m.role } : null))
       .filter(Boolean);
   } catch {
     playerClubs.value = [];
@@ -1796,9 +1808,11 @@ const playerHeroAddFriendClasses =
 const playerHeroFriendBadgeClasses =
   "inline-flex items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 max-md:w-full";
 const playerHeroAvatarFrameClasses =
-  "relative h-[156px] w-[156px] border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-24 max-md:w-24";
-const playerHeroAvatarClasses = "block h-full w-full object-cover";
+  "relative h-[156px] w-[156px] rounded-2xl border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.1)] p-1 shadow-[0_22px_40px_-28px_hsl(var(--tac-amber)/0.9)] max-md:h-24 max-md:w-24";
+const playerHeroAvatarClasses = "block h-full w-full rounded-[0.9rem] object-cover";
 const playerHeroAvatarPlaceholderClasses = `${playerHeroAvatarClasses} flex items-center justify-center bg-muted/20 font-sans text-[3.5rem] font-bold text-[hsl(var(--tac-amber))]`;
+const playerHeroLevelBadgeClasses =
+  "absolute -bottom-2 -end-2 z-10 origin-bottom-right scale-[0.72] drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] sm:scale-100";
 const playerHeroIdentityClasses = "flex min-w-0 flex-1 flex-col gap-2";
 const playerHeroNameClasses =
   "relative m-0 min-w-0 font-sans font-bold uppercase leading-[0.9] tracking-[0.02em] [overflow-wrap:anywhere] [font-stretch:80%]";
@@ -1852,6 +1866,13 @@ const playerHeroTeamChipDotClasses =
                 <div v-else :class="playerHeroAvatarPlaceholderClasses">
                   {{ (player.name || "?").charAt(0).toUpperCase() }}
                 </div>
+                <PlayerSiteLevel
+                  v-if="player.steam_id"
+                  :class="playerHeroLevelBadgeClasses"
+                  :steam-id="String(player.steam_id)"
+                  :refresh-key="siteLevelTick"
+                  size="lg"
+                />
                 <SanctionStatusBadge
                   v-if="activeSanctionType"
                   :type="activeSanctionType"
@@ -1932,6 +1953,18 @@ const playerHeroTeamChipDotClasses =
                     player.name
                   }}</span>
                 </h1>
+                <span
+                  v-if="ownedClubs.length"
+                  class="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-amber-300/45 bg-amber-300/12 px-2 text-amber-200"
+                  :title="ownedClubs.map((club) => club.name).join(' · ')"
+                >
+                  <Crown class="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
+                  <span
+                    class="font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em]"
+                  >
+                    {{ $t("pages.players.detail.club_owner") }}
+                  </span>
+                </span>
                 <NuxtLink
                   v-if="battlePassPremiumAward"
                   to="/battle-pass"
@@ -2053,7 +2086,14 @@ const playerHeroTeamChipDotClasses =
                     :class="playerHeroTeamChipClasses"
                     :title="c.name"
                   >
-                    <span :class="playerHeroTeamChipDotClasses"></span>
+                    <Crown
+                      v-if="c.role === 'owner'"
+                      class="h-3 w-3 fill-amber-300 text-amber-300"
+                    />
+                    <span
+                      v-else
+                      :class="playerHeroTeamChipDotClasses"
+                    ></span>
                     <span>{{ c.short_name || c.name }}</span>
                   </NuxtLink>
                 </template>
@@ -2164,6 +2204,11 @@ const playerHeroTeamChipDotClasses =
           class="relative flex flex-col h-full p-2.5"
         >
           <CardContent class="flex flex-1 flex-col gap-2 p-0 sm:p-0">
+            <PlayerSiteLevelPanel
+              v-if="player.steam_id"
+              :steam-id="String(player.steam_id)"
+              :refresh-key="siteLevelTick"
+            />
             <div
               class="grid grid-cols-1 divide-y divide-border/40 overflow-hidden rounded-md border border-border/60 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
             >
@@ -2364,7 +2409,6 @@ const playerHeroTeamChipDotClasses =
                   :faceit-url="displayFaceitUrl"
                   :faceit-nickname="displayFaceitNickname"
                 />
-                <PlayerSiteLevel :steam-id="player.steam_id" />
                 <PlayerPremierRank
                   :premier-rank="player.premier_rank"
                   :premier-rank-updated-at="player.premier_rank_updated_at"
@@ -3249,7 +3293,7 @@ const playerHeroTeamChipDotClasses =
             <span class="h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"></span>
             {{ $t("pages.players.detail.admin_elo_title") }}
           </div>
-          <PlayerAdminElo :player="player" />
+          <PlayerAdminElo :player="player" @saved="siteLevelTick++" />
         </div>
 
         <div v-if="isAdmin" class="space-y-2">

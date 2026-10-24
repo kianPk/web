@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useApolloClient } from "@vue/apollo-composable";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import { Skeleton } from "~/components/ui/skeleton";
-import { eloTierColor } from "~/utils/eloTier";
 import { loginLinks } from "~/utilities/loginLinks";
 import {
-  fetchTopPlayersByBestElo,
-  type LandingEloPlayer,
-} from "~/utils/landingBestElo";
+  fetchTopPlayersBySiteLevel,
+  type LandingLevelPlayer,
+} from "~/utils/landingSiteLevel";
 
 const { locale } = useI18n();
-const { client: apolloClient } = useApolloClient();
 
 const isFa = computed(() =>
   String(locale.value || "").toLowerCase().startsWith("fa"),
@@ -22,27 +20,27 @@ const copy = computed(() => {
   if (isFa.value) {
     return {
       heading: "رنکینگ بازیکن‌ها.",
-      body: "بالاترین Elo هر بازیکن در هر مودی (Competitive، Rush، Wingman یا Duel) — همان عددی که الان بیشترین است.",
+      body: "بازیکن‌ها بر اساس لول سایت مرتب شده‌اند. لول با بازی در سرورها بالا و پایین می‌رود.",
       rank: "رنک",
       player: "بازیکن",
-      elo: "Elo",
-      emptyPlayers: "هنوز رتبه‌بندی‌ای نیست. اولین مچ‌ها را بازی کنید تا جدول پر شود.",
+      level: "لول",
+      emptyPlayers: "هنوز لولی ثبت نشده. اولین مچ‌ها را بازی کنید تا جدول پر شود.",
       viewAll: "مشاهده کامل لیدربورد",
     };
   }
   return {
     heading: "Rankings for individual players.",
-    body: "Each player is ranked by their highest current Elo across Competitive, Rush, Wingman, and Duel.",
+    body: "Players are ranked by site level. The level moves as they play on the servers.",
     rank: "Rank",
     player: "Player",
-    elo: "Elo",
+    level: "Level",
     emptyPlayers:
-      "No rankings yet. Play your first matches and the board will fill in.",
+      "No site levels yet. Play your first matches and the board will fill in.",
     viewAll: "View full leaderboard",
   };
 });
 
-type PlayerRow = LandingEloPlayer & { rank: number };
+type PlayerRow = LandingLevelPlayer & { rank: number };
 
 const loadingPlayers = ref(true);
 const players = ref<PlayerRow[]>([]);
@@ -50,7 +48,7 @@ const players = ref<PlayerRow[]>([]);
 async function fetchPlayers() {
   loadingPlayers.value = true;
   try {
-    const rows = await fetchTopPlayersByBestElo(apolloClient as any, 10);
+    const rows = await fetchTopPlayersBySiteLevel(10);
     players.value = rows.map((row, index): PlayerRow => ({
       ...row,
       rank: index + 1,
@@ -95,7 +93,7 @@ onMounted(() => {
         >
           <span>{{ copy.rank }}</span>
           <span>{{ copy.player }}</span>
-          <span class="text-right">{{ copy.elo }}</span>
+          <span class="text-right">{{ copy.level }}</span>
         </div>
 
         <div v-if="loadingPlayers" class="space-y-3 p-3 sm:p-4">
@@ -154,11 +152,8 @@ onMounted(() => {
                   size="xs"
                 />
               </div>
-              <span
-                class="text-right font-mono text-xs font-semibold tabular-nums sm:text-sm"
-                :style="{ color: eloTierColor(entry.value) || '#fff' }"
-              >
-                {{ Math.round(entry.value).toLocaleString() }}
+              <span class="flex justify-end">
+                <PlayerSiteLevel :level="entry.level" :xp="entry.xp" size="md" />
               </span>
             </button>
           </li>

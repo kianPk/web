@@ -7,10 +7,9 @@ import {
   ref,
 } from "vue";
 import { useI18n } from "vue-i18n";
-import { useApolloClient } from "@vue/apollo-composable";
 import { useBranding } from "~/composables/useBranding";
 import { loginLinks } from "~/utilities/loginLinks";
-import { eloTierColor } from "~/utils/eloTier";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 
 // Below-fold: keep out of the landing critical chunk (TBT / Speed Index).
 const LandingRankings = defineAsyncComponent(() =>
@@ -33,7 +32,6 @@ const { copy: seoPage } = useSiteSeo("home");
 
 const { locale } = useI18n();
 const { brandName, logoUrl } = useBranding();
-const { client: apolloClient } = useApolloClient();
 
 const isFa = computed(() =>
   String(locale.value || "").toLowerCase().startsWith("fa"),
@@ -48,13 +46,13 @@ const copy = computed(() => {
       cta: "همین حالا بازی کن",
       onlineSuffix: "بازیکن آنلاین الان",
       words: ["بازی", "ایم", "مهارت", "رنک", "محدودیت", "ذهن", "تیم"],
-      elo: "Elo",
+      level: "لول",
       featuresHeading: "بیش از یک مچ‌میکینگ.",
       featuresSub: `${displayBrand.value} خانه رقابت CS2 است — صف رنک، مچ زنده، سرور پابلیک، اینونتوری و ابزارهای کامیونیتی.`,
       features: [
         {
           title: "مچ‌میکینگ رنک",
-          body: "سولو یا با تیم. Elo بگیر در Competitive، Wingman و Duel.",
+          body: "سولو یا با تیم. لول سایت بگیر در Competitive، Wingman و Duel.",
           cta: "ورود به صف",
           redirect: "/play",
         },
@@ -94,17 +92,17 @@ const copy = computed(() => {
 
   return {
     challengeYour: "Challenge your",
-    subtitle: `Players come to ${displayBrand.value} for competitive Counter-Strike 2 at its best. Grind matchmaking, climb Elo, and prove yourself with no ceiling on how far you can go.`,
+    subtitle: `Players come to ${displayBrand.value} for competitive Counter-Strike 2 at its best. Grind matchmaking, climb your site level, and prove yourself with no ceiling on how far you can go.`,
     cta: "Play now",
     onlineSuffix: "players online right now",
     words: ["game", "aim", "skill", "rank", "limits", "mind", "team"],
-    elo: "Elo",
+    level: "Level",
     featuresHeading: "More than matchmaking.",
     featuresSub: `${displayBrand.value} is a home for every ambition — competitive queues, live matches, inventory, and community tools.`,
     features: [
       {
         title: "Matchmaking",
-        body: "Solo or stack. Grind Elo in Competitive, Wingman, or Duel.",
+        body: "Solo or stack. Climb your site level in Competitive, Wingman, or Duel.",
         cta: "Play now",
         redirect: "/play",
       },
@@ -146,8 +144,8 @@ type HeroPlayer = {
   rank: number;
   name: string;
   avatar: string | null;
-  elo: number;
-  matchType: string;
+  level: number;
+  xp: number;
 };
 
 const wordIndex = ref(0);
@@ -203,15 +201,17 @@ function loadGeistFont() {
 
 async function fetchHeroPlayers() {
   try {
-    const { fetchTopPlayersByBestElo } = await import("~/utils/landingBestElo");
-    const rows = await fetchTopPlayersByBestElo(apolloClient as any, 3);
+    const { fetchTopPlayersBySiteLevel } = await import(
+      "~/utils/landingSiteLevel"
+    );
+    const rows = await fetchTopPlayersBySiteLevel(3);
     heroPlayers.value = rows.map(
       (row, index): HeroPlayer => ({
         rank: index + 1,
         name: row.player_name || "Player",
         avatar: row.player_custom_avatar_url || row.player_avatar_url || null,
-        elo: row.value,
-        matchType: row.match_type,
+        level: row.level,
+        xp: row.xp,
       }),
     );
   } catch (error) {
@@ -434,16 +434,15 @@ function avatarFallback(name: string) {
               >
                 {{ card.player.name }}
               </span>
-              <span
-                class="font-mono text-[0.7rem] font-semibold tabular-nums sm:text-[0.8rem]"
-                :style="{
-                  color: eloTierColor(card.player.elo) || '#aa0e19',
-                }"
-              >
-                {{ Math.round(card.player.elo).toLocaleString() }}
-                <span class="ms-0.5 text-[0.55rem] uppercase text-white/45 sm:ms-1 sm:text-[0.65rem]">{{
-                  copy.elo
-                }}</span>
+              <span class="inline-flex items-center gap-1.5">
+                <PlayerSiteLevel
+                  :level="card.player.level"
+                  :xp="card.player.xp"
+                  size="md"
+                />
+                <span class="font-mono text-[0.55rem] uppercase tracking-[0.12em] text-white/45 sm:text-[0.65rem]">
+                  {{ copy.level }}
+                </span>
               </span>
             </template>
             <template v-else>

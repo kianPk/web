@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/select";
 import { Spinner } from "~/components/ui/spinner";
 import { toast } from "~/components/ui/toast";
+import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
 import { useAuthStore } from "~/stores/AuthStore";
 
@@ -39,6 +40,10 @@ const types = [
 const selectedType = ref<(typeof types)[number]["key"]>("Competitive");
 const eloValue = ref("");
 const saving = ref(false);
+const siteLevel = ref(1);
+const siteXp = ref(0);
+const levelValue = ref("1");
+const savingLevel = ref(false);
 
 const canEdit = computed(() =>
   auth.isRoleAbove(e_player_roles_enum.administrator),
@@ -58,6 +63,28 @@ watch(
   () => {
     const cur = currentForType(selectedType.value);
     eloValue.value = cur != null ? String(cur) : "5000";
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.player?.steam_id,
+  async (steamId) => {
+    if (!steamId || !canEdit.value) return;
+    try {
+      const apiDomain = useRuntimeConfig().public.apiDomain as string;
+      const data = await $fetch<{
+        players: Array<{ level: number; xp: number }>;
+      }>(`https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}`);
+      const row = data?.players?.[0];
+      siteLevel.value = row?.level ?? 1;
+      siteXp.value = row?.xp ?? 0;
+      levelValue.value = String(siteLevel.value);
+    } catch {
+      siteLevel.value = 1;
+      siteXp.value = 0;
+      levelValue.value = "1";
+    }
   },
   { immediate: true },
 );
@@ -105,6 +132,38 @@ async function save() {
     saving.value = false;
   }
 }
+
+async function saveLevel() {
+  if (!canEdit.value || savingLevel.value) return;
+  const level = Math.round(Number(levelValue.value));
+  if (!Number.isFinite(level) || level < 1 || level > 10) return;
+  savingLevel.value = true;
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    const data = await $fetch<{
+      player: { xp: number; level: number };
+    }>(`https://${apiDomain}/hosted-servers/site-xp/admin-set`, {
+      method: "POST",
+      credentials: "include",
+      body: { steam_id: String(props.player.steam_id), level },
+    });
+    siteLevel.value = data?.player?.level ?? level;
+    siteXp.value = data?.player?.xp ?? siteXp.value;
+    levelValue.value = String(siteLevel.value);
+    toast({ title: t("pages.players.detail.admin_level_saved") });
+    emit("saved");
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title:
+        error?.data?.message ||
+        error?.message ||
+        t("pages.players.detail.admin_level_failed"),
+    });
+  } finally {
+    savingLevel.value = false;
+  }
+}
 </script>
 
 <template>
@@ -142,5 +201,36 @@ async function save() {
       <Spinner v-if="saving" class="mr-1 h-4 w-4" />
       {{ $t("pages.players.detail.admin_elo_save") }}
     </Button>
+
+    <div class="space-y-2 border-t border-border/60 pt-3">
+      <div class="flex items-center gap-2">
+        <PlayerSiteLevel :level="siteLevel" :xp="siteXp" size="md" />
+        <span class="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+          {{ $t("pages.players.detail.admin_level_title") }}
+        </span>
+      </div>
+      <Select v-model="levelValue">
+        <SelectTrigger class="h-9">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="n in 10" :key="n" :value="String(n)">
+            {{ $t("pages.players.detail.site_level_now", { level: n }) }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        variant="tactical"
+        size="sm"
+        class="w-full"
+        :disabled="savingLevel"
+        :loading="savingLevel"
+        @click="saveLevel"
+      >
+        <Spinner v-if="savingLevel" class="mr-1 h-4 w-4" />
+        {{ $t("pages.players.detail.admin_level_save") }}
+      </Button>
+    </div>
   </div>
 </template>

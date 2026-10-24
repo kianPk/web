@@ -6,6 +6,8 @@ const props = defineProps<{
   level?: number | null;
   xp?: number | null;
   steamId?: string | null;
+  size?: "sm" | "md" | "lg";
+  refreshKey?: number;
 }>();
 
 const fetched = ref<{ level: number; xp: number } | null>(null);
@@ -46,9 +48,25 @@ const numberStyle = computed(() => ({
   textShadow: `0 0 8px color-mix(in srgb, ${levelColor.value} 40%, transparent)`,
 }));
 
+const sizeClass = computed(() => {
+  if (props.size === "lg") return "h-14 w-14";
+  if (props.size === "md") return "h-8 w-8";
+  return "h-[18px] w-[18px]";
+});
+
+const textClass = computed(() => {
+  if (props.size === "lg") return "text-lg";
+  if (props.size === "md") return "text-xs";
+  return "text-[0.62rem]";
+});
+
+const insetClass = computed(() =>
+  props.size === "lg" ? "inset-[3px]" : "inset-[2px]",
+);
+
 watch(
-  () => props.steamId,
-  async (steamId) => {
+  () => [props.steamId, props.refreshKey] as const,
+  async ([steamId]) => {
     fetched.value = null;
     if (!steamId || props.level != null) return;
     try {
@@ -71,13 +89,15 @@ watch(
 <template>
   <span
     v-if="shown"
-    class="relative inline-grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full align-middle"
+    class="relative inline-grid shrink-0 place-items-center rounded-full align-middle"
+    :class="sizeClass"
     :style="badgeStyle"
     :title="t('pages.players.detail.site_level_title', { level: shown.level, xp: shown.xp })"
   >
-    <span class="absolute inset-[2px] rounded-full bg-[hsl(240_8%_10%)]"></span>
+    <span class="absolute rounded-full bg-[hsl(240_8%_10%)]" :class="insetClass"></span>
     <span
-      class="relative font-mono text-[0.62rem] font-bold tabular-nums leading-none"
+      class="relative font-mono font-bold tabular-nums leading-none"
+      :class="textClass"
       :style="numberStyle"
     >{{ shown.level }}</span>
   </span>
