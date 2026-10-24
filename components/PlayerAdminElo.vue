@@ -75,7 +75,10 @@ watch(
       const apiDomain = useRuntimeConfig().public.apiDomain as string;
       const data = await $fetch<{
         players: Array<{ level: number; xp: number }>;
-      }>(`https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}`);
+      }>(
+        `https://${apiDomain}/hosted-servers/site-xp/lookup?steam_ids=${encodeURIComponent(String(steamId))}`,
+        { cache: "no-store" },
+      );
       const row = data?.players?.[0];
       siteLevel.value = row?.level ?? 1;
       siteXp.value = row?.xp ?? 0;

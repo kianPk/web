@@ -24,7 +24,7 @@ watch(
       const data = await $fetch<{
         players: Array<{ steam_id: string; xp: number; level: number }>;
       }>(
-        `https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}&_=${props.refreshKey || 0}`,
+        `https://${apiDomain}/hosted-servers/site-xp/lookup?steam_ids=${encodeURIComponent(String(steamId))}&_=${props.refreshKey || 0}`,
         { cache: "no-store" },
       );
       const found = data?.players?.[0];
