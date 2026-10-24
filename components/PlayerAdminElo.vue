@@ -136,13 +136,19 @@ async function save() {
 async function saveLevel() {
   if (!canEdit.value || savingLevel.value) return;
   const level = Math.round(Number(levelValue.value));
-  if (!Number.isFinite(level) || level < 1 || level > 10) return;
+  if (!Number.isFinite(level) || level < 1 || level > 10) {
+    toast({
+      variant: "destructive",
+      title: t("pages.players.detail.admin_level_failed"),
+    });
+    return;
+  }
   savingLevel.value = true;
   try {
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
     const data = await $fetch<{
       player: { xp: number; level: number };
-    }>(`https://${apiDomain}/hosted-servers/site-xp/admin-set`, {
+    }>(`https://${apiDomain}/avatars/admin/player-level`, {
       method: "POST",
       credentials: "include",
       body: { steam_id: String(props.player.steam_id), level },
@@ -209,16 +215,14 @@ async function saveLevel() {
           {{ $t("pages.players.detail.admin_level_title") }}
         </span>
       </div>
-      <Select v-model="levelValue">
-        <SelectTrigger class="h-9">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="n in 10" :key="n" :value="String(n)">
-            {{ $t("pages.players.detail.site_level_now", { level: n }) }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <select
+        v-model="levelValue"
+        class="h-9 w-full rounded-md border border-input bg-background px-3 font-mono text-sm"
+      >
+        <option v-for="n in 10" :key="n" :value="String(n)">
+          {{ $t("pages.players.detail.site_level_now", { level: n }) }}
+        </option>
+      </select>
       <Button
         type="button"
         variant="tactical"

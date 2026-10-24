@@ -1812,7 +1812,7 @@ const playerHeroAvatarFrameClasses =
 const playerHeroAvatarClasses = "block h-full w-full rounded-[0.9rem] object-cover";
 const playerHeroAvatarPlaceholderClasses = `${playerHeroAvatarClasses} flex items-center justify-center bg-muted/20 font-sans text-[3.5rem] font-bold text-[hsl(var(--tac-amber))]`;
 const playerHeroLevelBadgeClasses =
-  "absolute -bottom-2 -end-2 z-10 origin-bottom-right scale-[0.72] drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] sm:scale-100";
+  "pointer-events-none absolute bottom-3 end-3 z-10";
 const playerHeroIdentityClasses = "flex min-w-0 flex-1 flex-col gap-2";
 const playerHeroNameClasses =
   "relative m-0 min-w-0 font-sans font-bold uppercase leading-[0.9] tracking-[0.02em] [overflow-wrap:anywhere] [font-stretch:80%]";
@@ -1836,7 +1836,7 @@ const playerHeroPlayIconClasses =
   "h-5 w-5 fill-current transition-transform duration-300 group-hover/play:translate-x-0.5 group-hover/play:scale-110";
 const playerHeroPlayGlowClasses =
   "pointer-events-none absolute inset-0 z-0 -translate-x-full bg-[linear-gradient(90deg,transparent_0%,hsl(0_0%_100%_/_0.4)_50%,transparent_100%)] transition-transform duration-500 group-hover/play:translate-x-full";
-const playerHeroFooterClasses = "mt-auto flex flex-col gap-4";
+const playerHeroFooterClasses = "mt-6 flex flex-col gap-5";
 const playerHeroFormClasses = "border-t border-border/60 pt-4";
 const playerHeroFormLabelClasses =
   "inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
@@ -1866,13 +1866,17 @@ const playerHeroTeamChipDotClasses =
                 <div v-else :class="playerHeroAvatarPlaceholderClasses">
                   {{ (player.name || "?").charAt(0).toUpperCase() }}
                 </div>
-                <PlayerSiteLevel
+                <div
                   v-if="player.steam_id"
                   :class="playerHeroLevelBadgeClasses"
-                  :steam-id="String(player.steam_id)"
-                  :refresh-key="siteLevelTick"
-                  size="lg"
-                />
+                >
+                  <PlayerSiteLevel
+                    class="pointer-events-auto"
+                    :steam-id="String(player.steam_id)"
+                    :refresh-key="siteLevelTick"
+                    size="md"
+                  />
+                </div>
                 <SanctionStatusBadge
                   v-if="activeSanctionType"
                   :type="activeSanctionType"
@@ -2102,6 +2106,11 @@ const playerHeroTeamChipDotClasses =
           </div>
 
           <div :class="playerHeroFooterClasses">
+            <PlayerSiteLevelPanel
+              v-if="player.steam_id"
+              :steam-id="String(player.steam_id)"
+              :refresh-key="siteLevelTick"
+            />
             <div :class="playerHeroFormClasses">
               <div class="flex items-center justify-between gap-4">
                 <div class="min-w-0 space-y-2.5">
@@ -2203,12 +2212,7 @@ const playerHeroTeamChipDotClasses =
           variant="elevated"
           class="relative flex flex-col h-full p-2.5"
         >
-          <CardContent class="flex flex-1 flex-col gap-2 p-0 sm:p-0">
-            <PlayerSiteLevelPanel
-              v-if="player.steam_id"
-              :steam-id="String(player.steam_id)"
-              :refresh-key="siteLevelTick"
-            />
+          <CardContent class="flex flex-1 flex-col gap-2 p-0 pt-1 sm:p-0 sm:pt-1">
             <div
               class="grid grid-cols-1 divide-y divide-border/40 overflow-hidden rounded-md border border-border/60 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
             >

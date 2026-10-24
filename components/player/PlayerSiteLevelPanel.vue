@@ -23,7 +23,10 @@ watch(
       const apiDomain = useRuntimeConfig().public.apiDomain as string;
       const data = await $fetch<{
         players: Array<{ steam_id: string; xp: number; level: number }>;
-      }>(`https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}`);
+      }>(
+        `https://${apiDomain}/hosted-servers/site-xp?steam_ids=${steamId}&_=${props.refreshKey || 0}`,
+        { cache: "no-store" },
+      );
       const found = data?.players?.[0];
       row.value = found
         ? { level: found.level, xp: found.xp }
@@ -55,7 +58,7 @@ const nextXp = computed(() => {
 <template>
   <div
     v-if="row"
-    class="relative overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.28)] bg-[radial-gradient(120%_140%_at_100%_0%,hsl(var(--tac-amber)/0.16)_0%,transparent_46%),linear-gradient(180deg,hsl(var(--card)/0.72)_0%,hsl(var(--card)/0.35)_100%)] px-4 py-3.5"
+    class="relative overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.28)] bg-[radial-gradient(120%_140%_at_100%_0%,hsl(var(--tac-amber)/0.16)_0%,transparent_46%),linear-gradient(180deg,hsl(var(--card)/0.72)_0%,hsl(var(--card)/0.35)_100%)] px-4 pb-4 pt-5"
   >
     <div class="flex items-center gap-4">
       <PlayerSiteLevel :level="row.level" :xp="row.xp" size="lg" />

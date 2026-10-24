@@ -83,7 +83,7 @@ async function setSiteLevel(player: LivePlayer, level: number) {
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
     const data = await $fetch<{
       player: { steam_id: string; xp: number; level: number };
-    }>(`https://${apiDomain}/hosted-servers/site-xp/admin-set`, {
+    }>(`https://${apiDomain}/avatars/admin/player-level`, {
       method: "POST",
       credentials: "include",
       body: { steam_id: player.steam_id, level },
