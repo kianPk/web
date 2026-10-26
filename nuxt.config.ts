@@ -171,6 +171,11 @@ export default defineNuxtConfig({
               display: none !important;
               content: none !important;
             }
+            /* Guest landing spa boot is light gray — hide it in the client so
+               the handoff is dark→glass, not white→black. */
+            html[data-yguard-desktop] #yguard-boot {
+              display: none !important;
+            }
           `,
         },
       ],

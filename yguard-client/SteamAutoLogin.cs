@@ -59,7 +59,7 @@ internal static class SteamAutoLogin
             if (string.IsNullOrWhiteSpace(body?.Token))
                 return null;
 
-            var redirect = Uri.EscapeDataString("/launcher?desktop=1");
+            var redirect = Uri.EscapeDataString("/launcher/play?desktop=1");
             return $"{WebBase}/auth/steam/desktop?token={body.Token}&redirect={redirect}";
         }
         catch

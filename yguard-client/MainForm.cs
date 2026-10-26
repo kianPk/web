@@ -288,10 +288,20 @@ internal sealed class MainForm : Form
     {
         try
         {
+            // Let the guest launcher shell paint before any auth navigation.
+            await Task.Delay(2000);
+            if (!_pageReady || IsDisposed) return;
+
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
             var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync(cts.Token);
-            if (!string.IsNullOrWhiteSpace(autoUrl) && _pageReady)
-                core.Navigate(autoUrl);
+            if (string.IsNullOrWhiteSpace(autoUrl) || !_pageReady || IsDisposed)
+                return;
+
+            // Only leave the launcher for a successful desktop ticket handoff.
+            if (!autoUrl.Contains("/auth/steam/desktop?", StringComparison.Ordinal))
+                return;
+
+            core.Navigate(autoUrl);
         }
         catch
         {

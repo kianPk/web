@@ -22,6 +22,11 @@ function isGuestShellRoute(path: string): boolean {
   if (path.startsWith("/auth")) {
     return true;
   }
+  // Desktop YGuard Client shell — paint immediately with Sign in; do not block
+  // on getMe or bounce to /login (that left WebView stuck on a black frame).
+  if (path === "/launcher" || path.startsWith("/launcher/")) {
+    return true;
+  }
   // Embeds / popouts stay reachable without a session.
   if (path.startsWith("/embed/") || path.startsWith("/match-popout")) {
     return true;
