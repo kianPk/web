@@ -7170,7 +7170,13 @@
       "close": "بستن",
       "sign_in": "ورود",
       "nav": {
-        "inventory": "اینونتوری"
+        "play": "پلی",
+        "servers": "سرور",
+        "teamspeak": "ویس",
+        "battle_pass": "پس",
+        "inventory": "اسکین",
+        "clubs": "کلاب",
+        "scrims": "اسکریم"
       },
       "teamspeak_hint": "با یک کلیک به تیم‌اسپیک YGuard وصل شو، یا آدرس را کپی کن.",
       "teamspeak_connect": "اتصال",

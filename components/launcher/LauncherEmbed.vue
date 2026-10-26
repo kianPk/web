@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps<{
   src: string;
@@ -11,18 +11,27 @@ const embedSrc = computed(() => {
   url.searchParams.set("embed", "1");
   return `${url.pathname}${url.search}${url.hash}`;
 });
+
+watch(
+  () => props.src,
+  () => {
+    loaded.value = false;
+  },
+);
 </script>
 
 <template>
-  <div class="relative h-full w-full bg-[#0c0d10]">
+  <div class="absolute inset-0 overflow-hidden bg-[#0c0d10]">
     <div
       v-if="!loaded"
-      class="pointer-events-none absolute inset-0 animate-pulse bg-[linear-gradient(180deg,#15171e_0%,#0c0d10_100%)]"
+      class="pointer-events-none absolute inset-0 z-10 animate-pulse bg-[linear-gradient(180deg,rgba(21,23,30,0.9)_0%,rgba(12,13,16,0.95)_100%)]"
     />
     <iframe
+      :key="embedSrc"
       :src="embedSrc"
-      class="h-full w-full border-0 bg-[#0c0d10]"
+      class="absolute inset-0 h-full w-full border-0 bg-[#0c0d10]"
       title="YGuard"
+      allow="clipboard-read; clipboard-write"
       @load="loaded = true"
     />
   </div>

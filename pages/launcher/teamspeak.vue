@@ -24,12 +24,12 @@ async function copyAddress() {
 </script>
 
 <template>
-  <div class="flex h-full items-center justify-center p-8">
+  <div class="absolute inset-0 flex items-center justify-center overflow-auto p-4 sm:p-8">
     <div
-      class="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#15171e] p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+      class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-8"
     >
       <div
-        class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#ff5500]/15 text-[#ff5500]"
+        class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#ff5500]/15 text-[#ff5500] ring-1 ring-[#ff5500]/25"
       >
         <Headset class="h-8 w-8" :stroke-width="1.75" />
       </div>
@@ -40,15 +40,12 @@ async function copyAddress() {
         {{ t("layouts.launcher.teamspeak_hint") }}
       </p>
       <p
-        class="mt-6 rounded-lg bg-black/30 px-4 py-3 font-mono text-sm tracking-wide text-[#ff5500]"
+        class="mt-6 rounded-xl bg-black/35 px-4 py-3 font-mono text-sm tracking-wide text-[#ff6a1f] ring-1 ring-white/5"
       >
         {{ address }}
       </p>
       <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
-        <Button
-          class="bg-[#ff5500] text-white hover:bg-[#ff6a1f]"
-          as-child
-        >
+        <Button class="bg-[#ff5500] text-white hover:bg-[#ff6a1f]" as-child>
           <a :href="connectUrl">
             <ExternalLink class="h-4 w-4" />
             {{ t("layouts.launcher.teamspeak_connect") }}

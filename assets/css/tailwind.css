@@ -225,6 +225,30 @@
   html {
     touch-action: manipulation;
   }
+
+  /* Desktop client iframe shell: fill the WebView; pages scroll in embed layout. */
+  html.yguard-embed,
+  html.yguard-embed body,
+  html.yguard-embed #__nuxt {
+    height: 100%;
+    max-height: 100%;
+  }
+
+  html.yguard-embed,
+  html.yguard-embed body {
+    overflow: hidden;
+  }
+
+  html.yguard-embed #__nuxt {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.yguard-embed #__nuxt > * {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 @media screen and (max-width: 768px) {
