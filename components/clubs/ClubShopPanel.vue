@@ -17,7 +17,7 @@ import {
   hostedApi,
   hostedErrorMessage,
 } from "~/composables/useHostedServers";
-import { formatTomanAmount, irrToToman } from "~/utilities/irrToman";
+import { formatTomanAmount } from "~/utilities/irrToman";
 import { useAuthStore } from "~/stores/AuthStore";
 
 type Duration = "7d" | "30d" | "90d";
@@ -249,9 +249,7 @@ const empty = computed(() => !loading.value && products.value.length === 0);
               >
                 {{ t(`pages.clubs.shop.duration_${pkg.duration}`) }}
                 ·
-                {{
-                  formatTomanAmount(irrToToman(pkg.price_irr), locale)
-                }}
+                {{ formatTomanAmount(pkg.price_irr, locale) }}
                 {{ t("pages.clubs.shop.toman") }}
               </button>
             </div>

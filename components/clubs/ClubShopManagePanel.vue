@@ -13,6 +13,7 @@ import {
 import {
   formatTomanAmount,
   irrToToman,
+  parseTomanInput,
   tomanToIrr,
 } from "~/utilities/irrToman";
 
@@ -77,10 +78,6 @@ function toDraft(p: Product): Draft {
     price_30d_yp: String(p.price_30d_ypoint || 0),
     price_90d_yp: String(p.price_90d_ypoint || 0),
   };
-}
-
-function parseToman(raw: string) {
-  return Math.max(0, Math.floor(Number(String(raw).replace(/[^\d]/g, "")) || 0));
 }
 
 function kindLabel(kind: Kind) {
@@ -176,12 +173,12 @@ async function saveAll() {
       description: d.description,
       enabled: d.enabled,
       ypoint_enabled: d.ypoint_enabled,
-      price_7d_irr: tomanToIrr(parseToman(d.price_7d_toman)),
-      price_30d_irr: tomanToIrr(parseToman(d.price_30d_toman)),
-      price_90d_irr: tomanToIrr(parseToman(d.price_90d_toman)),
-      price_7d_ypoint: parseToman(d.price_7d_yp),
-      price_30d_ypoint: parseToman(d.price_30d_yp),
-      price_90d_ypoint: parseToman(d.price_90d_yp),
+      price_7d_irr: tomanToIrr(parseTomanInput(d.price_7d_toman)),
+      price_30d_irr: tomanToIrr(parseTomanInput(d.price_30d_toman)),
+      price_90d_irr: tomanToIrr(parseTomanInput(d.price_90d_toman)),
+      price_7d_ypoint: parseTomanInput(d.price_7d_yp),
+      price_30d_ypoint: parseTomanInput(d.price_30d_yp),
+      price_90d_ypoint: parseTomanInput(d.price_90d_yp),
     }));
     await hostedApi(`/hosted-servers/clubs/${props.clubId}/shop`, {
       method: "POST",
@@ -352,7 +349,7 @@ const pendingCustom = computed(() =>
             {{ o.amount_ypoint }} YP
           </template>
           <template v-else>
-            {{ formatTomanAmount(irrToToman(o.amount_irr), locale) }}
+            {{ formatTomanAmount(o.amount_irr, locale) }}
             {{ t("pages.clubs.shop.toman") }}
           </template>
         </span>

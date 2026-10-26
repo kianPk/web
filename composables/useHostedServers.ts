@@ -168,7 +168,10 @@ export function hostedErrorMessage(error: any): string {
 
 export function hostedApi<T>(
   path: string,
-  options: { method?: "GET" | "POST"; body?: Record<string, unknown> } = {},
+  options: {
+    method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+    body?: Record<string, unknown>;
+  } = {},
 ): Promise<T> {
   const apiDomain = useRuntimeConfig().public.apiDomain as string;
   return $fetch<T>(`https://${apiDomain}${path}`, {
