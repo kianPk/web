@@ -20,7 +20,7 @@ Optional env:
 
 | Variable | Meaning |
 |----------|---------|
-| `YGUARD_CLIENT_URL` | Override start URL (default `https://yguard.ir/launcher?desktop=1`) |
+| `YGUARD_CLIENT_URL` | Override start URL (default `https://yguard.ir/launcher/play?desktop=1`) |
 | `YGUARD_WEB_BASE` | API/web origin for ticket login (default `https://yguard.ir`) |
 | `STEAM_AUTH_APP_ID` | Steamworks app id (default `480` Spacewar; must match API) |
 | `YGUARD_CLIENT_DEVTOOLS` | `1` to enable DevTools |

@@ -33,6 +33,26 @@ export default defineNuxtPlugin((nuxtApp) => {
     return;
   }
 
+  // Desktop YGuard Client (WebView2): the spa-loading hero is stripped as soon
+  // as Vue mounts, leaving only the black .pre-loader mask until suspense
+  // resolves. If a launcher chunk stalls, that looks like a dead black window.
+  // Head script + CSS already hide the mask; still force-clear body classes.
+  const desktopClient =
+    navigator.userAgent.includes("YGuardClient/") ||
+    new URLSearchParams(window.location.search).get("desktop") === "1" ||
+    new URLSearchParams(window.location.search).get("desktop") === "true" ||
+    document.documentElement.dataset.yguardDesktop === "1";
+  if (desktopClient) {
+    document.documentElement.dataset.yguardDesktop = "1";
+    const clearMask = () => {
+      document.body.classList.remove("pre-loader", "pre-loader--fade");
+    };
+    clearMask();
+    reveal();
+    setTimeout(clearMask, 500);
+    setTimeout(clearMask, 2000);
+  }
+
   // NOT app:mounted — Nuxt fires that the instant the root component mounts,
   // before the root <Suspense> resolves. NuxtLayout and NuxtPage both defer
   // hydration, so at that point the layout, its async children and the page
@@ -44,5 +64,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.hook("app:error", reveal);
 
   // Last resort: never leave someone stuck staring at the spinner.
-  setTimeout(reveal, 8000);
+  setTimeout(reveal, desktopClient ? 2500 : 8000);
 });

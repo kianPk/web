@@ -9,13 +9,22 @@ internal sealed class MainForm : Form
 {
     private static readonly string StartUrl =
         Environment.GetEnvironmentVariable("YGUARD_CLIENT_URL")
-        ?? "https://yguard.ir/launcher?desktop=1";
+        ?? "https://yguard.ir/launcher/play?desktop=1";
 
     private readonly WebView2 _web = new()
     {
         Dock = DockStyle.Fill,
-        // Opaque while the SPA boots — Transparent looked like a dead black window.
         DefaultBackgroundColor = Color.FromArgb(10, 11, 16),
+    };
+
+    private readonly Label _status = new()
+    {
+        Dock = DockStyle.Fill,
+        TextAlign = ContentAlignment.MiddleCenter,
+        ForeColor = Color.FromArgb(200, 200, 200),
+        BackColor = Color.FromArgb(10, 11, 16),
+        Font = new Font("Segoe UI", 12f, FontStyle.Regular),
+        Text = "Loading YGuard…",
     };
 
     private readonly NotifyIcon _tray = new()
@@ -26,6 +35,8 @@ internal sealed class MainForm : Form
 
     private bool _dragFromWeb;
     private bool _allowExit;
+    private bool _pageReady;
+    private bool _steamLoginStarted;
 
     public MainForm()
     {
@@ -33,7 +44,7 @@ internal sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1100, 700);
         Size = new Size(1280, 800);
-        BackColor = Color.FromArgb(12, 13, 16);
+        BackColor = Color.FromArgb(10, 11, 16);
         FormBorderStyle = FormBorderStyle.None;
         DoubleBuffered = true;
         ShowInTaskbar = true;
@@ -62,6 +73,9 @@ internal sealed class MainForm : Form
         _tray.DoubleClick += (_, _) => RestoreFromTray();
 
         Controls.Add(_web);
+        Controls.Add(_status);
+        _status.BringToFront();
+
         HandleCreated += (_, _) => ApplyRoundedCorners();
         Resize += (_, _) => ApplyRoundedCorners();
         FormClosing += OnFormClosing;
@@ -78,8 +92,6 @@ internal sealed class MainForm : Form
                 return new Icon(icoPath);
 
             var pngPath = Path.Combine(baseDir, "Assets", "logo.png");
-            if (!File.Exists(pngPath))
-                pngPath = Path.Combine(baseDir, "Assets", "app.png");
             if (!File.Exists(pngPath))
                 return null;
 
@@ -137,7 +149,7 @@ internal sealed class MainForm : Form
         }
         catch
         {
-            /* balloon optional */
+            /* optional */
         }
     }
 
@@ -151,14 +163,38 @@ internal sealed class MainForm : Form
         ApplyRoundedCorners();
     }
 
+    private void SetStatus(string text)
+    {
+        if (IsDisposed) return;
+        void apply()
+        {
+            _status.Text = text;
+            _status.Visible = true;
+            _status.BringToFront();
+        }
+        if (InvokeRequired) BeginInvoke(apply);
+        else apply();
+    }
+
+    private void HideStatus()
+    {
+        if (IsDisposed) return;
+        void apply() => _status.Visible = false;
+        if (InvokeRequired) BeginInvoke(apply);
+        else apply();
+    }
+
     private async Task InitWebAsync()
     {
         try
         {
+            SetStatus("Starting WebView…");
+
+            // Fresh profile folder avoids a corrupt WebView2 cache looking like a black window.
             var userData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "YGuardClient",
-                "WebView2");
+                "WebView2-v3");
             Directory.CreateDirectory(userData);
 
             var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userData);
@@ -174,21 +210,16 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.2.4";
+                $"{core.Settings.UserAgent} YGuardClient/0.2.5";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
+            core.NavigationCompleted += OnNavigationCompleted;
             core.WebMessageReceived += OnWebMessage;
-            core.DOMContentLoaded += (_, _) =>
-            {
-                _ = core.ExecuteScriptAsync(
-                    "document.documentElement.dataset.yguardDesktop='1';" +
-                    "window.yguardDesktop=true;");
-            };
+            core.DOMContentLoaded += (_, _) => InjectDesktopBootFix(core);
 
-            // Don't block the UI forever on Steam; show the shell immediately.
+            SetStatus("Loading YGuard…");
             core.Navigate(StartUrl);
-            _ = TrySteamAutoLoginAsync(core);
         }
         catch (Exception ex)
         {
@@ -203,18 +234,68 @@ internal sealed class MainForm : Form
         }
     }
 
+    private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        BeginInvoke(() =>
+        {
+            if (!e.IsSuccess)
+            {
+                SetStatus($"Failed to load ({e.WebErrorStatus}). Retrying…");
+                _web.CoreWebView2?.Navigate(StartUrl);
+                return;
+            }
+
+            _pageReady = true;
+            InjectDesktopBootFix(_web.CoreWebView2!);
+            // Give Vue a beat to paint chrome, then drop the native status cover.
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(600);
+                HideStatus();
+            });
+
+            if (!_steamLoginStarted)
+            {
+                _steamLoginStarted = true;
+                _ = TrySteamAutoLoginAsync(_web.CoreWebView2!);
+            }
+        });
+    }
+
+    private static void InjectDesktopBootFix(CoreWebView2 core)
+    {
+        _ = core.ExecuteScriptAsync(
+            """
+            (function(){
+              try {
+                document.documentElement.dataset.yguardDesktop = '1';
+                window.yguardDesktop = true;
+                var clear = function(){
+                  if (document.body) {
+                    document.body.classList.remove('pre-loader','pre-loader--fade');
+                  }
+                };
+                clear();
+                setTimeout(clear, 300);
+                setTimeout(clear, 1200);
+                setTimeout(clear, 3000);
+              } catch (e) {}
+            })();
+            """);
+    }
+
     private async Task TrySteamAutoLoginAsync(CoreWebView2 core)
     {
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
             var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync(cts.Token);
-            if (!string.IsNullOrWhiteSpace(autoUrl))
+            if (!string.IsNullOrWhiteSpace(autoUrl) && _pageReady)
                 core.Navigate(autoUrl);
         }
         catch
         {
-            /* stay on StartUrl — user can sign in from the shell */
+            /* stay on launcher — sign-in still available in UI */
         }
     }
 
@@ -283,7 +364,6 @@ internal sealed class MainForm : Form
                         : FormWindowState.Maximized;
                     break;
                 case "close":
-                    // X button → tray, not exit
                     MinimizeToTray();
                     break;
                 case "drag-start":
@@ -341,6 +421,7 @@ internal sealed class MainForm : Form
         {
             _tray.Visible = false;
             _tray.Dispose();
+            _status.Dispose();
             _web.Dispose();
         }
         base.Dispose(disposing);

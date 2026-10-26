@@ -97,8 +97,9 @@ export default defineNuxtConfig({
       script: [
         {
           // Runs before first paint so PageSpeed never measures a pure black
-          // overlay with an empty #__nuxt (ssr:false).
-          children: `(function(){try{if(/Chrome-Lighthouse|PageSpeed|Lighthouse|GTmetrix|Pingdom|Speed Insights|WebPageTest/i.test(navigator.userAgent))document.documentElement.setAttribute("data-lab-bot","1")}catch(e){}})();`,
+          // overlay with an empty #__nuxt (ssr:false). Also marks the desktop
+          // YGuard Client so WebView2 never sits behind a stuck black mask.
+          children: `(function(){try{var ua=navigator.userAgent||"";var q=location.search||"";if(/Chrome-Lighthouse|PageSpeed|Lighthouse|GTmetrix|Pingdom|Speed Insights|WebPageTest/i.test(ua))document.documentElement.setAttribute("data-lab-bot","1");if(/YGuardClient\\//i.test(ua)||/[?&]desktop=1(?:&|$)/.test(q)||/[?&]desktop=true(?:&|$)/.test(q))document.documentElement.setAttribute("data-yguard-desktop","1")}catch(e){}})();`,
           tagPosition: "head",
         },
       ],
@@ -161,9 +162,19 @@ export default defineNuxtConfig({
               display: none !important;
               content: none !important;
             }
+            /* Desktop WebView2 client: never trap behind the black mask. */
+            html[data-yguard-desktop] body.pre-loader {
+              overflow: auto;
+            }
+            html[data-yguard-desktop] body.pre-loader::before,
+            html[data-yguard-desktop] body.pre-loader::after {
+              display: none !important;
+              content: none !important;
+            }
           `,
         },
       ],
+
     },
   },
 
