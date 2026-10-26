@@ -131,6 +131,16 @@ const rail = computed<RailItem[]>(() => {
 
 const activeId = computed(() => {
   const path = route.path.replace(/\/$/, "") || "/launcher";
+  // Deep links forced into the launcher shell still highlight the right rail.
+  if (path.startsWith("/game-servers") || path.startsWith("/public-servers")) {
+    return "servers";
+  }
+  if (path.startsWith("/clubs")) return "clubs";
+  if (path.startsWith("/scrims") || path.startsWith("/teams")) return "scrims";
+  if (path.startsWith("/battle-pass") || path.startsWith("/store")) {
+    return "battle-pass";
+  }
+  if (path.startsWith("/draft-room") || path.startsWith("/play")) return "play";
   const hit = rail.value.find((item) => {
     const base = typeof item.to === "string" ? item.to : item.to.path;
     return path === base || path.startsWith(`${base}/`);
@@ -266,7 +276,13 @@ const title = computed(() => brandName.value || "YGuard");
           </NuxtLink>
           <NuxtLink
             v-else
-            to="/login"
+            :to="{
+              path: '/login',
+              query: {
+                ...desktopQuery,
+                redirect: '/launcher/play?desktop=1',
+              },
+            }"
             class="block rounded-xl px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#ff5500] transition hover:bg-white/[0.05]"
           >
             {{ t("layouts.launcher.sign_in") }}

@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { Server } from "lucide-vue-next";
+
+withDefaults(
+  defineProps<{
+    navigate?: boolean;
+  }>(),
+  { navigate: true },
+);
 </script>
 
 <template>
-  <NuxtLink
-    to="/game-servers/host"
+  <component
+    :is="navigate ? 'NuxtLink' : 'div'"
+    :to="navigate ? '/game-servers/host' : undefined"
     class="host-tile group relative block aspect-[4/5] overflow-hidden rounded-lg ring-1 ring-[hsl(var(--tac-amber)/0.35)] transition duration-300 hover:ring-[hsl(var(--tac-amber)/0.7)] hover:shadow-[0_0_28px_hsla(var(--tac-amber)/0.18)]"
+    :role="navigate ? undefined : 'presentation'"
   >
     <div class="host-tile-bg absolute inset-0" aria-hidden="true" />
     <div
@@ -36,7 +45,7 @@ import { Server } from "lucide-vue-next";
         {{ $t("pages.servers.host.rent") }} →
       </span>
     </div>
-  </NuxtLink>
+  </component>
 </template>
 
 <style scoped>

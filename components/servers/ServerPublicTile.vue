@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { Radio } from "lucide-vue-next";
+
+withDefaults(
+  defineProps<{
+    navigate?: boolean;
+  }>(),
+  { navigate: true },
+);
 </script>
 
 <template>
-  <NuxtLink
-    to="/public-servers"
+  <component
+    :is="navigate ? 'NuxtLink' : 'div'"
+    :to="navigate ? '/public-servers' : undefined"
     class="public-tile group relative block aspect-[4/5] overflow-hidden rounded-lg ring-1 ring-[hsla(187,72%,42%,0.4)] transition duration-300 hover:ring-[hsla(187,72%,52%,0.75)] hover:shadow-[0_0_28px_hsla(187,72%,42%,0.2)]"
+    :role="navigate ? undefined : 'presentation'"
   >
     <div class="public-tile-bg absolute inset-0" aria-hidden="true" />
     <div
@@ -36,7 +45,7 @@ import { Radio } from "lucide-vue-next";
         {{ $t("pages.servers.public.open") }} →
       </span>
     </div>
-  </NuxtLink>
+  </component>
 </template>
 
 <style scoped>

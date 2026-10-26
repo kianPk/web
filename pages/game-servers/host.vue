@@ -38,6 +38,14 @@ import {
 } from "~/composables/useHostedServers";
 import { useAuthStore } from "~/stores/AuthStore";
 
+const props = withDefaults(
+  defineProps<{
+    /** When true (launcher shell), hide the site “back to modes” link. */
+    embedded?: boolean;
+  }>(),
+  { embedded: false },
+);
+
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
@@ -721,6 +729,7 @@ onMounted(() => {
   <div class="space-y-8 pb-16">
     <div class="space-y-3">
       <NuxtLink
+        v-if="!props.embedded"
         to="/game-servers"
         class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >

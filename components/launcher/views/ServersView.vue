@@ -1,25 +1,50 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, defineAsyncComponent, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { ArrowLeft } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
+import { Button } from "~/components/ui/button";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
 import ServerHostTile from "~/components/servers/ServerHostTile.vue";
 import ServerPublicTile from "~/components/servers/ServerPublicTile.vue";
 import ServersAgentsHero from "~/components/servers/ServersAgentsHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 
-const { loading, servers, modes } = usePublicServerFleet();
+const GameServersMode = defineAsyncComponent(
+  () => import("~/pages/game-servers/[mode].vue"),
+);
+const HostServersPage = defineAsyncComponent(
+  () => import("~/pages/game-servers/host.vue"),
+);
+const PublicServersPage = defineAsyncComponent(
+  () => import("~/pages/public-servers/index.vue"),
+);
 
+type Panel = "home" | "mode" | "host" | "public";
+
+const panel = ref<Panel>("home");
+const pickedMode = ref("");
+const { loading, servers, modes } = usePublicServerFleet();
 const ready = computed(() => !loading.value || servers.value.length > 0);
 
 const { t } = useI18n();
 useHead(() => ({ title: t("pages.servers.title") }));
+
+function openMode(key: string) {
+  pickedMode.value = key;
+  panel.value = "mode";
+}
+
+function goHome() {
+  panel.value = "home";
+  pickedMode.value = "";
+}
 </script>
 
 <template>
   <PageTransition :delay="0">
-    <section class="space-y-6">
+    <section v-if="panel === 'home'" class="space-y-6">
       <ClientOnly>
         <ServersAgentsHero />
         <template #fallback>
@@ -45,20 +70,49 @@ useHead(() => ({ title: t("pages.servers.title") }));
               v-for="(mode, index) in modes"
               :key="mode.key"
               :mode="mode"
+              :navigate="false"
               class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
               :style="{ animationDelay: `${index * 50}ms` }"
+              @select="openMode(mode.key)"
             />
             <ServerPublicTile
-              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+              :navigate="false"
+              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both cursor-pointer"
               :style="{ animationDelay: `${modes.length * 50}ms` }"
+              @click="panel = 'public'"
             />
             <ServerHostTile
-              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both"
+              :navigate="false"
+              class="animate-in fade-in slide-in-from-bottom-2 fill-mode-both cursor-pointer"
               :style="{ animationDelay: `${(modes.length + 1) * 50}ms` }"
+              @click="panel = 'host'"
             />
           </template>
         </div>
       </div>
+    </section>
+
+    <section v-else class="space-y-3">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        class="h-8 gap-1.5 px-2 text-white/70 hover:text-white"
+        @click="goHome"
+      >
+        <ArrowLeft class="h-3.5 w-3.5" />
+        {{ t("pages.servers.back_to_modes") }}
+      </Button>
+
+      <GameServersMode
+        v-if="panel === 'mode'"
+        embedded
+        :model-value="pickedMode"
+        @update:model-value="pickedMode = $event"
+        @back="goHome"
+      />
+      <HostServersPage v-else-if="panel === 'host'" embedded />
+      <PublicServersPage v-else-if="panel === 'public'" />
     </section>
   </PageTransition>
 </template>
