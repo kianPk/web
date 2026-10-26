@@ -10,7 +10,6 @@ import {
   Swords,
   Trophy,
   Medal,
-  UserRound,
   Minus,
   Square,
   X,
@@ -143,12 +142,6 @@ const rail = computed<RailItem[]>(() => {
       label: t("layouts.launcher.nav.leaderboard"),
     },
     {
-      id: "profile",
-      to: { path: profilePath.value, query: q },
-      icon: UserRound,
-      label: t("layouts.launcher.nav.profile"),
-    },
-    {
       id: "clubs",
       to: { path: "/launcher/clubs", query: q },
       icon: Building2,
@@ -188,7 +181,6 @@ const activeId = computed(() => {
   }
   if (path.startsWith("/tournaments")) return "tournaments";
   if (path.startsWith("/leaderboard")) return "leaderboard";
-  if (path === "/me" || path.startsWith("/players/")) return "profile";
   if (path.startsWith("/clubs")) return "clubs";
   if (path.startsWith("/scrims") || path.startsWith("/teams")) return "scrims";
   if (path.startsWith("/battle-pass") || path.startsWith("/store")) {
@@ -202,9 +194,13 @@ const activeId = computed(() => {
   return hit?.id || "play";
 });
 
-const activeLabel = computed(
-  () => rail.value.find((item) => item.id === activeId.value)?.label || "",
-);
+const activeLabel = computed(() => {
+  const path = route.path.replace(/\/$/, "") || "/launcher";
+  if (path === "/me" || path.startsWith("/players/")) {
+    return t("layouts.launcher.nav.profile");
+  }
+  return rail.value.find((item) => item.id === activeId.value)?.label || "";
+});
 
 const title = computed(() => brandName.value || "YGuard");
 
