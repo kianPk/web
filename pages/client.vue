@@ -4,15 +4,14 @@ import { Button } from "~/components/ui/button";
 
 const { t } = useI18n();
 
-// Hosted zip after you upload publish output (or set NUXT_PUBLIC_CLIENT_DOWNLOAD_URL).
+const GITHUB_CLIENT_ZIP =
+  "https://github.com/kianPk/web/releases/download/yguard-client-v0.1.0/YGuardClient-0.1.0-win-x64.zip";
+
 const config = useRuntimeConfig();
 const downloadUrl = computed(() => {
   const fromEnv = (config.public as { clientDownloadUrl?: string })
     .clientDownloadUrl;
-  return (
-    (typeof fromEnv === "string" && fromEnv) ||
-    "/downloads/YGuardClient-0.1.0-win-x64.zip"
-  );
+  return (typeof fromEnv === "string" && fromEnv) || GITHUB_CLIENT_ZIP;
 });
 </script>
 
@@ -34,7 +33,7 @@ const downloadUrl = computed(() => {
 
     <div class="flex flex-wrap gap-3">
       <Button as-child size="lg">
-        <a :href="downloadUrl" download>
+        <a :href="downloadUrl" target="_blank" rel="noopener noreferrer">
           <Download class="mr-2 h-4 w-4" />
           {{ t("layouts.launcher.download_windows") }}
         </a>

@@ -274,7 +274,7 @@ export default defineNuxtConfig({
       // Setting NUXT_PUBLIC_MAP_MESH_CDN pins every map to <cdn>/<map>.tri.gz
       // (and <cdn>/<map>.view.bin.gz when present) instead.
       mapMeshCdn: "",
-      // Windows YGuard Client zip (hosted on CDN / demos / S3). Blank → /downloads/…
+      // Windows YGuard Client zip. Blank → GitHub release in pages/client.vue.
       clientDownloadUrl: "",
     },
   },
