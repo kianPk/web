@@ -16,6 +16,7 @@ import {
   Activity,
   Gift,
   BadgePercent,
+  ShoppingBag,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
@@ -36,6 +37,8 @@ import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import ClubChallengesPanel from "~/components/clubs/ClubChallengesPanel.vue";
 import ClubServersPanel from "~/components/clubs/ClubServersPanel.vue";
 import ClubLevelSettings from "~/components/clubs/ClubLevelSettings.vue";
+import ClubShopPanel from "~/components/clubs/ClubShopPanel.vue";
+import ClubShopManagePanel from "~/components/clubs/ClubShopManagePanel.vue";
 import {
   clubLevelLabel,
   DEFAULT_LEVEL_PERMISSIONS,
@@ -66,6 +69,7 @@ const VALID_TABS = [
   "chat",
   "leaderboard",
   "servers",
+  "shop",
   "teams",
   "tournaments",
   "challenges",
@@ -1182,6 +1186,7 @@ const tabGroups = computed((): TabGroup[] => {
       label: t("pages.clubs.tab_groups.play"),
       items: [
         { id: "servers", label: t("pages.clubs.tabs.servers"), icon: Server },
+        { id: "shop", label: t("pages.clubs.tabs.shop"), icon: ShoppingBag },
         {
           id: "challenges",
           label: t("pages.clubs.tabs.challenges"),
@@ -1832,6 +1837,10 @@ function activityTitle(kind: string) {
           </p>
         </section>
 
+        <section v-else-if="tab === 'shop' && club" class="space-y-4">
+          <ClubShopPanel :club-id="club.id" />
+        </section>
+
         <ClubServersPanel
           v-else-if="tab === 'servers'"
           :club-id="club.id"
@@ -1991,6 +2000,10 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+          <ClubShopManagePanel
+            v-if="club"
+            :club-id="club.id"
+          />
           <div
             v-if="isOwner"
             class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
