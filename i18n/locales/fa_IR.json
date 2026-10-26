@@ -7160,6 +7160,21 @@
         "action": "بازسازی ELO فصل"
       }
     },
+    "launcher": {
+      "client": "کلاینت",
+      "open_client": "باز کردن کلاینت شبیه فیسیت",
+      "search_placeholder": "جستجوی پلیر، مچ، کلاب…",
+      "open_site": "باز کردن سایت کامل",
+      "sign_in": "ورود",
+      "nav": {
+        "inventory": "اینونتوری"
+      },
+      "teamspeak_hint": "با یک کلیک به تیم‌اسپیک YGuard وصل شو، یا آدرس را کپی کن.",
+      "teamspeak_connect": "اتصال",
+      "teamspeak_copy": "کپی آدرس",
+      "teamspeak_copied": "آدرس تیم‌اسپیک کپی شد",
+      "teamspeak_copy_failed": "کپی آدرس ممکن نشد"
+    },
     "app_nav": {
       "brand": "YGuard",
       "systems_online": "{count} سامانه آنلاین | {count} سامانه آنلاین",

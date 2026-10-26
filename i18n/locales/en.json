@@ -7160,6 +7160,21 @@
         "action": "Rebuild Season ELO"
       }
     },
+    "launcher": {
+      "client": "Client",
+      "open_client": "Open Faceit-style client",
+      "search_placeholder": "Search players, matches, clubs…",
+      "open_site": "Open full site",
+      "sign_in": "Sign in",
+      "nav": {
+        "inventory": "Inventory"
+      },
+      "teamspeak_hint": "Join the YGuard TeamSpeak with one click, or copy the address.",
+      "teamspeak_connect": "Connect",
+      "teamspeak_copy": "Copy address",
+      "teamspeak_copied": "TeamSpeak address copied",
+      "teamspeak_copy_failed": "Could not copy address"
+    },
     "app_nav": {
       "brand": "YGuard",
       "systems_online": "{count} System Online | {count} Systems Online",

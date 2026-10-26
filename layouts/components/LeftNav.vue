@@ -35,6 +35,7 @@ import {
   ServerCog,
   Gamepad2,
   Bomb,
+  AppWindow,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -231,6 +232,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Badge size="sm" v-if="playTotalCount > 0" class="ml-auto">
                     {{ playTotalCount }}
                   </Badge>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.launcher.open_client')"
+              >
+                <NuxtLink
+                  to="/launcher"
+                  :class="{
+                    'router-link-active': $route.path.startsWith('/launcher'),
+                  }"
+                >
+                  <AppWindow />
+                  {{ $t("layouts.launcher.client") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
