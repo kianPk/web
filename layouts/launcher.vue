@@ -134,6 +134,7 @@ const title = computed(() => brandName.value || "YGuard");
 <template>
   <div
     class="launcher-shell relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-[#e8eaed] select-none"
+    :class="isDesktop ? 'launcher-shell--desktop' : 'launcher-shell--web'"
   >
     <div class="launcher-shell__glow pointer-events-none absolute inset-0" aria-hidden="true" />
 
@@ -259,11 +260,15 @@ const title = computed(() => brandName.value || "YGuard");
         </div>
       </aside>
 
-      <!-- Content pane -->
+      <!-- Content pane: inset + rounded so pages aren't flush / cramped -->
       <main
-        class="relative order-1 min-h-0 min-w-0 flex-1 overflow-hidden md:order-2"
+        class="order-1 flex min-h-0 min-w-0 flex-1 flex-col p-2 pb-[4.25rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
       >
-        <slot />
+        <div
+          class="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0b0f]/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+        >
+          <slot />
+        </div>
       </main>
     </div>
   </div>
@@ -276,6 +281,18 @@ const title = computed(() => brandName.value || "YGuard");
     radial-gradient(900px 500px at 90% 0%, rgba(56, 120, 255, 0.1), transparent 50%),
     linear-gradient(180deg, #101218 0%, #0a0b0f 100%);
   font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+.launcher-shell--web {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.launcher-shell--desktop {
+  border-radius: 1.25rem;
 }
 
 .launcher-shell__glow {

@@ -15,7 +15,7 @@ internal sealed class MainForm : Form
     private readonly WebView2 _web = new()
     {
         Dock = DockStyle.Fill,
-        DefaultBackgroundColor = Color.FromArgb(12, 13, 16),
+        DefaultBackgroundColor = Color.Transparent,
     };
 
     private bool _dragFromWeb;
@@ -41,7 +41,26 @@ internal sealed class MainForm : Form
         }
 
         Controls.Add(_web);
+        HandleCreated += (_, _) => ApplyRoundedCorners();
+        Resize += (_, _) => ApplyRoundedCorners();
         Load += async (_, _) => await InitWebAsync();
+    }
+
+    private void ApplyRoundedCorners()
+    {
+        if (!IsHandleCreated) return;
+        try
+        {
+            // Win11+: soft round corners on the borderless window.
+            const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+            const int DWMWCP_ROUND = 2;
+            var pref = DWMWCP_ROUND;
+            _ = DwmSetWindowAttribute(Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
+        }
+        catch
+        {
+            /* older Windows — CSS radius still softens the web chrome */
+        }
     }
 
     private async Task InitWebAsync()
@@ -67,7 +86,7 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.2.1";
+                $"{core.Settings.UserAgent} YGuardClient/0.2.2";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
@@ -218,4 +237,11 @@ internal sealed class MainForm : Form
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(
+        IntPtr hwnd,
+        int dwAttribute,
+        ref int pvAttribute,
+        int cbAttribute);
 }

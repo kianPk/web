@@ -24,9 +24,9 @@ async function copyAddress() {
 </script>
 
 <template>
-  <div class="absolute inset-0 flex items-center justify-center overflow-auto p-4 sm:p-8">
+  <div class="absolute inset-0 flex items-center justify-center overflow-auto p-6 sm:p-10">
     <div
-      class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-8"
+      class="w-full max-w-lg rounded-3xl border border-white/10 bg-white/[0.04] p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-10"
     >
       <div
         class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#ff5500]/15 text-[#ff5500] ring-1 ring-[#ff5500]/25"
