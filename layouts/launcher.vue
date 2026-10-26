@@ -14,6 +14,7 @@ import {
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import LauncherWorkspace from "~/components/launcher/LauncherWorkspace.vue";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -21,9 +22,7 @@ const { brandName, logoUrl } = useBranding();
 const { t } = useI18n();
 
 const isDesktop = ref(false);
-const brandLogo = computed(
-  () => logoUrl.value || "/favicon/512.png",
-);
+const brandLogo = computed(() => logoUrl.value || "/favicon/512.png");
 
 onMounted(() => {
   if (!import.meta.client) return;
@@ -136,11 +135,13 @@ const title = computed(() => brandName.value || "YGuard");
     class="launcher-shell relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-[#e8eaed] select-none"
     :class="isDesktop ? 'launcher-shell--desktop' : 'launcher-shell--web'"
   >
-    <div class="launcher-shell__glow pointer-events-none absolute inset-0" aria-hidden="true" />
+    <div
+      class="launcher-shell__glow pointer-events-none absolute inset-0"
+      aria-hidden="true"
+    />
 
-    <!-- Glass title bar -->
     <header
-      class="launcher-glass relative z-20 flex h-11 shrink-0 items-center gap-3 border-b border-white/10 px-3 backdrop-blur-xl"
+      class="launcher-glass relative z-20 flex h-11 shrink-0 items-center gap-3 border-b border-white/10 px-3 backdrop-blur-2xl"
       :class="isDesktop ? 'cursor-default' : ''"
       @pointerdown="onTitleBarPointerDown"
     >
@@ -153,7 +154,9 @@ const title = computed(() => brandName.value || "YGuard");
           height="28"
         />
         <div class="min-w-0 leading-tight">
-          <div class="truncate text-[13px] font-semibold tracking-wide text-white">
+          <div
+            class="truncate text-[13px] font-semibold tracking-wide text-white"
+          >
             {{ title }}
           </div>
           <div class="text-[10px] uppercase tracking-[0.2em] text-white/40">
@@ -195,9 +198,8 @@ const title = computed(() => brandName.value || "YGuard");
     </header>
 
     <div class="relative z-10 flex min-h-0 flex-1 flex-col md:flex-row">
-      <!-- Glass left rail (desktop) / bottom rail (mobile) -->
       <aside
-        class="launcher-glass order-2 flex shrink-0 flex-row items-stretch border-t border-white/10 backdrop-blur-xl md:order-1 md:w-[5.25rem] md:flex-col md:border-e md:border-t-0"
+        class="launcher-glass order-2 flex shrink-0 flex-row items-stretch border-t border-white/10 backdrop-blur-2xl md:order-1 md:w-[5.25rem] md:flex-col md:border-e md:border-t-0"
       >
         <nav
           class="flex flex-1 gap-0.5 overflow-x-auto px-1.5 py-1.5 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:px-2 md:py-3"
@@ -209,14 +211,14 @@ const title = computed(() => brandName.value || "YGuard");
             class="group relative flex min-w-[3.5rem] flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-white/45 transition md:min-w-0 md:py-2.5"
             :class="
               activeId === item.id
-                ? 'bg-white/[0.08] text-[#ff6a1f] shadow-[inset_0_0_0_1px_rgba(255,106,31,0.25)]'
-                : 'hover:bg-white/[0.05] hover:text-white/85'
+                ? 'bg-white/[0.1] text-[#ff6a1f] shadow-[inset_0_0_0_1px_rgba(255,106,31,0.28)]'
+                : 'hover:bg-white/[0.06] hover:text-white/85'
             "
             :title="item.label"
           >
             <span
               v-if="activeId === item.id"
-              class="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#ff5500] md:inset-x-auto md:start-0 md:top-1/2 md:h-7 md:w-[3px] md:-translate-y-1/2 md:rounded-e md:inset-y-auto"
+              class="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#ff5500] md:inset-x-auto md:inset-y-auto md:start-0 md:top-1/2 md:h-7 md:w-[3px] md:-translate-y-1/2 md:rounded-e"
             />
             <component
               :is="item.icon"
@@ -231,9 +233,7 @@ const title = computed(() => brandName.value || "YGuard");
           </NuxtLink>
         </nav>
 
-        <div
-          class="hidden shrink-0 border-t border-white/10 p-2 md:block"
-        >
+        <div class="hidden shrink-0 border-t border-white/10 p-2 md:block">
           <NuxtLink
             v-if="auth.me"
             to="/launcher/play"
@@ -260,16 +260,21 @@ const title = computed(() => brandName.value || "YGuard");
         </div>
       </aside>
 
-      <!-- Content pane: inset + rounded so pages aren't flush / cramped -->
+      <!-- One continuous glass stage — tabs swap inside, not new pages -->
       <main
-        class="order-1 flex min-h-0 min-w-0 flex-1 flex-col p-2 pb-[4.25rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
+        class="order-1 relative min-h-0 min-w-0 flex-1 p-2 pb-[4.25rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
       >
         <div
-          class="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0b0f]/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+          class="launcher-stage relative h-full min-h-0 overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl"
         >
-          <slot />
+          <LauncherWorkspace :active="activeId" />
         </div>
       </main>
+    </div>
+
+    <!-- Route pages only exist for URL/history; content lives in the workspace -->
+    <div class="hidden">
+      <slot />
     </div>
   </div>
 </template>
@@ -277,9 +282,17 @@ const title = computed(() => brandName.value || "YGuard");
 <style scoped>
 .launcher-shell {
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(255, 85, 0, 0.16), transparent 55%),
-    radial-gradient(900px 500px at 90% 0%, rgba(56, 120, 255, 0.1), transparent 50%),
-    linear-gradient(180deg, #101218 0%, #0a0b0f 100%);
+    radial-gradient(
+      1200px 600px at 10% -10%,
+      rgba(255, 85, 0, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      900px 500px at 90% 0%,
+      rgba(56, 120, 255, 0.12),
+      transparent 50%
+    ),
+    linear-gradient(180deg, #12141c 0%, #0a0b10 100%);
   font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 }
 
@@ -296,17 +309,28 @@ const title = computed(() => brandName.value || "YGuard");
 }
 
 .launcher-shell__glow {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), transparent 40%);
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 255, 255, 0.05),
+    transparent 42%
+  );
 }
 
 .launcher-glass {
-  background: rgba(16, 18, 24, 0.55);
+  background: rgba(18, 20, 28, 0.45);
 }
 
-@supports (backdrop-filter: blur(20px)) {
+.launcher-stage {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+@supports (backdrop-filter: blur(24px)) {
   .launcher-glass {
-    background: rgba(18, 20, 28, 0.42);
+    background: rgba(18, 20, 28, 0.38);
+  }
+
+  .launcher-stage {
+    background: rgba(255, 255, 255, 0.045);
   }
 }
 </style>

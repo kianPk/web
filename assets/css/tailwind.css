@@ -237,7 +237,7 @@
   html.yguard-embed,
   html.yguard-embed body {
     overflow: hidden;
-    background: #0c0d10;
+    background: transparent;
   }
 
   html.yguard-embed #__nuxt {
