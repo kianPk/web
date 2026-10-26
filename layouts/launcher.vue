@@ -62,7 +62,6 @@ function onMaximize() {
 }
 
 function onClose() {
-  // Desktop: X minimizes to tray (native host). Browser: leave launcher.
   if (postDesktop("close")) return;
   navigateTo("/me");
 }
@@ -131,7 +130,6 @@ const rail = computed<RailItem[]>(() => {
 
 const activeId = computed(() => {
   const path = route.path.replace(/\/$/, "") || "/launcher";
-  // Deep links forced into the launcher shell still highlight the right rail.
   if (path.startsWith("/game-servers") || path.startsWith("/public-servers")) {
     return "servers";
   }
@@ -148,7 +146,19 @@ const activeId = computed(() => {
   return hit?.id || "play";
 });
 
+const activeLabel = computed(
+  () => rail.value.find((item) => item.id === activeId.value)?.label || "",
+);
+
 const title = computed(() => brandName.value || "YGuard");
+
+const loginTo = computed(() => ({
+  path: "/login",
+  query: {
+    ...desktopQuery.value,
+    redirect: "/launcher/play?desktop=1",
+  },
+}));
 </script>
 
 <template>
@@ -160,106 +170,176 @@ const title = computed(() => brandName.value || "YGuard");
       class="launcher-shell__glow pointer-events-none absolute inset-0"
       aria-hidden="true"
     />
+    <div
+      class="launcher-shell__grid pointer-events-none absolute inset-0"
+      aria-hidden="true"
+    />
 
     <header
-      class="launcher-glass relative z-20 flex h-11 shrink-0 items-center gap-3 border-b border-white/10 px-3 backdrop-blur-2xl"
+      class="launcher-header launcher-glass relative z-20 flex h-14 shrink-0 items-center gap-3 border-b border-white/[0.08] px-3 sm:px-4"
       :class="isDesktop ? 'cursor-default' : ''"
       @pointerdown="onTitleBarPointerDown"
     >
-      <div class="flex min-w-0 items-center gap-2.5">
-        <img
-          class="h-7 w-7 shrink-0 rounded-lg object-contain ring-1 ring-white/10"
-          :src="brandLogo"
-          :alt="title"
-          width="28"
-          height="28"
-        />
-        <div class="min-w-0 leading-tight">
+      <div class="launcher-header__accent" aria-hidden="true" />
+
+      <div class="flex min-w-0 items-center gap-3">
+        <div class="launcher-brand-mark relative shrink-0">
+          <img
+            class="relative z-[1] h-8 w-8 rounded-[0.65rem] object-contain"
+            :src="brandLogo"
+            :alt="title"
+            width="32"
+            height="32"
+          />
+        </div>
+        <div class="min-w-0 leading-none">
           <div
-            class="truncate text-[13px] font-semibold tracking-wide text-white"
+            class="truncate text-[15px] font-semibold tracking-[-0.02em] text-white"
           >
             {{ title }}
           </div>
-          <div class="text-[10px] uppercase tracking-[0.2em] text-white/40">
-            Client
+          <div
+            class="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] text-white/35"
+          >
+            {{ t("layouts.launcher.client") }}
           </div>
         </div>
       </div>
 
-      <div class="ms-auto flex items-center gap-0.5 text-white/50">
-        <button
-          type="button"
-          class="grid h-8 w-9 place-items-center rounded-lg transition hover:bg-white/10 hover:text-white"
-          :title="t('layouts.launcher.minimize')"
-          @click="onMinimize"
+      <div
+        class="pointer-events-none absolute inset-x-0 hidden justify-center md:flex"
+      >
+        <div
+          class="launcher-header__section flex max-w-[14rem] items-center gap-2 truncate rounded-full border border-white/[0.08] bg-white/[0.04] px-3.5 py-1.5 text-[12px] font-medium tracking-wide text-white/75 backdrop-blur-md"
         >
-          <Minus class="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          class="grid h-8 w-9 place-items-center rounded-lg transition hover:bg-white/10 hover:text-white"
-          :title="t('layouts.launcher.maximize')"
-          @click="onMaximize"
+          <span
+            class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ff5500] shadow-[0_0_8px_rgba(255,85,0,0.85)]"
+            aria-hidden="true"
+          />
+          <span class="truncate">{{ activeLabel }}</span>
+        </div>
+      </div>
+
+      <div class="ms-auto flex items-center gap-2">
+        <NuxtLink
+          v-if="auth.me"
+          :to="{ path: '/launcher/play', query: desktopQuery }"
+          class="launcher-account hidden items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] py-1 pe-3 ps-1 transition hover:border-white/15 hover:bg-white/[0.07] sm:flex"
         >
-          <Square class="h-3 w-3" />
-        </button>
-        <button
-          type="button"
-          class="grid h-8 w-9 place-items-center rounded-lg transition hover:bg-[#e81123] hover:text-white"
-          :title="
-            isDesktop
-              ? t('layouts.launcher.close_to_tray')
-              : t('layouts.launcher.open_site')
-          "
-          @click="onClose"
+          <ClientOnly>
+            <PlayerDisplay
+              :player="auth.me"
+              size="xs"
+              compact
+              :show-name="false"
+              :show-flag="false"
+              :show-role="false"
+              :show-elo="false"
+              :linkable="false"
+            />
+          </ClientOnly>
+          <span
+            class="max-w-[7rem] truncate text-[12px] font-medium text-white/80"
+          >
+            {{ auth.me.name || auth.me.steam_id }}
+          </span>
+        </NuxtLink>
+        <NuxtLink
+          v-else
+          :to="loginTo"
+          class="hidden rounded-full bg-[#ff5500] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_0_20px_rgba(255,85,0,0.35)] transition hover:bg-[#ff6a1f] sm:inline-flex"
         >
-          <X class="h-3.5 w-3.5" />
-        </button>
+          {{ t("layouts.launcher.sign_in") }}
+        </NuxtLink>
+
+        <div
+          class="launcher-win-controls flex items-center overflow-hidden rounded-lg border border-white/[0.08] bg-black/20 text-white/55"
+        >
+          <button
+            type="button"
+            class="grid h-8 w-10 place-items-center transition hover:bg-white/10 hover:text-white"
+            :title="t('layouts.launcher.minimize')"
+            @click="onMinimize"
+          >
+            <Minus class="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            class="grid h-8 w-10 place-items-center transition hover:bg-white/10 hover:text-white"
+            :title="t('layouts.launcher.maximize')"
+            @click="onMaximize"
+          >
+            <Square class="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            class="grid h-8 w-10 place-items-center transition hover:bg-[#e81123] hover:text-white"
+            :title="
+              isDesktop
+                ? t('layouts.launcher.close_to_tray')
+                : t('layouts.launcher.open_site')
+            "
+            @click="onClose"
+          >
+            <X class="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </header>
 
     <div class="relative z-10 flex min-h-0 flex-1 flex-col md:flex-row">
       <aside
-        class="launcher-glass order-2 flex shrink-0 flex-row items-stretch border-t border-white/10 backdrop-blur-2xl md:order-1 md:w-[5.25rem] md:flex-col md:border-e md:border-t-0"
+        class="launcher-rail launcher-glass order-2 flex shrink-0 flex-row items-stretch border-t border-white/[0.08] md:order-1 md:w-[5.75rem] md:flex-col md:border-e md:border-t-0"
       >
         <nav
-          class="flex flex-1 gap-0.5 overflow-x-auto px-1.5 py-1.5 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:px-2 md:py-3"
+          class="flex flex-1 gap-1 overflow-x-auto px-1.5 py-1.5 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:gap-1 md:px-2 md:py-3"
         >
           <NuxtLink
             v-for="item in rail"
             :key="item.id"
             :to="item.to"
             replace
-            class="group relative flex min-w-[3.5rem] flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-white/45 transition md:min-w-0 md:py-2.5"
+            class="launcher-rail__item group relative flex min-w-[3.75rem] flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-white/40 transition duration-200 md:min-w-0 md:py-2.5"
             :class="
               activeId === item.id
-                ? 'bg-white/[0.1] text-[#ff6a1f] shadow-[inset_0_0_0_1px_rgba(255,106,31,0.28)]'
-                : 'hover:bg-white/[0.06] hover:text-white/85'
+                ? 'launcher-rail__item--active text-[#ff6a1f]'
+                : 'hover:bg-white/[0.05] hover:text-white/85'
             "
             :title="item.label"
           >
             <span
               v-if="activeId === item.id"
-              class="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#ff5500] md:inset-x-auto md:inset-y-auto md:start-0 md:top-1/2 md:h-7 md:w-[3px] md:-translate-y-1/2 md:rounded-e"
-            />
-            <component
-              :is="item.icon"
-              class="h-[1.15rem] w-[1.15rem] shrink-0 md:h-5 md:w-5"
-              :stroke-width="1.75"
+              class="launcher-rail__pip absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[#ff5500] md:inset-x-auto md:inset-y-auto md:start-0 md:top-1/2 md:h-8 md:w-[3px] md:-translate-y-1/2 md:rounded-e"
             />
             <span
-              class="max-w-[4.5rem] truncate text-center text-[9px] font-medium leading-tight tracking-wide md:max-w-full"
+              class="launcher-rail__icon grid place-items-center rounded-lg p-1 transition duration-200"
+              :class="
+                activeId === item.id
+                  ? 'bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]'
+                  : 'group-hover:bg-white/[0.04]'
+              "
+            >
+              <component
+                :is="item.icon"
+                class="h-[1.15rem] w-[1.15rem] shrink-0 md:h-5 md:w-5"
+                :stroke-width="1.75"
+              />
+            </span>
+            <span
+              class="max-w-[4.75rem] truncate text-center text-[9px] font-semibold leading-tight tracking-wide md:max-w-full"
             >
               {{ item.label }}
             </span>
           </NuxtLink>
         </nav>
 
-        <div class="hidden shrink-0 border-t border-white/10 p-2 md:block">
+        <div
+          class="flex shrink-0 items-center justify-center border-s border-white/[0.08] px-2 md:hidden"
+        >
           <NuxtLink
             v-if="auth.me"
-            to="/launcher/play"
-            class="flex flex-col items-center gap-1 rounded-xl px-1 py-2 transition hover:bg-white/[0.05]"
+            :to="{ path: '/launcher/play', query: desktopQuery }"
+            class="rounded-xl p-1.5 transition hover:bg-white/[0.05]"
           >
             <ClientOnly>
               <PlayerDisplay
@@ -276,27 +356,18 @@ const title = computed(() => brandName.value || "YGuard");
           </NuxtLink>
           <NuxtLink
             v-else
-            :to="{
-              path: '/login',
-              query: {
-                ...desktopQuery,
-                redirect: '/launcher/play?desktop=1',
-              },
-            }"
-            class="block rounded-xl px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#ff5500] transition hover:bg-white/[0.05]"
+            :to="loginTo"
+            class="rounded-xl px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-[#ff5500] transition hover:bg-white/[0.05]"
           >
             {{ t("layouts.launcher.sign_in") }}
           </NuxtLink>
         </div>
       </aside>
 
-      <!-- Real Nuxt pages swap here (not a hidden slot + v-show workspace). -->
       <main
-        class="order-1 relative min-h-0 min-w-0 flex-1 p-2 pb-[4.25rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
+        class="order-1 relative min-h-0 min-w-0 flex-1 p-2 pb-[4.5rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
       >
-        <div
-          class="launcher-stage relative h-full min-h-0 overflow-x-hidden overflow-y-auto rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl"
-        >
+        <div class="launcher-stage relative h-full min-h-0 overflow-x-hidden overflow-y-auto">
           <slot />
         </div>
       </main>
@@ -306,18 +377,19 @@ const title = computed(() => brandName.value || "YGuard");
 
 <style scoped>
 .launcher-shell {
+  --launcher-accent: #ff5500;
   background:
     radial-gradient(
-      1200px 600px at 10% -10%,
-      rgba(255, 85, 0, 0.18),
-      transparent 55%
+      1100px 520px at 8% -8%,
+      rgba(255, 85, 0, 0.2),
+      transparent 58%
     ),
     radial-gradient(
-      900px 500px at 90% 0%,
-      rgba(56, 120, 255, 0.12),
-      transparent 50%
+      900px 480px at 92% 0%,
+      rgba(56, 120, 255, 0.1),
+      transparent 52%
     ),
-    linear-gradient(180deg, #12141c 0%, #0a0b10 100%);
+    linear-gradient(180deg, #141722 0%, #0a0b10 48%, #07080c 100%);
   font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 }
 
@@ -330,42 +402,115 @@ const title = computed(() => brandName.value || "YGuard");
 }
 
 .launcher-shell--desktop {
-  /* Fill WebView; avoid transparent corners that look like a black void */
   border-radius: 0;
   background-color: #0a0b10;
 }
 
 .launcher-shell__glow {
   background: radial-gradient(
-    circle at 50% 0%,
-    rgba(255, 255, 255, 0.05),
-    transparent 42%
+    circle at 50% -10%,
+    rgba(255, 255, 255, 0.06),
+    transparent 40%
   );
 }
 
+.launcher-shell__grid {
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 70%);
+}
+
 .launcher-glass {
-  background: rgba(18, 20, 28, 0.45);
+  background: rgba(14, 16, 24, 0.55);
+  backdrop-filter: blur(28px) saturate(1.25);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+}
+
+.launcher-header__accent {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 85, 0, 0.55) 22%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 85, 0, 0.45) 78%,
+    transparent 100%
+  );
+}
+
+.launcher-brand-mark {
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  padding: 2px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 85, 0, 0.55),
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(56, 120, 255, 0.25)
+  );
+  box-shadow: 0 0 18px rgba(255, 85, 0, 0.22);
+}
+
+.launcher-brand-mark img {
+  background: #0c0e14;
+}
+
+.launcher-header__section {
+  animation: launcher-section-in 280ms ease-out;
+}
+
+.launcher-rail__item--active {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 106, 31, 0.28);
+}
+
+.launcher-rail__pip {
+  box-shadow: 0 0 10px rgba(255, 85, 0, 0.65);
 }
 
 .launcher-stage {
+  border-radius: 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   background:
     linear-gradient(
-      160deg,
-      rgba(255, 255, 255, 0.07) 0%,
-      rgba(255, 255, 255, 0.03) 45%,
-      rgba(10, 11, 16, 0.55) 100%
+      165deg,
+      rgba(255, 255, 255, 0.075) 0%,
+      rgba(255, 255, 255, 0.03) 40%,
+      rgba(8, 9, 14, 0.62) 100%
     );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
 }
 
-@supports (backdrop-filter: blur(24px)) {
-  .launcher-glass {
-    background: rgba(18, 20, 28, 0.38);
+@keyframes launcher-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launcher-header__section {
+    animation: none;
   }
 }
 </style>
 
 <style>
-/* Shared by pages/launcher/* panels */
 .launcher-panel {
   box-sizing: border-box;
   width: 100%;
