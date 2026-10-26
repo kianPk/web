@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrimsPage from "~/pages/scrims/index.vue";
+import ScrimsView from "~/components/launcher/views/ScrimsView.vue";
 
 definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Scrims" });
@@ -7,6 +7,6 @@ useHead({ title: "Scrims" });
 
 <template>
   <div class="launcher-panel">
-    <ScrimsPage />
+    <ScrimsView />
   </div>
 </template>

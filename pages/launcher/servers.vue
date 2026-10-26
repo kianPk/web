@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ServersPage from "~/pages/game-servers/index.vue";
+import ServersView from "~/components/launcher/views/ServersView.vue";
 
 definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Servers" });
@@ -7,6 +7,6 @@ useHead({ title: "Servers" });
 
 <template>
   <div class="launcher-panel">
-    <ServersPage />
+    <ServersView />
   </div>
 </template>

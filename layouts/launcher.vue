@@ -251,16 +251,18 @@ const title = computed(() => brandName.value || "YGuard");
             to="/launcher/play"
             class="flex flex-col items-center gap-1 rounded-xl px-1 py-2 transition hover:bg-white/[0.05]"
           >
-            <PlayerDisplay
-              :player="auth.me"
-              size="xs"
-              compact
-              :show-name="false"
-              :show-flag="false"
-              :show-role="false"
-              :show-elo="false"
-              :linkable="false"
-            />
+            <ClientOnly>
+              <PlayerDisplay
+                :player="auth.me"
+                size="xs"
+                compact
+                :show-name="false"
+                :show-flag="false"
+                :show-role="false"
+                :show-elo="false"
+                :linkable="false"
+              />
+            </ClientOnly>
           </NuxtLink>
           <NuxtLink
             v-else
@@ -312,7 +314,9 @@ const title = computed(() => brandName.value || "YGuard");
 }
 
 .launcher-shell--desktop {
-  border-radius: 1.25rem;
+  /* Fill WebView; avoid transparent corners that look like a black void */
+  border-radius: 0;
+  background-color: #0a0b10;
 }
 
 .launcher-shell__glow {

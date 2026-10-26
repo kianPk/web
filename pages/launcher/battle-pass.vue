@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BattlePassPage from "~/pages/battle-pass/index.vue";
+import BattlePassView from "~/components/launcher/views/BattlePassView.vue";
 
 definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Battle Pass" });
@@ -7,6 +7,6 @@ useHead({ title: "Battle Pass" });
 
 <template>
   <div class="launcher-panel">
-    <BattlePassPage />
+    <BattlePassView />
   </div>
 </template>

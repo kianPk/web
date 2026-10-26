@@ -14,7 +14,8 @@ internal sealed class MainForm : Form
     private readonly WebView2 _web = new()
     {
         Dock = DockStyle.Fill,
-        DefaultBackgroundColor = Color.Transparent,
+        // Opaque while the SPA boots — Transparent looked like a dead black window.
+        DefaultBackgroundColor = Color.FromArgb(10, 11, 16),
     };
 
     private readonly NotifyIcon _tray = new()
@@ -173,7 +174,7 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.2.3";
+                $"{core.Settings.UserAgent} YGuardClient/0.2.4";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
@@ -185,8 +186,9 @@ internal sealed class MainForm : Form
                     "window.yguardDesktop=true;");
             };
 
-            var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync();
-            core.Navigate(autoUrl ?? StartUrl);
+            // Don't block the UI forever on Steam; show the shell immediately.
+            core.Navigate(StartUrl);
+            _ = TrySteamAutoLoginAsync(core);
         }
         catch (Exception ex)
         {
@@ -198,6 +200,21 @@ internal sealed class MainForm : Form
                 MessageBoxIcon.Error);
             _allowExit = true;
             Close();
+        }
+    }
+
+    private async Task TrySteamAutoLoginAsync(CoreWebView2 core)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync(cts.Token);
+            if (!string.IsNullOrWhiteSpace(autoUrl))
+                core.Navigate(autoUrl);
+        }
+        catch
+        {
+            /* stay on StartUrl — user can sign in from the shell */
         }
     }
 

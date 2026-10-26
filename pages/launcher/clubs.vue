@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ClubsPage from "~/pages/clubs/index.vue";
+import ClubsView from "~/components/launcher/views/ClubsView.vue";
 
 definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Clubs" });
@@ -7,6 +7,6 @@ useHead({ title: "Clubs" });
 
 <template>
   <div class="launcher-panel">
-    <ClubsPage />
+    <ClubsView />
   </div>
 </template>

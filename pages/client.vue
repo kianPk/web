@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 const { t } = useI18n();
 
 const GITHUB_CLIENT_ZIP =
-  "https://github.com/kianPk/web/releases/download/yguard-client-v0.2.3/YGuardClient-0.2.3-win-x64.zip";
+  "https://github.com/kianPk/web/releases/download/yguard-client-v0.2.4/YGuardClient-0.2.4-win-x64.zip";
 
 const config = useRuntimeConfig();
 const downloadUrl = computed(() => {

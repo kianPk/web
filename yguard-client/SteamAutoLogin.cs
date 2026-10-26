@@ -37,7 +37,12 @@ internal static class SteamAutoLogin
         AuthTicket? ticket = null;
         try
         {
-            ticket = await SteamUser.GetAuthSessionTicketAsync();
+            ct.ThrowIfCancellationRequested();
+            var ticketTask = SteamUser.GetAuthSessionTicketAsync();
+            var finished = await Task.WhenAny(ticketTask, Task.Delay(Timeout.Infinite, ct));
+            if (finished != ticketTask)
+                return null;
+            ticket = await ticketTask;
             if (ticket?.Data is null || ticket.Data.Length == 0)
                 return null;
 

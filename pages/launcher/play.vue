@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlayPage from "~/pages/play/index.vue";
+import PlayView from "~/components/launcher/views/PlayView.vue";
 
 definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Play" });
@@ -7,6 +7,6 @@ useHead({ title: "Play" });
 
 <template>
   <div class="launcher-panel">
-    <PlayPage />
+    <PlayView />
   </div>
 </template>
