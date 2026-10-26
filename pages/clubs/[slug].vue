@@ -292,7 +292,7 @@ async function load(options?: { silent?: boolean }) {
                 count
               }
             }
-            members(order_by: [{ level: desc }, { joined_at: asc }]) {
+            members(order_by: [{ level: desc }, { xp: desc }, { joined_at: asc }]) {
               steam_id
               role
               level
@@ -1226,13 +1226,30 @@ const benefitLines = computed(() =>
     .filter(Boolean),
 );
 
+const ROLE_RANK: Record<string, number> = {
+  owner: 0,
+  co_owner: 1,
+  admin: 2,
+  moderator: 3,
+  member: 4,
+};
+
 const filteredMembers = computed(() => {
-  const list = club.value?.members ?? [];
   const q = memberQuery.value.trim().toLowerCase();
-  if (!q) return list;
-  return list.filter((m: any) =>
-    String(m.player?.name || m.steam_id).toLowerCase().includes(q),
-  );
+  const list = (club.value?.members ?? []).filter((m: any) => {
+    if (!q) return true;
+    return String(m.player?.name || m.steam_id).toLowerCase().includes(q);
+  });
+  return [...list].sort((a: any, b: any) => {
+    const levelDiff = (Number(b.level) || 1) - (Number(a.level) || 1);
+    if (levelDiff) return levelDiff;
+    const xpDiff = (Number(b.xp) || 0) - (Number(a.xp) || 0);
+    if (xpDiff) return xpDiff;
+    const roleDiff =
+      (ROLE_RANK[String(a.role)] ?? 9) - (ROLE_RANK[String(b.role)] ?? 9);
+    if (roleDiff) return roleDiff;
+    return String(a.joined_at || "").localeCompare(String(b.joined_at || ""));
+  });
 });
 
 function roleLabel(role: string) {
@@ -1794,73 +1811,14 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- Leaderboard -->
-        <section v-else-if="tab === 'leaderboard'" class="space-y-5">
-          <div v-if="canManage" class="flex flex-wrap items-end gap-2">
-            <Input v-model="seasonLbName" class="w-48" />
-            <Button :disabled="busy" @click="createSeasonLb">
-              {{ t("pages.clubs.create_season_lb") }}
-            </Button>
-          </div>
-          <div
-            v-for="lb in club.leaderboards"
-            :key="lb.id"
-            class="overflow-hidden rounded-xl border border-border/70 bg-card/40"
-          >
-            <div class="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
-              <div>
-                <h3 class="font-semibold">{{ lb.name }}</h3>
-                <p class="text-xs text-muted-foreground">
-                  {{ lb.type }} · +{{ lb.points_win }} / {{ lb.points_loss }}
-                  <span v-if="lb.frozen"> · {{ t("pages.clubs.frozen") }}</span>
-                </p>
-              </div>
-              <Button
-                v-if="canManage"
-                size="sm"
-                variant="outline"
-                @click="freezeLb(lb.id, !lb.frozen)"
-              >
-                {{ lb.frozen ? t("pages.clubs.unfreeze") : t("pages.clubs.freeze") }}
-              </Button>
-            </div>
-            <table class="w-full text-sm">
-              <thead class="text-left text-[0.7rem] uppercase tracking-wider text-muted-foreground">
-                <tr class="border-b border-border/50">
-                  <th class="px-4 py-2 w-10">#</th>
-                  <th>{{ t("pages.clubs.player") }}</th>
-                  <th class="text-right">{{ t("pages.clubs.points") }}</th>
-                  <th class="text-right">W/L</th>
-                  <th class="px-4 text-right">{{ t("pages.clubs.winrate") }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(e, i) in lb.entries"
-                  :key="e.steam_id"
-                  class="border-t border-border/40"
-                  :class="i < 3 ? 'bg-[hsl(var(--tac-amber)/0.04)]' : ''"
-                >
-                  <td class="px-4 py-2.5 font-mono tabular-nums" :class="i === 0 ? 'text-[hsl(var(--tac-amber))]' : ''">
-                    {{ i + 1 }}
-                  </td>
-                  <td class="py-1.5">
-                    <PlayerDisplay
-                      :player="e.player || { steam_id: e.steam_id }"
-                      size="xs"
-                      compact
-                      linkable
-                      :show-flag="false"
-                      :show-role="false"
-                      :show-elo="false"
-                    />
-                  </td>
-                  <td class="text-right font-semibold tabular-nums">{{ e.points }}</td>
-                  <td class="text-right tabular-nums text-muted-foreground">{{ e.wins }}/{{ e.losses }}</td>
-                  <td class="px-4 text-right tabular-nums text-muted-foreground">{{ winRate(e.wins, e.losses) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <section
+          v-else-if="tab === 'leaderboard'"
+          class="rounded-xl border border-border/70 bg-card/40 px-6 py-16 text-center"
+        >
+          <h2 class="text-base font-semibold">{{ t("pages.clubs.tabs.leaderboard") }}</h2>
+          <p class="mt-2 text-sm text-muted-foreground">
+            {{ t("pages.clubs.coming_soon") }}
+          </p>
         </section>
 
         <ClubServersPanel
@@ -2009,68 +1967,13 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- Clash -->
-        <section v-else-if="tab === 'clash'" class="space-y-4">
-          <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
-            <h2 class="text-sm font-semibold">{{ t("pages.clubs.clash_title") }}</h2>
-            <p class="mt-2 text-sm text-muted-foreground">{{ t("pages.clubs.clash_how") }}</p>
-            <ul class="mt-3 list-disc space-y-1 ps-5 text-xs text-muted-foreground">
-              <li>{{ t("pages.clubs.clash_rule_primary") }}</li>
-              <li>{{ t("pages.clubs.clash_rule_points") }}</li>
-              <li>{{ t("pages.clubs.clash_rule_window") }}</li>
-            </ul>
-          </div>
-          <div
-            v-for="ev in clashEvents"
-            :key="ev.id"
-            class="rounded-xl border border-border/70 bg-card/40 p-4"
-          >
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-semibold">{{ ev.name }}</h3>
-                  <span class="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-                    {{ clashStatus(ev) }}
-                  </span>
-                </div>
-                <p class="text-xs text-muted-foreground">
-                  {{ formatSiteDate(ev.starts_at) }} →
-                  {{ formatSiteDate(ev.ends_at) }}
-                </p>
-              </div>
-              <Button
-                v-if="!isRegisteredForClash(ev) && !ev.locked && clashStatus(ev) !== t('pages.clubs.clash_ended')"
-                size="sm"
-                :class="tacticalCtaButtonClasses"
-                :disabled="busy || !myMembership?.is_primary"
-                @click="registerClash(ev.id)"
-              >
-                {{ t("pages.clubs.register_clash") }}
-              </Button>
-              <span
-                v-else-if="isRegisteredForClash(ev)"
-                class="text-xs font-medium text-[hsl(var(--tac-amber))]"
-              >
-                {{ t("pages.clubs.clash_registered") }}
-              </span>
-            </div>
-            <ol class="mt-3 space-y-1 text-sm">
-              <li v-for="(e, idx) in ev.entries" :key="e.club_id" class="flex gap-2">
-                <span class="w-5 tabular-nums text-muted-foreground">{{ idx + 1 }}.</span>
-                <NuxtLink :to="`/clubs/${e.club?.slug || e.club_id}`" class="hover:text-[hsl(var(--tac-amber))]">
-                  {{ e.club?.name }}
-                </NuxtLink>
-                <span class="ms-auto tabular-nums text-muted-foreground">{{ e.points }} {{ t("pages.clubs.clash_pts") }}</span>
-              </li>
-            </ol>
-            <p v-if="!ev.entries?.length" class="mt-2 text-xs text-muted-foreground">
-              {{ t("pages.clubs.clash_no_entries") }}
-            </p>
-          </div>
-          <p
-            v-if="!clashEvents.length"
-            class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
-          >
-            {{ t("pages.clubs.no_clash") }}
+        <section
+          v-else-if="tab === 'clash'"
+          class="rounded-xl border border-border/70 bg-card/40 px-6 py-16 text-center"
+        >
+          <h2 class="text-base font-semibold">{{ t("pages.clubs.clash_title") }}</h2>
+          <p class="mt-2 text-sm text-muted-foreground">
+            {{ t("pages.clubs.coming_soon") }}
           </p>
         </section>
 
