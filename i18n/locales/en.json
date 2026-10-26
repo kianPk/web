@@ -7181,8 +7181,8 @@
       "download_body": "A Windows app you install once. Play, servers, clubs, inventory and more stay in the client — no need to keep the website open.",
       "download_windows": "Download for Windows",
       "download_ac_hint": "Anti-cheat launcher",
-      "download_step_install": "Unzip and run YGuardClient.exe (WebView2 / Edge runtime required).",
-      "download_step_login": "Sign in with Steam inside the client — your session stays on this PC.",
+      "download_step_install": "Unzip and run YGuardClient.exe (Steam must be running; WebView2 / Edge runtime required).",
+      "download_step_login": "The client detects the Steam account already logged in on this PC and signs you into YGuard automatically (creates an account if you are new).",
       "download_step_play": "Queue, join servers, and open TeamSpeak from the left rail without returning to the browser."
     },
     "app_nav": {

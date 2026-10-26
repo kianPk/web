@@ -67,7 +67,7 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.1.0";
+                $"{core.Settings.UserAgent} YGuardClient/0.2.0";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
@@ -80,7 +80,9 @@ internal sealed class MainForm : Form
                     "window.yguardDesktop=true;");
             };
 
-            core.Navigate(StartUrl);
+            // Prefer the Steam account already logged in on this PC.
+            var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync();
+            core.Navigate(autoUrl ?? StartUrl);
         }
         catch (Exception ex)
         {
