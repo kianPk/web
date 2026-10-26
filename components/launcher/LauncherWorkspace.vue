@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { reactive, ref, shallowRef, watch, type Component } from "vue";
 import { Headset, Copy, ExternalLink } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { toast } from "~/components/ui/toast";
@@ -11,39 +11,45 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-/** Mount once, then only show/hide — no page flash between tabs. */
-const visited = reactive<Record<string, boolean>>({
-  play: true,
-});
+/** In-process panels — no iframes (those were blank / broken in the client). */
+const panelImports: Record<string, () => Promise<{ default: Component }>> = {
+  play: () => import("~/pages/play/index.vue"),
+  servers: () => import("~/pages/game-servers/index.vue"),
+  "battle-pass": () => import("~/pages/battle-pass/index.vue"),
+  clubs: () => import("~/pages/clubs/index.vue"),
+  scrims: () => import("~/pages/scrims/index.vue"),
+};
+
+const mounted = reactive<Record<string, boolean>>({ play: true });
+const components = shallowRef<Record<string, Component>>({});
+const loadingPanel = ref<string | null>(null);
+
+async function ensurePanel(id: string) {
+  if (!panelImports[id]) return;
+  mounted[id] = true;
+  if (components.value[id]) return;
+  loadingPanel.value = id;
+  try {
+    const mod = await panelImports[id]();
+    components.value = {
+      ...components.value,
+      [id]: mod.default,
+    };
+  } finally {
+    if (loadingPanel.value === id) loadingPanel.value = null;
+  }
+}
 
 watch(
   () => props.active,
   (id) => {
-    if (id) visited[id] = true;
+    if (id) void ensurePanel(id);
+    if (id === "inventory") mounted.inventory = true;
+    if (id === "teamspeak") mounted.teamspeak = true;
   },
   { immediate: true },
 );
 
-type EmbedPanel = {
-  id: string;
-  src: string;
-};
-
-const embedPanels: EmbedPanel[] = [
-  { id: "play", src: "/play?embed=1" },
-  { id: "servers", src: "/game-servers?embed=1" },
-  { id: "battle-pass", src: "/battle-pass?embed=1" },
-  { id: "clubs", src: "/clubs?embed=1" },
-  { id: "scrims", src: "/scrims?embed=1" },
-];
-
-const loaded = reactive<Record<string, boolean>>({});
-
-function markLoaded(id: string) {
-  loaded[id] = true;
-}
-
-// —— Inventory: mount plugin in-shell (no nested iframe) ——
 const invPath = ref("/");
 const invQuery = ref<Record<string, unknown>>({});
 
@@ -51,10 +57,9 @@ function invNavigate(
   to: string,
   options: { replace?: boolean; query?: Record<string, unknown> } = {},
 ) {
-  invPath.value = (to.startsWith("/") ? to : `/${to}`).replace(/\/$/, "") || "/";
-  if (options.query) {
-    invQuery.value = options.query;
-  }
+  invPath.value =
+    (to.startsWith("/") ? to : `/${to}`).replace(/\/$/, "") || "/";
+  if (options.query) invQuery.value = options.query;
 }
 
 const tsAddress = "yguard.asts.ir:6857";
@@ -72,44 +77,39 @@ async function copyTs() {
   }
 }
 
-const showInventory = computed(() => props.active === "inventory");
-const showTeamspeak = computed(() => props.active === "teamspeak");
+const contentIds = ["play", "servers", "battle-pass", "clubs", "scrims"] as const;
 </script>
 
 <template>
   <div class="relative h-full w-full overflow-hidden">
-    <!-- Site embeds: keep-alive via v-show after first visit -->
     <div
-      v-for="panel in embedPanels"
-      v-show="active === panel.id"
-      :key="panel.id"
-      class="absolute inset-0"
-    >
-      <template v-if="visited[panel.id]">
-        <div
-          v-if="!loaded[panel.id]"
-          class="pointer-events-none absolute inset-0 z-10 animate-pulse bg-white/[0.03]"
-        />
-        <iframe
-          :src="panel.src"
-          class="absolute inset-0 h-full w-full border-0 bg-transparent"
-          :title="panel.id"
-          allow="clipboard-read; clipboard-write"
-          @load="markLoaded(panel.id)"
-        />
-      </template>
-    </div>
-
-    <!-- Inventory: glass host + native plugin (not a second browser page) -->
-    <div
-      v-show="showInventory"
-      class="absolute inset-0 overflow-hidden"
+      v-for="id in contentIds"
+      v-show="active === id"
+      :key="id"
+      class="absolute inset-0 overflow-x-hidden overflow-y-auto"
     >
       <div
-        v-if="visited.inventory"
+        v-if="mounted[id]"
+        class="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8"
+      >
+        <div
+          v-if="loadingPanel === id && !components[id]"
+          class="space-y-4"
+        >
+          <div class="h-40 animate-pulse rounded-2xl bg-white/[0.05]" />
+          <div class="h-24 animate-pulse rounded-2xl bg-white/[0.04]" />
+          <div class="h-24 animate-pulse rounded-2xl bg-white/[0.04]" />
+        </div>
+        <component :is="components[id]" v-else-if="components[id]" />
+      </div>
+    </div>
+
+    <div v-show="active === 'inventory'" class="absolute inset-0 overflow-hidden">
+      <div
+        v-if="mounted.inventory"
         class="inventory-glass flex h-full min-h-0 w-full flex-col overflow-hidden"
       >
-        <div class="min-h-0 flex-1 overflow-auto">
+        <div class="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
           <PluginRemote
             slug="inventory"
             base="/launcher/inventory"
@@ -121,14 +121,13 @@ const showTeamspeak = computed(() => props.active === "teamspeak");
       </div>
     </div>
 
-    <!-- TeamSpeak: native glass card -->
     <div
-      v-show="showTeamspeak"
+      v-show="active === 'teamspeak'"
       class="absolute inset-0 flex items-center justify-center overflow-auto p-6 sm:p-10"
     >
       <div
-        v-if="visited.teamspeak"
-        class="w-full max-w-lg rounded-3xl border border-white/10 bg-white/[0.06] p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:p-10"
+        v-if="mounted.teamspeak"
+        class="w-full max-w-lg rounded-3xl border border-white/10 bg-white/[0.07] p-7 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:p-10"
       >
         <div
           class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#ff5500]/15 text-[#ff5500] ring-1 ring-[#ff5500]/25"
@@ -169,25 +168,17 @@ const showTeamspeak = computed(() => props.active === "teamspeak");
 
 <style scoped>
 .inventory-glass {
-  background:
-    linear-gradient(
-      165deg,
-      rgba(255, 255, 255, 0.07) 0%,
-      rgba(255, 255, 255, 0.02) 40%,
-      rgba(12, 13, 16, 0.55) 100%
-    );
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.025) 42%,
+    rgba(12, 13, 16, 0.5) 100%
+  );
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
 }
 
 .inventory-glass :deep(> div) {
   min-height: 100%;
-}
-
-/* Soften opaque plugin chrome so it sits in the glass shell */
-.inventory-glass :deep(body),
-.inventory-glass :deep([class*="bg-background"]),
-.inventory-glass :deep([class*="bg-card"]) {
-  background-color: transparent !important;
 }
 </style>

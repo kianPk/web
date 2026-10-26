@@ -63,6 +63,7 @@ function onMaximize() {
 }
 
 function onClose() {
+  // Desktop: X minimizes to tray (native host). Browser: leave launcher.
   if (postDesktop("close")) return;
   navigateTo("/me");
 }
@@ -187,7 +188,7 @@ const title = computed(() => brandName.value || "YGuard");
           class="grid h-8 w-9 place-items-center rounded-lg transition hover:bg-[#e81123] hover:text-white"
           :title="
             isDesktop
-              ? t('layouts.launcher.close')
+              ? t('layouts.launcher.close_to_tray')
               : t('layouts.launcher.open_site')
           "
           @click="onClose"
@@ -321,16 +322,18 @@ const title = computed(() => brandName.value || "YGuard");
 }
 
 .launcher-stage {
-  background: rgba(255, 255, 255, 0.035);
+  background:
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.03) 45%,
+      rgba(10, 11, 16, 0.55) 100%
+    );
 }
 
 @supports (backdrop-filter: blur(24px)) {
   .launcher-glass {
     background: rgba(18, 20, 28, 0.38);
-  }
-
-  .launcher-stage {
-    background: rgba(255, 255, 255, 0.045);
   }
 }
 </style>

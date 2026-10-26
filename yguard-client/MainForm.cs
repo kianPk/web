@@ -7,7 +7,6 @@ namespace YGuardClient;
 
 internal sealed class MainForm : Form
 {
-    // Override with env YGUARD_CLIENT_URL if needed (staging).
     private static readonly string StartUrl =
         Environment.GetEnvironmentVariable("YGUARD_CLIENT_URL")
         ?? "https://yguard.ir/launcher?desktop=1";
@@ -18,7 +17,14 @@ internal sealed class MainForm : Form
         DefaultBackgroundColor = Color.Transparent,
     };
 
+    private readonly NotifyIcon _tray = new()
+    {
+        Text = "YGuard Client",
+        Visible = false,
+    };
+
     private bool _dragFromWeb;
+    private bool _allowExit;
 
     public MainForm()
     {
@@ -29,21 +35,67 @@ internal sealed class MainForm : Form
         BackColor = Color.FromArgb(12, 13, 16);
         FormBorderStyle = FormBorderStyle.None;
         DoubleBuffered = true;
+        ShowInTaskbar = true;
 
-        try
+        var appIcon = LoadAppIcon();
+        if (appIcon != null)
         {
-            if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico")))
-                Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
+            Icon = appIcon;
+            _tray.Icon = appIcon;
         }
-        catch
+        else
         {
-            /* ignore missing icon */
+            _tray.Icon = SystemIcons.Application;
         }
+
+        var trayMenu = new ContextMenuStrip();
+        trayMenu.Items.Add("Open YGuard", null, (_, _) => RestoreFromTray());
+        trayMenu.Items.Add(new ToolStripSeparator());
+        trayMenu.Items.Add("Quit", null, (_, _) =>
+        {
+            _allowExit = true;
+            _tray.Visible = false;
+            Close();
+        });
+        _tray.ContextMenuStrip = trayMenu;
+        _tray.DoubleClick += (_, _) => RestoreFromTray();
 
         Controls.Add(_web);
         HandleCreated += (_, _) => ApplyRoundedCorners();
         Resize += (_, _) => ApplyRoundedCorners();
+        FormClosing += OnFormClosing;
         Load += async (_, _) => await InitWebAsync();
+    }
+
+    private static Icon? LoadAppIcon()
+    {
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var icoPath = Path.Combine(baseDir, "Assets", "app.ico");
+            if (File.Exists(icoPath))
+                return new Icon(icoPath);
+
+            var pngPath = Path.Combine(baseDir, "Assets", "logo.png");
+            if (!File.Exists(pngPath))
+                pngPath = Path.Combine(baseDir, "Assets", "app.png");
+            if (!File.Exists(pngPath))
+                return null;
+
+            using var bmp = new Bitmap(pngPath);
+            using var squared = new Bitmap(256, 256);
+            using (var g = Graphics.FromImage(squared))
+            {
+                g.Clear(Color.Transparent);
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.DrawImage(bmp, 0, 0, 256, 256);
+            }
+            return Icon.FromHandle(squared.GetHicon());
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private void ApplyRoundedCorners()
@@ -51,7 +103,6 @@ internal sealed class MainForm : Form
         if (!IsHandleCreated) return;
         try
         {
-            // Win11+: soft round corners on the borderless window.
             const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
             const int DWMWCP_ROUND = 2;
             var pref = DWMWCP_ROUND;
@@ -59,8 +110,44 @@ internal sealed class MainForm : Form
         }
         catch
         {
-            /* older Windows — CSS radius still softens the web chrome */
+            /* ignore */
         }
+    }
+
+    private void OnFormClosing(object? sender, FormClosingEventArgs e)
+    {
+        if (_allowExit || e.CloseReason != CloseReason.UserClosing)
+            return;
+
+        e.Cancel = true;
+        MinimizeToTray();
+    }
+
+    private void MinimizeToTray()
+    {
+        Hide();
+        ShowInTaskbar = false;
+        _tray.Visible = true;
+        try
+        {
+            _tray.BalloonTipTitle = "YGuard Client";
+            _tray.BalloonTipText = "Running in the tray. Double-click to open.";
+            _tray.ShowBalloonTip(2500);
+        }
+        catch
+        {
+            /* balloon optional */
+        }
+    }
+
+    private void RestoreFromTray()
+    {
+        _tray.Visible = false;
+        ShowInTaskbar = true;
+        Show();
+        WindowState = FormWindowState.Normal;
+        Activate();
+        ApplyRoundedCorners();
     }
 
     private async Task InitWebAsync()
@@ -86,20 +173,18 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.2.2";
+                $"{core.Settings.UserAgent} YGuardClient/0.2.3";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
             core.WebMessageReceived += OnWebMessage;
             core.DOMContentLoaded += (_, _) =>
             {
-                // Tell the page it is hosted in the desktop client.
                 _ = core.ExecuteScriptAsync(
                     "document.documentElement.dataset.yguardDesktop='1';" +
                     "window.yguardDesktop=true;");
             };
 
-            // Prefer the Steam account already logged in on this PC.
             var autoUrl = await SteamAutoLogin.TryGetDesktopLoginUrlAsync();
             core.Navigate(autoUrl ?? StartUrl);
         }
@@ -111,6 +196,7 @@ internal sealed class MainForm : Form
                 "YGuard Client",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
+            _allowExit = true;
             Close();
         }
     }
@@ -129,7 +215,6 @@ internal sealed class MainForm : Form
             return;
         }
 
-        // Keep Steam / OAuth popups inside this window.
         e.Handled = true;
         _web.CoreWebView2?.Navigate(e.Uri);
     }
@@ -150,7 +235,7 @@ internal sealed class MainForm : Form
         }
         catch
         {
-            return true; // cancel navigation either way
+            return true;
         }
     }
 
@@ -181,7 +266,8 @@ internal sealed class MainForm : Form
                         : FormWindowState.Maximized;
                     break;
                 case "close":
-                    Close();
+                    // X button → tray, not exit
+                    MinimizeToTray();
                     break;
                 case "drag-start":
                     _dragFromWeb = true;
@@ -230,6 +316,17 @@ internal sealed class MainForm : Form
         }
 
         base.WndProc(ref m);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _tray.Visible = false;
+            _tray.Dispose();
+            _web.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     [DllImport("user32.dll")]
