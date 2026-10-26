@@ -8,12 +8,18 @@ import {
   ShoppingBag,
   Building2,
   Swords,
+  Trophy,
+  Medal,
+  UserRound,
   Minus,
   Square,
   X,
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import { Switch } from "~/components/ui/switch";
+
+const AUTO_UPDATE_KEY = "yguard-client-auto-update";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -22,6 +28,7 @@ const { t } = useI18n();
 
 const isDesktop = ref(false);
 const brandLogo = computed(() => logoUrl.value || "/favicon/512.png");
+const autoUpdate = ref(true);
 
 onMounted(() => {
   if (!import.meta.client) return;
@@ -32,9 +39,28 @@ onMounted(() => {
     ua.includes("YGuardClient/") ||
     document.documentElement.dataset.yguardDesktop === "1" ||
     !!(window as Window & { yguardDesktop?: boolean }).yguardDesktop;
+  try {
+    const raw = localStorage.getItem(AUTO_UPDATE_KEY);
+    if (raw === "0" || raw === "false") autoUpdate.value = false;
+    else if (raw === "1" || raw === "true") autoUpdate.value = true;
+  } catch {
+    /* ignore */
+  }
 });
 
-function postDesktop(cmd: "minimize" | "maximize" | "close" | "drag-start") {
+function setAutoUpdate(on: boolean | "indeterminate") {
+  const enabled = on === true;
+  autoUpdate.value = enabled;
+  if (!import.meta.client) return;
+  try {
+    localStorage.setItem(AUTO_UPDATE_KEY, enabled ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+  postDesktopMessage(enabled ? "auto-update-on" : "auto-update-off");
+}
+
+function postDesktopMessage(cmd: string) {
   const chrome = (
     window as Window & {
       chrome?: { webview?: { postMessage: (m: string) => void } };
@@ -45,6 +71,10 @@ function postDesktop(cmd: "minimize" | "maximize" | "close" | "drag-start") {
     return true;
   }
   return false;
+}
+
+function postDesktop(cmd: "minimize" | "maximize" | "close" | "drag-start") {
+  return postDesktopMessage(cmd);
 }
 
 function onTitleBarPointerDown(e: PointerEvent) {
@@ -80,6 +110,11 @@ const desktopQuery = computed(() => {
   return {};
 });
 
+const profilePath = computed(() => {
+  const steamId = auth.me?.steam_id;
+  return steamId ? `/players/${steamId}` : "/me";
+});
+
 const rail = computed<RailItem[]>(() => {
   const q = desktopQuery.value;
   return [
@@ -96,10 +131,34 @@ const rail = computed<RailItem[]>(() => {
       label: t("layouts.launcher.nav.servers"),
     },
     {
-      id: "teamspeak",
-      to: { path: "/launcher/teamspeak", query: q },
-      icon: Headset,
-      label: t("layouts.launcher.nav.teamspeak"),
+      id: "tournaments",
+      to: { path: "/tournaments", query: q },
+      icon: Trophy,
+      label: t("layouts.launcher.nav.tournaments"),
+    },
+    {
+      id: "leaderboard",
+      to: { path: "/leaderboard", query: q },
+      icon: Medal,
+      label: t("layouts.launcher.nav.leaderboard"),
+    },
+    {
+      id: "profile",
+      to: { path: profilePath.value, query: q },
+      icon: UserRound,
+      label: t("layouts.launcher.nav.profile"),
+    },
+    {
+      id: "clubs",
+      to: { path: "/launcher/clubs", query: q },
+      icon: Building2,
+      label: t("layouts.launcher.nav.clubs"),
+    },
+    {
+      id: "scrims",
+      to: { path: "/launcher/scrims", query: q },
+      icon: Swords,
+      label: t("layouts.launcher.nav.scrims"),
     },
     {
       id: "battle-pass",
@@ -114,16 +173,10 @@ const rail = computed<RailItem[]>(() => {
       label: t("layouts.launcher.nav.inventory"),
     },
     {
-      id: "clubs",
-      to: { path: "/launcher/clubs", query: q },
-      icon: Building2,
-      label: t("layouts.launcher.nav.clubs"),
-    },
-    {
-      id: "scrims",
-      to: { path: "/launcher/scrims", query: q },
-      icon: Swords,
-      label: t("layouts.launcher.nav.scrims"),
+      id: "teamspeak",
+      to: { path: "/launcher/teamspeak", query: q },
+      icon: Headset,
+      label: t("layouts.launcher.nav.teamspeak"),
     },
   ];
 });
@@ -133,6 +186,9 @@ const activeId = computed(() => {
   if (path.startsWith("/game-servers") || path.startsWith("/public-servers")) {
     return "servers";
   }
+  if (path.startsWith("/tournaments")) return "tournaments";
+  if (path.startsWith("/leaderboard")) return "leaderboard";
+  if (path === "/me" || path.startsWith("/players/")) return "profile";
   if (path.startsWith("/clubs")) return "clubs";
   if (path.startsWith("/scrims") || path.startsWith("/teams")) return "scrims";
   if (path.startsWith("/battle-pass") || path.startsWith("/store")) {
@@ -223,7 +279,7 @@ const loginTo = computed(() => ({
       <div class="ms-auto flex items-center gap-2">
         <NuxtLink
           v-if="auth.me"
-          :to="{ path: '/launcher/play', query: desktopQuery }"
+          :to="{ path: profilePath, query: desktopQuery }"
           class="launcher-account hidden items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] py-1 pe-3 ps-1 transition hover:border-white/15 hover:bg-white/[0.07] sm:flex"
         >
           <ClientOnly>
@@ -232,16 +288,21 @@ const loginTo = computed(() => ({
               size="xs"
               compact
               :show-name="false"
-              :show-flag="false"
+              :show-flag="true"
               :show-role="false"
-              :show-elo="false"
+              :show-elo="true"
               :linkable="false"
             />
           </ClientOnly>
-          <span
-            class="max-w-[7rem] truncate text-[12px] font-medium text-white/80"
-          >
-            {{ auth.me.name || auth.me.steam_id }}
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span
+              class="max-w-[8rem] truncate text-[12px] font-medium text-white/90"
+            >
+              {{ auth.me.name || auth.me.steam_id }}
+            </span>
+            <span class="text-[10px] text-white/45">
+              {{ t("layouts.launcher.nav.profile") }}
+            </span>
           </span>
         </NuxtLink>
         <NuxtLink
@@ -334,11 +395,44 @@ const loginTo = computed(() => ({
         </nav>
 
         <div
-          class="flex shrink-0 items-center justify-center border-s border-white/[0.08] px-2 md:hidden"
+          class="hidden shrink-0 flex-col items-center gap-2 border-t border-white/[0.08] px-2 py-3 md:flex"
         >
+          <label
+            class="flex w-full cursor-pointer flex-col items-center gap-1.5 rounded-xl px-1 py-1.5 text-white/45 transition hover:bg-white/[0.05] hover:text-white/80"
+            :title="t('layouts.launcher.auto_update_hint')"
+          >
+            <Switch
+              :checked="autoUpdate"
+              class="scale-90 data-[state=checked]:bg-[#ff5500]"
+              @update:checked="setAutoUpdate"
+            />
+            <span
+              class="max-w-full truncate text-center text-[9px] font-semibold leading-tight tracking-wide"
+            >
+              {{ t("layouts.launcher.auto_update") }}
+            </span>
+          </label>
+        </div>
+
+        <div
+          class="flex shrink-0 items-center justify-center gap-2 border-s border-white/[0.08] px-2 md:hidden"
+        >
+          <label
+            class="flex flex-col items-center gap-1 rounded-xl px-1.5 py-1 text-white/45"
+            :title="t('layouts.launcher.auto_update_hint')"
+          >
+            <Switch
+              :checked="autoUpdate"
+              class="scale-90 data-[state=checked]:bg-[#ff5500]"
+              @update:checked="setAutoUpdate"
+            />
+            <span class="text-[8px] font-semibold uppercase tracking-wide">
+              {{ t("layouts.launcher.auto_update_short") }}
+            </span>
+          </label>
           <NuxtLink
             v-if="auth.me"
-            :to="{ path: '/launcher/play', query: desktopQuery }"
+            :to="{ path: profilePath, query: desktopQuery }"
             class="rounded-xl p-1.5 transition hover:bg-white/[0.05]"
           >
             <ClientOnly>
@@ -349,7 +443,7 @@ const loginTo = computed(() => ({
                 :show-name="false"
                 :show-flag="false"
                 :show-role="false"
-                :show-elo="false"
+                :show-elo="true"
                 :linkable="false"
               />
             </ClientOnly>

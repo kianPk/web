@@ -7215,12 +7215,18 @@
       "nav": {
         "play": "پلی",
         "servers": "سرور",
+        "tournaments": "تورنمنت",
+        "leaderboard": "لیدربرد",
+        "profile": "پروفایل",
         "teamspeak": "ویس",
         "battle_pass": "پس",
         "inventory": "اسکین",
         "clubs": "کلاب",
         "scrims": "اسکریم"
       },
+      "auto_update": "اتواپدیت",
+      "auto_update_short": "آپدیت",
+      "auto_update_hint": "دانلود و نصب خودکار آپدیت کلاینت",
       "teamspeak_hint": "با یک کلیک به تیم‌اسپیک YGuard وصل شو، یا آدرس را کپی کن.",
       "teamspeak_connect": "اتصال",
       "teamspeak_copy": "کپی آدرس",

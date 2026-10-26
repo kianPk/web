@@ -7215,12 +7215,18 @@
       "nav": {
         "play": "Play",
         "servers": "Servers",
+        "tournaments": "Cups",
+        "leaderboard": "Ranks",
+        "profile": "Profile",
         "teamspeak": "Voice",
         "battle_pass": "Pass",
         "inventory": "Skins",
         "clubs": "Clubs",
         "scrims": "Scrims"
       },
+      "auto_update": "Auto-update",
+      "auto_update_short": "Update",
+      "auto_update_hint": "Automatically download and install client updates",
       "teamspeak_hint": "Join the YGuard TeamSpeak with one click, or copy the address.",
       "teamspeak_connect": "Connect",
       "teamspeak_copy": "Copy address",
