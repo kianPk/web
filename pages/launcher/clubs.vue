@@ -1,8 +1,12 @@
 <script setup lang="ts">
-definePageMeta({ layout: "launcher" });
+import ClubsPage from "~/pages/clubs/index.vue";
+
+definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Clubs" });
 </script>
 
 <template>
-  <div />
+  <div class="launcher-panel">
+    <ClubsPage />
+  </div>
 </template>

@@ -1,8 +1,12 @@
 <script setup lang="ts">
-definePageMeta({ layout: "launcher" });
+import ServersPage from "~/pages/game-servers/index.vue";
+
+definePageMeta({ layout: "launcher", keepalive: true });
 useHead({ title: "Servers" });
 </script>
 
 <template>
-  <div />
+  <div class="launcher-panel">
+    <ServersPage />
+  </div>
 </template>

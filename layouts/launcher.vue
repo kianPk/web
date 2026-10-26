@@ -14,7 +14,6 @@ import {
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
-import LauncherWorkspace from "~/components/launcher/LauncherWorkspace.vue";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -70,61 +69,72 @@ function onClose() {
 
 type RailItem = {
   id: string;
-  to: string;
+  to: string | { path: string; query: Record<string, string> };
   icon: unknown;
   label: string;
 };
 
-const rail = computed<RailItem[]>(() => [
-  {
-    id: "play",
-    to: "/launcher/play",
-    icon: Gamepad2,
-    label: t("layouts.launcher.nav.play"),
-  },
-  {
-    id: "servers",
-    to: "/launcher/servers",
-    icon: Server,
-    label: t("layouts.launcher.nav.servers"),
-  },
-  {
-    id: "teamspeak",
-    to: "/launcher/teamspeak",
-    icon: Headset,
-    label: t("layouts.launcher.nav.teamspeak"),
-  },
-  {
-    id: "battle-pass",
-    to: "/launcher/battle-pass",
-    icon: Ticket,
-    label: t("layouts.launcher.nav.battle_pass"),
-  },
-  {
-    id: "inventory",
-    to: "/launcher/inventory",
-    icon: ShoppingBag,
-    label: t("layouts.launcher.nav.inventory"),
-  },
-  {
-    id: "clubs",
-    to: "/launcher/clubs",
-    icon: Building2,
-    label: t("layouts.launcher.nav.clubs"),
-  },
-  {
-    id: "scrims",
-    to: "/launcher/scrims",
-    icon: Swords,
-    label: t("layouts.launcher.nav.scrims"),
-  },
-]);
+const desktopQuery = computed(() => {
+  if (route.query.desktop === "1" || route.query.desktop === "true") {
+    return { desktop: "1" as const };
+  }
+  return {};
+});
+
+const rail = computed<RailItem[]>(() => {
+  const q = desktopQuery.value;
+  return [
+    {
+      id: "play",
+      to: { path: "/launcher/play", query: q },
+      icon: Gamepad2,
+      label: t("layouts.launcher.nav.play"),
+    },
+    {
+      id: "servers",
+      to: { path: "/launcher/servers", query: q },
+      icon: Server,
+      label: t("layouts.launcher.nav.servers"),
+    },
+    {
+      id: "teamspeak",
+      to: { path: "/launcher/teamspeak", query: q },
+      icon: Headset,
+      label: t("layouts.launcher.nav.teamspeak"),
+    },
+    {
+      id: "battle-pass",
+      to: { path: "/launcher/battle-pass", query: q },
+      icon: Ticket,
+      label: t("layouts.launcher.nav.battle_pass"),
+    },
+    {
+      id: "inventory",
+      to: { path: "/launcher/inventory", query: q },
+      icon: ShoppingBag,
+      label: t("layouts.launcher.nav.inventory"),
+    },
+    {
+      id: "clubs",
+      to: { path: "/launcher/clubs", query: q },
+      icon: Building2,
+      label: t("layouts.launcher.nav.clubs"),
+    },
+    {
+      id: "scrims",
+      to: { path: "/launcher/scrims", query: q },
+      icon: Swords,
+      label: t("layouts.launcher.nav.scrims"),
+    },
+  ];
+});
 
 const activeId = computed(() => {
   const path = route.path.replace(/\/$/, "") || "/launcher";
-  const hit = rail.value.find(
-    (item) => path === item.to || path.startsWith(`${item.to}/`),
-  );
+  const hit = rail.value.find((item) => {
+    const base = typeof item.to === "string" ? item.to : item.to.path;
+    return path === base || path.startsWith(`${base}/`);
+  });
   return hit?.id || "play";
 });
 
@@ -209,6 +219,7 @@ const title = computed(() => brandName.value || "YGuard");
             v-for="item in rail"
             :key="item.id"
             :to="item.to"
+            replace
             class="group relative flex min-w-[3.5rem] flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-white/45 transition md:min-w-0 md:py-2.5"
             :class="
               activeId === item.id
@@ -261,21 +272,16 @@ const title = computed(() => brandName.value || "YGuard");
         </div>
       </aside>
 
-      <!-- One continuous glass stage — tabs swap inside, not new pages -->
+      <!-- Real Nuxt pages swap here (not a hidden slot + v-show workspace). -->
       <main
         class="order-1 relative min-h-0 min-w-0 flex-1 p-2 pb-[4.25rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
       >
         <div
-          class="launcher-stage relative h-full min-h-0 overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl"
+          class="launcher-stage relative h-full min-h-0 overflow-x-hidden overflow-y-auto rounded-2xl border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl"
         >
-          <LauncherWorkspace :active="activeId" />
+          <slot />
         </div>
       </main>
-    </div>
-
-    <!-- Route pages only exist for URL/history; content lives in the workspace -->
-    <div class="hidden">
-      <slot />
     </div>
   </div>
 </template>
@@ -334,6 +340,29 @@ const title = computed(() => brandName.value || "YGuard");
 @supports (backdrop-filter: blur(24px)) {
   .launcher-glass {
     background: rgba(18, 20, 28, 0.38);
+  }
+}
+</style>
+
+<style>
+/* Shared by pages/launcher/* panels */
+.launcher-panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+@media (min-width: 640px) {
+  .launcher-panel {
+    padding: 1.75rem 1.5rem 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .launcher-panel {
+    padding: 2rem;
   }
 }
 </style>
