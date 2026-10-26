@@ -7162,9 +7162,12 @@
     },
     "launcher": {
       "client": "کلاینت",
-      "open_client": "باز کردن کلاینت شبیه فیسیت",
+      "open_client": "دانلود کلاینت ویندوز",
       "search_placeholder": "جستجوی پلیر، مچ، کلاب…",
       "open_site": "باز کردن سایت کامل",
+      "minimize": "کوچک‌کردن",
+      "maximize": "بزرگ‌کردن",
+      "close": "بستن",
       "sign_in": "ورود",
       "nav": {
         "inventory": "اینونتوری"
@@ -7173,7 +7176,14 @@
       "teamspeak_connect": "اتصال",
       "teamspeak_copy": "کپی آدرس",
       "teamspeak_copied": "آدرس تیم‌اسپیک کپی شد",
-      "teamspeak_copy_failed": "کپی آدرس ممکن نشد"
+      "teamspeak_copy_failed": "کپی آدرس ممکن نشد",
+      "download_title": "نصب کلاینت YGuard",
+      "download_body": "اپ ویندوزی که یک‌بار نصب می‌کنی. پلی، سرورها، کلاب، اینونتوری و بقیه داخل خود کلاینت می‌مانند — لازم نیست هی تو سایت بمانی.",
+      "download_windows": "دانلود برای ویندوز",
+      "download_ac_hint": "لانچر آنتی‌چیت",
+      "download_step_install": "زیپ را باز کن و YGuardClient.exe را اجرا کن (WebView2 / Edge لازم است).",
+      "download_step_login": "داخل کلاینت با استیم وارد شو — سشن روی همین سیستم می‌ماند.",
+      "download_step_play": "صف، جوین سرور و تیم‌اسپیک از منوی چپ؛ بدون برگشت به مرورگر."
     },
     "app_nav": {
       "brand": "YGuard",

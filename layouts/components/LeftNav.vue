@@ -242,9 +242,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 :tooltip="$t('layouts.launcher.open_client')"
               >
                 <NuxtLink
-                  to="/launcher"
+                  to="/client"
                   :class="{
-                    'router-link-active': $route.path.startsWith('/launcher'),
+                    'router-link-active': $route.path.startsWith('/client'),
                   }"
                 >
                   <AppWindow />

@@ -7162,9 +7162,12 @@
     },
     "launcher": {
       "client": "Client",
-      "open_client": "Open Faceit-style client",
+      "open_client": "Download the Windows client",
       "search_placeholder": "Search players, matches, clubs…",
       "open_site": "Open full site",
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "close": "Close",
       "sign_in": "Sign in",
       "nav": {
         "inventory": "Inventory"
@@ -7173,7 +7176,14 @@
       "teamspeak_connect": "Connect",
       "teamspeak_copy": "Copy address",
       "teamspeak_copied": "TeamSpeak address copied",
-      "teamspeak_copy_failed": "Could not copy address"
+      "teamspeak_copy_failed": "Could not copy address",
+      "download_title": "Install YGuard Client",
+      "download_body": "A Windows app you install once. Play, servers, clubs, inventory and more stay in the client — no need to keep the website open.",
+      "download_windows": "Download for Windows",
+      "download_ac_hint": "Anti-cheat launcher",
+      "download_step_install": "Unzip and run YGuardClient.exe (WebView2 / Edge runtime required).",
+      "download_step_login": "Sign in with Steam inside the client — your session stays on this PC.",
+      "download_step_play": "Queue, join servers, and open TeamSpeak from the left rail without returning to the browser."
     },
     "app_nav": {
       "brand": "YGuard",

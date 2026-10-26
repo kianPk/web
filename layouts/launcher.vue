@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   Gamepad2,
   Server,
@@ -20,6 +20,49 @@ const route = useRoute();
 const auth = useAuthStore();
 const { brandName, customLogoUrl } = useBranding();
 const { t } = useI18n();
+
+const isDesktop = ref(false);
+
+onMounted(() => {
+  if (!import.meta.client) return;
+  const ua = navigator.userAgent || "";
+  isDesktop.value =
+    route.query.desktop === "1" ||
+    route.query.desktop === "true" ||
+    ua.includes("YGuardClient/") ||
+    document.documentElement.dataset.yguardDesktop === "1" ||
+    !!(window as Window & { yguardDesktop?: boolean }).yguardDesktop;
+});
+
+function postDesktop(cmd: "minimize" | "maximize" | "close" | "drag-start") {
+  const chrome = (window as Window & {
+    chrome?: { webview?: { postMessage: (m: string) => void } };
+  }).chrome;
+  if (chrome?.webview?.postMessage) {
+    chrome.webview.postMessage(cmd);
+    return true;
+  }
+  return false;
+}
+
+function onTitleBarPointerDown(e: PointerEvent) {
+  if (!isDesktop.value) return;
+  if ((e.target as HTMLElement | null)?.closest("button,a,input")) return;
+  postDesktop("drag-start");
+}
+
+function onMinimize() {
+  if (!postDesktop("minimize") && !isDesktop.value) return;
+}
+
+function onMaximize() {
+  if (!postDesktop("maximize") && !isDesktop.value) return;
+}
+
+function onClose() {
+  if (postDesktop("close")) return;
+  navigateTo("/me");
+}
 
 type RailItem = {
   id: string;
@@ -92,6 +135,8 @@ const title = computed(() => brandName.value || "YGuard");
     <!-- Faceit-style title bar -->
     <header
       class="flex h-9 shrink-0 items-center gap-3 border-b border-white/[0.06] bg-[#12141a] px-3"
+      :class="isDesktop ? 'cursor-default' : ''"
+      @pointerdown="onTitleBarPointerDown"
     >
       <div class="flex min-w-0 items-center gap-2">
         <NuxtImg
@@ -125,26 +170,31 @@ const title = computed(() => brandName.value || "YGuard");
         <button
           type="button"
           class="grid h-7 w-8 place-items-center rounded hover:bg-white/[0.06] hover:text-white/80"
-          tabindex="-1"
-          aria-hidden="true"
+          :title="t('layouts.launcher.minimize')"
+          @click="onMinimize"
         >
           <Minus class="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
           class="grid h-7 w-8 place-items-center rounded hover:bg-white/[0.06] hover:text-white/80"
-          tabindex="-1"
-          aria-hidden="true"
+          :title="t('layouts.launcher.maximize')"
+          @click="onMaximize"
         >
           <Square class="h-3 w-3" />
         </button>
-        <NuxtLink
-          to="/me"
+        <button
+          type="button"
           class="grid h-7 w-8 place-items-center rounded hover:bg-[#e81123] hover:text-white"
-          :title="t('layouts.launcher.open_site')"
+          :title="
+            isDesktop
+              ? t('layouts.launcher.close')
+              : t('layouts.launcher.open_site')
+          "
+          @click="onClose"
         >
           <X class="h-3.5 w-3.5" />
-        </NuxtLink>
+        </button>
       </div>
     </header>
 
