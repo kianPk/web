@@ -6756,6 +6756,7 @@
       "load_failed": "Failed to load club",
       "action_failed": "Action failed",
       "members_label": "members",
+      "club_xp_label": "club XP",
       "banner": "Club banner",
       "banner_hint": "Wide cover image. 8:3 works best.",
       "profile": "Club profile",

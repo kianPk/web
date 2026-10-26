@@ -284,6 +284,7 @@ async function load(options?: { silent?: boolean }) {
             min_elo
             min_faceit_level
             owner_steam_id
+            xp
             role
             can_manage
             created_at
@@ -1391,6 +1392,10 @@ function activityTitle(kind: string) {
             <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
               <span class="text-border">·</span>
+              <span class="tabular-nums">
+                {{ Number(club.xp) || 0 }} {{ t("pages.clubs.club_xp_label") }}
+              </span>
+              <span class="text-border">·</span>
               <span>{{ t(`pages.clubs.join_modes.${club.join_mode}`) }}</span>
               <template v-if="club.min_elo">
                 <span class="text-border">·</span>
@@ -1537,6 +1542,12 @@ function activityTitle(kind: string) {
                 <div class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</div>
                 <div class="mt-1 text-2xl font-bold tabular-nums">
                   {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+                </div>
+              </div>
+              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
+                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.club_xp_label") }}</div>
+                <div class="mt-1 text-2xl font-bold tabular-nums">
+                  {{ Number(club.xp) || 0 }}
                 </div>
               </div>
               <div class="rounded-xl border border-border/70 bg-card/40 p-4">
