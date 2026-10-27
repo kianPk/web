@@ -68,9 +68,17 @@ const drafts = ref<Draft[]>([]);
 const customCount = ref(0);
 const orders = ref<ShopOrder[]>([]);
 
+function asBool(value: unknown) {
+  return value === true || value === 1 || value === "1" || value === "t" || value === "true";
+}
+
 function toDraft(p: Product): Draft {
   return {
     ...p,
+    enabled: asBool(p.enabled),
+    ypoint_enabled: asBool(p.ypoint_enabled),
+    title: p.title ?? "",
+    description: p.description ?? "",
     price_7d_toman: String(irrToToman(p.price_7d_irr || 0)),
     price_30d_toman: String(irrToToman(p.price_30d_irr || 0)),
     price_90d_toman: String(irrToToman(p.price_90d_irr || 0)),
@@ -78,6 +86,10 @@ function toDraft(p: Product): Draft {
     price_30d_yp: String(p.price_30d_ypoint || 0),
     price_90d_yp: String(p.price_90d_ypoint || 0),
   };
+}
+
+function toggleFlag(d: Draft, key: "enabled" | "ypoint_enabled") {
+  d[key] = !asBool(d[key]);
 }
 
 function kindLabel(kind: Kind) {
@@ -171,8 +183,8 @@ async function saveAll() {
       kind: d.kind,
       title: d.title,
       description: d.description,
-      enabled: d.enabled,
-      ypoint_enabled: d.ypoint_enabled,
+      enabled: asBool(d.enabled),
+      ypoint_enabled: asBool(d.ypoint_enabled),
       price_7d_irr: tomanToIrr(parseTomanInput(d.price_7d_toman)),
       price_30d_irr: tomanToIrr(parseTomanInput(d.price_30d_toman)),
       price_90d_irr: tomanToIrr(parseTomanInput(d.price_90d_toman)),
@@ -276,14 +288,32 @@ function saleStatus(o: ShopOrder) {
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="font-medium">{{ kindLabel(d.kind) }}</div>
           <div class="flex items-center gap-3">
-            <label class="flex items-center gap-1.5 text-xs">
-              <Checkbox v-model:checked="d.enabled" />
+            <button
+              type="button"
+              class="flex items-center gap-1.5 text-xs"
+              :disabled="saving"
+              @click="toggleFlag(d, 'enabled')"
+            >
+              <Checkbox
+                :checked="asBool(d.enabled)"
+                class="pointer-events-none"
+                tabindex="-1"
+              />
               {{ t("pages.clubs.shop.enabled") }}
-            </label>
-            <label class="flex items-center gap-1.5 text-xs">
-              <Checkbox v-model:checked="d.ypoint_enabled" />
+            </button>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 text-xs"
+              :disabled="saving"
+              @click="toggleFlag(d, 'ypoint_enabled')"
+            >
+              <Checkbox
+                :checked="asBool(d.ypoint_enabled)"
+                class="pointer-events-none"
+                tabindex="-1"
+              />
               {{ t("pages.clubs.shop.ypoint_enabled") }}
-            </label>
+            </button>
             <Button
               v-if="d.kind === 'custom'"
               type="button"

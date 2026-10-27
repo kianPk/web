@@ -1236,7 +1236,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             >
               <NuxtLink
                 to="/client"
-                class="inline-flex h-8 w-full items-center justify-start gap-2 rounded-md bg-orange-600 px-3 text-sm font-medium text-white hover:bg-orange-500 hover:text-white"
+                class="inline-flex h-8 w-full items-center justify-center gap-2 rounded-md bg-orange-600 px-3 text-sm font-medium text-white hover:bg-orange-500 hover:text-white"
                 :class="{
                   'router-link-active': $route.path.startsWith('/client'),
                 }"
