@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Plus, Save, Trash2 } from "lucide-vue-next";
+import { Plus, Save, ShoppingBag, Trash2 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
@@ -69,7 +69,13 @@ const customCount = ref(0);
 const orders = ref<ShopOrder[]>([]);
 
 function asBool(value: unknown) {
-  return value === true || value === 1 || value === "1" || value === "t" || value === "true";
+  return (
+    value === true ||
+    value === 1 ||
+    value === "1" ||
+    value === "t" ||
+    value === "true"
+  );
 }
 
 function toDraft(p: Product): Draft {
@@ -250,16 +256,35 @@ function saleStatus(o: ShopOrder) {
   }
   return t("pages.clubs.shop.status_paid");
 }
+
+function amountLabel(o: ShopOrder) {
+  if (o.payment_method === "ypoint") return `${o.amount_ypoint} YP`;
+  return `${formatTomanAmount(o.amount_irr, locale)} ${t("pages.clubs.shop.toman")}`;
+}
 </script>
 
 <template>
-  <div class="space-y-5 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div>
-        <h3 class="text-sm font-semibold">{{ t("pages.clubs.shop.manage_title") }}</h3>
-        <p class="mt-0.5 text-xs text-muted-foreground">
-          {{ t("pages.clubs.shop.manage_hint") }}
-        </p>
+  <div class="space-y-5">
+    <div
+      class="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border/70 bg-card/40 p-4"
+    >
+      <div class="flex items-start gap-3">
+        <div
+          class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+        >
+          <ShoppingBag class="h-5 w-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold tracking-tight">
+            {{ t("pages.clubs.shop.manage_title") }}
+          </h2>
+          <p class="mt-0.5 text-sm text-muted-foreground">
+            {{ t("pages.clubs.shop.manage_hint") }}
+          </p>
+          <p class="mt-1 text-xs text-muted-foreground">
+            {{ t("pages.clubs.shop.limit_hint", { custom: customCount, max: 2 }) }}
+          </p>
+        </div>
       </div>
       <div class="flex flex-wrap gap-2">
         <Button
@@ -272,27 +297,48 @@ function saleStatus(o: ShopOrder) {
           <Plus class="me-1 h-3.5 w-3.5" />
           {{ t("pages.clubs.shop.add_custom") }}
         </Button>
-        <Button type="button" size="sm" :disabled="saving || loading" @click="saveAll">
+        <Button
+          type="button"
+          size="sm"
+          :disabled="saving || loading"
+          @click="saveAll"
+        >
           <Save class="me-1 h-3.5 w-3.5" />
           {{ t("pages.clubs.shop.save") }}
         </Button>
       </div>
     </div>
 
-    <p class="text-xs text-muted-foreground">
-      {{ t("pages.clubs.shop.limit_hint", { custom: customCount, max: 2 }) }}
-    </p>
-
-    <div v-if="loading" class="h-24 animate-pulse rounded-xl bg-background/50" />
+    <div v-if="loading" class="space-y-3">
+      <div
+        v-for="i in 2"
+        :key="i"
+        class="h-36 animate-pulse rounded-2xl bg-card/60"
+      />
+    </div>
 
     <div v-else class="space-y-4">
       <article
         v-for="(d, index) in drafts"
         :key="d.id || `new-${index}`"
-        class="space-y-3 rounded-xl border border-border/60 bg-background/40 p-3"
+        class="space-y-4 rounded-2xl border border-border/70 bg-card/40 p-4"
       >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="font-medium">{{ kindLabel(d.kind) }}</div>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">
+              {{ kindLabel(d.kind) }}
+            </h3>
+            <p
+              v-if="d.kind !== 'custom'"
+              class="text-xs leading-relaxed text-muted-foreground"
+            >
+              {{
+                d.kind === "club_vip"
+                  ? t("pages.clubs.shop.desc_club_vip")
+                  : t("pages.clubs.shop.desc_public_vip")
+              }}
+            </p>
+          </div>
           <div class="flex flex-wrap items-center gap-4">
             <label class="flex cursor-pointer items-center gap-2 text-xs">
               <Switch
@@ -325,7 +371,10 @@ function saleStatus(o: ShopOrder) {
           </div>
         </div>
 
-        <div v-if="d.kind === 'custom'" class="grid gap-2 sm:grid-cols-2">
+        <div
+          v-if="d.kind === 'custom'"
+          class="grid gap-2 rounded-xl border border-border/50 bg-background/35 p-3 sm:grid-cols-2"
+        >
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.custom_title") }}
             <Input v-model="d.title" class="h-9" maxlength="80" />
@@ -335,47 +384,78 @@ function saleStatus(o: ShopOrder) {
             <Input v-model="d.description" class="h-9" maxlength="500" />
           </label>
         </div>
-        <p v-else class="text-xs text-muted-foreground">
-          {{
-            d.kind === "club_vip"
-              ? t("pages.clubs.shop.desc_club_vip")
-              : t("pages.clubs.shop.desc_public_vip")
-          }}
-        </p>
 
-        <div class="grid gap-2 sm:grid-cols-3">
+        <div
+          class="grid gap-2 rounded-xl border border-border/50 bg-background/35 p-3 sm:grid-cols-3"
+        >
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.price_7d") }}
-            <Input v-model="d.price_7d_toman" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_7d_toman"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.price_30d") }}
-            <Input v-model="d.price_30d_toman" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_30d_toman"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.price_90d") }}
-            <Input v-model="d.price_90d_toman" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_90d_toman"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
         </div>
 
-        <div v-if="d.ypoint_enabled" class="grid gap-2 sm:grid-cols-3">
+        <div
+          v-if="d.ypoint_enabled"
+          class="grid gap-2 rounded-xl border border-border/50 bg-background/35 p-3 sm:grid-cols-3"
+        >
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.yp_7d") }}
-            <Input v-model="d.price_7d_yp" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_7d_yp"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.yp_30d") }}
-            <Input v-model="d.price_30d_yp" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_30d_yp"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
           <label class="space-y-1 text-xs">
             {{ t("pages.clubs.shop.yp_90d") }}
-            <Input v-model="d.price_90d_yp" class="h-9" inputmode="numeric" />
+            <Input
+              v-model="d.price_90d_yp"
+              class="h-9"
+              inputmode="numeric"
+              dir="ltr"
+            />
           </label>
         </div>
       </article>
     </div>
 
-    <div v-if="pendingCustom.length" class="space-y-2 border-t border-border/60 pt-4">
+    <div
+      v-if="pendingCustom.length"
+      class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
+    >
       <h4 class="text-sm font-semibold">
         {{ t("pages.clubs.shop.pending_orders") }}
       </h4>
@@ -387,56 +467,44 @@ function saleStatus(o: ShopOrder) {
         <span class="min-w-0 flex-1 truncate font-medium">
           {{ o.product_title }} · {{ o.buyer_name || o.buyer_steam_id }}
         </span>
-        <span class="text-xs text-muted-foreground">
-          <template v-if="o.payment_method === 'ypoint'">
-            {{ o.amount_ypoint }} YP
-          </template>
-          <template v-else>
-            {{ formatTomanAmount(o.amount_irr, locale) }}
-            {{ t("pages.clubs.shop.toman") }}
-          </template>
-        </span>
+        <span class="text-xs text-muted-foreground">{{ amountLabel(o) }}</span>
         <Button type="button" size="sm" @click="markDone(o.id)">
           {{ t("pages.clubs.shop.mark_done") }}
         </Button>
       </div>
     </div>
 
-    <div class="space-y-2 border-t border-border/60 pt-4">
-      <h4 class="text-sm font-semibold">
-        {{ t("pages.clubs.shop.sales_history") }}
-      </h4>
-      <p class="text-xs text-muted-foreground">
-        {{ t("pages.clubs.shop.sales_history_hint") }}
-      </p>
+    <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+      <div>
+        <h4 class="text-sm font-semibold">
+          {{ t("pages.clubs.shop.sales_history") }}
+        </h4>
+        <p class="mt-0.5 text-xs text-muted-foreground">
+          {{ t("pages.clubs.shop.sales_history_hint") }}
+        </p>
+      </div>
       <p
         v-if="!loading && !salesHistory.length"
-        class="rounded-lg border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground"
+        class="rounded-lg border border-dashed border-border/60 px-3 py-6 text-center text-xs text-muted-foreground"
       >
         {{ t("pages.clubs.shop.sales_history_empty") }}
       </p>
-      <div
-        v-for="o in salesHistory"
-        :key="`sale-${o.id}`"
-        class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
-      >
-        <span class="min-w-0 flex-1 truncate font-medium">
-          {{ o.product_title }} · {{ o.buyer_name || o.buyer_steam_id }}
-        </span>
-        <span class="text-xs text-muted-foreground">
-          <template v-if="o.payment_method === 'ypoint'">
-            {{ o.amount_ypoint }} YP
-          </template>
-          <template v-else>
-            {{ formatTomanAmount(o.amount_irr, locale) }}
-            {{ t("pages.clubs.shop.toman") }}
-          </template>
-        </span>
-        <span
-          class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+      <div v-else class="space-y-2">
+        <div
+          v-for="o in salesHistory"
+          :key="`sale-${o.id}`"
+          class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
         >
-          {{ saleStatus(o) }}
-        </span>
+          <span class="min-w-0 flex-1 truncate font-medium">
+            {{ o.product_title }} · {{ o.buyer_name || o.buyer_steam_id }}
+          </span>
+          <span class="text-xs text-muted-foreground">{{ amountLabel(o) }}</span>
+          <span
+            class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+          >
+            {{ saleStatus(o) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>

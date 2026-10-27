@@ -7038,6 +7038,23 @@
         "clash": "Clash",
         "admin": "Settings"
       },
+      "admin_sections": {
+        "shop": "Shop",
+        "shop_hint": "Prices, On sale, custom items, and sales.",
+        "access": "Access",
+        "access_hint": "Join mode, requests, invites, levels, and bans.",
+        "page": "Page",
+        "page_hint": "Club description, promo, benefits, and social links.",
+        "owner": "Owner",
+        "owner_hint": "Transfer ownership. Irreversible without the new owner."
+      },
+      "hours_placeholder": "Hours",
+      "max_uses_placeholder": "Max uses",
+      "min_elo_placeholder": "Min Elo",
+      "min_faceit_placeholder": "Min FACEIT level",
+      "bans_empty": "No bans.",
+      "invites_empty": "No pending invites.",
+      "invite_links_empty": "No invite links yet.",
       "shop": {
         "title": "Club shop",
         "subtitle": "Buy Club VIP, Public VIP, or club-listed extras.",

@@ -17,6 +17,13 @@ import {
   Gift,
   BadgePercent,
   ShoppingBag,
+  KeyRound,
+  FileText,
+  AlertTriangle,
+  Link2,
+  UserPlus,
+  Ban,
+  Share2,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Button } from "~/components/ui/button";
@@ -51,7 +58,12 @@ import { $, order_by } from "~/generated/zeus";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
-import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import {
+  filterTriggerActive,
+  filterTriggerBase,
+  filterTriggerIdle,
+  tacticalCtaButtonClasses,
+} from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
 import {
   parseBaleUrl,
@@ -78,6 +90,21 @@ const VALID_TABS = [
 ] as const;
 type Tab = (typeof VALID_TABS)[number];
 
+const VALID_ADMIN_SECTIONS = ["shop", "access", "page", "owner"] as const;
+type AdminSection = (typeof VALID_ADMIN_SECTIONS)[number];
+
+function parseAdminSection(raw: unknown): AdminSection {
+  if (
+    raw === "shop" ||
+    raw === "access" ||
+    raw === "page" ||
+    raw === "owner"
+  ) {
+    return raw;
+  }
+  return "shop";
+}
+
 const route = useRoute();
 const { t } = useI18n();
 const { client } = useApolloClient();
@@ -90,13 +117,26 @@ const tab = ref<Tab>(
     ? (route.query.tab as Tab)
     : "overview",
 );
+const adminSection = ref<AdminSection>(
+  parseAdminSection(route.query.section),
+);
 
-watch(tab, (value) => {
+function syncClubQuery() {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
-  if (value === "overview") url.searchParams.delete("tab");
-  else url.searchParams.set("tab", value);
+  if (tab.value === "overview") url.searchParams.delete("tab");
+  else url.searchParams.set("tab", tab.value);
+  if (tab.value !== "admin" || adminSection.value === "shop") {
+    url.searchParams.delete("section");
+  } else {
+    url.searchParams.set("section", adminSection.value);
+  }
   window.history.replaceState(window.history.state, "", url.toString());
+}
+
+watch(tab, () => syncClubQuery());
+watch(adminSection, () => {
+  if (tab.value === "admin") syncClubQuery();
 });
 
 const club = ref<any>(null);
@@ -184,6 +224,59 @@ const isOwner = computed(
     myMembership.value?.role === "owner" ||
     String(club.value?.owner_steam_id) === String(me.value?.steam_id),
 );
+
+const adminSections = computed(() => {
+  const items: Array<{
+    id: AdminSection;
+    label: string;
+    hint: string;
+    icon: typeof ShoppingBag;
+  }> = [
+    {
+      id: "shop",
+      label: t("pages.clubs.admin_sections.shop"),
+      hint: t("pages.clubs.admin_sections.shop_hint"),
+      icon: ShoppingBag,
+    },
+    {
+      id: "access",
+      label: t("pages.clubs.admin_sections.access"),
+      hint: t("pages.clubs.admin_sections.access_hint"),
+      icon: KeyRound,
+    },
+    {
+      id: "page",
+      label: t("pages.clubs.admin_sections.page"),
+      hint: t("pages.clubs.admin_sections.page_hint"),
+      icon: FileText,
+    },
+  ];
+  if (isOwner.value) {
+    items.push({
+      id: "owner",
+      label: t("pages.clubs.admin_sections.owner"),
+      hint: t("pages.clubs.admin_sections.owner_hint"),
+      icon: AlertTriangle,
+    });
+  }
+  return items;
+});
+
+watch([isOwner, adminSection], () => {
+  if (adminSection.value === "owner" && !isOwner.value) {
+    adminSection.value = "shop";
+  }
+});
+
+const joinModeOptions = [
+  { value: "open" as const, labelKey: "pages.clubs.join_modes.open" },
+  { value: "request" as const, labelKey: "pages.clubs.join_modes.request" },
+  {
+    value: "invite_only" as const,
+    labelKey: "pages.clubs.join_modes.invite_only",
+  },
+];
+
 const canModerate = computed(
   () => myLevel.value >= 7 || memberHasPerm("moderate_news"),
 );
@@ -1999,269 +2092,489 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- Admin / Settings -->
-        <section v-else-if="tab === 'admin' && canManage" class="grid gap-4 lg:grid-cols-2">
+        <section
+          v-else-if="tab === 'admin' && canManage"
+          class="space-y-5"
+        >
+          <nav
+            class="sticky top-2 z-10 flex flex-wrap gap-1.5 rounded-xl border border-border/70 bg-card/80 p-1.5 backdrop-blur-md"
+            aria-label="Admin sections"
+          >
+            <button
+              v-for="section in adminSections"
+              :key="section.id"
+              type="button"
+              :class="[
+                filterTriggerBase,
+                adminSection === section.id
+                  ? filterTriggerActive
+                  : filterTriggerIdle,
+              ]"
+              @click="adminSection = section.id"
+            >
+              <component :is="section.icon" class="h-3.5 w-3.5 shrink-0" />
+              {{ section.label }}
+            </button>
+          </nav>
+
+          <p class="text-sm text-muted-foreground">
+            {{
+              adminSections.find((s) => s.id === adminSection)?.hint ||
+              t("pages.clubs.admin_sections.shop_hint")
+            }}
+          </p>
+
+          <!-- Shop -->
           <ClubShopManagePanel
-            v-if="club"
+            v-if="adminSection === 'shop' && club"
             :club-id="club.id"
           />
-          <div
-            v-if="isOwner"
-            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
-          >
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.form.join_mode") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.join_mode_hint") }}</p>
-            <div class="flex flex-wrap items-end gap-2">
-              <label class="block min-w-[12rem] flex-1 space-y-1 text-xs font-medium">
-                {{ t("pages.clubs.form.join_mode") }}
-                <select
-                  v-model="joinModeInput"
-                  class="h-9 w-full rounded-md border border-border bg-background px-3 text-sm font-normal text-foreground"
+
+          <!-- Access -->
+          <div v-else-if="adminSection === 'access'" class="space-y-4">
+            <div
+              v-if="isOwner"
+              class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
+            >
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
                 >
-                  <option value="open">{{ t("pages.clubs.join_modes.open") }}</option>
-                  <option value="request">{{ t("pages.clubs.join_modes.request") }}</option>
-                  <option value="invite_only">
-                    {{ t("pages.clubs.join_modes.invite_only") }}
-                  </option>
-                </select>
+                  <KeyRound class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.form.join_mode") }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-muted-foreground">
+                    {{ t("pages.clubs.join_mode_hint") }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="opt in joinModeOptions"
+                  :key="opt.value"
+                  type="button"
+                  :class="[
+                    filterTriggerBase,
+                    joinModeInput === opt.value
+                      ? filterTriggerActive
+                      : filterTriggerIdle,
+                  ]"
+                  @click="joinModeInput = opt.value"
+                >
+                  {{ t(opt.labelKey) }}
+                </button>
+              </div>
+              <Button type="button" size="sm" :disabled="busy" @click="saveJoinMode">
+                {{ t("common.save") }}
+              </Button>
+              <p v-if="joinModeError" class="text-xs text-destructive">
+                {{ joinModeError }}
+              </p>
+            </div>
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <UserPlus class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.requests") }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-muted-foreground">
+                    {{ t("pages.clubs.requests_hint") }}
+                  </p>
+                </div>
+              </div>
+              <p
+                v-if="!(club.join_requests || []).length"
+                class="rounded-lg border border-dashed border-border/60 px-3 py-6 text-center text-sm text-muted-foreground"
+              >
+                {{ t("pages.clubs.requests_empty") }}
+              </p>
+              <div v-else class="space-y-2">
+                <div
+                  v-for="r in club.join_requests"
+                  :key="r.id"
+                  class="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5 text-sm"
+                >
+                  <span class="min-w-0 flex-1 truncate font-medium">
+                    {{ r.player?.name || r.steam_id }}
+                  </span>
+                  <span
+                    v-if="r.message"
+                    class="w-full text-xs text-muted-foreground sm:w-auto sm:max-w-xs sm:truncate"
+                  >
+                    {{ r.message }}
+                  </span>
+                  <Button
+                    size="sm"
+                    :disabled="busy"
+                    @click="reviewRequest(r.id, true)"
+                  >
+                    {{ t("common.accept") }}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="busy"
+                    @click="reviewRequest(r.id, false)"
+                  >
+                    {{ t("common.decline") }}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <ClubLevelSettings
+              v-if="canManageLevels && club"
+              :club-id="club.id"
+              :level-permissions="club.level_permissions"
+              :members="club.members || []"
+              @saved="
+                (perms) => {
+                  if (club) club.level_permissions = perms;
+                }
+              "
+            />
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <UserPlus class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.invites") }}
+                  </h3>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <Input
+                  v-model="inviteSteamId"
+                  class="min-w-[12rem] flex-1"
+                  :placeholder="t('pages.clubs.steam_id')"
+                />
+                <Button :disabled="busy" @click="sendInvite">
+                  {{ t("pages.clubs.send_invite") }}
+                </Button>
+              </div>
+              <p
+                v-if="!(club.invites || []).length"
+                class="text-xs text-muted-foreground"
+              >
+                {{ t("pages.clubs.invites_empty") }}
+              </p>
+              <ul v-else class="space-y-1.5">
+                <li
+                  v-for="inv in club.invites"
+                  :key="inv.id"
+                  class="rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm text-muted-foreground"
+                >
+                  {{ inv.player?.name || inv.steam_id }}
+                </li>
+              </ul>
+            </div>
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <Link2 class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.invite_links") }}
+                  </h3>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <Input
+                  v-model.number="linkHours"
+                  type="number"
+                  class="w-28"
+                  :placeholder="t('pages.clubs.hours_placeholder')"
+                />
+                <Input
+                  v-model.number="linkMaxUses"
+                  type="number"
+                  class="w-28"
+                  :placeholder="t('pages.clubs.max_uses_placeholder')"
+                />
+                <label class="flex items-center gap-2 text-xs">
+                  <input v-model="linkBypass" type="checkbox" class="rounded" />
+                  {{ t("pages.clubs.bypass_req") }}
+                </label>
+                <Button :disabled="busy" @click="createLink">
+                  {{ t("pages.clubs.create_link") }}
+                </Button>
+              </div>
+              <p v-if="createdLinkCode" class="text-sm">
+                {{ t("pages.clubs.link_created") }}:
+                <NuxtLink
+                  :to="`/clubs/join/${createdLinkCode}`"
+                  class="font-mono text-[#ff6a1f] underline-offset-2 hover:underline"
+                >
+                  /clubs/join/{{ createdLinkCode }}
+                </NuxtLink>
+              </p>
+              <p
+                v-if="!(club.invite_links || []).length"
+                class="text-xs text-muted-foreground"
+              >
+                {{ t("pages.clubs.invite_links_empty") }}
+              </p>
+              <ul v-else class="space-y-1.5">
+                <li
+                  v-for="l in club.invite_links"
+                  :key="l.id"
+                  class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-xs"
+                >
+                  <span class="font-mono text-foreground">{{ l.code }}</span>
+                  <span
+                    class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground"
+                  >
+                    {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <Shield class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.requirements") }}
+                  </h3>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <Input
+                  v-model.number="minElo"
+                  type="number"
+                  class="w-36"
+                  :placeholder="t('pages.clubs.min_elo_placeholder')"
+                />
+                <Input
+                  v-model.number="minLevel"
+                  type="number"
+                  class="w-40"
+                  :placeholder="t('pages.clubs.min_faceit_placeholder')"
+                />
+                <Button :disabled="busy" @click="saveRequirements">
+                  {{ t("common.save") }}
+                </Button>
+              </div>
+            </div>
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <Ban class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.bans") }}
+                  </h3>
+                </div>
+              </div>
+              <p
+                v-if="!(club.bans || []).length"
+                class="rounded-lg border border-dashed border-border/60 px-3 py-6 text-center text-sm text-muted-foreground"
+              >
+                {{ t("pages.clubs.bans_empty") }}
+              </p>
+              <ul v-else class="space-y-1.5">
+                <li
+                  v-for="b in club.bans"
+                  :key="b.id"
+                  class="rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
+                >
+                  <span class="font-medium">{{ b.player?.name || b.steam_id }}</span>
+                  <span
+                    v-if="b.reason"
+                    class="ms-2 text-xs text-muted-foreground"
+                  >
+                    — {{ b.reason }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page -->
+          <div v-else-if="adminSection === 'page'" class="space-y-4">
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <FileText class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.page_content") }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-muted-foreground">
+                    {{ t("pages.clubs.page_content_hint") }}
+                  </p>
+                </div>
+              </div>
+              <label class="block space-y-1 text-xs font-medium">
+                {{ t("pages.clubs.form.description") }}
+                <textarea
+                  v-model="descriptionInput"
+                  rows="4"
+                  class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                  :placeholder="t('pages.clubs.description_placeholder')"
+                />
               </label>
-              <Button type="button" :disabled="busy" @click="saveJoinMode">
+              <label class="block space-y-1 text-xs font-medium">
+                {{ t("pages.clubs.promo") }}
+                <textarea
+                  v-model="promoInput"
+                  rows="3"
+                  class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                  :placeholder="t('pages.clubs.promo_placeholder')"
+                />
+              </label>
+              <label class="block space-y-1 text-xs font-medium">
+                {{ t("pages.clubs.join_benefits") }}
+                <textarea
+                  v-model="benefitsInput"
+                  rows="4"
+                  class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
+                  :placeholder="t('pages.clubs.join_benefits_placeholder')"
+                />
+              </label>
+              <p v-if="profileError" class="text-xs text-destructive">
+                {{ profileError }}
+              </p>
+              <Button type="button" size="sm" :disabled="busy" @click="saveClubProfile">
                 {{ t("common.save") }}
               </Button>
             </div>
-            <p v-if="joinModeError" class="text-xs text-destructive">{{ joinModeError }}</p>
-          </div>
-          <div
-            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
-          >
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requests") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.requests_hint") }}</p>
-            <p
-              v-if="!(club.join_requests || []).length"
-              class="text-sm text-muted-foreground"
-            >
-              {{ t("pages.clubs.requests_empty") }}
-            </p>
-            <div
-              v-for="r in club.join_requests"
-              :key="r.id"
-              class="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm"
-            >
-              <span class="min-w-0 flex-1 truncate font-medium">
-                {{ r.player?.name || r.steam_id }}
-              </span>
-              <span
-                v-if="r.message"
-                class="w-full text-xs text-muted-foreground sm:w-auto sm:flex-1"
-              >
-                {{ r.message }}
-              </span>
-              <Button size="sm" :disabled="busy" @click="reviewRequest(r.id, true)">
-                {{ t("common.accept") }}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                :disabled="busy"
-                @click="reviewRequest(r.id, false)"
-              >
-                {{ t("common.decline") }}
+
+            <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+                >
+                  <Share2 class="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 class="text-base font-semibold tracking-tight">
+                    {{ t("pages.clubs.socials") }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-muted-foreground">
+                    {{ t("pages.clubs.socials_hint") }}
+                  </p>
+                </div>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <label class="block space-y-1 text-xs font-medium text-[#2AABEE]">
+                  {{ t("pages.clubs.telegram") }}
+                  <Input
+                    v-model="telegramInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.telegram_placeholder')"
+                  />
+                </label>
+                <label class="block space-y-1 text-xs font-medium text-[#E1306C]">
+                  {{ t("pages.clubs.instagram") }}
+                  <Input
+                    v-model="instagramInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.instagram_placeholder')"
+                  />
+                </label>
+                <label class="block space-y-1 text-xs font-medium text-[#00A86B]">
+                  {{ t("pages.clubs.bale") }}
+                  <Input
+                    v-model="baleInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.bale_placeholder')"
+                  />
+                </label>
+                <label class="block space-y-1 text-xs font-medium text-[#7B2FBE]">
+                  {{ t("pages.clubs.rubika") }}
+                  <Input
+                    v-model="rubikaInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.rubika_placeholder')"
+                  />
+                </label>
+                <label class="block space-y-1 text-xs font-medium text-[#1E88E5] sm:col-span-2">
+                  {{ t("pages.clubs.soroush") }}
+                  <Input
+                    v-model="soroushInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.soroush_placeholder')"
+                  />
+                </label>
+              </div>
+              <p v-if="socialError" class="text-xs text-destructive">
+                {{ socialError }}
+              </p>
+              <Button type="button" size="sm" :disabled="busy" @click="saveSocials">
+                {{ t("common.save") }}
               </Button>
             </div>
           </div>
-          <ClubLevelSettings
-            v-if="canManageLevels && club"
-            :club-id="club.id"
-            :level-permissions="club.level_permissions"
-            :members="club.members || []"
-            @saved="(perms) => { if (club) club.level_permissions = perms; }"
-          />
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.profile") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.profile_hint") }}</p>
-            <ImageUploadTile
-              class="max-w-[9rem]"
-              aspect="square"
-              fit="cover"
-              filename="profile.webp"
-              :crop-output="{ w: 512, h: 512 }"
-              crop
-              :upload-url="avatarUploadUrl"
-              :delete-url="avatarUploadUrl"
-              :has-custom="!!club.avatar_url"
-              :current-src="avatarSrc"
-              @uploaded="onAvatarUploaded"
-              @removed="onAvatarRemoved"
-            />
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.page_content") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.page_content_hint") }}</p>
-            <label class="block space-y-1 text-xs font-medium">
-              {{ t("pages.clubs.form.description") }}
-              <textarea
-                v-model="descriptionInput"
-                rows="4"
-                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                :placeholder="t('pages.clubs.description_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium">
-              {{ t("pages.clubs.promo") }}
-              <textarea
-                v-model="promoInput"
-                rows="3"
-                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                :placeholder="t('pages.clubs.promo_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium">
-              {{ t("pages.clubs.join_benefits") }}
-              <textarea
-                v-model="benefitsInput"
-                rows="4"
-                class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                :placeholder="t('pages.clubs.join_benefits_placeholder')"
-              />
-            </label>
-            <p v-if="profileError" class="text-xs text-destructive">{{ profileError }}</p>
-            <Button type="button" :disabled="busy" @click="saveClubProfile">
-              {{ t("common.save") }}
-            </Button>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.socials") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.socials_hint") }}</p>
-            <label class="block space-y-1 text-xs font-medium text-[#2AABEE]">
-              {{ t("pages.clubs.telegram") }}
-              <Input
-                v-model="telegramInput"
-                dir="ltr"
-                class="font-mono text-foreground"
-                :placeholder="t('pages.clubs.telegram_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium text-[#E1306C]">
-              {{ t("pages.clubs.instagram") }}
-              <Input
-                v-model="instagramInput"
-                dir="ltr"
-                class="font-mono text-foreground"
-                :placeholder="t('pages.clubs.instagram_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium text-[#00A86B]">
-              {{ t("pages.clubs.bale") }}
-              <Input
-                v-model="baleInput"
-                dir="ltr"
-                class="font-mono text-foreground"
-                :placeholder="t('pages.clubs.bale_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium text-[#7B2FBE]">
-              {{ t("pages.clubs.rubika") }}
-              <Input
-                v-model="rubikaInput"
-                dir="ltr"
-                class="font-mono text-foreground"
-                :placeholder="t('pages.clubs.rubika_placeholder')"
-              />
-            </label>
-            <label class="block space-y-1 text-xs font-medium text-[#1E88E5]">
-              {{ t("pages.clubs.soroush") }}
-              <Input
-                v-model="soroushInput"
-                dir="ltr"
-                class="font-mono text-foreground"
-                :placeholder="t('pages.clubs.soroush_placeholder')"
-              />
-            </label>
-            <p v-if="socialError" class="text-xs text-destructive">{{ socialError }}</p>
-            <Button type="button" :disabled="busy" @click="saveSocials">
-              {{ t("common.save") }}
-            </Button>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.banner") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.banner_hint") }}</p>
-            <ImageUploadTile
-              :aspect="8 / 3"
-              fit="cover"
-              filename="banner.webp"
-              :crop-output="{ w: 1600, h: 600 }"
-              crop
-              :upload-url="bannerUploadUrl"
-              :delete-url="bannerUploadUrl"
-              :has-custom="!!club.cover_url"
-              :current-src="coverSrc"
-              @uploaded="onCoverUploaded"
-              @removed="onCoverRemoved"
-            />
-          </div>
+
+          <!-- Owner -->
           <div
-            v-if="isOwner"
-            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 lg:col-span-2"
+            v-else-if="adminSection === 'owner' && isOwner"
+            class="space-y-3 rounded-xl border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] p-4"
           >
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.transfer") }}</h3>
-            <p class="text-xs text-muted-foreground">{{ t("pages.clubs.transfer_hint") }}</p>
-            <div class="flex gap-2">
+            <div class="flex items-start gap-3">
+              <div
+                class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.18)] text-[#ff6a1f]"
+              >
+                <AlertTriangle class="h-5 w-5" />
+              </div>
+              <div>
+                <h3 class="text-base font-semibold tracking-tight">
+                  {{ t("pages.clubs.transfer") }}
+                </h3>
+                <p class="mt-0.5 text-xs text-muted-foreground">
+                  {{ t("pages.clubs.transfer_hint") }}
+                </p>
+                <p class="mt-1 text-xs text-[#ff6a1f]/
+                  {{ t("pages.clubs.admin_sections.owner_hint") }}
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
               <Input
                 v-model="transferSteamId"
+                class="min-w-[14rem] flex-1"
                 :placeholder="t('pages.clubs.transfer_to')"
               />
-              <Button :disabled="busy" @click="transferClub">
+              <Button variant="destructive" :disabled="busy" @click="transferClub">
                 {{ t("pages.clubs.transfer") }}
               </Button>
             </div>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.invites") }}</h3>
-            <div class="flex gap-2">
-              <Input v-model="inviteSteamId" :placeholder="t('pages.clubs.steam_id')" />
-              <Button :disabled="busy" @click="sendInvite">{{ t("pages.clubs.send_invite") }}</Button>
-            </div>
-            <ul class="text-sm text-muted-foreground">
-              <li v-for="inv in club.invites" :key="inv.id">
-                {{ inv.player?.name || inv.steam_id }}
-              </li>
-            </ul>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.invite_links") }}</h3>
-            <div class="flex flex-wrap gap-2">
-              <Input v-model.number="linkHours" type="number" class="w-24" :placeholder="'hrs'" />
-              <Input v-model.number="linkMaxUses" type="number" class="w-24" :placeholder="'max'" />
-              <label class="flex items-center gap-2 text-xs">
-                <input v-model="linkBypass" type="checkbox" />
-                {{ t("pages.clubs.bypass_req") }}
-              </label>
-              <Button :disabled="busy" @click="createLink">{{ t("pages.clubs.create_link") }}</Button>
-            </div>
-            <p v-if="createdLinkCode" class="text-sm">
-              {{ t("pages.clubs.link_created") }}:
-              <NuxtLink :to="`/clubs/join/${createdLinkCode}`" class="underline">
-                /clubs/join/{{ createdLinkCode }}
-              </NuxtLink>
-            </p>
-            <ul class="text-xs text-muted-foreground">
-              <li v-for="l in club.invite_links" :key="l.id">
-                {{ l.code }} · {{ l.uses }}{{ l.max_uses != null ? `/${l.max_uses}` : "" }}
-              </li>
-            </ul>
-          </div>
-          <div class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
-            <h3 class="text-sm font-semibold">{{ t("pages.clubs.requirements") }}</h3>
-            <div class="flex flex-wrap gap-2">
-              <Input v-model.number="minElo" type="number" :placeholder="'Min Elo'" class="w-32" />
-              <Input v-model.number="minLevel" type="number" :placeholder="'Min FACEIT lvl'" class="w-36" />
-              <Button :disabled="busy" @click="saveRequirements">{{ t("common.save") }}</Button>
-            </div>
-            <h3 class="mt-4 text-sm font-semibold">{{ t("pages.clubs.bans") }}</h3>
-            <ul class="text-sm text-muted-foreground">
-              <li v-for="b in club.bans" :key="b.id">
-                {{ b.player?.name || b.steam_id }} — {{ b.reason }}
-              </li>
-            </ul>
           </div>
         </section>
       </div>

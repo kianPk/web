@@ -7038,6 +7038,23 @@
         "clash": "کلش",
         "admin": "تنظیمات"
       },
+      "admin_sections": {
+        "shop": "شاپ",
+        "shop_hint": "قیمت‌ها، فروش فعال، آیتم سفارشی و سوابق فروش.",
+        "access": "دسترسی",
+        "access_hint": "حالت عضویت، درخواست‌ها، دعوت، سطح‌ها و بن‌ها.",
+        "page": "صفحه",
+        "page_hint": "توضیح کلاب، پرومو، مزایا و لینک‌های اجتماعی.",
+        "owner": "مالک",
+        "owner_hint": "انتقال مالکیت. بدون مالک جدید برگشت‌پذیر نیست."
+      },
+      "hours_placeholder": "ساعت",
+      "max_uses_placeholder": "حداکثر استفاده",
+      "min_elo_placeholder": "حداقل Elo",
+      "min_faceit_placeholder": "حداقل لول FACEIT",
+      "bans_empty": "بنی ثبت نشده.",
+      "invites_empty": "دعوت معلقی نیست.",
+      "invite_links_empty": "هنوز لینک دعوتی نیست.",
       "shop": {
         "title": "شاپ کلاب",
         "subtitle": "خرید Club VIP، Public VIP یا آیتم‌های خود کلاب.",
