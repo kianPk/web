@@ -3,8 +3,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Plus, Save, Trash2 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
+import { Switch } from "~/components/ui/switch";
 import { toast } from "~/components/ui/toast";
 import {
   hostedApi,
@@ -88,8 +88,14 @@ function toDraft(p: Product): Draft {
   };
 }
 
-function toggleFlag(d: Draft, key: "enabled" | "ypoint_enabled") {
-  d[key] = !asBool(d[key]);
+function setFlag(
+  index: number,
+  key: "enabled" | "ypoint_enabled",
+  value: boolean,
+) {
+  const current = drafts.value[index];
+  if (!current) return;
+  drafts.value[index] = { ...current, [key]: !!value };
 }
 
 function kindLabel(kind: Kind) {
@@ -287,33 +293,25 @@ function saleStatus(o: ShopOrder) {
       >
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="font-medium">{{ kindLabel(d.kind) }}</div>
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              class="flex items-center gap-1.5 text-xs"
-              :disabled="saving"
-              @click="toggleFlag(d, 'enabled')"
-            >
-              <Checkbox
-                :checked="asBool(d.enabled)"
-                class="pointer-events-none"
-                tabindex="-1"
+          <div class="flex flex-wrap items-center gap-4">
+            <label class="flex cursor-pointer items-center gap-2 text-xs">
+              <Switch
+                :model-value="asBool(d.enabled)"
+                :disabled="saving"
+                @update:model-value="setFlag(index, 'enabled', $event === true)"
               />
-              {{ t("pages.clubs.shop.enabled") }}
-            </button>
-            <button
-              type="button"
-              class="flex items-center gap-1.5 text-xs"
-              :disabled="saving"
-              @click="toggleFlag(d, 'ypoint_enabled')"
-            >
-              <Checkbox
-                :checked="asBool(d.ypoint_enabled)"
-                class="pointer-events-none"
-                tabindex="-1"
+              <span>{{ t("pages.clubs.shop.enabled") }}</span>
+            </label>
+            <label class="flex cursor-pointer items-center gap-2 text-xs">
+              <Switch
+                :model-value="asBool(d.ypoint_enabled)"
+                :disabled="saving"
+                @update:model-value="
+                  setFlag(index, 'ypoint_enabled', $event === true)
+                "
               />
-              {{ t("pages.clubs.shop.ypoint_enabled") }}
-            </button>
+              <span>{{ t("pages.clubs.shop.ypoint_enabled") }}</span>
+            </label>
             <Button
               v-if="d.kind === 'custom'"
               type="button"
