@@ -2545,11 +2545,11 @@ function activityTitle(kind: string) {
           <!-- Owner -->
           <div
             v-else-if="adminSection === 'owner' && isOwner"
-            class="space-y-3 rounded-xl border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] p-4"
+            class="space-y-3 rounded-xl border border-orange-500/40 bg-orange-500/10 p-4"
           >
             <div class="flex items-start gap-3">
               <div
-                class="grid h-10 w-10 place-items-center rounded-xl bg-[rgba(255,85,0,0.18)] text-[#ff6a1f]"
+                class="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/20 text-orange-400"
               >
                 <AlertTriangle class="h-5 w-5" />
               </div>
@@ -2560,7 +2560,7 @@ function activityTitle(kind: string) {
                 <p class="mt-0.5 text-xs text-muted-foreground">
                   {{ t("pages.clubs.transfer_hint") }}
                 </p>
-                <p class="mt-1 text-xs text-[#ff6a1f]/
+                <p class="mt-1 text-xs text-orange-400">
                   {{ t("pages.clubs.admin_sections.owner_hint") }}
                 </p>
               </div>
