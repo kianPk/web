@@ -40,7 +40,6 @@ import {
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
-import InstallAntiCheat from "~/components/InstallAntiCheat.vue";
 import ProfileMenu from "~/layouts/components/ProfileMenu.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -232,23 +231,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Badge size="sm" v-if="playTotalCount > 0" class="ml-auto">
                     {{ playTotalCount }}
                   </Badge>
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.launcher.open_client')"
-              >
-                <NuxtLink
-                  to="/client"
-                  :class="{
-                    'router-link-active': $route.path.startsWith('/client'),
-                  }"
-                >
-                  <AppWindow />
-                  {{ $t("layouts.launcher.client") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1244,7 +1226,28 @@ function onLeftNavTouchEnd(e: TouchEvent) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <InstallAntiCheat />
+          <SidebarMenuItem
+            class="mb-1"
+            :class="{ 'mx-4': isMobile || sideBarOpen }"
+          >
+            <SidebarMenuButton
+              as-child
+              :tooltip="$t('layouts.launcher.open_client')"
+            >
+              <NuxtLink
+                to="/client"
+                class="inline-flex h-8 w-full items-center justify-start gap-2 rounded-md bg-orange-600 px-3 text-sm font-medium text-white hover:bg-orange-500 hover:text-white"
+                :class="{
+                  'router-link-active': $route.path.startsWith('/client'),
+                }"
+              >
+                <AppWindow class="h-4 w-4 shrink-0" />
+                <span v-if="isMobile || sideBarOpen">{{
+                  $t("layouts.launcher.client")
+                }}</span>
+              </NuxtLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <InstallPWA />
 
           <SidebarMenuItem>

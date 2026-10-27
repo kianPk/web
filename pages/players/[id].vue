@@ -90,6 +90,7 @@ import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerSiteLevel from "~/components/PlayerSiteLevel.vue";
 import PlayerSiteLevelPanel from "~/components/player/PlayerSiteLevelPanel.vue";
+import ClubShopPurchasesPanel from "~/components/clubs/ClubShopPurchasesPanel.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
 import PluginRemote from "~/components/plugins/PluginRemote.vue";
@@ -2475,6 +2476,10 @@ const playerHeroTeamChipDotClasses =
         :steam-id="playerId"
         @resolved="highlightsResolved = true"
       />
+    </PageTransition>
+
+    <PageTransition v-if="isSelfProfile && playerId" :delay="90">
+      <ClubShopPurchasesPanel />
     </PageTransition>
 
     <PageTransition v-if="player && pageContentReady && noCareerData">

@@ -7077,7 +7077,18 @@
         "custom_limit": "Maximum 2 custom products",
         "pending_orders": "Custom orders to fulfill",
         "mark_done": "Mark fulfilled",
-        "order_done": "Order marked fulfilled"
+        "order_done": "Order marked fulfilled",
+        "checkout_failed": "Could not open Bale Pay. Try again.",
+        "sales_history": "Sales history",
+        "sales_history_hint": "Paid and pending club shop orders for this club.",
+        "sales_history_empty": "No shop sales yet.",
+        "my_purchases": "Club shop purchases",
+        "my_purchases_hint": "Your Club VIP, Public VIP, and club item purchases.",
+        "my_purchases_empty": "You have not bought from a club shop yet.",
+        "status_pending": "Awaiting payment",
+        "status_paid": "Paid",
+        "status_awaiting_fulfillment": "Awaiting staff",
+        "status_fulfilled": "Delivered"
       },
       "roles": {
         "owner": "Owner",

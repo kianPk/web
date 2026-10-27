@@ -144,15 +144,26 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
         termsAccepted: true,
       },
     });
-    if (result?.deepLink) {
-      toast({
-        title: t("pages.store.checkout_started"),
-        description: t("pages.store.checkout_hint"),
-      });
-      window.open(result.deepLink, "_blank", "noopener,noreferrer");
-    } else {
+    if (result?.paid) {
       toast({ title: t("pages.clubs.shop.bought") });
       await load();
+      return;
+    }
+    const link = String(result?.deepLink || "").trim();
+    if (!link) {
+      toast({
+        variant: "destructive",
+        title: t("pages.clubs.shop.checkout_failed"),
+      });
+      return;
+    }
+    toast({
+      title: t("pages.store.checkout_started"),
+      description: t("pages.store.checkout_hint"),
+    });
+    const popup = window.open(link, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      window.location.href = link;
     }
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });

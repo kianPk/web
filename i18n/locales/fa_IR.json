@@ -7077,7 +7077,18 @@
         "custom_limit": "حداکثر ۲ محصول سفارشی",
         "pending_orders": "سفارش‌های سفارشی برای تحویل",
         "mark_done": "تحویل شد",
-        "order_done": "سفارش تحویل‌شده علامت خورد"
+        "order_done": "سفارش تحویل‌شده علامت خورد",
+        "checkout_failed": "درگاه بله باز نشد. دوباره تلاش کن.",
+        "sales_history": "سوابق فروش",
+        "sales_history_hint": "سفارش‌های پرداخت‌شده و در انتظار این شاپ کلاب.",
+        "sales_history_empty": "هنوز فروشی ثبت نشده.",
+        "my_purchases": "خریدهای شاپ کلاب",
+        "my_purchases_hint": "خریدهای Club VIP، Public VIP و آیتم‌های کلاب تو.",
+        "my_purchases_empty": "هنوز از شاپ کلاب چیزی نخریدی.",
+        "status_pending": "منتظر پرداخت",
+        "status_paid": "پرداخت شد",
+        "status_awaiting_fulfillment": "منتظر استاف",
+        "status_fulfilled": "تحویل شد"
       },
       "roles": {
         "owner": "مالک",

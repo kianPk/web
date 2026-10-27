@@ -217,6 +217,21 @@ const pendingCustom = computed(() =>
       o.fulfillment_status === "pending",
   ),
 );
+
+const salesHistory = computed(() =>
+  orders.value.filter((o) => o.status === "paid" || o.status === "pending"),
+);
+
+function saleStatus(o: ShopOrder) {
+  if (o.status === "pending") return t("pages.clubs.shop.status_pending");
+  if (o.kind === "custom" && o.fulfillment_status === "pending") {
+    return t("pages.clubs.shop.status_awaiting_fulfillment");
+  }
+  if (o.kind === "custom" && o.fulfillment_status === "done") {
+    return t("pages.clubs.shop.status_fulfilled");
+  }
+  return t("pages.clubs.shop.status_paid");
+}
 </script>
 
 <template>
@@ -356,6 +371,44 @@ const pendingCustom = computed(() =>
         <Button type="button" size="sm" @click="markDone(o.id)">
           {{ t("pages.clubs.shop.mark_done") }}
         </Button>
+      </div>
+    </div>
+
+    <div class="space-y-2 border-t border-border/60 pt-4">
+      <h4 class="text-sm font-semibold">
+        {{ t("pages.clubs.shop.sales_history") }}
+      </h4>
+      <p class="text-xs text-muted-foreground">
+        {{ t("pages.clubs.shop.sales_history_hint") }}
+      </p>
+      <p
+        v-if="!loading && !salesHistory.length"
+        class="rounded-lg border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground"
+      >
+        {{ t("pages.clubs.shop.sales_history_empty") }}
+      </p>
+      <div
+        v-for="o in salesHistory"
+        :key="`sale-${o.id}`"
+        class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
+      >
+        <span class="min-w-0 flex-1 truncate font-medium">
+          {{ o.product_title }} · {{ o.buyer_name || o.buyer_steam_id }}
+        </span>
+        <span class="text-xs text-muted-foreground">
+          <template v-if="o.payment_method === 'ypoint'">
+            {{ o.amount_ypoint }} YP
+          </template>
+          <template v-else>
+            {{ formatTomanAmount(o.amount_irr, locale) }}
+            {{ t("pages.clubs.shop.toman") }}
+          </template>
+        </span>
+        <span
+          class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+        >
+          {{ saleStatus(o) }}
+        </span>
       </div>
     </div>
   </div>
