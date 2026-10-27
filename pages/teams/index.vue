@@ -147,7 +147,7 @@ import {
           <div
             v-for="i in perPage"
             :key="i"
-            class="bg-muted/30 p-4 rounded-lg space-y-3"
+            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
           >
             <Skeleton class="h-5 w-32" />
             <div class="flex flex-col gap-2">

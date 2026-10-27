@@ -1795,7 +1795,7 @@ definePageMeta({
 
 const { isMobile } = useSidebar();
 const playerHeroClasses =
-  "relative flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] max-md:px-4 max-md:py-5";
+  "relative flex min-w-0 flex-col rounded-xl border border-border/70 bg-card/40 px-6 py-5 [backdrop-filter:blur(6px)] max-md:px-4 max-md:py-5";
 const playerHeroBodyClasses =
   "flex flex-wrap items-center gap-5 max-md:items-start max-md:gap-4";
 const playerHeroInlineRoleChipClasses =
@@ -2211,11 +2211,11 @@ const playerHeroTeamChipDotClasses =
       <PageTransition :delay="150">
         <AnimatedCard
           variant="elevated"
-          class="relative flex flex-col h-full p-2.5"
+          class="relative flex h-full flex-col rounded-xl border border-border/70 bg-card/40 p-2.5 shadow-none"
         >
           <CardContent class="flex flex-1 flex-col gap-2 p-0 pt-1 sm:p-0 sm:pt-1">
             <div
-              class="grid grid-cols-1 divide-y divide-border/40 overflow-hidden rounded-md border border-border/60 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
+              class="grid grid-cols-1 divide-y divide-border/40 overflow-hidden rounded-xl border border-border/50 bg-background/30 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
             >
               <div class="relative min-h-[64px] px-3 py-2.5">
                 <div
@@ -2587,7 +2587,7 @@ const playerHeroTeamChipDotClasses =
         </div>
 
         <div
-          class="mb-5 flex flex-col gap-3 rounded-lg border border-border/60 bg-card/40 px-3 py-2.5 [backdrop-filter:blur(6px)] md:flex-row md:flex-wrap md:items-center md:gap-x-4 md:gap-y-3"
+          class="mb-5 flex flex-col gap-3 rounded-xl border border-border/70 bg-card/40 px-3 py-3 [backdrop-filter:blur(6px)] md:flex-row md:flex-wrap md:items-center md:gap-x-4 md:gap-y-3"
         >
           <div
             v-if="appSettings.linkedAccountsEnabled"
@@ -2937,7 +2937,7 @@ const playerHeroTeamChipDotClasses =
             !externalAuthLinked &&
             !externalWarningDismissed
           "
-          class="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-[hsl(var(--warning)/0.45)] bg-[hsl(var(--warning)/0.1)] px-4 py-3"
+          class="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-[hsl(var(--warning)/0.45)] bg-[hsl(var(--warning)/0.1)] px-4 py-3"
         >
           <div class="min-w-[200px] flex-1">
             <div

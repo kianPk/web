@@ -43,7 +43,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
       'transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col h-full',
       embedded
         ? 'bg-transparent'
-        : 'bg-muted/30 border border-border rounded-lg hover:shadow-lg hover:shadow-primary/10 hover:bg-muted/20 hover:border-primary/30',
+        : 'rounded-xl border border-border/70 bg-card/40 hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.5)] hover:bg-card/55',
     ]"
     @click="navigateToMatch(match.id, $event)"
   >

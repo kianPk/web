@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  tacticalSectionLabelClasses,
-  tacticalSectionTickClasses,
-} from "~/utilities/tacticalClasses";
 import { TeamMember } from "~/components/teams";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -43,19 +38,33 @@ const setEloSource = (key: string) => {
 </script>
 
 <template>
-  <Card v-if="team" class="overflow-hidden">
-    <CardHeader class="flex flex-row items-end justify-between gap-3 pb-3">
-      <div class="flex flex-col gap-1">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("team.members.title") }}
-        </span>
-        <p class="text-xs text-muted-foreground">
-          {{
-            starters.length + bench.length + substitutes.length + coaches.length
-          }}
-          {{ $t("team.roster_count_players") }}
-        </p>
+  <div
+    v-if="team"
+    class="overflow-hidden rounded-xl border border-border/70 bg-card/40"
+  >
+    <div
+      class="flex flex-row items-end justify-between gap-3 border-b border-border/50 px-4 pb-3 pt-4 sm:px-5"
+    >
+      <div class="flex items-start gap-3">
+        <div
+          class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+        >
+          <Users class="h-5 w-5" />
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <h3 class="text-base font-semibold tracking-tight">
+            {{ $t("team.members.title") }}
+          </h3>
+          <p class="text-xs text-muted-foreground">
+            {{
+              starters.length +
+              bench.length +
+              substitutes.length +
+              coaches.length
+            }}
+            {{ $t("team.roster_count_players") }}
+          </p>
+        </div>
       </div>
       <div v-if="rankSources.length > 1" class="flex flex-col items-end gap-1">
         <span
@@ -70,9 +79,9 @@ const setEloSource = (key: string) => {
           @update:model-value="setEloSource"
         />
       </div>
-    </CardHeader>
+    </div>
 
-    <CardContent class="space-y-5">
+    <div class="space-y-5 p-4 sm:p-5">
       <section v-if="team.can_invite && team_invites?.length" class="space-y-1">
         <div class="flex items-center gap-2 px-1">
           <UserPlus class="h-3.5 w-3.5 text-muted-foreground" />
@@ -227,8 +236,8 @@ const setEloSource = (key: string) => {
           {{ $t("team.members.invite_player") }}
         </Button>
       </PlayerSearch>
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
