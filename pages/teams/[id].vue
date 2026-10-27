@@ -58,7 +58,7 @@ import {
 
 const teamMenu = ref(false);
 const teamHeroClasses =
-  "relative rounded-lg border border-border px-5 py-4 sm:px-6 sm:py-5 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)]";
+  "relative rounded-xl border border-border/70 bg-card/40 px-5 py-4 sm:px-6 sm:py-5 [backdrop-filter:blur(6px)]";
 const teamHeroBodyClasses = "flex flex-wrap items-center gap-7 max-md:gap-4";
 const teamHeroEmblemFrameClasses =
   "relative flex h-[140px] w-[140px] items-center justify-center border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-24 max-md:w-24";
@@ -303,7 +303,7 @@ const teamHeroActionsClasses =
             </span>
           </div>
           <div
-            class="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-card/30 p-4"
+            class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/40 p-4"
           >
             <div class="flex items-center gap-3">
               <span class="relative flex h-2.5 w-2.5" aria-hidden="true">
@@ -315,9 +315,7 @@ const teamHeroActionsClasses =
                 />
               </span>
               <div>
-                <div
-                  class="text-sm font-semibold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
-                >
+                <div class="text-sm font-semibold tracking-tight text-[#ff6a1f]">
                   {{ $t("scrim.open_to_scrims") }}
                 </div>
                 <TeamRankSummary

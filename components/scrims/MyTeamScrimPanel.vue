@@ -144,16 +144,22 @@ export default {
 <template>
   <section
     v-if="teams.length === 0"
-    class="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-border bg-card/40 p-4 sm:p-5"
+    class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-dashed border-border/60 bg-card/40 p-4 sm:p-5"
   >
-    <div class="min-w-0 space-y-1">
-      <h2 class="flex items-center gap-2 font-semibold">
-        <Users class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
-        {{ $t("scrim.easy.no_team_title") }}
-      </h2>
-      <p class="max-w-xl text-sm text-muted-foreground">
-        {{ $t("scrim.easy.no_team_help") }}
-      </p>
+    <div class="flex min-w-0 items-start gap-3">
+      <div
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+      >
+        <Users class="h-5 w-5" />
+      </div>
+      <div class="min-w-0 space-y-1">
+        <h2 class="text-base font-semibold tracking-tight">
+          {{ $t("scrim.easy.no_team_title") }}
+        </h2>
+        <p class="max-w-xl text-sm text-muted-foreground">
+          {{ $t("scrim.easy.no_team_help") }}
+        </p>
+      </div>
     </div>
     <div class="flex flex-wrap gap-2">
       <Button variant="outline" @click="$router.push('/teams/create')">
@@ -167,25 +173,32 @@ export default {
     </div>
   </section>
 
-  <section v-else class="space-y-4 rounded-lg border border-border bg-card/40 p-4 sm:p-5">
-    <div class="flex items-center gap-3">
-      <span
-        class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
+  <section
+    v-else
+    class="space-y-4 rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5"
+  >
+    <div class="flex items-start gap-3">
+      <div
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
       >
-        {{ $t("scrim.easy.your_teams") }}
-      </span>
-      <span class="h-px flex-1 bg-border" />
+        <Users class="h-5 w-5" />
+      </div>
+      <div>
+        <h2 class="text-base font-semibold tracking-tight">
+          {{ $t("scrim.easy.your_teams") }}
+        </h2>
+      </div>
     </div>
 
     <div class="space-y-2">
       <div
         v-for="team in teams"
         :key="team.id"
-        class="flex flex-wrap items-center gap-3 rounded-md border px-3 py-2 transition-colors"
+        class="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors"
         :class="
           selectedTeam?.id === team.id
-            ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.05)]'
-            : 'border-border'
+            ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.06)]'
+            : 'border-border/60 bg-background/30'
         "
       >
         <button
@@ -202,7 +215,9 @@ export default {
             "
           />
           <span class="truncate font-semibold">{{ team.name }}</span>
-          <span class="text-xs text-muted-foreground">
+          <span
+            class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+          >
             {{
               isListed(team.id)
                 ? $t("scrim.easy.listed")
@@ -249,7 +264,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="selectedTeam" class="space-y-2 border-t border-border pt-4">
+    <div v-if="selectedTeam" class="space-y-2 border-t border-border/60 pt-4">
       <div class="text-sm font-semibold">
         {{ $t("scrim.easy.requests_title", { team: selectedTeam.name }) }}
       </div>

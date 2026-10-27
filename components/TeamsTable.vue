@@ -18,11 +18,11 @@ import {
       v-for="(team, index) in teams"
       :key="team.id"
       :to="{ name: 'teams-id', params: { id: team.id } }"
-      class="group team-card relative flex flex-col gap-3 overflow-hidden rounded-lg border p-4 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2"
+      class="group team-card relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 hover:-translate-y-0.5"
       :class="
         officialClub(team)
           ? 'border-[hsl(var(--tac-amber)/0.65)] bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.16)_0%,hsl(var(--card)/0.7)_48%)] hover:border-[hsl(var(--tac-amber)/0.85)]'
-          : 'border-border bg-card/50 hover:border-[hsl(var(--tac-amber)/0.45)] hover:bg-card/70'
+          : 'border-border/70 bg-card/40 hover:border-[hsl(var(--tac-amber)/0.5)] hover:bg-card/60'
       "
       :style="{ animationDelay: `${index * 40}ms` }"
     >

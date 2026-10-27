@@ -279,7 +279,7 @@ const linkClasses =
       <article
         v-for="{ posting, availability: avail } in shown"
         :key="posting.id"
-        class="flex min-w-[17rem] flex-[1_0_17rem] snap-start flex-col gap-2.5 rounded-lg border border-border bg-muted/20 p-3.5"
+        class="flex min-w-[17rem] flex-[1_0_17rem] snap-start flex-col gap-2.5 rounded-xl border border-border/70 bg-card/40 p-3.5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.45)]"
       >
         <div class="flex min-w-0 items-center gap-2.5">
           <TeamsEmblem :team="posting.team" :size="36" />
@@ -365,7 +365,7 @@ const linkClasses =
       <div v-if="visible.length > CAP" class="flex shrink-0 snap-start">
         <NuxtLink
           to="/scrims"
-          class="flex w-44 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border px-3 text-center text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
+          class="flex w-44 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 px-3 text-center text-[13px] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)/0.4)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
         >
           {{ $t("pages.teams.scrims.see_all") }}
           <ChevronRight class="size-4" aria-hidden="true" />

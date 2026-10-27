@@ -54,7 +54,7 @@ export default {
         activeDuty: false,
       },
       sectionLabel:
-        "text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]",
+        "text-sm font-semibold tracking-tight text-foreground",
     };
   },
   computed: {
@@ -301,15 +301,15 @@ export default {
 </script>
 
 <template>
-  <div class="space-y-7">
+  <div class="space-y-5">
     <div
       role="button"
       tabindex="0"
-      class="flex cursor-pointer select-none items-center justify-between gap-4 rounded-md border p-4 transition-colors"
+      class="flex cursor-pointer select-none items-center justify-between gap-4 rounded-xl border p-4 transition-colors"
       :class="
         form.enabled
-          ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.07)]'
-          : 'border-border bg-muted/30'
+          ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)]'
+          : 'border-border/70 bg-card/40'
       "
       @click="form.enabled = !form.enabled"
       @keydown.enter.prevent="form.enabled = !form.enabled"
@@ -317,7 +317,7 @@ export default {
     >
       <div>
         <div
-          class="text-[0.7rem] font-semibold uppercase tracking-[0.2em]"
+          class="text-base font-semibold tracking-tight"
           :class="
             form.enabled ? 'text-[hsl(var(--tac-amber))]' : 'text-muted-foreground'
           "
@@ -331,21 +331,17 @@ export default {
       <Switch v-model="form.enabled" @click.stop />
     </div>
 
-    <section class="space-y-4">
-      <div class="flex items-center gap-3">
-        <span :class="sectionLabel">{{ $t("scrim.regions_section") }}</span>
-        <span class="h-px flex-1 bg-border" />
-      </div>
+    <section class="space-y-4 rounded-xl border border-border/70 bg-card/40 p-4">
+      <h3 :class="sectionLabel">{{ $t("scrim.regions_section") }}</h3>
       <ScrimRegionPicker
         v-model:regions="form.regions"
         :empty-text="$t('scrim.no_regions_available')"
       />
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-3">
-        <span :class="sectionLabel">{{ $t("scrim.maps_section") }}</span>
-        <span class="h-px flex-1 bg-border" />
+    <section class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+      <div class="flex items-center justify-between gap-3">
+        <h3 :class="sectionLabel">{{ $t("scrim.maps_section") }}</h3>
         <button
           type="button"
           class="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40"
@@ -356,7 +352,7 @@ export default {
       </div>
 
       <div
-        class="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card/40 p-3"
+        class="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-background/35 p-3"
       >
         <div
           v-for="map in selectedMaps"
@@ -382,7 +378,7 @@ export default {
 
       <div
         v-if="editingMaps"
-        class="space-y-3 rounded-md border border-border bg-card/40 p-3"
+        class="space-y-3 rounded-xl border border-border/50 bg-background/35 p-3"
       >
         <div class="flex flex-wrap items-center gap-2">
           <Input
@@ -460,19 +456,13 @@ export default {
       </div>
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-3">
-        <span :class="sectionLabel">{{ $t("scrim.accepted_elo_range") }}</span>
-        <span class="h-px flex-1 bg-border" />
-      </div>
+    <section class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4">
+      <h3 :class="sectionLabel">{{ $t("scrim.accepted_elo_range") }}</h3>
       <ScrimEloRange v-model="eloRange" :label="$t('scrim.fivestack_elo')" />
     </section>
 
-    <section class="space-y-4">
-      <div class="flex items-center gap-3">
-        <span :class="sectionLabel">{{ $t("scrim.weekly_availability") }}</span>
-        <span class="h-px flex-1 bg-border" />
-      </div>
+    <section class="space-y-4 rounded-xl border border-border/70 bg-card/40 p-4">
+      <h3 :class="sectionLabel">{{ $t("scrim.weekly_availability") }}</h3>
       <TeamScrimAvailabilityGrid
         ref="availabilityGrid"
         :team-id="teamId"
@@ -480,7 +470,7 @@ export default {
       />
 
       <label
-        class="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-border bg-card/40 p-3"
+        class="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-border/50 bg-background/35 p-3"
       >
         <span class="flex flex-col gap-0.5">
           <span class="text-sm font-medium">{{ $t("scrim.allow_outside_hours") }}</span>
@@ -492,11 +482,8 @@ export default {
       </label>
     </section>
 
-    <section class="space-y-4">
-      <div class="flex items-center gap-3">
-        <span :class="sectionLabel">{{ $t("scrim.notes_section") }}</span>
-        <span class="h-px flex-1 bg-border" />
-      </div>
+    <section class="space-y-4 rounded-xl border border-border/70 bg-card/40 p-4">
+      <h3 :class="sectionLabel">{{ $t("scrim.notes_section") }}</h3>
       <Textarea
         v-model="form.notes"
         :placeholder="$t('scrim.notes_placeholder')"

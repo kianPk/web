@@ -230,28 +230,30 @@ export default {
 
   <div v-else class="space-y-8">
     <section
-      class="relative overflow-hidden rounded-lg border border-[hsl(var(--tac-amber)/0.3)] [background:linear-gradient(110deg,hsl(var(--tac-amber)/0.10)_0%,hsl(var(--card)/0.4)_60%)] p-4 sm:p-5"
+      class="relative overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-card/40 p-4 sm:p-5"
     >
       <div class="flex flex-wrap items-start justify-between gap-4">
-        <div class="min-w-0 space-y-1">
-          <h2 class="flex items-center gap-2 text-lg font-semibold">
+        <div class="flex min-w-0 items-start gap-3">
+          <div
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
+          >
             <Radio
-              class="h-4 w-4"
-              :class="
-                myListing
-                  ? 'text-[hsl(var(--tac-amber))] animate-pulse'
-                  : 'text-muted-foreground'
-              "
+              class="h-5 w-5"
+              :class="myListing ? 'animate-pulse' : ''"
             />
-            {{
-              myListing
-                ? $t("scrim.duel.listing_on")
-                : $t("scrim.duel.listing_title")
-            }}
-          </h2>
-          <p class="max-w-xl text-sm text-muted-foreground">
-            {{ $t("scrim.duel.listing_help") }}
-          </p>
+          </div>
+          <div class="min-w-0 space-y-1">
+            <h2 class="text-lg font-semibold tracking-tight">
+              {{
+                myListing
+                  ? $t("scrim.duel.listing_on")
+                  : $t("scrim.duel.listing_title")
+              }}
+            </h2>
+            <p class="max-w-xl text-sm text-muted-foreground">
+              {{ $t("scrim.duel.listing_help") }}
+            </p>
+          </div>
         </div>
         <Button class="tac-amber-cta shrink-0" @click="openChallenge()">
           <Swords class="h-4 w-4" />
@@ -288,18 +290,24 @@ export default {
 
     <section class="space-y-3">
       <div class="flex items-center gap-3">
-        <span
-          class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
+        <div
+          class="grid h-9 w-9 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
         >
-          {{ $t("scrim.duel.your_challenges") }}
-        </span>
-        <span class="text-xs text-muted-foreground">{{ openDuels.length }}</span>
-        <span class="h-px flex-1 bg-border" />
+          <Swords class="h-4 w-4" />
+        </div>
+        <div class="flex min-w-0 flex-1 items-baseline gap-2">
+          <h3 class="text-sm font-semibold tracking-tight">
+            {{ $t("scrim.duel.your_challenges") }}
+          </h3>
+          <span class="text-xs text-muted-foreground">{{
+            openDuels.length
+          }}</span>
+        </div>
       </div>
 
       <p
         v-if="openDuels.length === 0"
-        class="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground"
+        class="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-sm text-muted-foreground"
       >
         {{ $t("scrim.duel.no_challenges") }}
       </p>
@@ -307,11 +315,11 @@ export default {
       <div
         v-for="duel in openDuels"
         :key="duel.id"
-        class="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-lg border bg-card p-3"
+        class="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border bg-card/40 p-3"
         :class="
           duel.status === 'Pending' && isIncoming(duel)
             ? 'border-[hsl(var(--tac-amber)/0.6)]'
-            : 'border-border'
+            : 'border-border/70'
         "
       >
         <div class="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -412,20 +420,24 @@ export default {
 
     <section class="space-y-3">
       <div class="flex items-center gap-3">
-        <span
-          class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
+        <div
+          class="grid h-9 w-9 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
         >
-          {{ $t("scrim.duel.players_title") }}
-        </span>
-        <span class="text-xs text-muted-foreground">{{
-          otherListings.length
-        }}</span>
-        <span class="h-px flex-1 bg-border" />
+          <Radio class="h-4 w-4" />
+        </div>
+        <div class="flex min-w-0 flex-1 items-baseline gap-2">
+          <h3 class="text-sm font-semibold tracking-tight">
+            {{ $t("scrim.duel.players_title") }}
+          </h3>
+          <span class="text-xs text-muted-foreground">{{
+            otherListings.length
+          }}</span>
+        </div>
       </div>
 
       <p
         v-if="listingsLoaded && otherListings.length === 0"
-        class="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground"
+        class="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-sm text-muted-foreground"
       >
         {{ $t("scrim.duel.no_players") }}
       </p>
@@ -434,7 +446,7 @@ export default {
         <div
           v-for="listing in otherListings"
           :key="listing.steam_id"
-          class="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-[hsl(var(--tac-amber)/0.5)]"
+          class="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)]"
         >
           <div class="flex items-start justify-between gap-2">
             <NuxtLink

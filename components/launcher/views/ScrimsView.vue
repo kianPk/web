@@ -36,7 +36,7 @@ import ScrimRequestDialog from "~/components/team/ScrimRequestDialog.vue";
 import MyTeamScrimPanel from "~/components/scrims/MyTeamScrimPanel.vue";
 import DuelFinder from "~/components/scrims/DuelFinder.vue";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Swords } from "lucide-vue-next";
+import { Users, Swords, CalendarDays } from "lucide-vue-next";
 import { dateLocale } from "~/utilities/dateLocale";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -82,6 +82,7 @@ export default {
     TabsTrigger,
     Users,
     Swords,
+    CalendarDays,
   },
   data() {
     return {
@@ -518,6 +519,8 @@ import {
   filterTriggerIdle,
   filterTriggerActive,
   filterBadgeClasses,
+  tacticalTabsListClasses,
+  tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
 </script>
 
@@ -538,12 +541,18 @@ import {
 
     <template v-else>
       <Tabs v-model="mode" class="mb-6 block">
-        <TabsList>
-          <TabsTrigger value="team" class="gap-2">
+        <TabsList :class="tacticalTabsListClasses">
+          <TabsTrigger
+            value="team"
+            :class="[tacticalTabsTriggerClasses, 'gap-2']"
+          >
             <Users class="h-4 w-4" />
             {{ $t("scrim.duel.team_tab") }}
           </TabsTrigger>
-          <TabsTrigger value="duel" class="gap-2">
+          <TabsTrigger
+            value="duel"
+            :class="[tacticalTabsTriggerClasses, 'gap-2']"
+          >
             <Swords class="h-4 w-4" />
             {{ $t("scrim.duel.tab") }}
           </TabsTrigger>
@@ -553,28 +562,7 @@ import {
       <DuelFinder v-if="mode === 'duel'" />
 
       <template v-else>
-      <PageTransition class="mb-6 block space-y-4">
-        <ol class="grid gap-3 sm:grid-cols-3">
-          <li
-            v-for="(step, index) in ['list', 'request', 'play']"
-            :key="step"
-            class="flex gap-3 rounded-lg border border-border bg-card/40 p-3"
-          >
-            <span
-              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--tac-amber)/0.15)] text-sm font-bold text-[hsl(var(--tac-amber))]"
-            >
-              {{ index + 1 }}
-            </span>
-            <div class="min-w-0">
-              <div class="text-sm font-semibold">
-                {{ $t(`scrim.easy.step_${step}`) }}
-              </div>
-              <p class="text-xs text-muted-foreground">
-                {{ $t(`scrim.easy.step_${step}_help`) }}
-              </p>
-            </div>
-          </li>
-        </ol>
+      <PageTransition class="mb-6 block">
         <MyTeamScrimPanel
           v-if="mySteamId"
           :teams="myTeams"
@@ -864,13 +852,13 @@ import {
                 <Skeleton
                   v-for="i in 2"
                   :key="i"
-                  class="h-[5.5rem] w-full rounded-lg"
+                  class="h-[5.5rem] w-full rounded-xl"
                 />
               </div>
               <div class="space-y-3">
                 <Skeleton class="h-4 w-32 rounded-sm" />
                 <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  <Skeleton v-for="i in 3" :key="i" class="h-44 rounded-lg" />
+                  <Skeleton v-for="i in 3" :key="i" class="h-44 rounded-xl" />
                 </div>
               </div>
             </div>
@@ -903,20 +891,26 @@ import {
               <!-- Today's schedule -->
               <section class="space-y-3">
                 <div class="flex items-center gap-3">
-                  <span
-                    class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
+                  <div
+                    class="grid h-9 w-9 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
                   >
-                    {{ $t("pages.scrims.today") }}
-                  </span>
-                  <span class="text-xs text-muted-foreground">{{
-                    todayRows.length
-                  }}</span>
-                  <span class="h-px flex-1 bg-border" />
+                    <CalendarDays class="h-4 w-4" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2">
+                      <h3 class="text-sm font-semibold tracking-tight">
+                        {{ $t("pages.scrims.today") }}
+                      </h3>
+                      <span class="text-xs text-muted-foreground">{{
+                        todayRows.length
+                      }}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <p
                   v-if="todayRows.length === 0"
-                  class="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground"
+                  class="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-sm text-muted-foreground"
                 >
                   {{ $t("pages.scrims.no_teams_today") }}
                 </p>
@@ -924,7 +918,7 @@ import {
                 <div
                   v-for="entry in todayRows"
                   :key="entry.key"
-                  class="group relative flex items-stretch overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-[hsl(var(--tac-amber)/0.5)]"
+                  class="group relative flex items-stretch overflow-hidden rounded-xl border border-border/70 bg-card/40 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)]"
                 >
                   <div
                     class="relative flex w-[110px] shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border/60 bg-[hsl(var(--tac-amber)/0.05)] px-2 py-4 text-center sm:w-[124px]"
@@ -971,20 +965,10 @@ import {
                             entry.posting.team?.name
                           }}</span>
                         </NuxtLink>
-                        <a
-                          :href="`/teams/${entry.posting.team_id}`"
-                          target="_blank"
-                          rel="noopener"
-                          class="text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
-                          :title="$t('pages.scrims.open_team_new_tab')"
-                          @click.stop
-                        >
-                          <ExternalLink class="h-3.5 w-3.5" />
-                        </a>
                         <span
                           v-for="region in entry.posting.regions"
                           :key="region"
-                          class="rounded border border-border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
+                          class="rounded-md border border-border/60 bg-background/40 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
                         >
                           {{ region }}
                         </span>
@@ -1025,20 +1009,26 @@ import {
               <!-- Browse all available teams -->
               <section class="space-y-3">
                 <div class="flex items-center gap-3">
-                  <span
-                    class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
+                  <div
+                    class="grid h-9 w-9 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
                   >
-                    {{ $t("pages.scrims.available_teams") }}
-                  </span>
-                  <span class="text-xs text-muted-foreground">{{
-                    availableTeams.length
-                  }}</span>
-                  <span class="h-px flex-1 bg-border" />
+                    <Users class="h-4 w-4" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2">
+                      <h3 class="text-sm font-semibold tracking-tight">
+                        {{ $t("pages.scrims.available_teams") }}
+                      </h3>
+                      <span class="text-xs text-muted-foreground">{{
+                        availableTeams.length
+                      }}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <p
                   v-if="availableTeams.length === 0"
-                  class="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground"
+                  class="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-sm text-muted-foreground"
                 >
                   {{ $t("pages.scrims.no_teams_match") }}
                 </p>
@@ -1047,7 +1037,7 @@ import {
                   <div
                     v-for="posting in availableTeams"
                     :key="posting.id"
-                    class="group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-border bg-card p-4 transition-all hover:border-[hsl(var(--tac-amber)/0.5)]"
+                    class="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-border/70 bg-card/40 p-4 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)]"
                   >
                     <div class="flex min-w-0 items-start gap-3">
                       <NuxtLink
@@ -1068,30 +1058,20 @@ import {
                         </Avatar>
                         <span class="truncate">{{ posting.team?.name }}</span>
                       </NuxtLink>
-                      <a
-                        :href="`/teams/${posting.team_id}`"
-                        target="_blank"
-                        rel="noopener"
-                        class="mt-1 text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
-                        :title="$t('pages.scrims.open_team_new_tab')"
-                        @click.stop
-                      >
-                        <ExternalLink class="h-3.5 w-3.5" />
-                      </a>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-1.5">
                       <span
                         v-for="region in posting.regions"
                         :key="region"
-                        class="rounded border border-border px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
+                        class="rounded-md border border-border/60 bg-background/40 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
                       >
                         {{ region }}
                       </span>
                       <span
                         v-for="day in availabilityDays(posting)"
                         :key="day"
-                        class="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
+                        class="rounded-md bg-muted/50 px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
                       >
                         {{ day }}
                       </span>
