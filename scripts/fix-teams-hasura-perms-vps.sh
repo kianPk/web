@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Restore GraphQL `teams` for logged-in roles.
-# Fixes toast errors:
-#   field 'teams' not found in type: 'players'
-#   field 'teams' not found in type: 'query_root'
+# Restore GraphQL teams access + repair players select if a prior run dropped it.
+#
+# On this Hasura build, table-returning computed fields (players.teams,
+# teams.matches) are AUTO-DERIVED from select on the returning table — they
+# must NOT be listed in computed_fields.
 #
 # Usage on the panel VPS:
 #   curl -fsSL https://raw.githubusercontent.com/kianPk/web/main/scripts/fix-teams-hasura-perms-vps.sh | bash
@@ -29,49 +30,52 @@ fi
 
 meta() {
   local payload="$1"
-  kubectl -n "$NS" exec "$HASURA_POD" -- bash -lc "
+  local out
+  out=$(kubectl -n "$NS" exec "$HASURA_POD" -c hasura -- bash -lc "
 curl -sS -X POST http://127.0.0.1:8080/v1/metadata \
   -H 'Content-Type: application/json' \
   -H 'x-hasura-admin-secret: ${ADMIN_SECRET}' \
   -d $(printf '%q' "$payload")
-"
-  echo
+" 2>/dev/null || true)
+  echo "$out"
+  if echo "$out" | grep -q '"error"'; then
+    return 1
+  fi
+  return 0
 }
-
-TEAMS_PERM='{
-  "columns": ["avatar_url","captain_steam_id","id","is_organization","name","owner_steam_id","short_name"],
-  "computed_fields": ["can_change_role","can_invite","can_manage_scrims","can_remove","matches","role"],
-  "filter": {},
-  "allow_aggregations": true
-}'
-
-PLAYER_COMPUTED='["current_lobby_id","elo","banned_until","is_admin_sanctioned","is_banned","is_registered","is_gagged","is_muted","losses","losses_competitive","losses_duel","losses_wingman","matchmaking_cooldown","peak_elo","teams","tournament_cooldown","total_matches","wins","wins_competitive","wins_duel","wins_wingman"]'
-PLAYER_COMPUTED_USER='["current_lobby_id","elo","banned_until","is_admin_sanctioned","is_banned","is_registered","is_gagged","is_in_another_match","is_in_draft","is_in_lobby","is_muted","losses","losses_competitive","losses_duel","losses_wingman","matchmaking_cooldown","peak_elo","teams","tournament_cooldown","total_matches","wins","wins_competitive","wins_duel","wins_wingman"]'
 
 drop_select() {
   local table="$1" role="$2"
   meta "{\"type\":\"pg_drop_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"${table}\"},\"role\":\"${role}\"}}" >/dev/null 2>&1 || true
 }
 
-create_teams_select() {
-  local role="$1"
-  meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"teams\"},\"role\":\"${role}\",\"permission\":${TEAMS_PERM}}}"
-}
+# Scalar computed fields only — never list table-returning ones (teams/matches).
+PLAYER_COMPUTED_GUEST='["current_lobby_id","elo","banned_until","is_admin_sanctioned","is_banned","is_registered","is_gagged","is_muted","losses","losses_competitive","losses_duel","losses_wingman","matchmaking_cooldown","peak_elo","tournament_cooldown","total_matches","wins","wins_competitive","wins_duel","wins_wingman"]'
+PLAYER_COMPUTED_USER='["current_lobby_id","elo","banned_until","is_admin_sanctioned","is_banned","is_registered","is_gagged","is_in_another_match","is_in_draft","is_in_lobby","is_muted","losses","losses_competitive","losses_duel","losses_wingman","matchmaking_cooldown","peak_elo","tournament_cooldown","total_matches","wins","wins_competitive","wins_duel","wins_wingman"]'
+TEAMS_COMPUTED='["can_change_role","can_invite","can_manage_scrims","can_remove","role"]'
+TEAMS_COLS='["avatar_url","captain_steam_id","id","is_organization","name","owner_steam_id","short_name"]'
+PLAYER_COLS_GUEST='["avatar_url","country","custom_avatar_url","faceit_elo","faceit_nickname","faceit_player_id","faceit_skill_level","faceit_updated_at","faceit_url","language","name","name_registered","premier_rank","premier_rank_updated_at","profile_url","role","roster_image_url","show_match_ready_modal","steam_id","primary_club_id","vac_banned","vac_ban_count","game_ban_count","days_since_last_ban"]'
+PLAYER_COLS_USER='["avatar_url","country","last_read_news_at","custom_avatar_url","faceit_elo","faceit_nickname","faceit_player_id","faceit_skill_level","faceit_updated_at","faceit_url","language","name","name_registered","premier_rank","premier_rank_updated_at","profile_url","role","roster_image_url","show_match_ready_modal","steam_id","primary_club_id","vac_banned","vac_ban_count","game_ban_count","days_since_last_ban"]'
+PLAYER_COLS_MO='["avatar_url","country","custom_avatar_url","faceit_elo","faceit_nickname","faceit_player_id","faceit_skill_level","faceit_updated_at","faceit_url","language","last_read_news_at","last_sign_in_at","name","name_registered","premier_rank","premier_rank_updated_at","profile_url","role","roster_image_url","show_match_ready_modal","steam_id","primary_club_id","vac_banned","vac_ban_count","game_ban_count","days_since_last_ban"]'
 
-echo "restoring teams select for user roles..."
-for role in user match_organizer tournament_organizer; do
-  drop_select teams "$role"
-  create_teams_select "$role"
-done
-
-echo "restoring players.teams computed field..."
+echo "1) restoring players select (guest/user/match_organizer)..."
 drop_select players guest
-meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"guest\",\"permission\":{\"columns\":[\"avatar_url\",\"country\",\"custom_avatar_url\",\"faceit_elo\",\"faceit_nickname\",\"faceit_player_id\",\"faceit_skill_level\",\"faceit_updated_at\",\"faceit_url\",\"language\",\"name\",\"name_registered\",\"premier_rank\",\"premier_rank_updated_at\",\"profile_url\",\"role\",\"roster_image_url\",\"show_match_ready_modal\",\"steam_id\",\"primary_club_id\",\"vac_banned\",\"vac_ban_count\",\"game_ban_count\",\"days_since_last_ban\"],\"computed_fields\":${PLAYER_COMPUTED},\"filter\":{}}}}"
+meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"guest\",\"permission\":{\"columns\":${PLAYER_COLS_GUEST},\"computed_fields\":${PLAYER_COMPUTED_GUEST},\"filter\":{}}}}"
 
 drop_select players user
-meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"user\",\"permission\":{\"columns\":[\"avatar_url\",\"country\",\"last_read_news_at\",\"custom_avatar_url\",\"faceit_elo\",\"faceit_nickname\",\"faceit_player_id\",\"faceit_skill_level\",\"faceit_updated_at\",\"faceit_url\",\"language\",\"name\",\"name_registered\",\"premier_rank\",\"premier_rank_updated_at\",\"profile_url\",\"role\",\"roster_image_url\",\"show_match_ready_modal\",\"steam_id\",\"primary_club_id\",\"vac_banned\",\"vac_ban_count\",\"game_ban_count\",\"days_since_last_ban\"],\"computed_fields\":${PLAYER_COMPUTED_USER},\"filter\":{},\"allow_aggregations\":true}}}"
+meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"user\",\"permission\":{\"columns\":${PLAYER_COLS_USER},\"computed_fields\":${PLAYER_COMPUTED_USER},\"filter\":{},\"allow_aggregations\":true}}}"
 
 drop_select players match_organizer
-meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"match_organizer\",\"permission\":{\"columns\":[\"avatar_url\",\"country\",\"custom_avatar_url\",\"faceit_elo\",\"faceit_nickname\",\"faceit_player_id\",\"faceit_skill_level\",\"faceit_updated_at\",\"faceit_url\",\"language\",\"last_read_news_at\",\"last_sign_in_at\",\"name\",\"name_registered\",\"premier_rank\",\"premier_rank_updated_at\",\"profile_url\",\"role\",\"roster_image_url\",\"show_match_ready_modal\",\"steam_id\",\"primary_club_id\",\"vac_banned\",\"vac_ban_count\",\"game_ban_count\",\"days_since_last_ban\"],\"computed_fields\":${PLAYER_COMPUTED_USER},\"filter\":{}}}}"
+meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"players\"},\"role\":\"match_organizer\",\"permission\":{\"columns\":${PLAYER_COLS_MO},\"computed_fields\":${PLAYER_COMPUTED_USER},\"filter\":{}}}}"
+
+echo "2) adding teams select for logged-in roles (auto-derives players.teams)..."
+for role in user match_organizer tournament_organizer; do
+  drop_select teams "$role"
+  meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"teams\"},\"role\":\"${role}\",\"permission\":{\"columns\":${TEAMS_COLS},\"computed_fields\":${TEAMS_COMPUTED},\"filter\":{},\"allow_aggregations\":true}}}"
+done
+
+echo "3) fixing guest teams select (drop manual matches computed field if present)..."
+drop_select teams guest
+meta "{\"type\":\"pg_create_select_permission\",\"args\":{\"source\":\"default\",\"table\":{\"schema\":\"public\",\"name\":\"teams\"},\"role\":\"guest\",\"permission\":{\"columns\":${TEAMS_COLS},\"computed_fields\":${TEAMS_COMPUTED},\"filter\":{},\"allow_aggregations\":true}}}"
 
 echo "done — hard-refresh the site"
