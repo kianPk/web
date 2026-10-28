@@ -1716,42 +1716,62 @@ function activityTitle(kind: string) {
           </div>
         </section>
 
-        <!-- Owner-only activity feed -->
-        <section v-else-if="tab === 'feed' && isOwner" class="grid gap-6 lg:grid-cols-[1fr_16rem]">
+        <!-- Owner activity feed -->
+        <section
+          v-if="tab === 'feed'"
+          class="grid min-h-[16rem] gap-6 lg:grid-cols-[1fr_16rem]"
+        >
           <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
             <h2 class="mb-4 text-sm font-semibold">{{ t("pages.clubs.activity") }}</h2>
-            <ul class="space-y-3">
+            <ul v-if="isOwner" class="space-y-3">
               <li
-                v-for="a in club.activity"
+                v-for="a in club.activity || []"
                 :key="a.id"
                 class="rounded-lg border border-border/50 bg-background/40 px-3 py-2.5"
               >
-                <div class="text-sm font-medium capitalize">{{ activityTitle(a.kind) }}</div>
+                <div class="text-sm font-medium capitalize">
+                  {{ activityTitle(a.kind) }}
+                </div>
                 <div class="mt-0.5 text-xs text-muted-foreground">
                   {{ formatSiteDate(a.created_at) }}
                 </div>
               </li>
-              <li v-if="!club.activity?.length" class="py-8 text-center text-sm text-muted-foreground">
+              <li
+                v-if="!(club.activity || []).length"
+                class="py-8 text-center text-sm text-muted-foreground"
+              >
                 {{ t("pages.clubs.no_activity") }}
               </li>
             </ul>
+            <p v-else class="py-8 text-center text-sm text-muted-foreground">
+              {{ t("pages.clubs.no_activity") }}
+            </p>
           </div>
           <aside class="space-y-3">
             <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-              <div class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</div>
+              <div class="text-xs text-muted-foreground">
+                {{ t("pages.clubs.members_label") }}
+              </div>
               <div class="mt-1 text-2xl font-bold tabular-nums">
                 {{ club.members_aggregate?.aggregate?.count ?? 0 }}
               </div>
             </div>
             <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-              <div class="text-xs text-muted-foreground">{{ t("pages.clubs.news_stat") }}</div>
-              <div class="mt-1 text-2xl font-bold tabular-nums">{{ newsPosts.length }}</div>
+              <div class="text-xs text-muted-foreground">
+                {{ t("pages.clubs.news_stat") }}
+              </div>
+              <div class="mt-1 text-2xl font-bold tabular-nums">
+                {{ newsPosts.length }}
+              </div>
             </div>
           </aside>
         </section>
 
         <!-- Members -->
-        <section v-else-if="tab === 'members'" class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
+        <section
+          v-if="tab === 'members'"
+          class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5"
+        >
           <div class="relative mb-4 max-w-sm">
             <Search class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -1842,7 +1862,7 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- News -->
-        <section v-else-if="tab === 'chat'" class="space-y-4">
+        <section v-if="tab === 'chat'" class="min-h-[16rem] space-y-4">
           <form
             v-if="canPostNews"
             class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
@@ -1957,7 +1977,7 @@ function activityTitle(kind: string) {
 
         <!-- Leaderboard -->
         <section
-          v-else-if="tab === 'leaderboard'"
+          v-if="tab === 'leaderboard'"
           class="rounded-xl border border-border/70 bg-card/40 px-6 py-16 text-center"
         >
           <h2 class="text-base font-semibold">{{ t("pages.clubs.tabs.leaderboard") }}</h2>
@@ -1966,18 +1986,18 @@ function activityTitle(kind: string) {
           </p>
         </section>
 
-        <section v-else-if="tab === 'shop' && club" class="space-y-4">
+        <section v-if="tab === 'shop' && club" class="space-y-4">
           <ClubShopPanel :club-id="club.id" />
         </section>
 
         <ClubServersPanel
-          v-else-if="tab === 'servers'"
+          v-if="tab === 'servers'"
           :club-id="club.id"
           :can-manage="canManage || auth.isAdmin"
         />
 
         <!-- Teams -->
-        <section v-else-if="tab === 'teams'" class="space-y-5">
+        <section v-if="tab === 'teams'" class="space-y-5">
           <div
             class="relative overflow-hidden rounded-2xl border-2 border-[hsl(var(--tac-amber)/0.55)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.22)_0%,hsl(var(--card)/0.85)_42%,hsl(var(--tac-amber)/0.08)_100%)] p-4 sm:p-5"
           >
@@ -2076,7 +2096,7 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- Club tournaments -->
-        <section v-else-if="tab === 'tournaments'" class="space-y-4">
+        <section v-if="tab === 'tournaments'" class="space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="text-sm text-muted-foreground">
               {{ t("pages.clubs.tournaments_hint") }}
@@ -2107,7 +2127,7 @@ function activityTitle(kind: string) {
         </section>
 
         <!-- Club challenges -->
-        <section v-else-if="tab === 'challenges'" class="space-y-4">
+        <section v-if="tab === 'challenges'" class="space-y-4">
           <ClubChallengesPanel
             v-if="club?.id"
             :club-id="club.id"
@@ -2118,7 +2138,7 @@ function activityTitle(kind: string) {
 
         <!-- Clash -->
         <section
-          v-else-if="tab === 'clash'"
+          v-if="tab === 'clash'"
           class="rounded-xl border border-border/70 bg-card/40 px-6 py-16 text-center"
         >
           <h2 class="text-base font-semibold">{{ t("pages.clubs.clash_title") }}</h2>
@@ -2129,7 +2149,7 @@ function activityTitle(kind: string) {
 
         <!-- Admin / Settings -->
         <section
-          v-else-if="tab === 'admin' && canManage"
+          v-if="tab === 'admin' && canManage"
           class="space-y-5"
         >
           <nav
