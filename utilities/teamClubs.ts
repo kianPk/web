@@ -4,6 +4,7 @@ export type TeamClub = {
   slug?: string | null;
   short_name?: string | null;
   avatar_url?: string | null;
+  cover_url?: string | null;
   official_team_id?: string | null;
   is_primary?: boolean;
 };
@@ -22,6 +23,8 @@ export const teamOwnerClubSelection = {
         slug: true,
         short_name: true,
         avatar_url: true,
+        cover_url: true,
+        official_team_id: true,
       },
     },
   ],

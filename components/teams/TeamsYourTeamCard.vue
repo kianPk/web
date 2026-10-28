@@ -3,18 +3,32 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { CheckCircle2, ChevronRight, Swords, UserPlus } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
+import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import TeamsEmblem from "~/components/teams/TeamsEmblem.vue";
 import { useTeamNeeds } from "~/composables/useTeamNeeds";
 import { formatStartTime } from "~/components/watch/watchTicker";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import type { TeamClub } from "~/utilities/teamClubs";
 import { teamOpponent, teamResult } from "~/utilities/teamResults";
 
-const props = defineProps<{ team: any; now: Date }>();
+const props = defineProps<{
+  team: any;
+  now: Date;
+  officialClub?: TeamClub | null;
+}>();
 
 const { t } = useI18n();
 const { items } = useTeamNeeds(() => props.team, { followInvites: false });
+const apiDomain = useRuntimeConfig().public.apiDomain as string;
 
 const teamPath = computed(() => `/teams/${props.team.id}`);
 const players = computed(() => props.team.roster?.length ?? 0);
+const clubBannerSrc = computed(() =>
+  props.officialClub
+    ? resolveAvatarUrl(props.officialClub.cover_url, apiDomain) ||
+      resolveAvatarUrl(props.officialClub.avatar_url, apiDomain)
+    : null,
+);
 
 const checkIn = computed(
   () => items.value.find((item) => item.kind === "check_in") ?? null,
@@ -105,17 +119,51 @@ const urgentPill = `${pillClasses} border-[hsl(var(--tac-amber))] bg-[hsl(var(--
 
 <template>
   <article
-    class="group relative flex flex-wrap items-start gap-x-8 gap-y-3 rounded-lg border border-border bg-muted/20 p-4 transition-colors duration-150 has-[a.team-link:focus-visible]:ring-2 has-[a.team-link:focus-visible]:ring-[hsl(var(--tac-amber))] hover:border-foreground/20 hover:bg-muted/30"
+    class="group relative flex flex-wrap items-start gap-x-8 gap-y-3 overflow-hidden rounded-lg border p-4 transition-colors duration-150 has-[a.team-link:focus-visible]:ring-2 has-[a.team-link:focus-visible]:ring-[hsl(var(--tac-amber))]"
+    :class="
+      officialClub
+        ? 'border-[hsl(var(--tac-amber)/0.65)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.16)_0%,hsl(var(--card)/0.85)_55%)] hover:border-[hsl(var(--tac-amber)/0.85)]'
+        : 'border-border bg-muted/20 hover:border-foreground/20 hover:bg-muted/30'
+    "
   >
-    <div class="flex min-w-[14rem] flex-1 flex-col gap-3">
+    <div
+      v-if="officialClub && clubBannerSrc"
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-y-0 right-0 w-32 opacity-30 sm:w-44"
+    >
+      <img
+        :src="clubBannerSrc"
+        alt=""
+        class="h-full w-full object-cover [mask-image:linear-gradient(to_left,black,transparent)]"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-l from-black/40 via-transparent to-transparent"
+      />
+    </div>
+
+    <div class="relative z-[1] flex min-w-[14rem] flex-1 flex-col gap-3">
       <div class="flex min-w-0 items-center gap-3">
-        <TeamsEmblem :team="team" :size="40" />
+        <TeamsEmblem
+          :team="team"
+          :size="40"
+          :class="
+            officialClub
+              ? 'ring-2 ring-[hsl(var(--tac-amber)/0.7)] ring-offset-1 ring-offset-background'
+              : undefined
+          "
+        />
         <div class="grid min-w-0 gap-0.5">
           <NuxtLink
             :to="teamPath"
             class="team-link truncate text-base font-bold outline-none after:absolute after:inset-0 after:rounded-lg after:content-['']"
             >{{ team.name }}</NuxtLink
           >
+          <ClubTeamBadge
+            v-if="officialClub"
+            class="relative z-10"
+            compact
+            :official-club="officialClub"
+          />
           <span class="truncate text-[12.5px] text-muted-foreground">
             {{ team.short_name }} ·
             {{ $t("pages.teams.players", players) }}
@@ -158,7 +206,7 @@ const urgentPill = `${pillClasses} border-[hsl(var(--tac-amber))] bg-[hsl(var(--
     </div>
 
     <dl
-      class="m-0 grid min-w-[16rem] flex-[1.3] grid-cols-[2.5rem_minmax(0,1fr)] gap-x-2.5 gap-y-1.5 self-center text-[13px]"
+      class="relative z-[1] m-0 grid min-w-[16rem] flex-[1.3] grid-cols-[2.5rem_minmax(0,1fr)] gap-x-2.5 gap-y-1.5 self-center text-[13px]"
     >
       <dt class="text-xs font-semibold leading-5 text-muted-foreground">
         {{ $t("pages.teams.your_teams.next") }}

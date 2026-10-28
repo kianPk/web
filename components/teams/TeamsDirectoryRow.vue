@@ -3,20 +3,31 @@ import { computed } from "vue";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import TimeAgo from "~/components/TimeAgo.vue";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
+import ClubTeamBadge from "~/components/clubs/ClubTeamBadge.vue";
 import TeamsAwardShelf from "~/components/teams/TeamsAwardShelf.vue";
 import type { TeamAwardEntry } from "~/components/teams/teamAwards";
 import TeamsEmblem from "~/components/teams/TeamsEmblem.vue";
 import TeamsFormStrip from "~/components/teams/TeamsFormStrip.vue";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import type { TeamClub } from "~/utilities/teamClubs";
 import { teamForm } from "~/utilities/teamResults";
 
 const props = defineProps<{
   team: any;
   awards: TeamAwardEntry[];
   live: boolean;
+  officialClub?: TeamClub | null;
 }>();
 
 const apiDomain = useRuntimeConfig().public.apiDomain as string;
+
+const clubBannerSrc = computed(() =>
+  props.officialClub
+    ? resolveAvatarUrl(props.officialClub.cover_url, apiDomain) ||
+      resolveAvatarUrl(props.officialClub.avatar_url, apiDomain)
+    : null,
+);
 
 const STATUS_ORDER: Record<string, number> = {
   Starter: 0,
@@ -78,15 +89,40 @@ function faceSrc(member: any) {
 <template>
   <div
     role="listitem"
-    class="group relative grid items-center gap-x-3 gap-y-2 px-4 py-3 transition-colors duration-150 [grid-template-areas:'em_id_aw'_'em_st_st'] [grid-template-columns:2.5rem_minmax(0,1fr)_auto] has-[a.team-link:focus-visible]:ring-2 has-[a.team-link:focus-visible]:ring-inset has-[a.team-link:focus-visible]:ring-[hsl(var(--tac-amber))] hover:bg-muted/25 lg:gap-x-4 lg:[grid-template-areas:'em_id_ro_elo_form_last_aw'] lg:[grid-template-columns:2.5rem_minmax(0,1.6fr)_8.5rem_5.5rem_6.5rem_8.5rem_minmax(0,9rem)]"
+    class="group relative grid items-center gap-x-3 gap-y-2 overflow-hidden px-4 py-3 transition-colors duration-150 [grid-template-areas:'em_id_aw'_'em_st_st'] [grid-template-columns:2.5rem_minmax(0,1fr)_auto] has-[a.team-link:focus-visible]:ring-2 has-[a.team-link:focus-visible]:ring-inset has-[a.team-link:focus-visible]:ring-[hsl(var(--tac-amber))] lg:gap-x-4 lg:[grid-template-areas:'em_id_ro_elo_form_last_aw'] lg:[grid-template-columns:2.5rem_minmax(0,1.6fr)_8.5rem_5.5rem_6.5rem_8.5rem_minmax(0,9rem)]"
+    :class="
+      officialClub
+        ? 'border-l-[3px] border-l-[hsl(var(--tac-amber))] bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.14)_0%,hsl(var(--tac-amber)/0.04)_42%,transparent_72%)] hover:bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.2)_0%,hsl(var(--tac-amber)/0.07)_42%,transparent_72%)]'
+        : 'hover:bg-muted/25'
+    "
   >
+    <div
+      v-if="officialClub && clubBannerSrc"
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-y-0 right-0 w-28 opacity-25 sm:w-40 sm:opacity-35"
+    >
+      <img
+        :src="clubBannerSrc"
+        alt=""
+        class="h-full w-full object-cover [mask-image:linear-gradient(to_left,black,transparent)]"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-l from-black/35 via-transparent to-transparent"
+      />
+    </div>
+
     <TeamsEmblem
       :team="team"
       :size="40"
-      class="self-start [grid-area:em] lg:self-center"
+      class="relative z-[1] self-start [grid-area:em] lg:self-center"
+      :class="
+        officialClub
+          ? 'ring-2 ring-[hsl(var(--tac-amber)/0.7)] ring-offset-1 ring-offset-background'
+          : undefined
+      "
     />
 
-    <div class="grid min-w-0 gap-0.5 [grid-area:id]">
+    <div class="relative z-[1] grid min-w-0 gap-0.5 [grid-area:id]">
       <div class="flex min-w-0 items-center gap-2">
         <NuxtLink
           :to="{ name: 'teams-id', params: { id: team.id } }"
@@ -95,7 +131,12 @@ function faceSrc(member: any) {
         >
         <span
           v-if="team.short_name"
-          class="inline-flex h-5 shrink-0 items-center rounded-[5px] border border-border bg-muted/40 px-1.5 text-[11px] font-semibold tracking-[0.06em] text-foreground/80"
+          class="inline-flex h-5 shrink-0 items-center rounded-[5px] border px-1.5 text-[11px] font-semibold tracking-[0.06em]"
+          :class="
+            officialClub
+              ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.14)] text-[hsl(var(--tac-amber))]'
+              : 'border-border bg-muted/40 text-foreground/80'
+          "
           >{{ team.short_name }}</span
         >
         <span
@@ -105,8 +146,14 @@ function faceSrc(member: any) {
         >
       </div>
       <div
-        class="flex min-w-0 items-center gap-2 whitespace-nowrap text-[12.5px] text-muted-foreground"
+        class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground"
       >
+        <ClubTeamBadge
+          v-if="officialClub"
+          class="relative z-10"
+          compact
+          :official-club="officialClub"
+        />
         <span v-if="countries.length" class="flex items-center gap-1">
           <TimezoneFlag
             v-for="country in countries"
@@ -123,7 +170,7 @@ function faceSrc(member: any) {
       </div>
     </div>
 
-    <div class="hidden items-center [grid-area:ro] lg:flex">
+    <div class="relative z-[1] hidden items-center [grid-area:ro] lg:flex">
       <div v-if="faces.length" class="flex -space-x-1.5">
         <Avatar
           v-for="member in faces"
@@ -145,7 +192,7 @@ function faceSrc(member: any) {
     </div>
 
     <div
-      class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5 [grid-area:st] lg:contents"
+      class="relative z-[1] flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5 [grid-area:st] lg:contents"
     >
       <span class="text-[13px] tabular-nums lg:[grid-area:elo]">
         <template v-if="avgElo !== null">

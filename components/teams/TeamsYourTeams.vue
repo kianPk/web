@@ -17,11 +17,48 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+import {
+  indexOfficialClubs,
+  type TeamClub,
+} from "~/utilities/teamClubs";
+import { gql } from "@apollo/client/core";
 
 const emit = defineEmits<{ (e: "team-ids", ids: string[]): void }>();
 
 const { client } = useApolloClient();
 const auth = useAuthStore();
+const officialByTeamId = ref<Record<string, TeamClub>>({});
+
+async function loadOfficialClubs(teamIds: string[]) {
+  const ids = [...new Set(teamIds.filter(Boolean))];
+  if (!ids.length) {
+    officialByTeamId.value = {};
+    return;
+  }
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query OfficialClubsForYourTeams($ids: [uuid!]!) {
+          clubs(where: { official_team_id: { _in: $ids } }) {
+            id
+            name
+            slug
+            short_name
+            avatar_url
+            cover_url
+            official_team_id
+          }
+        }
+      `,
+      variables: { ids },
+      fetchPolicy: "network-only",
+      context: { optional: true },
+    });
+    officialByTeamId.value = indexOfficialClubs(data?.clubs ?? []);
+  } catch {
+    officialByTeamId.value = {};
+  }
+}
 
 const lineupFields = Selector("match_lineups")({
   id: true,
@@ -156,10 +193,9 @@ watch(
           teams.value = data?.teams ?? [];
           loaded.value = true;
           lastYourTeams.set(String(steamId), teams.value);
-          emit(
-            "team-ids",
-            teams.value.map((team) => team.id),
-          );
+          const ids = teams.value.map((team) => team.id);
+          emit("team-ids", ids);
+          void loadOfficialClubs(ids);
         },
         error: (error: any) => {
           console.error("[teams] your teams subscription error", error);
@@ -222,6 +258,7 @@ onBeforeUnmount(() => {
         :key="team.id"
         :team="team"
         :now="now"
+        :official-club="officialByTeamId[team.id] ?? null"
       />
     </div>
   </section>

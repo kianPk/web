@@ -43,6 +43,11 @@ import {
   filterTriggerIdle,
   listCreateButtonClasses,
 } from "~/utilities/tacticalClasses";
+import {
+  indexOfficialClubs,
+  type TeamClub,
+} from "~/utilities/teamClubs";
+import { gql } from "@apollo/client/core";
 
 // The page shows "Create team" here only when the viewer has no team of
 // their own; otherwise it sits on "Your teams". The sort and create go to
@@ -77,6 +82,7 @@ useRestoredRefs("teams-directory", {
 
 const teams = ref<any[]>([]);
 const total = ref(0);
+const officialByTeamId = ref<Record<string, TeamClub>>({});
 // Starts pending: the first fetch waits on the schema check for its sort.
 const fetching = ref(true);
 const { skeleton, refreshing } = useDeferredLoading(() => fetching.value);
@@ -202,6 +208,38 @@ const rankedIdsQuery = generateQuery({
   ],
 } as any);
 
+async function loadOfficialClubs(teamIds: string[]) {
+  const ids = [...new Set(teamIds.filter(Boolean))];
+  if (!ids.length) {
+    officialByTeamId.value = {};
+    return;
+  }
+  try {
+    const { data } = await client.query({
+      query: gql`
+        query OfficialClubsForTeams($ids: [uuid!]!) {
+          clubs(where: { official_team_id: { _in: $ids } }) {
+            id
+            name
+            slug
+            short_name
+            avatar_url
+            cover_url
+            official_team_id
+          }
+        }
+      `,
+      variables: { ids },
+      fetchPolicy: "network-only",
+      context: { optional: true },
+    });
+    officialByTeamId.value = indexOfficialClubs(data?.clubs ?? []);
+  } catch {
+    // official_team_id / cover_url only exist after club migrations apply
+    officialByTeamId.value = {};
+  }
+}
+
 async function fetchDirectory(variables: Record<string, any>) {
   const query = hasLastMatchAt.value ? queries.with : queries.without;
   if (sort.value !== "rating") {
@@ -299,6 +337,8 @@ async function load() {
     total.value = result.total;
     lastDirectoryResults.set(key, { teams: teams.value, total: total.value });
     lastDirectoryRowCount.value = teams.value.length;
+    await loadOfficialClubs(teams.value.map((team) => team.id));
+    if (current !== generation) return;
   } catch (error) {
     console.error("[teams] directory query error", error);
   } finally {
@@ -531,6 +571,7 @@ const headerCell = "text-[11px] font-semibold uppercase tracking-[0.1em]";
           :team="team"
           :awards="awardsByTeamId[team.id] ?? []"
           :live="liveTeamIds.has(team.id)"
+          :official-club="officialByTeamId[team.id] ?? null"
         />
       </div>
     </div>
