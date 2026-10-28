@@ -91,7 +91,24 @@ const scrimNeedsCount = computed(
 </script>
 
 <template>
-  <PageTransition v-if="team">
+  <div
+    v-if="team === undefined"
+    class="flex min-h-[40vh] items-center justify-center px-4 text-sm text-muted-foreground"
+  >
+    …
+  </div>
+  <div
+    v-else-if="team === null"
+    class="flex min-h-[40vh] flex-col items-center justify-center gap-3 px-4 text-center"
+  >
+    <p class="text-sm text-muted-foreground">
+      {{ $t("team.not_found") }}
+    </p>
+    <Button variant="outline" size="sm" @click="$router.push('/teams')">
+      {{ $t("team.back_to_teams") }}
+    </Button>
+  </div>
+  <PageTransition v-else>
     <div
       class="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-stretch"
     >
@@ -134,7 +151,7 @@ const scrimNeedsCount = computed(
                   {{ $t("awards.composer.grant_here") }}
                 </DropdownMenuItem>
                 <template
-                  v-if="isAdmin || team.owner.steam_id === me?.steam_id"
+                  v-if="isAdmin || team.owner?.steam_id === me?.steam_id"
                 >
                   <DropdownMenuItem @click="editTeamSheet = true">
                     <Pencil />
@@ -513,7 +530,6 @@ export default {
                 avg_elo: true,
                 avg_wingman_elo: true,
                 avg_duel_elo: true,
-                avg_rush_elo: true,
                 min_elo: true,
                 max_elo: true,
                 avg_faceit_level: true,
@@ -570,7 +586,7 @@ export default {
           };
         },
         result: function ({ data }) {
-          this.team = data.teams_by_pk;
+          this.team = data?.teams_by_pk ?? null;
           const ctx = useTeamContext();
           if (this.team) {
             ctx.value = {
@@ -580,6 +596,10 @@ export default {
           } else {
             ctx.value = null;
           }
+        },
+        error: function () {
+          this.team = null;
+          useTeamContext().value = null;
         },
       },
       tournamentMatches: {
@@ -737,9 +757,14 @@ export default {
       });
     },
     isOnTeam() {
-      return !!this.team?.roster.some(({ player }) => {
-        return player.steam_id === this.me?.steam_id;
-      });
+      return !!(this.team?.roster ?? []).some(
+        ({ player }: { player?: { steam_id?: string } | null }) => {
+          return (
+            player?.steam_id != null &&
+            String(player.steam_id) === String(this.me?.steam_id)
+          );
+        },
+      );
     },
     // The owner has to hand the team over before they can walk away from it,
     // otherwise nobody left on the roster can manage it. The database enforces

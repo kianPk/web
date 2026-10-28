@@ -9021,6 +9021,8 @@
       "owner": "Owner"
     },
     "leave": "ترک تیم",
+    "not_found": "تیم پیدا نشد",
+    "back_to_teams": "بازگشت به تیم‌ها",
     "management": {
       "edit": "ویرایش تیم"
     },

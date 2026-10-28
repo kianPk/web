@@ -9021,6 +9021,8 @@
       "owner": "Owner"
     },
     "leave": "Leave Team",
+    "not_found": "Team not found",
+    "back_to_teams": "Back to teams",
     "management": {
       "edit": "Edit Team"
     },
