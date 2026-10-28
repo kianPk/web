@@ -1715,7 +1715,70 @@
         "see_all": "Alle im Scrim-Finder ansehen",
         "subtitle": "Teams, die Herausforderungen annehmen",
         "title": "Suchen Scrims",
-        "today": "Heute {from}–{to}"
+        "today": "Heute {from}–{to}",
+        "sign_in_to_request": "Zum Anfragen anmelden"
+      },
+      "players": "{count} Spieler | {count} Spieler",
+      "form": {
+        "label": "Letzte Form: {results}",
+        "none": "Noch keine Ergebnisse",
+        "result_W": "Sieg",
+        "result_L": "Niederlage",
+        "result_T": "Unentschieden"
+      },
+      "your_teams": {
+        "title": "Deine Teams",
+        "next": "Nächstes",
+        "last": "Letztes",
+        "playing_now": "Spielt gerade",
+        "nothing_scheduled": "Nichts geplant",
+        "no_matches": "Noch keine Matches",
+        "result_W": "Gewonnen",
+        "result_L": "Verloren",
+        "result_T": "Unentschieden",
+        "check_in": "Einchecken",
+        "scrim_replies": "{count} Scrim-Antwort nötig | {count} Scrim-Antworten nötig",
+        "invite_starter": "Starter einladen"
+      },
+      "playing_now": {
+        "title": "Spielt gerade",
+        "live_count": "{count} live",
+        "all_live": "Alle Live-Matches",
+        "more_on_watch": "weitere live auf Watch"
+      },
+      "directory": {
+        "title": "Alle Teams",
+        "sort_label": "Teams sortieren",
+        "sort_active": "Zuletzt aktiv",
+        "sort_rating": "Bewertung",
+        "sort_name": "Name",
+        "search_label": "Teams suchen",
+        "clear_search": "Suche löschen",
+        "org": "Org",
+        "playing_now": "Spielt gerade",
+        "never_played": "Noch keine Matches",
+        "col_roster": "Roster",
+        "col_elo": "Ø ELO",
+        "col_form": "Form",
+        "col_last": "Zuletzt gespielt",
+        "col_awards": "Auszeichnungen",
+        "no_match": "Nichts passt zu deiner Suche oder deinen Filtern.",
+        "clear_filters": "Filter zurücksetzen"
+      },
+      "tournament_teams": {
+        "title": "Turnierteams",
+        "subtitle": "Innerhalb eines Turniers erstellt",
+        "search": "Teams, Turniere oder Spieler suchen…",
+        "search_label": "Turnierteams durchsuchen",
+        "col_tournament": "Turnier",
+        "col_status": "Status",
+        "running": "Laufend",
+        "finished": "Beendet",
+        "segment_label": "Turnierstatus",
+        "found_in_running": "Treffer in laufenden Turnieren: {count}",
+        "found_in_finished": "Treffer in beendeten Turnieren: {count}",
+        "show_running": "Laufende anzeigen",
+        "show_finished": "Beendete anzeigen"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "Einladung zur Turnier-Anmeldung",
       "tournament_registration_message": "Du wurdest eingeladen, dich für ein Turnier anzumelden",
       "tournament_team_registration_title": "Turnier-Anmeldung für dein Team",
-      "tournament_team_registration_message": "{team} wurde eingeladen, sich für ein Turnier anzumelden"
+      "tournament_team_registration_message": "{team} wurde eingeladen, sich für ein Turnier anzumelden",
+      "team_and_lineup_message": "Tritt {team} und dem Lineup bei für",
+      "stand_in_message": "Spiel als Ersatz für {team}, ohne dem Team beizutreten, bei",
+      "tournament_team_message": "Spiel für {team}, ein Team nur für dieses Turnier, bei"
     },
     "roles": {
       "captain": "Captain",
       "admin": "Admin",
       "invite": "Einladen",
-      "member": "Mitglied"
+      "member": "Mitglied",
+      "owner": "Owner"
     },
     "leave": "Team verlassen",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "Owner",
       "captain": "Captain",
       "ineligible_short": "Gesperrt",
-      "tournament_join_requires_owner_or_captain": "Du kannst einem Turnier nur mit Teams beitreten, in denen du Owner oder Captain bist.",
+      "tournament_join_requires_owner_or_captain": "Du kannst nur mit Teams beitreten, in denen du Owner, Captain oder Admin bist.",
       "not_enough_players": "Braucht mindestens {count} Spieler für eine Herausforderung.",
       "selected": "Ausgewählt",
       "loading_more": "Weitere werden geladen …",
@@ -7409,7 +7476,8 @@
         "in_event": "Bereits diesem Event zugeordnet.",
         "other_side": "Bereits als anderes Team ausgewählt.",
         "owner_in_tournament": "Der Besitzer hat bereits ein Team in diesem Turnier."
-      }
+      },
+      "admin": "Admin"
     },
     "member": {
       "coach": "Coach",
@@ -7448,6 +7516,91 @@
       "failed_description": "Die Anfrage ist fehlgeschlagen. Versuch es gleich noch einmal.",
       "empty": "Keine zugeordnete Utility",
       "empty_description": "Bisher passt keine in den Matches dieses Teams geworfene Granate zu einem gespeicherten Lineup."
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} Spieler | {count} Spieler",
+        "matches": "{count} Match | {count} Matches",
+        "no_matches": "Noch keine Matches",
+        "founded": "Gegründet {date}",
+        "all_awards": "Alle Auszeichnungen anzeigen",
+        "team_actions": "Team-Aktionen",
+        "team_chat": "Team-Chat"
+      },
+      "stage": {
+        "live": "Jetzt live",
+        "next_up": "Als Nächstes",
+        "upcoming": "{count} anstehend",
+        "then": "Danach",
+        "open_to_scrims": "Öffne {name} für Scrims, damit andere Teams dich herausfordern können.",
+        "set_up_scrims": "Scrims einrichten",
+        "none_scheduled_member": "Noch keine Matches geplant.",
+        "none_scheduled": "Gerade ist nichts geplant.",
+        "never_played": "{name} hat noch kein Match gespielt."
+      },
+      "results": {
+        "hint": "Neueste zuerst, scrolle für ältere",
+        "all_matches": "Alle Matches"
+      },
+      "tabs": {
+        "matches": "Matches",
+        "scrim_waiting": "{count} warten auf dich"
+      },
+      "needs": {
+        "title": "Du bist gefragt",
+        "to_do": "{count} offen",
+        "check_in_title": "Einchecken für das Match gegen {name}",
+        "scrim_title": "will einen Scrim",
+        "counter_title": "hat eine neue Zeit vorgeschlagen",
+        "best_of_short": "Bo{count}",
+        "roster_title": "{count} von 5 Startern",
+        "roster_meta": "Lade Spieler ein, um ein volles Team aufzustellen.",
+        "waiting_on": "Warten auf",
+        "waiting_check_in": "{names} zum Einchecken",
+        "waiting_scrim": "{name} zur Antwort auf deine Scrim-Anfrage",
+        "waiting_invites": "{names} zur Annahme ihrer Einladungen",
+        "counter_dialog_title": "Andere Zeit vorschlagen",
+        "counter_dialog_description": "{name} muss die neue Zeit noch annehmen.",
+        "send_new_time": "Neue Zeit senden"
+      }
+    },
+    "activity": {
+      "title": "Aktivität",
+      "this_week": "Diese Woche",
+      "earlier": "Früher",
+      "show_older": "Ältere Aktivität anzeigen",
+      "empty": "Ergebnisse, Clips und Auszeichnungen erscheinen hier, sobald {team} spielt.",
+      "beat": "Sieg gegen {opponent}",
+      "lost_to": "Niederlage gegen {opponent}",
+      "drew_with": "Unentschieden gegen {opponent}",
+      "open_match": "Match öffnen",
+      "won": "{name} gewonnen",
+      "second_at": "2. Platz bei {name}",
+      "third_at": "3. Platz bei {name}",
+      "placed_at": "{placement} bei {name}",
+      "received": "{name} erhalten",
+      "tournament": "Turnier",
+      "promoted": "Aufgestiegen in {division}",
+      "relegated": "Abgestiegen in {division}",
+      "finished": "Platz {rank} in {division} beendet",
+      "stayed": "In {division} geblieben",
+      "started": "{season} gestartet",
+      "invited": "{name} wurde eingeladen",
+      "invited_by": "Eingeladen von {name}",
+      "created": "{team} wurde erstellt"
+    },
+    "starting_five": {
+      "title": "Starting Five",
+      "players": "{count} Spieler | {count} Spieler",
+      "manage_roster": "Roster verwalten",
+      "full_roster": "Ganzes Roster",
+      "starters_only": "Nur Starting Five",
+      "open_slot": "Freier Starterplatz",
+      "invite": "Einladen",
+      "substitutes": "{count} Ersatzspieler | {count} Ersatzspieler",
+      "bench": "{count} auf der Bank",
+      "coaches": "{count} Coach | {count} Coaches",
+      "captain": "Kapitän: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "Nachricht",
       "empty": "Noch keine Nachrichten. Sag Hallo."
+    },
+    "room_settings": {
+      "menu": "Benachrichtigungseinstellungen",
+      "mute_room": "Raum stummschalten",
+      "unmute_room": "Stummschaltung des Raums aufheben",
+      "mute_conversation": "Unterhaltung stummschalten",
+      "unmute_conversation": "Stummschaltung der Unterhaltung aufheben",
+      "mute_for": {
+        "minutes_15": "Für 15 Minuten",
+        "hour_1": "Für 1 Stunde",
+        "hours_8": "Für 8 Stunden",
+        "hours_24": "Für 24 Stunden",
+        "until_unmuted": "Bis ich sie wieder aufhebe"
+      },
+      "muted": "Stummgeschaltet",
+      "muted_until": "Stummgeschaltet bis {time}",
+      "notify_me_about": "Benachrichtigungen für",
+      "notify": {
+        "all": "Alle Nachrichten",
+        "mentions": "Nur {'@'}Markierungen",
+        "nothing": "Nichts"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index} von {total}",
     "registration": "Anmeldung",
     "title": "Schnellansicht"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "Übersicht",
+      "requests": "Meine Scrims",
+      "listing": "Dein Eintrag"
+    },
+    "team_switch": "Scrims finden für",
+    "when": "{day}, {time}",
+    "duration": {
+      "minutes": "{n} Min.",
+      "hours": "{n} Std."
+    },
+    "status": {
+      "both_free": "Beide frei",
+      "different_hours": "Andere Zeiten",
+      "their_range": "Außerhalb ihres Bereichs",
+      "our_range": "Außerhalb deines Bereichs",
+      "you_are_booked": "Bereits gebucht",
+      "needs_you": "Wartet auf dich",
+      "requested": "Angefragt",
+      "booked": "Gebucht für {time}"
+    },
+    "board": {
+      "now": "Jetzt",
+      "until": "bis {time}",
+      "to": "bis {time}",
+      "open_now": "Jetzt offen",
+      "open_now_hint": "Kann in der nächsten halben Stunde starten",
+      "col_opens": "Ab",
+      "col_team": "Team",
+      "col_maps": "Maps",
+      "col_elo": "ELO",
+      "col_reliable": "Zuverlässig",
+      "col_for_you": "Für dich",
+      "request": "Anfragen",
+      "request_at": "{team} für {time} anfragen",
+      "answer": "Antworten",
+      "view": "Ansehen",
+      "any_map": "Beliebige Map",
+      "any_region": "Beliebige Region",
+      "new": "Neu",
+      "new_team": "Neues Team",
+      "played": "{count} gespielt",
+      "reliable": "{pct} % zuverlässig",
+      "elo_value": "{elo} ELO",
+      "times_note": "Zeiten in deiner Zeitzone. Ein Best of 1 kann bis zum Ende der Zeiten eines Teams starten.",
+      "empty_title": "Diese Woche ist kein Team offen",
+      "empty_description": "Die meisten Teams öffnen ihre Zeiten abends. Schau später wieder vorbei.",
+      "empty_description_team": "Öffne {team} für Scrims, damit Teams dir Anfragen schicken können, oder nutze Sofort-Scrim, um gegen das nächste freie Team zu spielen.",
+      "edit_listing": "Eintrag bearbeiten",
+      "filtered_fits": "Schalte „Passt zu {team}“ aus, um auch Teams außerhalb deines Bereichs zu sehen."
+    },
+    "filters": {
+      "search": "Teams suchen",
+      "day": "Tag",
+      "any_day": "Beliebiger Tag",
+      "region": "Region",
+      "regions_hint": "Teams, die jede Region nehmen, werden immer angezeigt.",
+      "fits": "Passt zu {team}",
+      "maps": "Spielt eine davon",
+      "elo": "Ø Team-ELO",
+      "elo_min": "Min.",
+      "elo_max": "Max.",
+      "elo_near": "Höchstens {n} von {team} entfernt"
+    },
+    "cta": {
+      "guest": "Melde dich an, um Scrims anzufragen und zu sehen, welche Teams zu deinem passen.",
+      "sign_in": "Mit Steam anmelden",
+      "player": "Scrims werden von einem Team aus gesendet. Erstelle eins oder bitte den Team-Owner, dich zum Admin zu machen.",
+      "create_team": "Team erstellen"
+    },
+    "booked": {
+      "banner": "{team} spielt gegen {opponent}, {when}.",
+      "lock": "Ein Team kann immer nur einen Scrim gebucht haben, neue Anfragen sind also erst möglich, wenn dieser gespielt ist."
+    },
+    "sheet": {
+      "description": "Teamdetails und Scrim-Anfrage",
+      "team_page": "Teamseite",
+      "players": "{count} Spieler | {count} Spieler",
+      "elo": "Team-ELO",
+      "takes": "Akzeptiert {range}",
+      "any_elo": "beliebige ELO",
+      "up_to": "bis {elo}",
+      "and_up": "ab {elo}",
+      "reliability": "Zuverlässigkeit",
+      "new": "Neu",
+      "no_scrims": "Noch keine Scrims",
+      "no_shows": "{count} No-Show | {count} No-Shows",
+      "late_cancels": "{count} späte Absage | {count} späte Absagen",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEIT-Level {level}",
+      "not_linked": "Kein FACEIT verknüpft",
+      "how_you_fit": "Wie ihr zusammenpasst",
+      "maps": "Gewünschte Maps",
+      "any_map": "Jede Map im Pool",
+      "open_hours": "Offene Zeiten diese Woche",
+      "no_hours": "Diese Woche keine offenen Zeiten.",
+      "your_team": "Das ist dein Team. Verwalte seinen Eintrag unter Dein Eintrag.",
+      "send_from": "Senden von",
+      "your_scrim": "Dein Scrim gegen sie",
+      "request_title": "Scrim anfragen",
+      "widen": "Bereich erweitern"
+    },
+    "fit": {
+      "elo_ok": "{team} ({elo}) liegt in ihrem Bereich, und sie liegen in deinem.",
+      "their_range_below": "{them} akzeptiert {range}. {team} hat im Schnitt {elo}, unter ihrem Minimum.",
+      "their_range_above": "{them} akzeptiert {range}. {team} hat im Schnitt {elo}, über ihrem Maximum.",
+      "their_range_no_elo": "{them} akzeptiert nur {range}, und {team} hat noch keine ELO.",
+      "our_range_below": "{them} hat im Schnitt {elo}, unter dem, was {team} akzeptiert ({range}).",
+      "our_range_above": "{them} hat im Schnitt {elo}, über dem, was {team} akzeptiert ({range}).",
+      "our_range_no_elo": "{them} hat noch keine ELO, und {team} akzeptiert nur {range}.",
+      "booked": "{team} hat einen Scrim gegen {opponent} gebucht. Neue Anfragen sind möglich, sobald er gespielt ist.",
+      "region_any": "Einer von euch nimmt jede Region, also passt jeder Server.",
+      "region_shared": "Ihr spielt beide auf Servern in {regions}.",
+      "region_none": "Keine gemeinsame Region. Sie spielen auf {theirs}, du auf {yours}.",
+      "time_shared": "Beide frei: {day}, {range}.",
+      "time_none": "Eure Zeiten überschneiden sich diese Woche nicht.",
+      "time_none_outside": "Eure Zeiten überschneiden sich diese Woche nicht, aber sie nehmen Anfragen für andere Zeiten an.",
+      "maps_any": "Sie spielen jede Map.",
+      "maps_shared": "{count} gemeinsame Map: {maps} | {count} gemeinsame Maps: {maps}",
+      "maps_none": "Keine gemeinsamen Maps."
+    },
+    "form": {
+      "series": "Serie",
+      "best_of": "Best of {n}",
+      "series_hint": "Längere Serien brauchen ein längeres Zeitfenster in den Zeiten von {team}.",
+      "day": "Tag",
+      "start": "Start",
+      "closed": "Geschlossen",
+      "no_start": "An diesem Tag passt kein Start für {hours} Stunden.",
+      "both_free_legend": "{team} ist auch frei",
+      "other_time_link": "Eine Zeit außerhalb ihrer Zeiten anfragen",
+      "other_time": "Andere Zeit",
+      "back_to_hours": "Aus ihren Zeiten wählen",
+      "past": "Diese Zeit ist vorbei. Wähle eine spätere.",
+      "other_hint": "{team} nimmt Anfragen außerhalb ihrer Zeiten an. Sie müssen trotzdem noch zusagen.",
+      "outside_theirs": "Außerhalb ihrer Zeiten",
+      "outside_yours": "Außerhalb deiner Zeiten",
+      "pick_start": "Wähle eine Startzeit.",
+      "map_pool": "Gespielt wird im Active-Duty-Pool mit Map-Veto. {team} hat 24 Stunden Zeit zu antworten.",
+      "from": "Von {team}",
+      "send": "Anfrage senden"
+    },
+    "requests": {
+      "intro": "Anfragen laufen nach 24 Stunden ab. Gebuchte Scrims erscheinen auf der Matchseite und in deinem Kalender.",
+      "needs_you": "Wartet auf dich",
+      "booked": "Gebucht",
+      "waiting": "Wartet auf sie",
+      "played": "Gespielt",
+      "record": "{pct} % zuverlässig · {played} gespielt",
+      "empty_title": "Keine offenen Anfragen",
+      "empty_description": "Sende eine über die Übersicht oder nutze Sofort-Scrim, dann bringt dich 5Stack mit einem freien Team zusammen.",
+      "suggested": "Von 5Stack vorgeschlagen",
+      "suggested_why": "Ihr seid beide frei: {time}.",
+      "starts_in": "Startet in {time}, wenn du annimmst.",
+      "answer_within": "Antworte innerhalb von {time}, sonst läuft sie ab.",
+      "their_turn": "{team} hat {time} Zeit zu antworten.",
+      "you_asked": "Du hast angefragt",
+      "they_asked": "Sie haben angefragt",
+      "you_proposed": "dein Vorschlag",
+      "they_proposed": "ihr Vorschlag",
+      "accept": "{time} annehmen",
+      "propose": "Andere Zeit vorschlagen",
+      "cancel_request": "Anfrage zurückziehen",
+      "view_match": "Match ansehen",
+      "cancel_scrim": "Scrim absagen",
+      "cancel_confirm": "Einen gebuchten Scrim abzusagen zählt als späte Absage für die Zuverlässigkeit von {team}.",
+      "keep": "Scrim behalten",
+      "locked": "Gesperrt, bis dein Scrim gegen {team} gespielt ist.",
+      "counter_title": "Neue Zeit aus den Zeiten von {team}",
+      "counter_send": "{when} vorschlagen",
+      "counter_pick": "Zeit wählen",
+      "never_mind": "Doch nicht",
+      "open_team": "{team} öffnen"
+    },
+    "listing": {
+      "preview": "So sehen dich andere Teams",
+      "hidden": "Ausgeblendet, solange geschlossen",
+      "add_hours": "Füge wöchentliche Zeiten hinzu, damit dein Team in der Übersicht erscheint.",
+      "open": "Offen für Scrims",
+      "open_hint": "Teams können {team} finden und in euren Zeiten Anfragen senden.",
+      "closed": "Geschlossen",
+      "closed_hint": "Im Finder ausgeblendet. Bereits gesendete Anfragen gelten weiter.",
+      "hours": "Wöchentliche Zeiten",
+      "time_zone": "In deiner Zeitzone",
+      "to": "bis",
+      "outside": "Anfragen außerhalb dieser Zeiten annehmen",
+      "opponents": "Gegner, die du annimmst",
+      "near": "Höchstens {n} von {elo} entfernt",
+      "regions": "Serverregionen",
+      "maps": "Gewünschte Maps",
+      "maps_hint": "Wird anderen Teams angezeigt. Matches nutzen den Active-Duty-Pool mit Veto.",
+      "note": "Hinweis an andere Teams",
+      "note_placeholder": "Sprache im Voice, Coach im Voice, woran ihr gerade arbeitet…",
+      "alerts": "Benachrichtige mich, wenn ein Team öffnet",
+      "save": "Eintrag speichern",
+      "saved": "Eintrag gespeichert",
+      "nearby": "In der Nähe · unter {ms} ms",
+      "show_less": "Weniger anzeigen"
+    },
+    "now": {
+      "button": "Sofort-Scrim",
+      "looking": "Sucht bis {time}",
+      "title": "Jetzt einen Scrim finden",
+      "description": "Öffnet {team} für die nächsten {hours} Stunden für alle, die frei sind. Wenn ein Team in deinem Bereich auch frei ist, schickt 5Stack euch beiden eine Anfrage.",
+      "booked": "Du hast schon einen Scrim gebucht, deshalb wartet das, bis er gespielt ist.",
+      "start": "Suche starten",
+      "stop": "Suche beenden",
+      "looking_description": "{team} ist bis {time} für alle offen, die jetzt frei sind. Teams in deinem Bereich bekommen eine Anfrage von 5Stack.",
+      "started": "{team} sucht bis {time}.",
+      "stopped": "Suche beendet."
+    },
+    "team_tab": {
+      "description": "Anfragen und dein Eintrag im Scrim Finder.",
+      "find": "Scrim finden"
+    },
+    "toast": {
+      "sent": "Anfrage an {team} gesendet.",
+      "booked": "Mit {team} gebucht.",
+      "declined": "{team} abgelehnt.",
+      "countered": "Neue Zeit an {team} gesendet.",
+      "cancelled": "Anfrage an {team} zurückgezogen.",
+      "cancelled_booked": "Scrim gegen {team} abgesagt. Das zählt als späte Absage.",
+      "failed": "Das hat nicht geklappt"
+    },
+    "week": {
+      "title": "Diese Woche",
+      "no_hours": "Keine Zeiten"
+    }
   }
 }

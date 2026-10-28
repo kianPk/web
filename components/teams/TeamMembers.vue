@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  tacticalSectionLabelClasses,
+  tacticalSectionTickClasses,
+} from "~/utilities/tacticalClasses";
 import { TeamMember } from "~/components/teams";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -16,7 +21,7 @@ import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 const appSettings = useApplicationSettingsStore();
 const eloSource = ref<"elo" | "cs2" | "faceit">("elo");
 const rankSources = computed(() => {
-  const sources = [{ key: "elo", label: "YGuard" }];
+  const sources = [{ key: "elo", label: "5Stack" }];
   if (appSettings.linkedAccountsEnabled) {
     sources.push({ key: "cs2", label: "CS2" });
   }
@@ -38,33 +43,19 @@ const setEloSource = (key: string) => {
 </script>
 
 <template>
-  <div
-    v-if="team"
-    class="overflow-hidden rounded-xl border border-border/70 bg-card/40"
-  >
-    <div
-      class="flex flex-row items-end justify-between gap-3 border-b border-border/50 px-4 pb-3 pt-4 sm:px-5"
-    >
-      <div class="flex items-start gap-3">
-        <div
-          class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
-        >
-          <Users class="h-5 w-5" />
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <h3 class="text-base font-semibold tracking-tight">
-            {{ $t("team.members.title") }}
-          </h3>
-          <p class="text-xs text-muted-foreground">
-            {{
-              starters.length +
-              bench.length +
-              substitutes.length +
-              coaches.length
-            }}
-            {{ $t("team.roster_count_players") }}
-          </p>
-        </div>
+  <Card v-if="team" class="overflow-hidden">
+    <CardHeader class="flex flex-row items-end justify-between gap-3 pb-3">
+      <div class="flex flex-col gap-1">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("team.members.title") }}
+        </span>
+        <p class="text-xs text-muted-foreground">
+          {{
+            starters.length + bench.length + substitutes.length + coaches.length
+          }}
+          {{ $t("team.roster_count_players") }}
+        </p>
       </div>
       <div v-if="rankSources.length > 1" class="flex flex-col items-end gap-1">
         <span
@@ -79,9 +70,9 @@ const setEloSource = (key: string) => {
           @update:model-value="setEloSource"
         />
       </div>
-    </div>
+    </CardHeader>
 
-    <div class="space-y-5 p-4 sm:p-5">
+    <CardContent class="space-y-5">
       <section v-if="team.can_invite && team_invites?.length" class="space-y-1">
         <div class="flex items-center gap-2 px-1">
           <UserPlus class="h-3.5 w-3.5 text-muted-foreground" />
@@ -123,6 +114,7 @@ const setEloSource = (key: string) => {
             :member="member"
             :roles="roles"
             :is-captain="member.player.steam_id === team.captain_steam_id"
+            :is-owner="member.player.steam_id === team.owner_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
           />
@@ -150,6 +142,7 @@ const setEloSource = (key: string) => {
             :member="member"
             :roles="roles"
             :is-captain="member.player.steam_id === team.captain_steam_id"
+            :is-owner="member.player.steam_id === team.owner_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
           />
@@ -177,6 +170,7 @@ const setEloSource = (key: string) => {
             :member="member"
             :roles="roles"
             :is-captain="member.player.steam_id === team.captain_steam_id"
+            :is-owner="member.player.steam_id === team.owner_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
           />
@@ -204,6 +198,7 @@ const setEloSource = (key: string) => {
             :member="member"
             :roles="roles"
             :is-captain="member.player.steam_id === team.captain_steam_id"
+            :is-owner="member.player.steam_id === team.owner_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
           />
@@ -236,8 +231,8 @@ const setEloSource = (key: string) => {
           {{ $t("team.members.invite_player") }}
         </Button>
       </PlayerSearch>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script lang="ts">
@@ -245,6 +240,10 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, e_team_roles_enum, order_by } from "~/generated/zeus";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
+import {
+  teamRosterBuckets,
+  type TeamRosterBuckets,
+} from "~/utilities/teamRosterBuckets";
 
 export default {
   props: {
@@ -270,6 +269,7 @@ export default {
             },
             {
               id: true,
+              owner_steam_id: true,
               captain_steam_id: true,
               can_invite: true,
               can_remove: true,
@@ -386,23 +386,20 @@ export default {
         return (roleOrder[a.role] || 4) - (roleOrder[b.role] || 4);
       });
     },
+    rosterBuckets(): TeamRosterBuckets<any> {
+      return teamRosterBuckets(this.sortedRoster);
+    },
     starters(): any[] {
-      return this.sortedRoster.filter(
-        (m: any) => !m.coach && m.status === "Starter",
-      );
+      return this.rosterBuckets.starters;
     },
     bench(): any[] {
-      return this.sortedRoster.filter(
-        (m: any) => !m.coach && m.status === "Benched",
-      );
+      return this.rosterBuckets.bench;
     },
     substitutes(): any[] {
-      return this.sortedRoster.filter(
-        (m: any) => !m.coach && m.status === "Substitute",
-      );
+      return this.rosterBuckets.substitutes;
     },
     coaches(): any[] {
-      return this.sortedRoster.filter((m: any) => m.coach);
+      return this.rosterBuckets.coaches;
     },
   },
   methods: {

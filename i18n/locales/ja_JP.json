@@ -1715,7 +1715,70 @@
         "see_all": "スクリムファインダーですべて見る",
         "subtitle": "挑戦を受け付けているチーム",
         "title": "スクリム募集中",
-        "today": "本日 {from}–{to}"
+        "today": "本日 {from}–{to}",
+        "sign_in_to_request": "ログインして申請"
+      },
+      "players": "{count} 人 | {count} 人",
+      "form": {
+        "label": "直近の成績: {results}",
+        "none": "まだ結果がありません",
+        "result_W": "勝ち",
+        "result_L": "負け",
+        "result_T": "引き分け"
+      },
+      "your_teams": {
+        "title": "自分のチーム",
+        "next": "次",
+        "last": "前回",
+        "playing_now": "対戦中",
+        "nothing_scheduled": "予定なし",
+        "no_matches": "まだ試合がありません",
+        "result_W": "勝利",
+        "result_L": "敗北",
+        "result_T": "引き分け",
+        "check_in": "チェックイン",
+        "scrim_replies": "スクリム返信が{count}件必要です | スクリム返信が{count}件必要です",
+        "invite_starter": "スターターを招待"
+      },
+      "playing_now": {
+        "title": "対戦中",
+        "live_count": "{count} 試合ライブ",
+        "all_live": "ライブ中の試合をすべて見る",
+        "more_on_watch": "Watchでさらにライブ中"
+      },
+      "directory": {
+        "title": "すべてのチーム",
+        "sort_label": "チームを並べ替え",
+        "sort_active": "最近の活動順",
+        "sort_rating": "レーティング",
+        "sort_name": "名前",
+        "search_label": "チームを検索",
+        "clear_search": "検索をクリア",
+        "org": "Org",
+        "playing_now": "対戦中",
+        "never_played": "まだ試合がありません",
+        "col_roster": "ロスター",
+        "col_elo": "平均ELO",
+        "col_form": "フォーム",
+        "col_last": "最終試合",
+        "col_awards": "アワード",
+        "no_match": "検索や絞り込みに一致するものがありません。",
+        "clear_filters": "絞り込みをクリア"
+      },
+      "tournament_teams": {
+        "title": "トーナメントチーム",
+        "subtitle": "トーナメント内で作成",
+        "search": "チーム、トーナメント、プレイヤーを検索…",
+        "search_label": "トーナメントチームを検索",
+        "col_tournament": "トーナメント",
+        "col_status": "ステータス",
+        "running": "開催中",
+        "finished": "終了",
+        "segment_label": "トーナメントの状態",
+        "found_in_running": "開催中のトーナメントで該当: {count}",
+        "found_in_finished": "終了したトーナメントで該当: {count}",
+        "show_running": "開催中を表示",
+        "show_finished": "終了を表示"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "トーナメント参加登録の招待",
       "tournament_registration_message": "トーナメントへの参加登録に招待されました",
       "tournament_team_registration_title": "チームへの参加登録の招待",
-      "tournament_team_registration_message": "{team} がトーナメントへの参加登録に招待されました"
+      "tournament_team_registration_message": "{team} がトーナメントへの参加登録に招待されました",
+      "team_and_lineup_message": "{team} とその出場メンバーに参加：",
+      "stand_in_message": "チームに加わらずに {team} の助っ人として参加：",
+      "tournament_team_message": "この大会限りのチーム {team} でプレイ："
     },
     "roles": {
       "captain": "キャプテン",
       "admin": "管理者",
       "invite": "招待",
-      "member": "メンバー"
+      "member": "メンバー",
+      "owner": "オーナー"
     },
     "leave": "チームを脱退",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "オーナー",
       "captain": "キャプテン",
       "ineligible_short": "ロック中",
-      "tournament_join_requires_owner_or_captain": "オーナーまたはキャプテンを務めるチームでのみトーナメントに参加できます。",
+      "tournament_join_requires_owner_or_captain": "オーナー、キャプテン、または管理者を務めるチームでのみ参加できます。",
       "not_enough_players": "対戦を申し込むには最低{count}人必要です。",
       "selected": "選択中",
       "loading_more": "さらに読み込み中…",
@@ -7409,7 +7476,8 @@
         "in_event": "すでにこのイベントに紐づいています。",
         "other_side": "すでに対戦相手として選択されています。",
         "owner_in_tournament": "オーナーはすでにこのトーナメントにチームを登録しています。"
-      }
+      },
+      "admin": "管理者"
     },
     "member": {
       "coach": "コーチ",
@@ -7448,6 +7516,91 @@
       "failed_description": "リクエストが失敗しました。しばらくしてからもう一度お試しください。",
       "empty": "一致するユーティリティがありません",
       "empty_description": "このチームの試合で投げられたグレネードのうち、保存済みラインナップと一致するものはまだありません。"
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} 人 | {count} 人",
+        "matches": "{count} 試合 | {count} 試合",
+        "no_matches": "まだ試合がありません",
+        "founded": "{date}に設立",
+        "all_awards": "すべてのアワードを表示",
+        "team_actions": "チーム操作",
+        "team_chat": "チームチャット"
+      },
+      "stage": {
+        "live": "ライブ中",
+        "next_up": "次の試合",
+        "upcoming": "予定 {count} 件",
+        "then": "その後",
+        "open_to_scrims": "他のチームから挑戦を受けられるよう、{name}をスクリムに公開しましょう。",
+        "set_up_scrims": "スクリムを設定",
+        "none_scheduled_member": "予定されている試合はまだありません。",
+        "none_scheduled": "現在予定はありません。",
+        "never_played": "{name}はまだ試合をしていません。"
+      },
+      "results": {
+        "hint": "新しい順、スクロールで過去分を表示",
+        "all_matches": "すべての試合"
+      },
+      "tabs": {
+        "matches": "試合",
+        "scrim_waiting": "あなたの対応待ち {count} 件"
+      },
+      "needs": {
+        "title": "対応が必要",
+        "to_do": "残り{count}件",
+        "check_in_title": "{name}戦のチェックイン",
+        "scrim_title": "がスクリムを希望しています",
+        "counter_title": "が新しい時間を提案しました",
+        "best_of_short": "Bo{count}",
+        "roster_title": "スターター {count}/5人",
+        "roster_meta": "フルチームで戦うには、プレイヤーを招待してください。",
+        "waiting_on": "待機中",
+        "waiting_check_in": "{names}のチェックイン",
+        "waiting_scrim": "{name}のスクリム申請への返答",
+        "waiting_invites": "{names}の招待の承諾",
+        "counter_dialog_title": "別の時間を提案",
+        "counter_dialog_description": "{name}が新しい時間を承諾する必要があります。",
+        "send_new_time": "新しい時間を送信"
+      }
+    },
+    "activity": {
+      "title": "アクティビティ",
+      "this_week": "今週",
+      "earlier": "それ以前",
+      "show_older": "過去のアクティビティを表示",
+      "empty": "{team}が試合をすると、結果、クリップ、アワードがここに表示されます。",
+      "beat": "{opponent}に勝利",
+      "lost_to": "{opponent}に敗北",
+      "drew_with": "{opponent}と引き分け",
+      "open_match": "試合を開く",
+      "won": "{name}で優勝",
+      "second_at": "{name}で2位",
+      "third_at": "{name}で3位",
+      "placed_at": "{name}で{placement}",
+      "received": "{name}を獲得",
+      "tournament": "トーナメント",
+      "promoted": "{division}に昇格",
+      "relegated": "{division}に降格",
+      "finished": "{division}で{rank}位",
+      "stayed": "{division}に残留",
+      "started": "{season}が開始",
+      "invited": "{name}が招待されました",
+      "invited_by": "{name}から招待",
+      "created": "{team}が作成されました"
+    },
+    "starting_five": {
+      "title": "スターティング5",
+      "players": "{count} 人 | {count} 人",
+      "manage_roster": "ロスターを管理",
+      "full_roster": "ロスター全体",
+      "starters_only": "スターティング5のみ",
+      "open_slot": "空きスターター枠",
+      "invite": "招待",
+      "substitutes": "控え {count} 人 | 控え {count} 人",
+      "bench": "ベンチ {count} 人",
+      "coaches": "コーチ {count} 人 | コーチ {count} 人",
+      "captain": "キャプテン: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "メッセージ",
       "empty": "まだメッセージはありません。あいさつしてみましょう。"
+    },
+    "room_settings": {
+      "menu": "通知設定",
+      "mute_room": "ルームをミュート",
+      "unmute_room": "ルームのミュートを解除",
+      "mute_conversation": "会話をミュート",
+      "unmute_conversation": "会話のミュートを解除",
+      "mute_for": {
+        "minutes_15": "15分間",
+        "hour_1": "1時間",
+        "hours_8": "8時間",
+        "hours_24": "24時間",
+        "until_unmuted": "自分で解除するまで"
+      },
+      "muted": "ミュート中",
+      "muted_until": "{time} までミュート中",
+      "notify_me_about": "通知する内容",
+      "notify": {
+        "all": "すべてのメッセージ",
+        "mentions": "{'@'}メンションのみ",
+        "nothing": "通知しない"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index} / {total}",
     "registration": "参加登録",
     "title": "クイックビュー"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "ボード",
+      "requests": "マイスクリム",
+      "listing": "自チームの掲載"
+    },
+    "team_switch": "スクリムを探すチーム",
+    "when": "{day} {time}",
+    "duration": {
+      "minutes": "{n}分",
+      "hours": "{n}時間"
+    },
+    "status": {
+      "both_free": "両チーム空き",
+      "different_hours": "時間帯が合わない",
+      "their_range": "相手の範囲外",
+      "our_range": "自チームの範囲外",
+      "you_are_booked": "確定済みあり",
+      "needs_you": "要対応",
+      "requested": "申請済み",
+      "booked": "{time}に確定"
+    },
+    "board": {
+      "now": "現在",
+      "until": "{time}まで",
+      "to": "〜{time}",
+      "open_now": "今すぐ可能",
+      "open_now_hint": "30分以内に開始できます",
+      "col_opens": "開始",
+      "col_team": "チーム",
+      "col_maps": "マップ",
+      "col_elo": "ELO",
+      "col_reliable": "信頼度",
+      "col_for_you": "相性",
+      "request": "申請",
+      "request_at": "{time}に{team}へ申請",
+      "answer": "回答",
+      "view": "表示",
+      "any_map": "マップ指定なし",
+      "any_region": "リージョン指定なし",
+      "new": "新規",
+      "new_team": "新規チーム",
+      "played": "{count}試合",
+      "reliable": "信頼度{pct}%",
+      "elo_value": "{elo} ELO",
+      "times_note": "時刻はあなたのタイムゾーンで表示されます。BO1はチームの受付時間の終了まで開始できます。",
+      "empty_title": "今週スクリムを受け付けているチームはありません",
+      "empty_description": "多くのチームは夜に受付時間を設けています。後でもう一度確認してください。",
+      "empty_description_team": "{team}をスクリム募集中にすると他チームから申請が届きます。または「今すぐスクリム」で次に空いたチームと対戦できます。",
+      "edit_listing": "掲載を編集",
+      "filtered_fits": "範囲外のチームも表示するには「{team}に合う」をオフにしてください。"
+    },
+    "filters": {
+      "search": "チームを検索",
+      "day": "曜日",
+      "any_day": "曜日指定なし",
+      "region": "リージョン",
+      "regions_hint": "リージョン指定なしのチームは常に表示されます。",
+      "fits": "{team}に合う",
+      "maps": "いずれかをプレイ",
+      "elo": "チーム平均ELO",
+      "elo_min": "最小",
+      "elo_max": "最大",
+      "elo_near": "{team}から±{n}以内"
+    },
+    "cta": {
+      "guest": "ログインするとスクリムを申請でき、自チームに合うチームを確認できます。",
+      "sign_in": "Steam でサインイン",
+      "player": "スクリムはチームから送信します。チームを作成するか、チームオーナーに管理者にしてもらってください。",
+      "create_team": "チームを作成"
+    },
+    "booked": {
+      "banner": "{team}対{opponent}、{when}。",
+      "lock": "1チームが確定できるスクリムは一度に1つまでです。新しい申請はこの試合の終了後に受け付けます。"
+    },
+    "sheet": {
+      "description": "チーム詳細とスクリム申請",
+      "team_page": "チームページ",
+      "players": "{count}人 | {count}人",
+      "elo": "チームELO",
+      "takes": "受付: {range}",
+      "any_elo": "ELO制限なし",
+      "up_to": "{elo}以下",
+      "and_up": "{elo}以上",
+      "reliability": "信頼度",
+      "new": "新規",
+      "no_scrims": "スクリム実績なし",
+      "no_shows": "不参加{count}件 | 不参加{count}件",
+      "late_cancels": "直前キャンセル{count}件 | 直前キャンセル{count}件",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEITレベル{level}",
+      "not_linked": "FACEIT未連携",
+      "how_you_fit": "相性",
+      "maps": "希望マップ",
+      "any_map": "プール内のどのマップでも可",
+      "open_hours": "今週の受付時間",
+      "no_hours": "今週の受付時間はありません。",
+      "your_team": "自チームです。掲載は「自チームの掲載」から管理できます。",
+      "send_from": "送信元",
+      "your_scrim": "このチームとのスクリム",
+      "request_title": "スクリムを申請",
+      "widen": "範囲を広げる"
+    },
+    "fit": {
+      "elo_ok": "{team}（{elo}）は相手の範囲内で、相手もあなたの範囲内です。",
+      "their_range_below": "{them}の受付は{range}です。{team}の平均は{elo}で、下限を下回っています。",
+      "their_range_above": "{them}の受付は{range}です。{team}の平均は{elo}で、上限を上回っています。",
+      "their_range_no_elo": "{them}は{range}のみ受け付けていますが、{team}にはまだELOがありません。",
+      "our_range_below": "{them}の平均は{elo}で、{team}の受付範囲（{range}）を下回っています。",
+      "our_range_above": "{them}の平均は{elo}で、{team}の受付範囲（{range}）を上回っています。",
+      "our_range_no_elo": "{them}にはまだELOがなく、{team}は{range}のみ受け付けています。",
+      "booked": "{team}は{opponent}とのスクリムが確定しています。新しい申請はその試合の終了後に受け付けます。",
+      "region_any": "どちらかがリージョン指定なしなので、どのサーバーでも対戦できます。",
+      "region_shared": "両チームとも{regions}のサーバーでプレイします。",
+      "region_none": "共通のリージョンがありません。相手は{theirs}、あなたは{yours}です。",
+      "time_shared": "両チームとも{day} {range}に空いています。",
+      "time_none": "今週は受付時間が重なっていません。",
+      "time_none_outside": "今週は受付時間が重なっていませんが、相手は時間外の申請も受け付けています。",
+      "maps_any": "相手はどのマップでもプレイします。",
+      "maps_shared": "共通マップ{count}つ: {maps} | 共通マップ{count}つ: {maps}",
+      "maps_none": "共通のマップはありません。"
+    },
+    "form": {
+      "series": "シリーズ",
+      "best_of": "BO{n}",
+      "series_hint": "長いシリーズほど、{team}の受付時間内に長い空きが必要です。",
+      "day": "日付",
+      "start": "開始",
+      "closed": "受付なし",
+      "no_start": "この日に{hours}時間の枠を取れる開始時刻はありません。",
+      "both_free_legend": "{team}も空いています",
+      "other_time_link": "受付時間外の時間を申請する",
+      "other_time": "別の時間",
+      "back_to_hours": "受付時間から選ぶ",
+      "past": "その時間は過ぎています。もっと後の時間を選んでください。",
+      "other_hint": "{team}は受付時間外の申請も受け付けています。ただし相手の承諾が必要です。",
+      "outside_theirs": "相手の受付時間外",
+      "outside_yours": "自チームの受付時間外",
+      "pick_start": "開始時刻を選んでください。",
+      "map_pool": "Active DutyのプールでマップVetoを行います。{team}の回答期限は24時間です。",
+      "from": "{team}から",
+      "send": "申請を送信"
+    },
+    "requests": {
+      "intro": "申請は24時間で期限切れになります。確定したスクリムは試合ページとカレンダーに表示されます。",
+      "needs_you": "要対応",
+      "booked": "確定",
+      "waiting": "相手の回答待ち",
+      "played": "完了",
+      "record": "信頼度{pct}% · {played}試合",
+      "empty_title": "未処理の申請はありません",
+      "empty_description": "ボードから申請を送るか、「今すぐスクリム」を使うと5Stackが空いているチームとマッチングします。",
+      "suggested": "5Stackのおすすめ",
+      "suggested_why": "両チームとも{time}に空いています。",
+      "starts_in": "承諾すると{time}後に開始します。",
+      "answer_within": "{time}以内に回答しないと期限切れになります。",
+      "their_turn": "{team}の回答期限まで残り{time}です。",
+      "you_asked": "自チームから申請",
+      "they_asked": "相手から申請",
+      "you_proposed": "自チームの提案",
+      "they_proposed": "相手の提案",
+      "accept": "{time}で承諾",
+      "propose": "別の時間を提案",
+      "cancel_request": "申請を取り消す",
+      "view_match": "試合を見る",
+      "cancel_scrim": "スクリムをキャンセル",
+      "cancel_confirm": "確定したスクリムをキャンセルすると、{team}の信頼度に直前キャンセルとして記録されます。",
+      "keep": "スクリムを維持",
+      "locked": "{team}とのスクリムが終わるまでロックされています。",
+      "counter_title": "{team}の受付時間から新しい時間を選ぶ",
+      "counter_send": "{when}を提案",
+      "counter_pick": "時間を選ぶ",
+      "never_mind": "やめる",
+      "open_team": "{team}を開く"
+    },
+    "listing": {
+      "preview": "他チームからの見え方",
+      "hidden": "募集終了中は非表示",
+      "add_hours": "毎週の受付時間を追加すると、ボードにチームが表示されます。",
+      "open": "スクリム募集中",
+      "open_hint": "他チームが{team}を見つけ、受付時間内に申請を送れます。",
+      "closed": "募集終了",
+      "closed_hint": "ファインダーに表示されません。送信済みの申請は引き続き有効です。",
+      "hours": "毎週の受付時間",
+      "time_zone": "あなたのタイムゾーン",
+      "to": "〜",
+      "outside": "受付時間外の申請も受け付ける",
+      "opponents": "受け付ける対戦相手",
+      "near": "{elo}から±{n}以内",
+      "regions": "サーバーリージョン",
+      "maps": "希望マップ",
+      "maps_hint": "他チームに表示されます。試合はActive DutyのプールでVetoを行います。",
+      "note": "他チームへのメモ",
+      "note_placeholder": "コミュニケーション言語、コーチのボイス参加、練習中の内容…",
+      "alerts": "チームが募集を開始したら通知",
+      "save": "掲載を保存",
+      "saved": "掲載を保存しました",
+      "nearby": "近い地域 · {ms} ms 未満",
+      "show_less": "表示を減らす"
+    },
+    "now": {
+      "button": "今すぐスクリム",
+      "looking": "{time}まで募集中",
+      "title": "今すぐスクリムを探す",
+      "description": "今後{hours}時間、空いているチームなら誰でも{team}と対戦できるようにします。範囲内のチームも空いていれば、5Stackが両チームに申請を送ります。",
+      "booked": "すでに確定したスクリムがあるため、その試合の終了まで待機します。",
+      "start": "探し始める",
+      "stop": "探すのをやめる",
+      "looking_description": "{team}は{time}まで、今空いているチームを募集中です。範囲内のチームには5Stackから申請が届きます。",
+      "started": "{team}は{time}まで募集中です。",
+      "stopped": "募集を停止しました。"
+    },
+    "team_tab": {
+      "description": "スクリムファインダーの申請と自チームの掲載。",
+      "find": "スクリムを探す"
+    },
+    "toast": {
+      "sent": "{team}に申請を送信しました。",
+      "booked": "{team}とのスクリムが確定しました。",
+      "declined": "{team}の申請を辞退しました。",
+      "countered": "{team}に新しい時間を送信しました。",
+      "cancelled": "{team}への申請を取り消しました。",
+      "cancelled_booked": "{team}とのスクリムをキャンセルしました。直前キャンセルとして記録されます。",
+      "failed": "処理できませんでした"
+    },
+    "week": {
+      "title": "今週",
+      "no_hours": "時間なし"
+    }
   }
 }

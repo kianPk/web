@@ -1,4 +1,7 @@
 import type { WatchStream } from "~/components/watch/streamPlatform";
+import { dateLocale } from "~/utilities/dateLocale";
+import mapLabel from "~/utilities/mapLabel";
+import { resultStatusLabelKey } from "~/utilities/teamResults";
 
 type Translate = (key: string, values?: Record<string, unknown>) => string;
 
@@ -21,10 +24,23 @@ export type TickerKind = "live" | "pre" | "upcoming" | "result";
 
 export type TickerCheckIn = { checked: number; total: number };
 
+export type TickerPlayer = {
+  steamId: string;
+  name: string;
+  avatar: string | null;
+  // Still to check in, while the match waits on every player's check-in.
+  waiting: boolean;
+};
+
 export type TickerTeam = {
   name: string;
   monogram: string;
   avatar: string | null;
+  // A pickup lineup's players, shown in place of its placeholder name. Null
+  // for teams and tournament lineups, whose names mean something.
+  players: TickerPlayer[] | null;
+  // Empty starter slots before the match goes live.
+  openSeats: number;
   score: number | null;
   pips: { won: number; total: number } | null;
   // win = bold on a final; trail = muted while live.
@@ -37,7 +53,11 @@ export type TickerCellModel = {
   id: string;
   kind: TickerKind;
   // detail: the pre-match step beside "About to go live" (Check-in, Map veto).
-  status: { dot: "live" | "soon" | null; text: string; detail: string | null };
+  status: {
+    dot: "live" | "soon" | "paused" | null;
+    text: string;
+    detail: string | null;
+  };
   // Both lineups together, for the check-in progress bar.
   checkIn: TickerCheckIn | null;
   teams: [TickerTeam, TickerTeam];
@@ -63,10 +83,6 @@ function mapsWon(match: any, lineupId: string | null | undefined) {
   ).length;
 }
 
-function mapLabel(mm: any): string {
-  return mm?.map?.label || mm?.map?.name || "";
-}
-
 export function teamMonogram(name: string, shortName?: string | null) {
   if (shortName) return shortName.slice(0, 3).toUpperCase();
   const words = name.replace(/[^\p{L}\p{N}\s]/gu, "").trim().split(/\s+/);
@@ -80,16 +96,20 @@ function sameDay(a: Date, b: Date) {
 }
 
 // "21:30" today, "Sat 12:00" this week, "Oct 31, 19:00" beyond that.
-export function formatStartTime(iso: string, now: Date, locale: string) {
+export function formatStartTime(iso: string, now: Date) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const time: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
-  if (sameDay(d, now)) return d.toLocaleTimeString(locale, time);
+  if (sameDay(d, now)) return d.toLocaleTimeString(dateLocale(), time);
   const days = (d.getTime() - now.getTime()) / 86_400_000;
   if (days > 0 && days < 6) {
-    return d.toLocaleString(locale, { weekday: "short", ...time });
+    return d.toLocaleString(dateLocale(), { weekday: "short", ...time });
   }
-  return d.toLocaleString(locale, { month: "short", day: "numeric", ...time });
+  return d.toLocaleString(dateLocale(), {
+    month: "short",
+    day: "numeric",
+    ...time,
+  });
 }
 
 // Day divider for results: "Today", "Yesterday", then "Wed, Sep 30".
@@ -97,7 +117,6 @@ export function resultDayLabel(
   iso: string | null | undefined,
   now: Date,
   t: Translate,
-  locale: string,
 ) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -106,7 +125,7 @@ export function resultDayLabel(
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (sameDay(d, yesterday)) return t("pages.watch.ticker.yesterday");
-  return d.toLocaleDateString(locale, {
+  return d.toLocaleDateString(dateLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -141,6 +160,26 @@ function lineupCheckIn(match: any, lineup: any): TickerCheckIn | null {
   };
 }
 
+// Captain first, then the rest as the lineup lists them.
+function lineupPlayers(match: any, lineup: any): TickerPlayer[] | null {
+  if (!lineup || lineup.team || match?.tournament_brackets?.length) {
+    return null;
+  }
+  const players: any[] = lineup.lineup_players ?? [];
+  if (!players.length) return null;
+  const perPlayer =
+    match?.status === "WaitingForCheckIn" &&
+    !["Admin", "Captains"].includes(match?.options?.check_in_setting);
+  return [...players]
+    .sort((a, b) => Number(!!b.captain) - Number(!!a.captain))
+    .map((p) => ({
+      steamId: p.steam_id,
+      name: p.player?.name ?? p.placeholder_name ?? "",
+      avatar: p.player?.custom_avatar_url || p.player?.avatar_url || null,
+      waiting: perPlayer && !p.checked_in,
+    }));
+}
+
 function totalCheckIn(teams: [TickerTeam, TickerTeam]): TickerCheckIn | null {
   const [a, b] = teams.map((team) => team.checkIn);
   if (!a || !b) return null;
@@ -160,16 +199,17 @@ function statusLine(
   match: any,
   kind: TickerKind,
   t: Translate,
-  locale: string,
   now: Date,
 ): TickerCellModel["status"] {
   if (kind === "result") {
     const bestOf: number = match?.options?.best_of ?? 1;
+    const labelKey = resultStatusLabelKey(match);
+    const detail = labelKey ? t(labelKey) : null;
     if (bestOf > 1) {
       return {
         dot: null,
         text: t("pages.watch.ticker.final_best_of", { count: bestOf }),
-        detail: null,
+        detail,
       };
     }
     return {
@@ -177,7 +217,7 @@ function statusLine(
       text: hasOvertime(match)
         ? t("pages.watch.ticker.final_overtime")
         : t("pages.watch.ticker.final"),
-      detail: null,
+      detail,
     };
   }
 
@@ -185,7 +225,7 @@ function statusLine(
     return {
       dot: null,
       text: match?.scheduled_at
-        ? formatStartTime(match.scheduled_at, now, locale)
+        ? formatStartTime(match.scheduled_at, now)
         : t("match.stream.card.scheduled"),
       detail: null,
     };
@@ -204,7 +244,7 @@ function statusLine(
   }
 
   const current = currentMatchMap(match);
-  const map = mapLabel(current);
+  const map = mapLabel(current?.map);
   const join = (...parts: Array<string | null | false>) =>
     parts.filter(Boolean).join(" · ");
   const live = (text: string) => ({ dot: "live" as const, text, detail: null });
@@ -219,7 +259,15 @@ function statusLine(
     case "Scheduled":
       return live(join(t("match.stream.card.up_next"), map));
     case "Paused":
-      return live(join(t("match.stream.card.paused"), map));
+      return {
+        dot: "paused",
+        text: join(
+          t("match.stream.card.paused"),
+          t("pages.watch.ticker.round_short", { round }),
+          map,
+        ),
+        detail: null,
+      };
     case "Overtime":
       return live(
         join(
@@ -281,10 +329,16 @@ function teams(
     ) {
       emphasis = "trail";
     }
+    const players = lineupPlayers(match, lineup);
     return {
       name,
       monogram: lineup ? teamMonogram(name, lineup.team?.short_name) : "?",
       avatar: lineup?.team?.avatar_url ?? null,
+      players,
+      openSeats:
+        players && (kind === "upcoming" || kind === "pre")
+          ? Math.max(0, (match?.min_players_per_lineup ?? 0) - players.length)
+          : 0,
       score: scores[i],
       pips:
         kind === "live" && bestOf > 1
@@ -309,14 +363,14 @@ export function tickerTag(match: any): string | null {
 
 export function tickerCell(
   match: any,
-  ctx: { t: Translate; locale: string; now: Date },
+  ctx: { t: Translate; now: Date },
 ): TickerCellModel {
   const kind = tickerKind(match);
   const lineups = teams(match, kind, ctx.t);
   return {
     id: match.id,
     kind,
-    status: statusLine(match, kind, ctx.t, ctx.locale, ctx.now),
+    status: statusLine(match, kind, ctx.t, ctx.now),
     checkIn: totalCheckIn(lineups),
     teams: lineups,
     tag: tickerTag(match),

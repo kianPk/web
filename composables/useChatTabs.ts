@@ -1,5 +1,6 @@
 import { ref, computed } from "vue";
 import type { ChatType } from "~/web-sockets/Socket";
+import { orderChatTabs } from "~/utilities/chatTabOrder";
 
 export interface ChatTab {
   id: string;
@@ -23,6 +24,21 @@ const unreadCountsRef = ref<Record<string, number>>({});
 // When each room last saw a message, from either side. The hub dock keeps the
 // most recently active conversations on it, read or not, freshest first.
 const activityAtRef = ref<Record<string, number>>({});
+// Which messages each badge has counted. A message can reach a badge twice,
+// from direct:incoming and from its room's lobby:chat, and a deleted one only
+// comes off the count if it was ever in it -- a line read on screen is newer
+// than the read cursor too, but no badge counted it.
+const unreadMessageIds = new Map<string, Set<string>>();
+const MAX_UNREAD_MESSAGE_IDS = 200;
+// Unread lines that tag this player, per tab, kept apart from the unread
+// count: a match room's chatter is never counted, but a tag in it is. A tab can
+// hold more than one room (a match and its team room), and each room's history
+// recounts only its own.
+const mentionCountsRef = ref<Record<string, number>>({});
+const mentionMessageIds = new Map<string, Map<string, Set<string>>>();
+
+// Where a match tab counts the tags from its side's team room.
+export const MATCH_TEAM_ROOM = "team";
 const activeTabIdRef = ref<string | null>(null);
 
 export function useChatTabs() {
@@ -33,21 +49,29 @@ export function useChatTabs() {
   const totalUnread = computed(() =>
     Object.values(unreadCountsRef.value).reduce((sum, n) => sum + (n || 0), 0),
   );
+  const mentionCounts = computed(() => mentionCountsRef.value);
+  const totalMentions = computed(() =>
+    Object.values(mentionCountsRef.value).reduce(
+      (sum, n) => sum + (n || 0),
+      0,
+    ),
+  );
 
   function findTabIndex(id: string) {
     return tabsRef.value.findIndex((t) => t.id === id);
   }
 
-  // `activate` exists for incoming direct messages: a tab opened because
-  // someone messaged you must not yank you out of the room you are reading.
+  // `activate: false` opens a tab in the background -- an incoming direct
+  // message, or a room the session adds on its own -- so it does not yank you
+  // out of the room you are reading.
   function openTab(
     payload: Omit<ChatTab, "pinned"> & {
       pinned?: boolean;
       activate?: boolean;
     },
   ) {
-    const id = payload.id;
-    const activate = payload.activate ?? true;
+    const { activate = true, ...fields } = payload;
+    const id = fields.id;
     const existingIndex = findTabIndex(id);
 
     if (existingIndex !== -1) {
@@ -58,8 +82,8 @@ export function useChatTabs() {
     }
 
     const tab: ChatTab = {
-      ...payload,
-      pinned: payload.pinned ?? false,
+      ...fields,
+      pinned: fields.pinned ?? false,
     };
 
     tabsRef.value.push(tab);
@@ -77,16 +101,17 @@ export function useChatTabs() {
       return;
     }
 
+    const ordered = orderChatTabs(tabsRef.value);
     const [removed] = tabsRef.value.splice(idx, 1);
     delete unreadCountsRef.value[removed.id];
+    delete mentionCountsRef.value[removed.id];
     delete activityAtRef.value[removed.id];
+    unreadMessageIds.delete(removed.id);
+    mentionMessageIds.delete(removed.id);
 
     if (activeTabIdRef.value === removed.id) {
-      const next =
-        tabsRef.value[idx] ||
-        tabsRef.value[idx - 1] ||
-        tabsRef.value[0] ||
-        null;
+      const position = ordered.findIndex((tab) => tab.id === removed.id);
+      const next = ordered[position + 1] ?? ordered[position - 1] ?? null;
       activeTabIdRef.value = next ? next.id : null;
     }
   }
@@ -128,42 +153,199 @@ export function useChatTabs() {
     };
   }
 
-  function incrementUnread(id: string) {
-    unreadCountsRef.value[id] = (unreadCountsRef.value[id] || 0) + 1;
-    noteActivity(id);
+  function setLabel(id: string, label: string) {
+    const idx = findTabIndex(id);
+    if (idx === -1 || tabsRef.value[idx].label === label) {
+      return;
+    }
+    tabsRef.value[idx] = {
+      ...tabsRef.value[idx],
+      label,
+    };
   }
 
-  function resetUnread(id: string) {
+  function incrementUnread(id: string, messageId?: string) {
+    if (messageId) {
+      let counted = unreadMessageIds.get(id);
+      if (!counted) {
+        counted = new Set();
+        unreadMessageIds.set(id, counted);
+      }
+
+      if (counted.has(messageId)) {
+        return false;
+      }
+
+      counted.add(messageId);
+      if (counted.size > MAX_UNREAD_MESSAGE_IDS) {
+        const [oldest] = counted;
+        counted.delete(oldest);
+      }
+    }
+
+    unreadCountsRef.value[id] = (unreadCountsRef.value[id] || 0) + 1;
+    noteActivity(id);
+    return true;
+  }
+
+  function decrementUnread(id: string, messageId: string) {
+    if (!unreadMessageIds.get(id)?.delete(messageId)) {
+      return;
+    }
+
     if (unreadCountsRef.value[id]) {
-      unreadCountsRef.value[id] = 0;
+      unreadCountsRef.value[id] -= 1;
     }
   }
 
-  function setUnread(id: string, value: number) {
+  function resetUnread(id: string) {
+    unreadMessageIds.delete(id);
+
+    if (unreadCountsRef.value[id]) {
+      unreadCountsRef.value[id] = 0;
+    }
+
+    mentionMessageIds.delete(id);
+    countMentions(id);
+  }
+
+  function countMentions(id: string) {
+    let total = 0;
+    for (const counted of mentionMessageIds.get(id)?.values() ?? []) {
+      total += counted.size;
+    }
+
+    if (total > 0 || mentionCountsRef.value[id]) {
+      mentionCountsRef.value[id] = total;
+    }
+  }
+
+  // A room marked read from anywhere -- the hub, the match page, the pop-out --
+  // takes its count off the tab that carries it.
+  function clearRoom(type: string, lobbyId: string) {
+    if (type === "match_team") {
+      const [matchId] = lobbyId.split(":");
+
+      for (const tab of tabsRef.value) {
+        if (tab.type === "match" && tab.lobbyId === matchId) {
+          setMentions(tab.id, [], MATCH_TEAM_ROOM);
+        }
+      }
+      return;
+    }
+
+    for (const tab of tabsRef.value) {
+      if (tab.type !== type || tab.lobbyId !== lobbyId) {
+        continue;
+      }
+
+      unreadMessageIds.delete(tab.id);
+      if (unreadCountsRef.value[tab.id]) {
+        unreadCountsRef.value[tab.id] = 0;
+      }
+      setMentions(tab.id, []);
+    }
+  }
+
+  function incrementMention(id: string, messageId: string, room = "") {
+    const rooms = mentionMessageIds.get(id) ?? new Map<string, Set<string>>();
+    mentionMessageIds.set(id, rooms);
+
+    if ([...rooms.values()].some((counted) => counted.has(messageId))) {
+      return false;
+    }
+
+    const counted = rooms.get(room) ?? new Set<string>();
+    rooms.set(room, counted);
+    counted.add(messageId);
+    if (counted.size > MAX_UNREAD_MESSAGE_IDS) {
+      const [oldest] = counted;
+      counted.delete(oldest);
+    }
+
+    countMentions(id);
+    return true;
+  }
+
+  function decrementMention(id: string, messageId: string) {
+    const rooms = mentionMessageIds.get(id)?.values() ?? [];
+
+    if (![...rooms].some((counted) => counted.delete(messageId))) {
+      return;
+    }
+
+    countMentions(id);
+  }
+
+  // A recount from one room's history replaces what was counted live there.
+  function setMentions(id: string, messageIds: string[], room = "") {
+    const rooms = mentionMessageIds.get(id) ?? new Map<string, Set<string>>();
+    const counted = new Set(messageIds.slice(-MAX_UNREAD_MESSAGE_IDS));
+
+    if (counted.size > 0) {
+      rooms.set(room, counted);
+    } else {
+      rooms.delete(room);
+    }
+
+    if (rooms.size > 0) {
+      mentionMessageIds.set(id, rooms);
+    } else {
+      mentionMessageIds.delete(id);
+    }
+
+    countMentions(id);
+  }
+
+  // A recount that names its messages replaces what the badge counted. Without
+  // them a non-zero recount keeps the ids already counted, taking them to be
+  // part of the new number, so a late second delivery of one still isn't
+  // counted again.
+  function setUnread(id: string, value: number, messageIds?: string[]) {
     unreadCountsRef.value[id] = value;
+
+    if (messageIds) {
+      unreadMessageIds.set(
+        id,
+        new Set(messageIds.slice(-MAX_UNREAD_MESSAGE_IDS)),
+      );
+    } else if (!value) {
+      unreadMessageIds.delete(id);
+    }
   }
 
   function clearAll() {
     tabsRef.value = [];
     unreadCountsRef.value = {};
+    mentionCountsRef.value = {};
     activityAtRef.value = {};
+    unreadMessageIds.clear();
+    mentionMessageIds.clear();
     activeTabIdRef.value = null;
   }
 
   return {
     tabs,
     unreadCounts,
+    mentionCounts,
     activityAt,
     totalUnread,
+    totalMentions,
     activeTabId,
     openTab,
     closeTab,
     setActiveTab,
     setPinned,
+    setLabel,
     setTabPosition,
     incrementUnread,
+    decrementUnread,
     resetUnread,
     setUnread,
+    incrementMention,
+    decrementMention,
+    setMentions,
+    clearRoom,
     noteActivity,
     clearAll,
   };

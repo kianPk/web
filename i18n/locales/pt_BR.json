@@ -1715,7 +1715,70 @@
         "see_all": "Ver tudo no Localizador de Desafios",
         "subtitle": "Times que aceitam desafios",
         "title": "Procurando desafios",
-        "today": "Hoje {from}–{to}"
+        "today": "Hoje {from}–{to}",
+        "sign_in_to_request": "Entre para solicitar"
+      },
+      "players": "{count} jogador | {count} jogadores",
+      "form": {
+        "label": "Forma recente: {results}",
+        "none": "Ainda sem resultados",
+        "result_W": "vitória",
+        "result_L": "derrota",
+        "result_T": "empate"
+      },
+      "your_teams": {
+        "title": "Seus times",
+        "next": "Próxima",
+        "last": "Última",
+        "playing_now": "Jogando agora",
+        "nothing_scheduled": "Nada agendado",
+        "no_matches": "Ainda sem partidas",
+        "result_W": "Venceu",
+        "result_L": "Perdeu",
+        "result_T": "Empatou",
+        "check_in": "Check-in",
+        "scrim_replies": "{count} resposta de desafio necessária | {count} respostas de desafio necessárias",
+        "invite_starter": "Convidar um titular"
+      },
+      "playing_now": {
+        "title": "Jogando agora",
+        "live_count": "{count} ao vivo",
+        "all_live": "Todas as partidas ao vivo",
+        "more_on_watch": "mais ao vivo em Watch"
+      },
+      "directory": {
+        "title": "Todos os times",
+        "sort_label": "Ordenar times",
+        "sort_active": "Ativos recentemente",
+        "sort_rating": "Avaliação",
+        "sort_name": "Nome",
+        "search_label": "Buscar times",
+        "clear_search": "Limpar busca",
+        "org": "Org",
+        "playing_now": "Jogando agora",
+        "never_played": "Ainda sem partidas",
+        "col_roster": "Elenco",
+        "col_elo": "ELO médio",
+        "col_form": "Forma",
+        "col_last": "Última partida",
+        "col_awards": "Premiações",
+        "no_match": "Nada corresponde à sua busca ou aos filtros.",
+        "clear_filters": "Limpar filtros"
+      },
+      "tournament_teams": {
+        "title": "Times de torneio",
+        "subtitle": "Criados dentro de um torneio",
+        "search": "Buscar times, torneios ou jogadores…",
+        "search_label": "Buscar times de torneio",
+        "col_tournament": "Torneio",
+        "col_status": "Status",
+        "running": "Em andamento",
+        "finished": "Encerrados",
+        "segment_label": "Status do torneio",
+        "found_in_running": "Resultados em torneios em andamento: {count}",
+        "found_in_finished": "Resultados em torneios encerrados: {count}",
+        "show_running": "Ver em andamento",
+        "show_finished": "Ver encerrados"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "Convite para Inscrição no Torneio",
       "tournament_registration_message": "Você foi convidado para se inscrever em um torneio",
       "tournament_team_registration_title": "Convite de Torneio para a Equipe",
-      "tournament_team_registration_message": "{team} foi convidada para se inscrever em um torneio"
+      "tournament_team_registration_message": "{team} foi convidada para se inscrever em um torneio",
+      "team_and_lineup_message": "Entre em {team} e na lineup para",
+      "stand_in_message": "Jogue como reserva de {team}, sem entrar no time, em",
+      "tournament_team_message": "Jogue por {team}, um time só para este torneio, em"
     },
     "roles": {
       "captain": "Capitão",
       "admin": "Admin",
       "invite": "Convidar",
-      "member": "Membro"
+      "member": "Membro",
+      "owner": "Dono"
     },
     "leave": "Sair da Equipe",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "Dono",
       "captain": "Capitão",
       "ineligible_short": "Inelegível Curto*",
-      "tournament_join_requires_owner_or_captain": "Você pode entrar em um torneio com equipes das quais você é o dono ou o capitão.",
+      "tournament_join_requires_owner_or_captain": "Você só pode entrar com equipes das quais é dono, capitão ou admin.",
       "not_enough_players": "Necessário ao menos {count} jogadores para desafiar.",
       "selected": "Selecionado",
       "loading_more": "Carregando mais...",
@@ -7409,7 +7476,8 @@
         "in_event": "Já vinculado a este evento.",
         "other_side": "Já escolhido como o outro time.",
         "owner_in_tournament": "O dono já tem um time neste torneio."
-      }
+      },
+      "admin": "Admin"
     },
     "member": {
       "coach": "Técnico",
@@ -7448,6 +7516,91 @@
       "failed_description": "A requisição falhou. Tente de novo daqui a pouco.",
       "empty": "Nenhum utilitário associado",
       "empty_description": "Nenhuma granada arremessada nas partidas deste time bate com um lineup salvo ainda."
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} jogador | {count} jogadores",
+        "matches": "{count} partida | {count} partidas",
+        "no_matches": "Ainda sem partidas",
+        "founded": "Fundado em {date}",
+        "all_awards": "Mostrar todas as premiações",
+        "team_actions": "Ações do time",
+        "team_chat": "Chat da Equipe"
+      },
+      "stage": {
+        "live": "Ao vivo agora",
+        "next_up": "A seguir",
+        "upcoming": "{count} próximas",
+        "then": "Depois",
+        "open_to_scrims": "Abra {name} para desafios para que outros times possam te desafiar.",
+        "set_up_scrims": "Configurar desafios",
+        "none_scheduled_member": "Nenhuma partida agendada ainda.",
+        "none_scheduled": "Nada agendado no momento.",
+        "never_played": "{name} ainda não jogou nenhuma partida."
+      },
+      "results": {
+        "hint": "Mais recentes primeiro, role para ver as antigas",
+        "all_matches": "Todas as partidas"
+      },
+      "tabs": {
+        "matches": "Partidas",
+        "scrim_waiting": "{count} esperando por você"
+      },
+      "needs": {
+        "title": "Precisa de você",
+        "to_do": "{count} a fazer",
+        "check_in_title": "Check-in para a partida contra {name}",
+        "scrim_title": "quer fazer um desafio",
+        "counter_title": "propôs um novo horário",
+        "best_of_short": "Bo{count}",
+        "roster_title": "{count} de 5 titulares",
+        "roster_meta": "Convide jogadores para formar um time completo.",
+        "waiting_on": "Aguardando",
+        "waiting_check_in": "{names} fazerem o check-in",
+        "waiting_scrim": "{name} responder ao seu pedido de desafio",
+        "waiting_invites": "{names} aceitarem os convites",
+        "counter_dialog_title": "Propor outro horário",
+        "counter_dialog_description": "{name} ainda precisa aceitar o novo horário.",
+        "send_new_time": "Enviar novo horário"
+      }
+    },
+    "activity": {
+      "title": "Atividade",
+      "this_week": "Esta semana",
+      "earlier": "Antes",
+      "show_older": "Mostrar atividade mais antiga",
+      "empty": "Resultados, clipes e premiações aparecem aqui conforme {team} joga.",
+      "beat": "Venceu {opponent}",
+      "lost_to": "Perdeu para {opponent}",
+      "drew_with": "Empatou com {opponent}",
+      "open_match": "Abrir partida",
+      "won": "Venceu {name}",
+      "second_at": "2º em {name}",
+      "third_at": "3º em {name}",
+      "placed_at": "{placement} em {name}",
+      "received": "Recebeu {name}",
+      "tournament": "Torneio",
+      "promoted": "Promovido para {division}",
+      "relegated": "Rebaixado para {division}",
+      "finished": "Terminou em #{rank} em {division}",
+      "stayed": "Permaneceu em {division}",
+      "started": "{season} começou",
+      "invited": "{name} foi convidado",
+      "invited_by": "Convidado por {name}",
+      "created": "{team} foi criado"
+    },
+    "starting_five": {
+      "title": "Cinco titulares",
+      "players": "{count} jogador | {count} jogadores",
+      "manage_roster": "Gerenciar elenco",
+      "full_roster": "Elenco completo",
+      "starters_only": "Apenas os cinco titulares",
+      "open_slot": "Vaga de titular aberta",
+      "invite": "Convidar",
+      "substitutes": "{count} reserva | {count} reservas",
+      "bench": "{count} no banco",
+      "coaches": "{count} técnico | {count} técnicos",
+      "captain": "Capitão: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "Mensagem",
       "empty": "Nenhuma mensagem ainda. Diga Olá."
+    },
+    "room_settings": {
+      "menu": "Configurações de notificação",
+      "mute_room": "Silenciar sala",
+      "unmute_room": "Reativar sala",
+      "mute_conversation": "Silenciar conversa",
+      "unmute_conversation": "Reativar conversa",
+      "mute_for": {
+        "minutes_15": "Por 15 minutos",
+        "hour_1": "Por 1 hora",
+        "hours_8": "Por 8 horas",
+        "hours_24": "Por 24 horas",
+        "until_unmuted": "Até eu reativar"
+      },
+      "muted": "Silenciado",
+      "muted_until": "Silenciado até {time}",
+      "notify_me_about": "Notificar sobre",
+      "notify": {
+        "all": "Todas as mensagens",
+        "mentions": "Só {'@'}menções",
+        "nothing": "Nada"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index} de {total}",
     "registration": "Inscrições",
     "title": "Visão rápida"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "Quadro",
+      "requests": "Meus desafios",
+      "listing": "Seu anúncio"
+    },
+    "team_switch": "Buscar desafios para",
+    "when": "{day}, {time}",
+    "duration": {
+      "minutes": "{n} min",
+      "hours": "{n}h"
+    },
+    "status": {
+      "both_free": "Ambos livres",
+      "different_hours": "Horários diferentes",
+      "their_range": "Fora da faixa deles",
+      "our_range": "Fora da sua faixa",
+      "you_are_booked": "Você já tem desafio marcado",
+      "needs_you": "Aguarda você",
+      "requested": "Solicitado",
+      "booked": "Marcado para {time}"
+    },
+    "board": {
+      "now": "Agora",
+      "until": "até {time}",
+      "to": "até {time}",
+      "open_now": "Aberto agora",
+      "open_now_hint": "Livre para começar na próxima meia hora",
+      "col_opens": "Abre",
+      "col_team": "Time",
+      "col_maps": "Mapas",
+      "col_elo": "ELO",
+      "col_reliable": "Confiável",
+      "col_for_you": "Para você",
+      "request": "Solicitar",
+      "request_at": "Desafiar {team} às {time}",
+      "answer": "Responder",
+      "view": "Ver",
+      "any_map": "Qualquer mapa",
+      "any_region": "Qualquer região",
+      "new": "Novo",
+      "new_team": "Time novo",
+      "played": "{count} jogados",
+      "reliable": "{pct}% confiável",
+      "elo_value": "{elo} ELO",
+      "times_note": "Os horários estão no seu fuso horário. Uma melhor de 1 pode começar até o fim do horário de um time.",
+      "empty_title": "Nenhum time aberto nesta semana",
+      "empty_description": "A maioria dos times abre seus horários à noite. Volte mais tarde.",
+      "empty_description_team": "Abra {team} para desafios para que outros times possam enviar solicitações, ou use Desafio agora para jogar com quem abrir primeiro.",
+      "edit_listing": "Editar seu anúncio",
+      "filtered_fits": "Desative “Combina com {team}” para ver também times fora da sua faixa."
+    },
+    "filters": {
+      "search": "Pesquisar times",
+      "day": "Dia",
+      "any_day": "Qualquer dia",
+      "region": "Região",
+      "regions_hint": "Times que aceitam qualquer região sempre aparecem.",
+      "fits": "Combina com {team}",
+      "maps": "Joga algum destes",
+      "elo": "ELO médio do time",
+      "elo_min": "Mín",
+      "elo_max": "Máx",
+      "elo_near": "Até {n} de diferença de {team}"
+    },
+    "cta": {
+      "guest": "Entre para solicitar desafios e ver quais times combinam com o seu.",
+      "sign_in": "Entrar com a Steam",
+      "player": "Desafios são enviados por um time. Crie um ou peça ao dono do seu time para torná-lo admin.",
+      "create_team": "Criar um time"
+    },
+    "booked": {
+      "banner": "{team} joga contra {opponent}, {when}.",
+      "lock": "Um time pode ter apenas um desafio marcado por vez, então novas solicitações abrem depois que este for jogado."
+    },
+    "sheet": {
+      "description": "Detalhes do time e solicitação de desafio",
+      "team_page": "Página do time",
+      "players": "{count} jogador | {count} jogadores",
+      "elo": "ELO do time",
+      "takes": "Aceita {range}",
+      "any_elo": "qualquer ELO",
+      "up_to": "até {elo}",
+      "and_up": "{elo} ou mais",
+      "reliability": "Confiabilidade",
+      "new": "Novo",
+      "no_scrims": "Nenhum desafio ainda",
+      "no_shows": "{count} no-show | {count} no-shows",
+      "late_cancels": "{count} cancelamento tardio | {count} cancelamentos tardios",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEIT nível {level}",
+      "not_linked": "Nenhuma conta FACEIT vinculada",
+      "how_you_fit": "Como vocês combinam",
+      "maps": "Mapas que eles querem",
+      "any_map": "Qualquer mapa do pool",
+      "open_hours": "Horários abertos nesta semana",
+      "no_hours": "Nenhum horário aberto nesta semana.",
+      "your_team": "Este é o seu time. Gerencie o anúncio em Seu anúncio.",
+      "send_from": "Enviar de",
+      "your_scrim": "Seu desafio com eles",
+      "request_title": "Solicitar desafio",
+      "widen": "Amplie sua faixa"
+    },
+    "fit": {
+      "elo_ok": "{team} ({elo}) está dentro da faixa deles, e eles estão dentro da sua.",
+      "their_range_below": "{them} aceita {range}. A média de {team} é {elo}, abaixo do mínimo deles.",
+      "their_range_above": "{them} aceita {range}. A média de {team} é {elo}, acima do máximo deles.",
+      "their_range_no_elo": "{them} só aceita {range}, e {team} ainda não tem ELO.",
+      "our_range_below": "A média de {them} é {elo}, abaixo da faixa {range} que {team} aceita.",
+      "our_range_above": "A média de {them} é {elo}, acima da faixa {range} que {team} aceita.",
+      "our_range_no_elo": "{them} ainda não tem ELO, e {team} só aceita {range}.",
+      "booked": "{team} tem um desafio marcado com {opponent}. Novas solicitações abrem depois que ele for jogado.",
+      "region_any": "Um de vocês aceita qualquer região, então qualquer servidor serve.",
+      "region_shared": "Ambos jogam em servidores de {regions}.",
+      "region_none": "Nenhuma região em comum. Eles jogam em {theirs}, vocês em {yours}.",
+      "time_shared": "Ambos livres {day}, {range}.",
+      "time_none": "Seus horários não coincidem nesta semana.",
+      "time_none_outside": "Seus horários não coincidem nesta semana, mas eles aceitam solicitações para outros horários.",
+      "maps_any": "Eles jogam qualquer mapa.",
+      "maps_shared": "{count} mapa em comum: {maps} | {count} mapas em comum: {maps}",
+      "maps_none": "Nenhum mapa em comum."
+    },
+    "form": {
+      "series": "Série",
+      "best_of": "Melhor de {n}",
+      "series_hint": "Séries mais longas precisam de um intervalo maior dentro do horário de {team}.",
+      "day": "Dia",
+      "start": "Início",
+      "closed": "Fechado",
+      "no_start": "Nenhum início de {hours} horas cabe neste dia.",
+      "both_free_legend": "{team} também está livre",
+      "other_time_link": "Pedir um horário fora do horário deles",
+      "other_time": "Outro horário",
+      "back_to_hours": "Escolher no horário deles",
+      "past": "Esse horário já passou. Escolha um mais tarde.",
+      "other_hint": "{team} aceita solicitações fora do horário deles. Eles ainda precisam aceitar.",
+      "outside_theirs": "Fora do horário deles",
+      "outside_yours": "Fora do seu horário",
+      "pick_start": "Escolha um horário de início.",
+      "map_pool": "Jogado no pool Active Duty com veto de mapas. {team} tem 24 horas para responder.",
+      "from": "De {team}",
+      "send": "Enviar solicitação"
+    },
+    "requests": {
+      "intro": "Solicitações expiram após 24 horas. Desafios marcados aparecem na página da partida e no seu calendário.",
+      "needs_you": "Aguarda você",
+      "booked": "Marcados",
+      "waiting": "Aguardando eles",
+      "played": "Jogados",
+      "record": "{pct}% confiável · {played} jogados",
+      "empty_title": "Nenhuma solicitação aberta",
+      "empty_description": "Envie uma pelo quadro, ou use Desafio agora e o 5Stack junta você com um time que esteja livre.",
+      "suggested": "Sugerido pelo 5Stack",
+      "suggested_why": "Vocês dois estão livres às {time}.",
+      "starts_in": "Começa em {time} se você aceitar.",
+      "answer_within": "Responda em até {time}, ou ela expira.",
+      "their_turn": "{team} tem {time} para responder.",
+      "you_asked": "Você pediu",
+      "they_asked": "Eles pediram",
+      "you_proposed": "você propôs",
+      "they_proposed": "eles propuseram",
+      "accept": "Aceitar {time}",
+      "propose": "Propor outro horário",
+      "cancel_request": "Cancelar solicitação",
+      "view_match": "Ver partida",
+      "cancel_scrim": "Cancelar desafio",
+      "cancel_confirm": "Cancelar um desafio marcado conta como cancelamento tardio na confiabilidade de {team}.",
+      "keep": "Manter desafio",
+      "locked": "Bloqueado até o desafio com {team} ser jogado.",
+      "counter_title": "Novo horário dentro do horário de {team}",
+      "counter_send": "Propor {when}",
+      "counter_pick": "Escolha um horário",
+      "never_mind": "Deixa pra lá",
+      "open_team": "Abrir {team}"
+    },
+    "listing": {
+      "preview": "Como os times veem você",
+      "hidden": "Oculto enquanto fechado",
+      "add_hours": "Adicione horários semanais para seu time aparecer no quadro.",
+      "open": "Aberto a desafios",
+      "open_hint": "Times podem encontrar {team} e enviar solicitações nos seus horários.",
+      "closed": "Fechado",
+      "closed_hint": "Oculto do localizador. Solicitações que você já enviou continuam valendo.",
+      "hours": "Horários semanais",
+      "time_zone": "No seu fuso horário",
+      "to": "até",
+      "outside": "Aceitar solicitações fora destes horários",
+      "opponents": "Adversários que você aceita",
+      "near": "Até {n} de diferença de {elo}",
+      "regions": "Regiões de servidor",
+      "maps": "Mapas que você quer",
+      "maps_hint": "Mostrado para outros times. As partidas usam o pool Active Duty com veto.",
+      "note": "Nota para outros times",
+      "note_placeholder": "Idioma da comunicação, coach na call, o que vocês estão treinando…",
+      "alerts": "Avise quando um time abrir",
+      "save": "Salvar anúncio",
+      "saved": "Anúncio salvo",
+      "nearby": "Próximas · abaixo de {ms} ms",
+      "show_less": "Mostrar menos"
+    },
+    "now": {
+      "button": "Desafio agora",
+      "looking": "Procurando até {time}",
+      "title": "Encontrar um desafio agora",
+      "description": "Abre {team} para qualquer time livre nas próximas {hours} horas. Quando um time na sua faixa também estiver livre, o 5Stack envia uma solicitação para os dois.",
+      "booked": "Você já tem um desafio marcado, então isso espera até ele ser jogado.",
+      "start": "Começar a procurar",
+      "stop": "Parar de procurar",
+      "looking_description": "{team} está aberto a qualquer time livre agora, até {time}. Times na sua faixa recebem uma solicitação do 5Stack.",
+      "started": "{team} está procurando até {time}.",
+      "stopped": "Busca encerrada."
+    },
+    "team_tab": {
+      "description": "Solicitações e seu anúncio no Localizador de Desafios.",
+      "find": "Encontrar um desafio"
+    },
+    "toast": {
+      "sent": "Solicitação enviada para {team}.",
+      "booked": "Marcado com {team}.",
+      "declined": "Solicitação de {team} recusada.",
+      "countered": "Novo horário enviado para {team}.",
+      "cancelled": "Solicitação para {team} cancelada.",
+      "cancelled_booked": "Desafio com {team} cancelado. Conta como cancelamento tardio.",
+      "failed": "Não deu certo"
+    },
+    "week": {
+      "title": "Esta semana",
+      "no_hours": "Sem horário"
+    }
   }
 }

@@ -1715,7 +1715,70 @@
         "see_all": "스크림 찾기에서 모두 보기",
         "subtitle": "도전을 받는 팀",
         "title": "스크림 구하는 중",
-        "today": "오늘 {from}–{to}"
+        "today": "오늘 {from}–{to}",
+        "sign_in_to_request": "로그인하여 요청"
+      },
+      "players": "{count}명 | {count}명",
+      "form": {
+        "label": "최근 폼: {results}",
+        "none": "아직 결과가 없습니다",
+        "result_W": "승리",
+        "result_L": "패배",
+        "result_T": "무승부"
+      },
+      "your_teams": {
+        "title": "내 팀",
+        "next": "다음",
+        "last": "지난",
+        "playing_now": "경기 중",
+        "nothing_scheduled": "예정 없음",
+        "no_matches": "아직 경기가 없습니다",
+        "result_W": "승리",
+        "result_L": "패배",
+        "result_T": "무승부",
+        "check_in": "체크인",
+        "scrim_replies": "스크림 답변 {count}건 필요 | 스크림 답변 {count}건 필요",
+        "invite_starter": "스타터 초대"
+      },
+      "playing_now": {
+        "title": "경기 중",
+        "live_count": "{count}경기 라이브",
+        "all_live": "모든 라이브 경기",
+        "more_on_watch": "Watch에서 더 많은 라이브"
+      },
+      "directory": {
+        "title": "전체 팀",
+        "sort_label": "팀 정렬",
+        "sort_active": "최근 활동순",
+        "sort_rating": "레이팅",
+        "sort_name": "이름",
+        "search_label": "팀 검색",
+        "clear_search": "검색어 지우기",
+        "org": "Org",
+        "playing_now": "경기 중",
+        "never_played": "아직 경기가 없습니다",
+        "col_roster": "로스터",
+        "col_elo": "평균 ELO",
+        "col_form": "폼",
+        "col_last": "마지막 경기",
+        "col_awards": "어워드",
+        "no_match": "검색어나 필터와 일치하는 항목이 없습니다.",
+        "clear_filters": "필터 지우기"
+      },
+      "tournament_teams": {
+        "title": "토너먼트 팀",
+        "subtitle": "토너먼트 안에서 만든 팀",
+        "search": "팀, 토너먼트 또는 플레이어 검색…",
+        "search_label": "토너먼트 팀 검색",
+        "col_tournament": "토너먼트",
+        "col_status": "상태",
+        "running": "진행 중",
+        "finished": "종료",
+        "segment_label": "토너먼트 상태",
+        "found_in_running": "진행 중인 토너먼트 결과: {count}",
+        "found_in_finished": "종료된 토너먼트 결과: {count}",
+        "show_running": "진행 중 보기",
+        "show_finished": "종료 보기"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "토너먼트 참가 신청 초대",
       "tournament_registration_message": "토너먼트에 참가 신청하도록 초대받았습니다",
       "tournament_team_registration_title": "팀 참가 신청 초대",
-      "tournament_team_registration_message": "{team} 팀이 토너먼트 참가 신청에 초대되었습니다"
+      "tournament_team_registration_message": "{team} 팀이 토너먼트 참가 신청에 초대되었습니다",
+      "team_and_lineup_message": "{team} 및 라인업 참가:",
+      "stand_in_message": "팀에 들어가지 않고 {team}의 대체 선수로 출전:",
+      "tournament_team_message": "이 토너먼트 전용 팀 {team}(으)로 출전:"
     },
     "roles": {
       "captain": "팀장",
       "admin": "관리자",
       "invite": "초대",
-      "member": "멤버"
+      "member": "멤버",
+      "owner": "소유자"
     },
     "leave": "팀 탈퇴",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "소유자",
       "captain": "팀장",
       "ineligible_short": "잠김",
-      "tournament_join_requires_owner_or_captain": "소유자 또는 팀장인 팀으로만 토너먼트에 참가할 수 있습니다.",
+      "tournament_join_requires_owner_or_captain": "소유자, 팀장 또는 관리자인 팀으로만 참가할 수 있습니다.",
       "not_enough_players": "도전하려면 최소 {count}명이 필요합니다.",
       "selected": "선택됨",
       "loading_more": "더 불러오는 중…",
@@ -7409,7 +7476,8 @@
         "in_event": "이미 이 이벤트에 연결되어 있습니다.",
         "other_side": "이미 상대 팀으로 선택되었습니다.",
         "owner_in_tournament": "소유자가 이미 이 토너먼트에 팀을 등록했습니다."
-      }
+      },
+      "admin": "관리자"
     },
     "member": {
       "coach": "코치",
@@ -7448,6 +7516,91 @@
       "failed_description": "요청이 실패했습니다. 잠시 후 다시 시도하세요.",
       "empty": "대응되는 유틸이 없습니다",
       "empty_description": "이 팀의 경기에서 던진 수류탄 중 저장된 라인업과 맞는 것이 아직 없습니다."
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count}명 | {count}명",
+        "matches": "{count}경기 | {count}경기",
+        "no_matches": "아직 경기가 없습니다",
+        "founded": "{date} 창단",
+        "all_awards": "모든 어워드 보기",
+        "team_actions": "팀 작업",
+        "team_chat": "팀 채팅"
+      },
+      "stage": {
+        "live": "라이브 중",
+        "next_up": "다음 경기",
+        "upcoming": "예정 {count}건",
+        "then": "그다음",
+        "open_to_scrims": "다른 팀이 도전할 수 있도록 {name}을(를) 스크림에 공개하세요.",
+        "set_up_scrims": "스크림 설정",
+        "none_scheduled_member": "예정된 경기가 아직 없습니다.",
+        "none_scheduled": "현재 예정된 항목이 없습니다.",
+        "never_played": "{name}은(는) 아직 경기를 치르지 않았습니다."
+      },
+      "results": {
+        "hint": "최신순, 스크롤하면 이전 항목",
+        "all_matches": "모든 경기"
+      },
+      "tabs": {
+        "matches": "경기",
+        "scrim_waiting": "내 응답 대기 {count}건"
+      },
+      "needs": {
+        "title": "확인 필요",
+        "to_do": "할 일 {count}건",
+        "check_in_title": "{name}전 체크인",
+        "scrim_title": "이(가) 스크림을 원합니다",
+        "counter_title": "이(가) 새 시간을 제안했습니다",
+        "best_of_short": "Bo{count}",
+        "roster_title": "스타터 {count}/5명",
+        "roster_meta": "정원을 채우려면 플레이어를 초대하세요.",
+        "waiting_on": "대기 중",
+        "waiting_check_in": "{names}의 체크인",
+        "waiting_scrim": "{name}의 스크림 요청 응답",
+        "waiting_invites": "{names}의 초대 수락",
+        "counter_dialog_title": "다른 시간 제안",
+        "counter_dialog_description": "{name}이(가) 새 시간을 수락해야 합니다.",
+        "send_new_time": "새 시간 보내기"
+      }
+    },
+    "activity": {
+      "title": "활동",
+      "this_week": "이번 주",
+      "earlier": "이전",
+      "show_older": "이전 활동 보기",
+      "empty": "{team}이(가) 경기를 치르면 결과, 클립, 어워드가 여기에 표시됩니다.",
+      "beat": "{opponent}에게 승리",
+      "lost_to": "{opponent}에게 패배",
+      "drew_with": "{opponent}와 무승부",
+      "open_match": "경기 열기",
+      "won": "{name} 우승",
+      "second_at": "{name} 2위",
+      "third_at": "{name} 3위",
+      "placed_at": "{name} {placement}",
+      "received": "{name} 수상",
+      "tournament": "토너먼트",
+      "promoted": "{division}(으)로 승격",
+      "relegated": "{division}(으)로 강등",
+      "finished": "{division}에서 {rank}위로 마무리",
+      "stayed": "{division} 잔류",
+      "started": "{season} 시작",
+      "invited": "{name} 초대됨",
+      "invited_by": "{name}이(가) 초대함",
+      "created": "{team} 생성됨"
+    },
+    "starting_five": {
+      "title": "스타팅 5",
+      "players": "{count}명 | {count}명",
+      "manage_roster": "로스터 관리",
+      "full_roster": "전체 로스터",
+      "starters_only": "스타팅 5만",
+      "open_slot": "빈 스타터 자리",
+      "invite": "초대",
+      "substitutes": "교체 선수 {count}명 | 교체 선수 {count}명",
+      "bench": "벤치 {count}명",
+      "coaches": "코치 {count}명 | 코치 {count}명",
+      "captain": "주장: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "메시지",
       "empty": "아직 메시지가 없습니다. 인사를 건네보세요."
+    },
+    "room_settings": {
+      "menu": "알림 설정",
+      "mute_room": "방 음소거",
+      "unmute_room": "방 음소거 해제",
+      "mute_conversation": "대화 음소거",
+      "unmute_conversation": "대화 음소거 해제",
+      "mute_for": {
+        "minutes_15": "15분 동안",
+        "hour_1": "1시간 동안",
+        "hours_8": "8시간 동안",
+        "hours_24": "24시간 동안",
+        "until_unmuted": "직접 해제할 때까지"
+      },
+      "muted": "음소거됨",
+      "muted_until": "{time}까지 음소거됨",
+      "notify_me_about": "알림 받을 메시지",
+      "notify": {
+        "all": "모든 메시지",
+        "mentions": "{'@'}멘션만",
+        "nothing": "없음"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index} / {total}",
     "registration": "참가 신청",
     "title": "빠른 보기"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "보드",
+      "requests": "내 스크림",
+      "listing": "내 등록 정보"
+    },
+    "team_switch": "스크림을 찾을 팀",
+    "when": "{day} {time}",
+    "duration": {
+      "minutes": "{n}분",
+      "hours": "{n}시간"
+    },
+    "status": {
+      "both_free": "둘 다 가능",
+      "different_hours": "시간대 다름",
+      "their_range": "상대 범위 밖",
+      "our_range": "내 범위 밖",
+      "you_are_booked": "이미 예약됨",
+      "needs_you": "응답 필요",
+      "requested": "요청함",
+      "booked": "{time} 예약됨"
+    },
+    "board": {
+      "now": "지금",
+      "until": "{time}까지",
+      "to": "~{time}",
+      "open_now": "지금 가능",
+      "open_now_hint": "30분 안에 시작 가능",
+      "col_opens": "시작",
+      "col_team": "팀",
+      "col_maps": "맵",
+      "col_elo": "ELO",
+      "col_reliable": "신뢰도",
+      "col_for_you": "적합도",
+      "request": "요청",
+      "request_at": "{time}에 {team}에게 요청",
+      "answer": "응답",
+      "view": "보기",
+      "any_map": "맵 무관",
+      "any_region": "지역 무관",
+      "new": "신규",
+      "new_team": "신규 팀",
+      "played": "{count}회 진행",
+      "reliable": "신뢰도 {pct}%",
+      "elo_value": "{elo} ELO",
+      "times_note": "시간은 내 시간대 기준입니다. BO1은 팀의 가능 시간이 끝날 때까지 시작할 수 있습니다.",
+      "empty_title": "이번 주에 스크림을 받는 팀이 없습니다",
+      "empty_description": "대부분의 팀은 저녁에 시간을 엽니다. 나중에 다시 확인하세요.",
+      "empty_description_team": "{team}을(를) 스크림에 개방하면 다른 팀이 요청을 보낼 수 있습니다. 또는 바로 스크림으로 다음에 비는 팀과 경기하세요.",
+      "edit_listing": "등록 정보 수정",
+      "filtered_fits": "범위 밖의 팀도 보려면 '{team}에 맞음'을 끄세요."
+    },
+    "filters": {
+      "search": "팀 검색",
+      "day": "요일",
+      "any_day": "요일 무관",
+      "region": "지역",
+      "regions_hint": "지역 무관 팀은 항상 표시됩니다.",
+      "fits": "{team}에 맞음",
+      "maps": "다음 중 하나를 플레이",
+      "elo": "팀 평균 ELO",
+      "elo_min": "최소",
+      "elo_max": "최대",
+      "elo_near": "{team} 기준 ±{n} 이내"
+    },
+    "cta": {
+      "guest": "로그인하면 스크림을 요청하고 내 팀에 맞는 팀을 볼 수 있습니다.",
+      "sign_in": "Steam으로 로그인",
+      "player": "스크림은 팀으로 보냅니다. 팀을 만들거나 팀 소유자에게 관리자 권한을 요청하세요.",
+      "create_team": "팀 만들기"
+    },
+    "booked": {
+      "banner": "{team} 대 {opponent}, {when}.",
+      "lock": "한 팀은 한 번에 하나의 스크림만 예약할 수 있으므로, 이 경기를 마친 후에 새 요청을 받을 수 있습니다."
+    },
+    "sheet": {
+      "description": "팀 정보와 스크림 요청",
+      "team_page": "팀 페이지",
+      "players": "{count}명 | {count}명",
+      "elo": "팀 ELO",
+      "takes": "허용: {range}",
+      "any_elo": "ELO 무관",
+      "up_to": "{elo} 이하",
+      "and_up": "{elo} 이상",
+      "reliability": "신뢰도",
+      "new": "신규",
+      "no_scrims": "아직 스크림 없음",
+      "no_shows": "노쇼 {count}회 | 노쇼 {count}회",
+      "late_cancels": "늦은 취소 {count}회 | 늦은 취소 {count}회",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEIT 레벨 {level}",
+      "not_linked": "FACEIT 미연결",
+      "how_you_fit": "적합도",
+      "maps": "원하는 맵",
+      "any_map": "맵 풀의 모든 맵",
+      "open_hours": "이번 주 가능 시간",
+      "no_hours": "이번 주 가능 시간이 없습니다.",
+      "your_team": "내 팀입니다. 등록 정보는 내 등록 정보에서 관리하세요.",
+      "send_from": "보내는 팀",
+      "your_scrim": "이 팀과의 스크림",
+      "request_title": "스크림 요청",
+      "widen": "범위 넓히기"
+    },
+    "fit": {
+      "elo_ok": "{team}({elo})은(는) 상대 범위 안에 있고, 상대도 내 범위 안에 있습니다.",
+      "their_range_below": "{them}의 허용 범위는 {range}입니다. {team}의 평균은 {elo}로 최솟값보다 낮습니다.",
+      "their_range_above": "{them}의 허용 범위는 {range}입니다. {team}의 평균은 {elo}로 최댓값보다 높습니다.",
+      "their_range_no_elo": "{them}의 허용 범위는 {range}뿐인데, {team}은(는) 아직 ELO가 없습니다.",
+      "our_range_below": "{them}의 평균은 {elo}로, {team}의 허용 범위({range})보다 낮습니다.",
+      "our_range_above": "{them}의 평균은 {elo}로, {team}의 허용 범위({range})보다 높습니다.",
+      "our_range_no_elo": "{them}은(는) 아직 ELO가 없고, {team}의 허용 범위는 {range}뿐입니다.",
+      "booked": "{team}은(는) {opponent}과(와) 스크림이 예약되어 있습니다. 경기를 마친 후에 새 요청을 받을 수 있습니다.",
+      "region_any": "한 팀이 지역 무관이라 어느 서버든 가능합니다.",
+      "region_shared": "두 팀 모두 {regions} 서버에서 플레이합니다.",
+      "region_none": "공통 지역이 없습니다. 상대는 {theirs}, 내 팀은 {yours}입니다.",
+      "time_shared": "두 팀 모두 {day} {range}에 가능합니다.",
+      "time_none": "이번 주에는 가능 시간이 겹치지 않습니다.",
+      "time_none_outside": "이번 주에는 가능 시간이 겹치지 않지만, 상대는 다른 시간 요청도 받습니다.",
+      "maps_any": "상대는 어떤 맵이든 플레이합니다.",
+      "maps_shared": "공통 맵 {count}개: {maps} | 공통 맵 {count}개: {maps}",
+      "maps_none": "공통 맵이 없습니다."
+    },
+    "form": {
+      "series": "시리즈",
+      "best_of": "BO{n}",
+      "series_hint": "긴 시리즈일수록 {team}의 가능 시간 안에 더 긴 시간이 필요합니다.",
+      "day": "날짜",
+      "start": "시작",
+      "closed": "닫힘",
+      "no_start": "이 날에는 {hours}시간 일정을 시작할 수 있는 시간이 없습니다.",
+      "both_free_legend": "{team}도 가능",
+      "other_time_link": "가능 시간 외의 시간 요청하기",
+      "other_time": "다른 시간",
+      "back_to_hours": "상대 가능 시간에서 선택",
+      "past": "이미 지난 시간입니다. 더 늦은 시간을 선택하세요.",
+      "other_hint": "{team}은(는) 가능 시간 외의 요청도 받습니다. 상대가 수락해야 확정됩니다.",
+      "outside_theirs": "상대 가능 시간 외",
+      "outside_yours": "내 가능 시간 외",
+      "pick_start": "시작 시간을 선택하세요.",
+      "map_pool": "Active Duty 맵 풀에서 맵 밴픽으로 진행합니다. {team}은(는) 24시간 안에 응답해야 합니다.",
+      "from": "{team}에서 보냄",
+      "send": "요청 보내기"
+    },
+    "requests": {
+      "intro": "요청은 24시간 후 만료됩니다. 예약된 스크림은 매치 페이지와 캘린더에 표시됩니다.",
+      "needs_you": "응답 필요",
+      "booked": "예약됨",
+      "waiting": "상대 응답 대기 중",
+      "played": "완료",
+      "record": "신뢰도 {pct}% · {played}회 진행",
+      "empty_title": "열린 요청이 없습니다",
+      "empty_description": "보드에서 요청을 보내거나, 바로 스크림을 사용하면 5Stack이 가능한 팀과 연결해 드립니다.",
+      "suggested": "5Stack 추천",
+      "suggested_why": "두 팀 모두 {time}에 가능합니다.",
+      "starts_in": "수락하면 {time} 후 시작합니다.",
+      "answer_within": "{time} 안에 응답하지 않으면 만료됩니다.",
+      "their_turn": "{team}의 응답 기한이 {time} 남았습니다.",
+      "you_asked": "내가 요청",
+      "they_asked": "상대가 요청",
+      "you_proposed": "내 제안",
+      "they_proposed": "상대 제안",
+      "accept": "{time} 수락",
+      "propose": "다른 시간 제안",
+      "cancel_request": "요청 취소",
+      "view_match": "매치 보기",
+      "cancel_scrim": "스크림 취소",
+      "cancel_confirm": "예약된 스크림을 취소하면 {team}의 신뢰도에 늦은 취소로 기록됩니다.",
+      "keep": "스크림 유지",
+      "locked": "{team}과(와)의 스크림을 마칠 때까지 잠겨 있습니다.",
+      "counter_title": "{team}의 가능 시간에서 새 시간 선택",
+      "counter_send": "{when} 제안",
+      "counter_pick": "시간 선택",
+      "never_mind": "그만두기",
+      "open_team": "{team} 열기"
+    },
+    "listing": {
+      "preview": "다른 팀에 보이는 모습",
+      "hidden": "닫혀 있는 동안 숨겨짐",
+      "add_hours": "주간 가능 시간을 추가하면 보드에 팀이 표시됩니다.",
+      "open": "스크림 개방",
+      "open_hint": "다른 팀이 {team}을(를) 찾고 가능 시간 안에 요청을 보낼 수 있습니다.",
+      "closed": "닫힘",
+      "closed_hint": "파인더에서 숨겨집니다. 이미 보낸 요청은 그대로 유효합니다.",
+      "hours": "주간 가능 시간",
+      "time_zone": "내 시간대 기준",
+      "to": "~",
+      "outside": "이 시간 외의 요청도 받기",
+      "opponents": "받을 상대",
+      "near": "{elo} 기준 ±{n} 이내",
+      "regions": "서버 지역",
+      "maps": "원하는 맵",
+      "maps_hint": "다른 팀에게 표시됩니다. 매치는 Active Duty 맵 풀에서 밴픽으로 진행합니다.",
+      "note": "다른 팀에게 남기는 메모",
+      "note_placeholder": "소통 언어, 코치 보이스 참여, 연습 중인 내용…",
+      "alerts": "팀이 개방하면 알려주기",
+      "save": "등록 정보 저장",
+      "saved": "등록 정보를 저장했습니다",
+      "nearby": "가까운 지역 · {ms}ms 미만",
+      "show_less": "간단히 보기"
+    },
+    "now": {
+      "button": "바로 스크림",
+      "looking": "{time}까지 찾는 중",
+      "title": "지금 스크림 찾기",
+      "description": "앞으로 {hours}시간 동안 가능한 모든 팀에게 {team}을(를) 개방합니다. 내 범위의 팀도 가능하면 5Stack이 두 팀 모두에게 요청을 보냅니다.",
+      "booked": "이미 예약된 스크림이 있어서, 그 경기를 마칠 때까지 대기합니다.",
+      "start": "찾기 시작",
+      "stop": "찾기 중지",
+      "looking_description": "{team}은(는) {time}까지 지금 가능한 모든 팀에게 개방되어 있습니다. 내 범위의 팀은 5Stack으로부터 요청을 받습니다.",
+      "started": "{team}이(가) {time}까지 찾는 중입니다.",
+      "stopped": "찾기를 중지했습니다."
+    },
+    "team_tab": {
+      "description": "스크림 파인더 요청과 내 등록 정보.",
+      "find": "스크림 찾기"
+    },
+    "toast": {
+      "sent": "{team}에게 요청을 보냈습니다.",
+      "booked": "{team}과(와)의 스크림이 예약되었습니다.",
+      "declined": "{team}의 요청을 거절했습니다.",
+      "countered": "{team}에게 새 시간을 보냈습니다.",
+      "cancelled": "{team}에게 보낸 요청을 취소했습니다.",
+      "cancelled_booked": "{team}과(와)의 스크림을 취소했습니다. 늦은 취소로 기록됩니다.",
+      "failed": "처리되지 않았습니다"
+    },
+    "week": {
+      "title": "이번 주",
+      "no_hours": "시간 없음"
+    }
   }
 }

@@ -3,12 +3,12 @@ import {
   formatStartTime,
   teamMonogram,
 } from "~/components/watch/watchTicker";
+import mapLabel from "~/utilities/mapLabel";
 
 type Translate = (key: string, values?: Record<string, unknown>) => string;
 
 export type ScheduleContext = {
   t: Translate;
-  locale: string;
   now: Date;
   meSteamId?: string | null;
 };
@@ -84,7 +84,7 @@ function matchMeta(match: any, t: Translate): string {
   const parts = [
     bracket?.stage?.tournament?.name ?? match?.options?.type ?? null,
     bestOfLabel(match?.options?.best_of, t),
-    maps.length === 1 ? maps[0]?.map?.label || maps[0]?.map?.name : null,
+    maps.length === 1 ? mapLabel(maps[0]?.map) : null,
     match?.region ?? null,
   ];
   return parts.filter(Boolean).join(" · ");
@@ -139,7 +139,7 @@ function matchState(
       }
       const closes = match?.cancels_at
         ? ` · ${t("pages.play.schedule.check_in_closes", {
-            time: formatStartTime(match.cancels_at, ctx.now, ctx.locale),
+            time: formatStartTime(match.cancels_at, ctx.now),
           })}`
         : "";
       return {
@@ -190,7 +190,7 @@ export function scheduleMatchRow(
     id: match.id,
     time:
       upcoming && startIso
-        ? formatStartTime(startIso, ctx.now, ctx.locale)
+        ? formatStartTime(startIso, ctx.now)
         : ctx.t("pages.play.schedule.now"),
     sub: upcoming && start ? relativeWhen(start, ctx.now, ctx.t) : "",
     teams: [lineupTeam(match?.lineup_1), lineupTeam(match?.lineup_2)],
@@ -230,7 +230,7 @@ function tournamentState(
     if (opens.getTime() > ctx.now.getTime()) {
       return {
         text: t("pages.play.schedule.check_in_opens", {
-          time: formatStartTime(opens.toISOString(), ctx.now, ctx.locale),
+          time: formatStartTime(opens.toISOString(), ctx.now),
         }),
         tone: "muted",
       };
@@ -259,7 +259,7 @@ export function scheduleTournamentRow(
     id: tournament.id,
     time:
       start && !live
-        ? formatStartTime(tournament.start, ctx.now, ctx.locale)
+        ? formatStartTime(tournament.start, ctx.now)
         : ctx.t("pages.play.schedule.now"),
     sub: start && !live ? relativeWhen(start, ctx.now, ctx.t) : "",
     teams: null,

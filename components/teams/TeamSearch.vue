@@ -11,6 +11,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "~/components/ui/drawer";
 import { useMediaQuery } from "@vueuse/core";
 import debounce from "~/utilities/debounce";
 import { e_team_roles_enum } from "~/generated/zeus";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 const { height: viewportHeight } = useVisualViewport();
@@ -601,7 +602,7 @@ export default {
       if (!this.tournamentJoinSelector) return true;
       const isOwner = team.owner_steam_id === this.me?.steam_id;
       const isCaptain = team.captain_steam_id === this.me?.steam_id;
-      return isOwner || isCaptain;
+      return isOwner || isCaptain || team.role === e_team_roles_enum.Admin;
     },
     teamEligibilityLabel(team: Team): string {
       if (!this.tournamentJoinSelector) return "";
@@ -610,6 +611,9 @@ export default {
       }
       if (team.captain_steam_id === this.me?.steam_id) {
         return this.$t("team.search.captain");
+      }
+      if (team.role === e_team_roles_enum.Admin) {
+        return this.$t("team.search.admin");
       }
       return this.$t("team.search.ineligible_short");
     },
@@ -689,8 +693,7 @@ export default {
       this.localPool = this.localPool.map(merge);
     },
     teamAvatarSrc(team: { avatar_url?: string | null }): string | null {
-      if (!team.avatar_url) return null;
-      return `https://${this.apiDomain}/${team.avatar_url}`;
+      return resolveAvatarUrl(team.avatar_url, this.apiDomain, 64);
     },
     toggleMyTeamsOnly() {
       this.myTeamsOnly = !this.myTeamsOnly;

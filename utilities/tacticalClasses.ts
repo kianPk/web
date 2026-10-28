@@ -17,13 +17,13 @@ export const tacticalTabIndicatorFinishedClasses =
   "group-data-[state=active]:bg-success";
 
 export const tacticalSectionLabelClasses =
-  "tac-section-label mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
+  "mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
 
 export const tacticalSectionTickClasses =
-  "tac-section-tick inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
+  "inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
 
 export const tacticalSectionDescriptionClasses =
-  "tac-section-desc mb-3 text-[0.85rem] text-muted-foreground";
+  "mb-3 text-[0.85rem] text-muted-foreground";
 
 // Sections are separated by a hairline rule rather than individual card frames,
 // so a stack of them reads as one page. Applies to every section but the first.
@@ -46,7 +46,7 @@ export const filterTriggerValueClasses =
   "inline-flex items-center font-sans text-[0.6rem] font-bold leading-none normal-case tracking-normal text-[hsl(var(--tac-amber))]";
 
 export const tacticalFilterPillClasses =
-  "inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-3 py-1.5 text-xs tracking-[0.06em] text-muted-foreground transition-colors duration-150 hover:bg-muted/50 hover:text-foreground";
+  "inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs tracking-[0.06em] text-muted-foreground transition-colors duration-150 hover:bg-muted/50 hover:text-foreground";
 
 // Active overrides are marked important so they reliably beat the pill base's
 // `border-border bg-muted/30 text-muted-foreground` regardless of Tailwind's
@@ -73,15 +73,14 @@ export const tacticalCtaButtonClasses =
 // `createButtonClasses` is the same button that keeps its label (empty states).
 export const createButtonClasses =
   "h-8 bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]";
-export const listCreateButtonClasses = `${createButtonClasses} max-md:w-8 max-md:px-0`;
+export const listCreateButtonClasses = `${createButtonClasses} max-md:w-8 max-md:px-0 [&_svg]:size-3.5`;
 
 // Header action buttons size their height to the page title's clamp so the
 // header is governed by the title text (it scales with the title instead of
 // jumping to a fixed button height). Pair with a
 // `<breakpoint>:aspect-square <breakpoint>:!px-0` collapse on each page so the
 // icon-only state is a square. Mirrors the title clamp in TacticalPageHeader.
-export const tacticalHeaderActionClasses =
-  "!py-0 h-[clamp(1.75rem,4.2vw,3rem)]";
+export const tacticalHeaderActionClasses = "tac-header-action !py-0";
 
 // Tactical veto tile — rounded frame for map/region pick-ban tiles.
 // Combine the base with hover + active + disabled as needed.

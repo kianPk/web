@@ -1,9 +1,12 @@
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue";
 import { useMediaQuery } from "@vueuse/core";
 import { useRightSidebar } from "@/composables/useRightSidebar";
 import { useNotificationBadge } from "~/composables/useNotificationBadge";
 import { useInvites } from "@/composables/useInvites";
 import { useChatTabs } from "~/composables/useChatTabs";
+import { chatTabQuiet } from "~/composables/useChatRoomSettings";
+import { chatBadgeFor } from "~/utilities/chatBadges";
+import { SIDEBAR_MOBILE_QUERY } from "~/components/ui/sidebar/utils";
 
 type Hub =
   | "recent-games"
@@ -45,19 +48,24 @@ export function setActiveHub(hub: Hub) {
 
 export function useHubState() {
   const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery(SIDEBAR_MOBILE_QUERY);
   const { hasNotifications } = useNotificationBadge();
   const { hasLobbyInvites, hasSocialInvites } = useInvites();
-  const { unreadCounts } = useChatTabs();
-
-  const totalUnread = computed(() =>
-    Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
-  );
+  const { tabs, unreadCounts, mentionCounts } = useChatTabs();
 
   function defaultHub(): Hub {
     if (hasNotifications.value) return "notifications";
     if (hasLobbyInvites.value) return "lobby";
-    if (totalUnread.value > 0) return "chat";
+    if (
+      chatBadgeFor(
+        tabs.value,
+        unreadCounts.value,
+        mentionCounts.value,
+        chatTabQuiet,
+      )
+    ) {
+      return "chat";
+    }
     if (hasSocialInvites.value) return "social";
     return "social";
   }

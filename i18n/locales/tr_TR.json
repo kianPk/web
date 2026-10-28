@@ -1715,7 +1715,70 @@
         "see_all": "Hepsini Scrim bulucuda gör",
         "subtitle": "Meydan okumaları kabul eden takımlar",
         "title": "Scrim arıyor",
-        "today": "Bugün {from}–{to}"
+        "today": "Bugün {from}–{to}",
+        "sign_in_to_request": "İstemek için giriş yap"
+      },
+      "players": "{count} oyuncu | {count} oyuncu",
+      "form": {
+        "label": "Son form: {results}",
+        "none": "Henüz sonuç yok",
+        "result_W": "galibiyet",
+        "result_L": "mağlubiyet",
+        "result_T": "beraberlik"
+      },
+      "your_teams": {
+        "title": "Takımların",
+        "next": "Sıradaki",
+        "last": "Son",
+        "playing_now": "Şu an oynuyor",
+        "nothing_scheduled": "Planlanmış bir şey yok",
+        "no_matches": "Henüz maç yok",
+        "result_W": "Kazandı",
+        "result_L": "Kaybetti",
+        "result_T": "Berabere kaldı",
+        "check_in": "Katılım onayı",
+        "scrim_replies": "{count} scrim yanıtı gerekiyor | {count} scrim yanıtı gerekiyor",
+        "invite_starter": "Bir ana kadro oyuncusu davet et"
+      },
+      "playing_now": {
+        "title": "Şu an oynuyor",
+        "live_count": "{count} canlı",
+        "all_live": "Tüm canlı maçlar",
+        "more_on_watch": "Watch'ta daha fazla canlı"
+      },
+      "directory": {
+        "title": "Tüm takımlar",
+        "sort_label": "Takımları sırala",
+        "sort_active": "Son aktif",
+        "sort_rating": "Puan",
+        "sort_name": "İsim",
+        "search_label": "Takım ara",
+        "clear_search": "Aramayı temizle",
+        "org": "Org",
+        "playing_now": "Şu an oynuyor",
+        "never_played": "Henüz maç yok",
+        "col_roster": "Kadro",
+        "col_elo": "Ort. ELO",
+        "col_form": "Form",
+        "col_last": "Son oynanan",
+        "col_awards": "Ödüller",
+        "no_match": "Aramana veya filtrelerine uyan bir şey yok.",
+        "clear_filters": "Filtreleri temizle"
+      },
+      "tournament_teams": {
+        "title": "Turnuva takımları",
+        "subtitle": "Bir turnuva içinde oluşturuldu",
+        "search": "Takım, turnuva veya oyuncu ara…",
+        "search_label": "Turnuva takımlarında ara",
+        "col_tournament": "Turnuva",
+        "col_status": "Durum",
+        "running": "Devam eden",
+        "finished": "Biten",
+        "segment_label": "Turnuva durumu",
+        "found_in_running": "Devam eden turnuvalarda sonuç: {count}",
+        "found_in_finished": "Biten turnuvalarda sonuç: {count}",
+        "show_running": "Devam edenleri göster",
+        "show_finished": "Bitenleri göster"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "Turnuva Kayıt Daveti",
       "tournament_registration_message": "Bir turnuvaya kaydolman için davet edildin",
       "tournament_team_registration_title": "Takım Kayıt Daveti",
-      "tournament_team_registration_message": "{team} bir turnuvaya kaydolmak için davet edildi"
+      "tournament_team_registration_message": "{team} bir turnuvaya kaydolmak için davet edildi",
+      "team_and_lineup_message": "{team} takımına ve kadrosuna katıl:",
+      "stand_in_message": "Takıma katılmadan {team} için yedek olarak oyna:",
+      "tournament_team_message": "Sadece bu turnuvaya özel {team} takımında oyna:"
     },
     "roles": {
       "captain": "Kaptan",
       "admin": "Yönetici",
       "invite": "Davet",
-      "member": "Üye"
+      "member": "Üye",
+      "owner": "Sahip"
     },
     "leave": "Takımdan ayrıl",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "Sahip",
       "captain": "Kaptan",
       "ineligible_short": "Kilitli",
-      "tournament_join_requires_owner_or_captain": "Bir turnuvaya yalnızca sahibi veya kaptanı olduğun takımlarla katılabilirsin.",
+      "tournament_join_requires_owner_or_captain": "Yalnızca sahibi, kaptanı veya yöneticisi olduğun takımlarla katılabilirsin.",
       "not_enough_players": "Meydan okumak için en az {count} oyuncu gerekli.",
       "selected": "Seçildi",
       "loading_more": "Daha fazlası yükleniyor…",
@@ -7409,7 +7476,8 @@
         "in_event": "Zaten bu etkinliğe bağlı.",
         "other_side": "Zaten diğer takım olarak seçildi.",
         "owner_in_tournament": "Sahibinin bu turnuvada zaten bir takımı var."
-      }
+      },
+      "admin": "Yönetici"
     },
     "member": {
       "coach": "Koç",
@@ -7448,6 +7516,91 @@
       "failed_description": "İstek başarısız oldu. Birazdan tekrar dene.",
       "empty": "Eşleşen utility yok",
       "empty_description": "Bu takımın maçlarında atılan hiçbir bomba henüz kayıtlı bir dizilimle örtüşmüyor."
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} oyuncu | {count} oyuncu",
+        "matches": "{count} maç | {count} maç",
+        "no_matches": "Henüz maç yok",
+        "founded": "{date} tarihinde kuruldu",
+        "all_awards": "Tüm ödülleri göster",
+        "team_actions": "Takım işlemleri",
+        "team_chat": "Takım sohbeti"
+      },
+      "stage": {
+        "live": "Şu an canlı",
+        "next_up": "Sıradaki",
+        "upcoming": "{count} yaklaşan",
+        "then": "Sonra",
+        "open_to_scrims": "Diğer takımların sana meydan okuyabilmesi için {name} takımını scrime aç.",
+        "set_up_scrims": "Scrimleri ayarla",
+        "none_scheduled_member": "Henüz planlanmış maç yok.",
+        "none_scheduled": "Şu an planlanmış bir şey yok.",
+        "never_played": "{name} henüz maç oynamadı."
+      },
+      "results": {
+        "hint": "Önce en yeni, eskiler için kaydır",
+        "all_matches": "Tüm maçlar"
+      },
+      "tabs": {
+        "matches": "Maçlar",
+        "scrim_waiting": "{count} seni bekliyor"
+      },
+      "needs": {
+        "title": "Seni bekliyor",
+        "to_do": "{count} yapılacak",
+        "check_in_title": "{name} maçı için katılım onayı ver",
+        "scrim_title": "scrim istiyor",
+        "counter_title": "yeni bir zaman önerdi",
+        "best_of_short": "Bo{count}",
+        "roster_title": "5 ana oyuncudan {count}",
+        "roster_meta": "Tam kadro için oyuncu davet et.",
+        "waiting_on": "Bekleniyor",
+        "waiting_check_in": "{names} katılım onayı vermeli",
+        "waiting_scrim": "{name} scrim isteğine yanıt vermeli",
+        "waiting_invites": "{names} davetleri kabul etmeli",
+        "counter_dialog_title": "Başka bir zaman öner",
+        "counter_dialog_description": "{name} yeni zamanı hâlâ kabul etmeli.",
+        "send_new_time": "Yeni zamanı gönder"
+      }
+    },
+    "activity": {
+      "title": "Etkinlik",
+      "this_week": "Bu hafta",
+      "earlier": "Daha önce",
+      "show_older": "Eski etkinliği göster",
+      "empty": "{team} oynadıkça sonuçlar, klipler ve ödüller burada görünür.",
+      "beat": "{opponent} takımını yendi",
+      "lost_to": "{opponent} takımına kaybetti",
+      "drew_with": "{opponent} ile berabere kaldı",
+      "open_match": "Maçı aç",
+      "won": "{name} kazandı",
+      "second_at": "{name} turnuvasında 2.",
+      "third_at": "{name} turnuvasında 3.",
+      "placed_at": "{name} turnuvasında {placement}",
+      "received": "{name} aldı",
+      "tournament": "Turnuva",
+      "promoted": "{division} ligine yükseldi",
+      "relegated": "{division} ligine düştü",
+      "finished": "{division} ligini #{rank} bitirdi",
+      "stayed": "{division} liginde kaldı",
+      "started": "{season} başladı",
+      "invited": "{name} davet edildi",
+      "invited_by": "{name} davet etti",
+      "created": "{team} oluşturuldu"
+    },
+    "starting_five": {
+      "title": "Ana beşli",
+      "players": "{count} oyuncu | {count} oyuncu",
+      "manage_roster": "Kadroyu yönet",
+      "full_roster": "Tüm kadro",
+      "starters_only": "Yalnızca ana beşli",
+      "open_slot": "Boş ana kadro yeri",
+      "invite": "Davet et",
+      "substitutes": "{count} yedek | {count} yedek",
+      "bench": "{count} yedek kulübesinde",
+      "coaches": "{count} koç | {count} koç",
+      "captain": "Kaptan: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "Mesaj",
       "empty": "Henüz mesaj yok. Merhaba de."
+    },
+    "room_settings": {
+      "menu": "Bildirim ayarları",
+      "mute_room": "Odayı sessize al",
+      "unmute_room": "Odanın sesini aç",
+      "mute_conversation": "Sohbeti sessize al",
+      "unmute_conversation": "Sohbetin sesini aç",
+      "mute_for": {
+        "minutes_15": "15 dakikalığına",
+        "hour_1": "1 saatliğine",
+        "hours_8": "8 saatliğine",
+        "hours_24": "24 saatliğine",
+        "until_unmuted": "Ben tekrar açana kadar"
+      },
+      "muted": "Sessizde",
+      "muted_until": "Sessizde, bitiş: {time}",
+      "notify_me_about": "Bana bildir",
+      "notify": {
+        "all": "Tüm mesajlar",
+        "mentions": "Yalnızca {'@'}etiketler",
+        "nothing": "Hiçbir şey"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index}/{total}",
     "registration": "Kayıt",
     "title": "Hızlı bakış"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "Pano",
+      "requests": "Scrimlerim",
+      "listing": "İlanın"
+    },
+    "team_switch": "Scrim aranacak takım",
+    "when": "{day}, {time}",
+    "duration": {
+      "minutes": "{n} dk",
+      "hours": "{n} sa"
+    },
+    "status": {
+      "both_free": "İkisi de müsait",
+      "different_hours": "Farklı saatler",
+      "their_range": "Onların aralığı dışında",
+      "our_range": "Senin aralığın dışında",
+      "you_are_booked": "Zaten scrimin var",
+      "needs_you": "Seni bekliyor",
+      "requested": "İstendi",
+      "booked": "Ayarlandı: {time}"
+    },
+    "board": {
+      "now": "Şimdi",
+      "until": "{time} saatine kadar",
+      "to": "- {time}",
+      "open_now": "Şu an açık",
+      "open_now_hint": "Önümüzdeki yarım saat içinde başlayabilir",
+      "col_opens": "Açılış",
+      "col_team": "Takım",
+      "col_maps": "Haritalar",
+      "col_elo": "ELO",
+      "col_reliable": "Güvenilir",
+      "col_for_you": "Senin için",
+      "request": "İste",
+      "request_at": "{team} takımından {time} için scrim iste",
+      "answer": "Yanıtla",
+      "view": "Görüntüle",
+      "any_map": "Her harita",
+      "any_region": "Her bölge",
+      "new": "Yeni",
+      "new_team": "Yeni takım",
+      "played": "{count} oynandı",
+      "reliable": "%{pct} güvenilir",
+      "elo_value": "{elo} ELO",
+      "times_note": "Saatler senin saat dilimine göre. Best of 1 bir maç, takımın saatlerinin sonuna kadar başlayabilir.",
+      "empty_title": "Bu hafta açık takım yok",
+      "empty_description": "Çoğu takım saatlerini akşam açar. Daha sonra tekrar bak.",
+      "empty_description_team": "Takımlar sana istek gönderebilsin diye {team} takımını scrime aç ya da sıradaki açılan takımla oynamak için Hemen scrim'i kullan.",
+      "edit_listing": "İlanını düzenle",
+      "filtered_fits": "Aralığının dışındaki takımları da görmek için “{team} ile uyumlu” filtresini kapat."
+    },
+    "filters": {
+      "search": "Takım ara",
+      "day": "Gün",
+      "any_day": "Her gün",
+      "region": "Bölge",
+      "regions_hint": "Her bölgeyi kabul eden takımlar her zaman görünür.",
+      "fits": "{team} ile uyumlu",
+      "maps": "Bunlardan birini oynar",
+      "elo": "Takım ortalama ELO",
+      "elo_min": "Min",
+      "elo_max": "Maks",
+      "elo_near": "{team} takımından en fazla {n} fark"
+    },
+    "cta": {
+      "guest": "Scrim istemek ve hangi takımların seninkine uyduğunu görmek için giriş yap.",
+      "sign_in": "Steam ile giriş yap",
+      "player": "Scrimler bir takımdan gönderilir. Bir takım oluştur ya da takımının sahibinden seni yönetici yapmasını iste.",
+      "create_team": "Takım oluştur"
+    },
+    "booked": {
+      "banner": "{team}, {opponent} ile oynuyor: {when}.",
+      "lock": "Bir takımın aynı anda yalnızca bir ayarlanmış scrimi olabilir; bu yüzden yeni istekler bu scrim oynandıktan sonra açılır."
+    },
+    "sheet": {
+      "description": "Takım bilgileri ve scrim isteği",
+      "team_page": "Takım sayfası",
+      "players": "{count} oyuncu | {count} oyuncu",
+      "elo": "Takım ELO'su",
+      "takes": "Kabul ettiği aralık: {range}",
+      "any_elo": "her ELO",
+      "up_to": "{elo} ve altı",
+      "and_up": "{elo} ve üstü",
+      "reliability": "Güvenilirlik",
+      "new": "Yeni",
+      "no_scrims": "Henüz scrim yok",
+      "no_shows": "{count} gelmeme | {count} gelmeme",
+      "late_cancels": "{count} geç iptal | {count} geç iptal",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEIT seviyesi {level}",
+      "not_linked": "Bağlı FACEIT yok",
+      "how_you_fit": "Ne kadar uyumlusunuz",
+      "maps": "İstedikleri haritalar",
+      "any_map": "Havuzdaki her harita",
+      "open_hours": "Bu haftaki açık saatler",
+      "no_hours": "Bu hafta açık saat yok.",
+      "your_team": "Bu senin takımın. İlanını İlanın sekmesinden yönet.",
+      "send_from": "Gönderen takım",
+      "your_scrim": "Onlarla scriminiz",
+      "request_title": "Scrim iste",
+      "widen": "Aralığını genişlet"
+    },
+    "fit": {
+      "elo_ok": "{team} ({elo}) onların aralığında, onlar da seninkinde.",
+      "their_range_below": "{them} {range} aralığını kabul ediyor. {team} ortalaması {elo}, minimumlarının altında.",
+      "their_range_above": "{them} {range} aralığını kabul ediyor. {team} ortalaması {elo}, maksimumlarının üstünde.",
+      "their_range_no_elo": "{them} yalnızca {range} aralığını kabul ediyor ve {team} takımının henüz ELO'su yok.",
+      "our_range_below": "{them} ortalaması {elo}, {team} takımının kabul ettiği {range} aralığının altında.",
+      "our_range_above": "{them} ortalaması {elo}, {team} takımının kabul ettiği {range} aralığının üstünde.",
+      "our_range_no_elo": "{them} takımının henüz ELO'su yok ve {team} yalnızca {range} aralığını kabul ediyor.",
+      "booked": "{team} takımının {opponent} ile ayarlanmış bir scrimi var. Yeni istekler o oynandıktan sonra açılır.",
+      "region_any": "Biriniz her bölgeyi kabul ediyor, yani her sunucu uygun.",
+      "region_shared": "İkiniz de {regions} sunucularında oynuyorsunuz.",
+      "region_none": "Ortak bölge yok. Onlar {theirs}, siz {yours} sunucularında oynuyorsunuz.",
+      "time_shared": "İkiniz de müsaitsiniz: {day}, {range}.",
+      "time_none": "Bu hafta saatleriniz çakışmıyor.",
+      "time_none_outside": "Bu hafta saatleriniz çakışmıyor ama başka saatler için istek kabul ediyorlar.",
+      "maps_any": "Her haritayı oynarlar.",
+      "maps_shared": "{count} ortak harita: {maps} | {count} ortak harita: {maps}",
+      "maps_none": "Ortak harita yok."
+    },
+    "form": {
+      "series": "Seri",
+      "best_of": "Best of {n}",
+      "series_hint": "Daha uzun seriler, {team} takımının saatleri içinde daha uzun bir boşluk gerektirir.",
+      "day": "Gün",
+      "start": "Başlangıç",
+      "closed": "Kapalı",
+      "no_start": "Bu güne {hours} saatlik bir başlangıç sığmıyor.",
+      "both_free_legend": "{team} takımı da müsait",
+      "other_time_link": "Onların saatleri dışında bir zaman iste",
+      "other_time": "Başka bir zaman",
+      "back_to_hours": "Onların saatlerinden seç",
+      "past": "O saat geçti. Daha sonraki bir saat seç.",
+      "other_hint": "{team} saatleri dışındaki istekleri de kabul ediyor. Yine de kabul etmeleri gerekiyor.",
+      "outside_theirs": "Onların saatleri dışında",
+      "outside_yours": "Senin saatlerin dışında",
+      "pick_start": "Bir başlangıç saati seç.",
+      "map_pool": "Active Duty havuzunda harita vetosuyla oynanır. {team} takımının yanıtlamak için 24 saati var.",
+      "from": "Gönderen: {team}",
+      "send": "İstek gönder"
+    },
+    "requests": {
+      "intro": "İstekler 24 saat sonra sona erer. Ayarlanan scrimler maç sayfasında ve takviminde görünür.",
+      "needs_you": "Seni bekliyor",
+      "booked": "Ayarlandı",
+      "waiting": "Onları bekliyor",
+      "played": "Oynandı",
+      "record": "%{pct} güvenilir · {played} oynandı",
+      "empty_title": "Açık istek yok",
+      "empty_description": "Panodan bir istek gönder ya da Hemen scrim'i kullan, 5Stack seni müsait bir takımla eşleştirsin.",
+      "suggested": "5Stack önerisi",
+      "suggested_why": "İkiniz de {time} saatinde müsaitsiniz.",
+      "starts_in": "Kabul edersen {time} içinde başlar.",
+      "answer_within": "{time} içinde yanıtla, yoksa süresi dolar.",
+      "their_turn": "{team} takımının yanıtlamak için {time} süresi var.",
+      "you_asked": "Siz istediniz",
+      "they_asked": "Onlar istedi",
+      "you_proposed": "siz önerdiniz",
+      "they_proposed": "onlar önerdi",
+      "accept": "Kabul et: {time}",
+      "propose": "Başka bir zaman öner",
+      "cancel_request": "İsteği iptal et",
+      "view_match": "Maçı görüntüle",
+      "cancel_scrim": "Scrimi iptal et",
+      "cancel_confirm": "Ayarlanmış bir scrimi iptal etmek, {team} takımının güvenilirliğine geç iptal olarak yansır.",
+      "keep": "Scrimi koru",
+      "locked": "{team} ile scriminiz oynanana kadar kilitli.",
+      "counter_title": "{team} takımının saatlerinden yeni zaman",
+      "counter_send": "Öner: {when}",
+      "counter_pick": "Bir zaman seç",
+      "never_mind": "Vazgeç",
+      "open_team": "{team} takımını aç"
+    },
+    "listing": {
+      "preview": "Takımlar seni nasıl görüyor",
+      "hidden": "Kapalıyken gizli",
+      "add_hours": "Takımının panoda görünmesi için haftalık saat ekle.",
+      "open": "Scrime açık",
+      "open_hint": "Takımlar {team} takımını bulabilir ve senin saatlerinde istek gönderebilir.",
+      "closed": "Kapalı",
+      "closed_hint": "Bulucuda gizli. Daha önce gönderdiğin istekler geçerliliğini korur.",
+      "hours": "Haftalık saatler",
+      "time_zone": "Senin saat diliminde",
+      "to": "-",
+      "outside": "Bu saatler dışındaki istekleri de kabul et",
+      "opponents": "Kabul ettiğin rakipler",
+      "near": "{elo} değerinden en fazla {n} fark",
+      "regions": "Sunucu bölgeleri",
+      "maps": "İstediğin haritalar",
+      "maps_hint": "Diğer takımlara gösterilir. Maçlar vetolu Active Duty havuzunda oynanır.",
+      "note": "Diğer takımlara not",
+      "note_placeholder": "İletişim dili, seste koç, ne çalıştığınız…",
+      "alerts": "Bir takım açıldığında bana haber ver",
+      "save": "İlanı kaydet",
+      "saved": "İlan kaydedildi",
+      "nearby": "Yakındakiler · {ms} ms altı",
+      "show_less": "Daha az göster"
+    },
+    "now": {
+      "button": "Hemen scrim",
+      "looking": "{time} saatine kadar aranıyor",
+      "title": "Hemen bir scrim bul",
+      "description": "{team} takımını önümüzdeki {hours} saat boyunca müsait olan herkese açar. Aralığındaki bir takım da müsait olduğunda 5Stack ikinize de istek gönderir.",
+      "booked": "Zaten ayarlanmış bir scrimin var, bu yüzden bu, o oynanana kadar bekler.",
+      "start": "Aramaya başla",
+      "stop": "Aramayı durdur",
+      "looking_description": "{team} takımı şu an müsait olan herkese {time} saatine kadar açık. Aralığındaki takımlar 5Stack'ten istek alır.",
+      "started": "{team} takımı {time} saatine kadar arıyor.",
+      "stopped": "Arama durduruldu."
+    },
+    "team_tab": {
+      "description": "Scrim Bulucu için istekler ve ilanın.",
+      "find": "Scrim bul"
+    },
+    "toast": {
+      "sent": "İstek {team} takımına gönderildi.",
+      "booked": "{team} ile ayarlandı.",
+      "declined": "{team} takımının isteği reddedildi.",
+      "countered": "Yeni zaman {team} takımına gönderildi.",
+      "cancelled": "{team} takımına gönderilen istek iptal edildi.",
+      "cancelled_booked": "{team} ile scrim iptal edildi. Geç iptal olarak sayılır.",
+      "failed": "İşlem gerçekleşmedi"
+    },
+    "week": {
+      "title": "Bu hafta",
+      "no_hours": "Saat yok"
+    }
   }
 }

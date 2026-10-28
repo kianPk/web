@@ -6,8 +6,9 @@ import { ChevronRight, Clock, Swords } from "lucide-vue-next";
 import { $, order_by } from "~/generated/zeus";
 import { generateSubscription } from "~/graphql/graphqlGen";
 import HorizontalScrollRow from "~/components/common/HorizontalScrollRow.vue";
+import ScrollArrows from "~/components/common/ScrollArrows.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
-import ScrimRequestDialog from "~/components/team/ScrimRequestDialog.vue";
+import ScrimTeamSheet from "~/components/scrims/ScrimTeamSheet.vue";
 import TeamsEmblem from "~/components/teams/TeamsEmblem.vue";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -40,6 +41,8 @@ const postingsQuery = generateSubscription({
       regions: true,
       map_ids: true,
       notes: true,
+      elo_min: true,
+      elo_max: true,
       allow_outside_availability: true,
       team: {
         id: true,
@@ -50,6 +53,7 @@ const postingsQuery = generateSubscription({
           avg_elo: true,
           avg_wingman_elo: true,
           avg_duel_elo: true,
+          avg_rush_elo: true,
           min_elo: true,
           max_elo: true,
           avg_faceit_level: true,
@@ -60,6 +64,7 @@ const postingsQuery = generateSubscription({
         reputation: {
           scrims_completed: true,
           no_shows: true,
+          late_cancels: true,
           reliability_pct: true,
         },
         scrim_availability: {
@@ -96,6 +101,7 @@ const managedTeamsQuery = generateSubscription({
 
 const postings = ref<any[]>([]);
 const managedTeamIds = ref<string[]>([]);
+const scrollRow = ref<InstanceType<typeof HorizontalScrollRow> | null>(null);
 let postingsSub: { unsubscribe: () => void } | undefined;
 let managedSub: { unsubscribe: () => void } | undefined;
 
@@ -269,17 +275,24 @@ const linkClasses =
           {{ $t("pages.teams.scrims.subtitle") }}
         </span>
       </div>
-      <NuxtLink to="/scrims" :class="linkClasses">
-        {{ $t("pages.scrims.title") }}
-        <ChevronRight class="size-3.5" />
-      </NuxtLink>
+      <div class="ml-auto flex items-center gap-3">
+        <NuxtLink to="/scrims" :class="linkClasses">
+          {{ $t("pages.scrims.title") }}
+          <ChevronRight class="size-3.5" />
+        </NuxtLink>
+        <ScrollArrows
+          :can-left="scrollRow?.state.canScrollLeft"
+          :can-right="scrollRow?.state.canScrollRight"
+          @scroll="(direction) => scrollRow?.scrollByDirection(direction)"
+        />
+      </div>
     </div>
 
-    <HorizontalScrollRow>
+    <HorizontalScrollRow ref="scrollRow">
       <article
         v-for="{ posting, availability: avail } in shown"
         :key="posting.id"
-        class="flex min-w-[17rem] flex-[1_0_17rem] snap-start flex-col gap-2.5 rounded-xl border border-border/70 bg-card/40 p-3.5 transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.45)]"
+        class="flex min-w-[17rem] flex-[1_0_17rem] snap-start flex-col gap-2.5 rounded-lg border border-border bg-muted/20 p-3.5"
       >
         <div class="flex min-w-0 items-center gap-2.5">
           <TeamsEmblem :team="posting.team" :size="36" />
@@ -365,7 +378,7 @@ const linkClasses =
       <div v-if="visible.length > CAP" class="flex shrink-0 snap-start">
         <NuxtLink
           to="/scrims"
-          class="flex w-44 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 px-3 text-center text-[13px] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)/0.4)] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
+          class="flex w-44 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border px-3 text-center text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
         >
           {{ $t("pages.teams.scrims.see_all") }}
           <ChevronRight class="size-4" aria-hidden="true" />
@@ -373,6 +386,10 @@ const linkClasses =
       </div>
     </HorizontalScrollRow>
 
-    <ScrimRequestDialog v-model:open="dialogOpen" :posting="selectedPosting" />
+    <ScrimTeamSheet
+      v-model:open="dialogOpen"
+      :posting="selectedPosting"
+      @edit-listing="$router.push('/scrims?tab=listing')"
+    />
   </section>
 </template>

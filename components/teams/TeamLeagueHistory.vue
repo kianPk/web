@@ -11,6 +11,11 @@ import {
   ChevronDown,
 } from "lucide-vue-next";
 import { TEAM_LEAGUE_HISTORY_QUERY } from "~/graphql/leagues";
+import {
+  tacticalSectionLabelClasses,
+  tacticalSectionTickClasses,
+} from "~/utilities/tacticalClasses";
+
 const props = defineProps<{
   teamId: string;
 }>();
@@ -77,21 +82,11 @@ const highestDivision = computed(() => {
 
 <template>
   <div v-if="!loading && leagueTeams.length" class="space-y-4">
-    <section
-      class="rounded-xl border border-border/70 bg-card/40 p-5"
-    >
-      <div class="mb-4 flex items-start gap-3">
-        <div
-          class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[rgba(255,85,0,0.12)] text-[#ff6a1f]"
-        >
-          <Trophy class="h-5 w-5" />
-        </div>
-        <div>
-          <h3 class="text-base font-semibold tracking-tight">
-            {{ $t("league.list.title") }}
-          </h3>
-        </div>
-      </div>
+    <section>
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses"></span>
+        {{ $t("league.list.title") }}
+      </span>
 
       <!-- Currently playing in -->
       <NuxtLink
@@ -100,7 +95,7 @@ const highestDivision = computed(() => {
           name: 'league-seasons-seasonId',
           params: { seasonId: currentTeamSeason.league_season_id },
         }"
-        class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] px-4 py-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.1)]"
+        class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.06)] px-4 py-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.1)]"
       >
         <span class="flex items-center gap-2 text-sm">
           <Trophy class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]" />
@@ -120,7 +115,7 @@ const highestDivision = computed(() => {
 
       <!-- Current + highest division -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl border border-border/50 bg-background/35 px-3 py-2.5">
+        <div class="rounded-md border border-border/60 bg-muted/20 px-3 py-2.5">
           <div
             class="flex items-center gap-1.5 font-mono text-[0.58rem] uppercase tracking-[0.18em] text-muted-foreground"
           >
@@ -131,7 +126,7 @@ const highestDivision = computed(() => {
             {{ currentDivision?.name ?? $t("league.history.none") }}
           </div>
         </div>
-        <div class="rounded-xl border border-border/50 bg-background/35 px-3 py-2.5">
+        <div class="rounded-md border border-border/60 bg-muted/20 px-3 py-2.5">
           <div
             class="flex items-center gap-1.5 font-mono text-[0.58rem] uppercase tracking-[0.18em] text-muted-foreground"
           >
@@ -146,6 +141,7 @@ const highestDivision = computed(() => {
 
       <!-- Toggleable season history -->
       <button
+        v-if="allTeamSeasons.length"
         type="button"
         class="mt-4 flex w-full items-center justify-between gap-2 border-t border-border/60 pt-4 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
         @click="showHistory = !showHistory"

@@ -1715,7 +1715,70 @@
         "see_all": "Se alla i Scrim-finder",
         "subtitle": "Lag som tar emot utmaningar",
         "title": "Söker scrims",
-        "today": "Idag {from}–{to}"
+        "today": "Idag {from}–{to}",
+        "sign_in_to_request": "Logga in för att begära"
+      },
+      "players": "{count} spelare | {count} spelare",
+      "form": {
+        "label": "Senaste form: {results}",
+        "none": "Inga resultat än",
+        "result_W": "vinst",
+        "result_L": "förlust",
+        "result_T": "oavgjort"
+      },
+      "your_teams": {
+        "title": "Dina lag",
+        "next": "Nästa",
+        "last": "Senaste",
+        "playing_now": "Spelar nu",
+        "nothing_scheduled": "Inget planerat",
+        "no_matches": "Inga matcher än",
+        "result_W": "Vann",
+        "result_L": "Förlorade",
+        "result_T": "Oavgjort",
+        "check_in": "Checka in",
+        "scrim_replies": "{count} scrimsvar behövs | {count} scrimsvar behövs",
+        "invite_starter": "Bjud in en startspelare"
+      },
+      "playing_now": {
+        "title": "Spelar nu",
+        "live_count": "{count} live",
+        "all_live": "Alla livematcher",
+        "more_on_watch": "fler live på Watch"
+      },
+      "directory": {
+        "title": "Alla lag",
+        "sort_label": "Sortera lag",
+        "sort_active": "Nyligen aktiva",
+        "sort_rating": "Rating",
+        "sort_name": "Namn",
+        "search_label": "Sök lag",
+        "clear_search": "Rensa sökning",
+        "org": "Org",
+        "playing_now": "Spelar nu",
+        "never_played": "Inga matcher än",
+        "col_roster": "Trupp",
+        "col_elo": "Snitt-ELO",
+        "col_form": "Form",
+        "col_last": "Senast spelad",
+        "col_awards": "Utmärkelser",
+        "no_match": "Inget matchar din sökning eller dina filter.",
+        "clear_filters": "Rensa filter"
+      },
+      "tournament_teams": {
+        "title": "Turneringslag",
+        "subtitle": "Skapade i en turnering",
+        "search": "Sök lag, turneringar eller spelare…",
+        "search_label": "Sök turneringslag",
+        "col_tournament": "Turnering",
+        "col_status": "Status",
+        "running": "Pågående",
+        "finished": "Avslutade",
+        "segment_label": "Turneringsstatus",
+        "found_in_running": "Träffar i pågående turneringar: {count}",
+        "found_in_finished": "Träffar i avslutade turneringar: {count}",
+        "show_running": "Visa pågående",
+        "show_finished": "Visa avslutade"
       }
     },
     "settings": {
@@ -7343,13 +7406,17 @@
       "tournament_registration_title": "Inbjudan till turneringsanmälan",
       "tournament_registration_message": "Du har blivit inbjuden att anmäla dig till en turnering",
       "tournament_team_registration_title": "Laginbjudan till turneringsanmälan",
-      "tournament_team_registration_message": "{team} har bjudits in att anmäla sig till en turnering"
+      "tournament_team_registration_message": "{team} har bjudits in att anmäla sig till en turnering",
+      "team_and_lineup_message": "Gå med i {team} och uppställningen för",
+      "stand_in_message": "Spela som reserv för {team}, utan att gå med i laget, i",
+      "tournament_team_message": "Spela för {team}, ett lag bara för den här turneringen, i"
     },
     "roles": {
       "captain": "Lagkapten",
       "admin": "Admin",
       "invite": "Bjuda in",
-      "member": "Medlem"
+      "member": "Medlem",
+      "owner": "Ägare"
     },
     "leave": "Lämna laget",
     "management": {
@@ -7398,7 +7465,7 @@
       "owner": "Ägare",
       "captain": "Lagkapten",
       "ineligible_short": "Låst",
-      "tournament_join_requires_owner_or_captain": "Du kan bara gå med i en turnering med lag där du är ägare eller lagkapten.",
+      "tournament_join_requires_owner_or_captain": "Du kan bara delta med lag där du är ägare, lagkapten eller admin.",
       "not_enough_players": "Kräver minst {count} spelare för att utmana.",
       "selected": "Vald",
       "loading_more": "Läser in fler…",
@@ -7409,7 +7476,8 @@
         "in_event": "Redan kopplat till det här evenemanget.",
         "other_side": "Redan valt som det andra laget.",
         "owner_in_tournament": "Ägaren har redan ett lag i den här turneringen."
-      }
+      },
+      "admin": "Admin"
     },
     "member": {
       "coach": "Coach",
@@ -7448,6 +7516,91 @@
       "failed_description": "Begäran misslyckades. Försök igen om en stund.",
       "empty": "Ingen matchad utility",
       "empty_description": "Ingen granat som kastats i det här lagets matcher stämmer med en sparad uppställning ännu."
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} spelare | {count} spelare",
+        "matches": "{count} match | {count} matcher",
+        "no_matches": "Inga matcher än",
+        "founded": "Grundat {date}",
+        "all_awards": "Visa alla utmärkelser",
+        "team_actions": "Lagåtgärder",
+        "team_chat": "Lagchatt"
+      },
+      "stage": {
+        "live": "Live nu",
+        "next_up": "Nästa",
+        "upcoming": "{count} kommande",
+        "then": "Sedan",
+        "open_to_scrims": "Öppna {name} för scrims så att andra lag kan utmana er.",
+        "set_up_scrims": "Ställ in scrims",
+        "none_scheduled_member": "Inga matcher planerade än.",
+        "none_scheduled": "Inget planerat just nu.",
+        "never_played": "{name} har inte spelat någon match än."
+      },
+      "results": {
+        "hint": "Nyaste först, scrolla för äldre",
+        "all_matches": "Alla matcher"
+      },
+      "tabs": {
+        "matches": "Matcher",
+        "scrim_waiting": "{count} väntar på dig"
+      },
+      "needs": {
+        "title": "Behöver dig",
+        "to_do": "{count} att göra",
+        "check_in_title": "Checka in för matchen mot {name}",
+        "scrim_title": "vill scrimma",
+        "counter_title": "föreslog en ny tid",
+        "best_of_short": "Bo{count}",
+        "roster_title": "{count} av 5 startspelare",
+        "roster_meta": "Bjud in spelare för att få ett fullt lag.",
+        "waiting_on": "Väntar på",
+        "waiting_check_in": "{names} att checka in",
+        "waiting_scrim": "{name} att svara på din scrimförfrågan",
+        "waiting_invites": "{names} att acceptera sina inbjudningar",
+        "counter_dialog_title": "Föreslå en annan tid",
+        "counter_dialog_description": "{name} måste fortfarande acceptera den nya tiden.",
+        "send_new_time": "Skicka ny tid"
+      }
+    },
+    "activity": {
+      "title": "Aktivitet",
+      "this_week": "Den här veckan",
+      "earlier": "Tidigare",
+      "show_older": "Visa äldre aktivitet",
+      "empty": "Resultat, klipp och utmärkelser dyker upp här när {team} spelar.",
+      "beat": "Slog {opponent}",
+      "lost_to": "Förlorade mot {opponent}",
+      "drew_with": "Spelade oavgjort mot {opponent}",
+      "open_match": "Öppna match",
+      "won": "Vann {name}",
+      "second_at": "2:a i {name}",
+      "third_at": "3:a i {name}",
+      "placed_at": "{placement} i {name}",
+      "received": "Fick {name}",
+      "tournament": "Turnering",
+      "promoted": "Uppflyttade till {division}",
+      "relegated": "Nedflyttade till {division}",
+      "finished": "Slutade #{rank} i {division}",
+      "stayed": "Stannade kvar i {division}",
+      "started": "Startade {season}",
+      "invited": "{name} blev inbjuden",
+      "invited_by": "Inbjuden av {name}",
+      "created": "{team} skapades"
+    },
+    "starting_five": {
+      "title": "Startfemman",
+      "players": "{count} spelare | {count} spelare",
+      "manage_roster": "Hantera trupp",
+      "full_roster": "Hela truppen",
+      "starters_only": "Endast startfemman",
+      "open_slot": "Ledig startplats",
+      "invite": "Bjud in",
+      "substitutes": "{count} reserv | {count} reserver",
+      "bench": "{count} på bänken",
+      "coaches": "{count} coach | {count} coacher",
+      "captain": "Kapten: {name}"
     }
   },
   "match": {
@@ -9047,6 +9200,28 @@
     "direct": {
       "message": "Meddelande",
       "empty": "Inga meddelanden än. Säg hej."
+    },
+    "room_settings": {
+      "menu": "Aviseringsinställningar",
+      "mute_room": "Tysta rum",
+      "unmute_room": "Slå på rummet igen",
+      "mute_conversation": "Tysta konversation",
+      "unmute_conversation": "Slå på konversationen igen",
+      "mute_for": {
+        "minutes_15": "I 15 minuter",
+        "hour_1": "I 1 timme",
+        "hours_8": "I 8 timmar",
+        "hours_24": "I 24 timmar",
+        "until_unmuted": "Tills jag slår på den igen"
+      },
+      "muted": "Tystad",
+      "muted_until": "Tystad till {time}",
+      "notify_me_about": "Avisera mig om",
+      "notify": {
+        "all": "Alla meddelanden",
+        "mentions": "Bara {'@'}taggar",
+        "nothing": "Ingenting"
+      }
     }
   },
   "charts": {
@@ -10868,5 +11043,235 @@
     "position": "{index} av {total}",
     "registration": "Anmälan",
     "title": "Snabbtitt"
+  },
+  "scrims": {
+    "tabs": {
+      "board": "Tavla",
+      "requests": "Mina scrims",
+      "listing": "Din annons"
+    },
+    "team_switch": "Hitta scrims för",
+    "when": "{day}, {time}",
+    "duration": {
+      "minutes": "{n} min",
+      "hours": "{n} h"
+    },
+    "status": {
+      "both_free": "Båda lediga",
+      "different_hours": "Olika tider",
+      "their_range": "Utanför deras intervall",
+      "our_range": "Utanför ditt intervall",
+      "you_are_booked": "Du är bokad",
+      "needs_you": "Väntar på dig",
+      "requested": "Förfrågan skickad",
+      "booked": "Bokad {time}"
+    },
+    "board": {
+      "now": "Nu",
+      "until": "till {time}",
+      "to": "till {time}",
+      "open_now": "Öppna nu",
+      "open_now_hint": "Lediga att starta inom en halvtimme",
+      "col_opens": "Öppnar",
+      "col_team": "Lag",
+      "col_maps": "Kartor",
+      "col_elo": "ELO",
+      "col_reliable": "Pålitlig",
+      "col_for_you": "För dig",
+      "request": "Begär",
+      "request_at": "Begär scrim mot {team} kl. {time}",
+      "answer": "Svara",
+      "view": "Visa",
+      "any_map": "Valfri karta",
+      "any_region": "Valfri region",
+      "new": "Ny",
+      "new_team": "Nytt lag",
+      "played": "{count} spelade",
+      "reliable": "{pct}% pålitlighet",
+      "elo_value": "{elo} ELO",
+      "times_note": "Tiderna visas i din tidszon. En best of 1 kan starta ända fram till slutet av ett lags tider.",
+      "empty_title": "Inga lag är öppna den här veckan",
+      "empty_description": "De flesta lag öppnar sina tider på kvällen. Titta in senare.",
+      "empty_description_team": "Öppna {team} för scrims så att lag kan skicka förfrågningar, eller använd Scrim nu för att spela mot det lag som öppnar härnäst.",
+      "edit_listing": "Redigera din annons",
+      "filtered_fits": "Stäng av ”Passar {team}” för att även se lag utanför ditt intervall."
+    },
+    "filters": {
+      "search": "Sök lag",
+      "day": "Dag",
+      "any_day": "Valfri dag",
+      "region": "Region",
+      "regions_hint": "Lag som tar valfri region visas alltid.",
+      "fits": "Passar {team}",
+      "maps": "Spelar någon av",
+      "elo": "Lagets snitt-ELO",
+      "elo_min": "Min",
+      "elo_max": "Max",
+      "elo_near": "Inom {n} från {team}"
+    },
+    "cta": {
+      "guest": "Logga in för att begära scrims och se vilka lag som passar ditt.",
+      "sign_in": "Logga in med Steam",
+      "player": "Scrims skickas från ett lag. Skapa ett, eller be lagets ägare att göra dig till admin.",
+      "create_team": "Skapa ett lag"
+    },
+    "booked": {
+      "banner": "{team} spelar mot {opponent}, {when}.",
+      "lock": "Ett lag kan ha en bokad scrim åt gången, så nya förfrågningar öppnas när den här har spelats."
+    },
+    "sheet": {
+      "description": "Laginfo och scrimförfrågan",
+      "team_page": "Lagsida",
+      "players": "{count} spelare | {count} spelare",
+      "elo": "Lag-ELO",
+      "takes": "Tar {range}",
+      "any_elo": "valfri ELO",
+      "up_to": "upp till {elo}",
+      "and_up": "{elo} och uppåt",
+      "reliability": "Pålitlighet",
+      "new": "Ny",
+      "no_scrims": "Inga scrims än",
+      "no_shows": "{count} utebliven | {count} uteblivna",
+      "late_cancels": "{count} sen avbokning | {count} sena avbokningar",
+      "premier_faceit": "Premier · FACEIT",
+      "faceit_level": "FACEIT-nivå {level}",
+      "not_linked": "Inget FACEIT kopplat",
+      "how_you_fit": "Hur ni passar",
+      "maps": "Kartor de vill spela",
+      "any_map": "Valfri karta i poolen",
+      "open_hours": "Öppna tider den här veckan",
+      "no_hours": "Inga öppna tider den här veckan.",
+      "your_team": "Det här är ditt lag. Hantera annonsen under Din annons.",
+      "send_from": "Skicka från",
+      "your_scrim": "Er scrim mot dem",
+      "request_title": "Begär en scrim",
+      "widen": "Bredda ditt intervall"
+    },
+    "fit": {
+      "elo_ok": "{team} ({elo}) ligger inom deras intervall, och de ligger inom ditt.",
+      "their_range_below": "{them} tar {range}. {team} har snittet {elo}, under deras minimum.",
+      "their_range_above": "{them} tar {range}. {team} har snittet {elo}, över deras maximum.",
+      "their_range_no_elo": "{them} tar bara {range}, och {team} har ingen ELO än.",
+      "our_range_below": "{them} har snittet {elo}, under intervallet {range} som {team} tar.",
+      "our_range_above": "{them} har snittet {elo}, över intervallet {range} som {team} tar.",
+      "our_range_no_elo": "{them} har ingen ELO än, och {team} tar bara {range}.",
+      "booked": "{team} har en scrim bokad mot {opponent}. Nya förfrågningar öppnas när den har spelats.",
+      "region_any": "En av er tar valfri region, så vilken server som helst fungerar.",
+      "region_shared": "Båda spelar på servrar i {regions}.",
+      "region_none": "Ingen gemensam region. De spelar på {theirs}, ni på {yours}.",
+      "time_shared": "Båda lediga {day}, {range}.",
+      "time_none": "Era tider överlappar inte den här veckan.",
+      "time_none_outside": "Era tider överlappar inte den här veckan, men de tar emot förfrågningar för andra tider.",
+      "maps_any": "De spelar vilken karta som helst.",
+      "maps_shared": "{count} gemensam karta: {maps} | {count} gemensamma kartor: {maps}",
+      "maps_none": "Inga gemensamma kartor."
+    },
+    "form": {
+      "series": "Serie",
+      "best_of": "Best of {n}",
+      "series_hint": "Längre serier kräver ett längre fönster inom tiderna för {team}.",
+      "day": "Dag",
+      "start": "Start",
+      "closed": "Stängt",
+      "no_start": "Ingen start på {hours} timmar får plats den här dagen.",
+      "both_free_legend": "{team} är också ledigt",
+      "other_time_link": "Be om en tid utanför deras tider",
+      "other_time": "En annan tid",
+      "back_to_hours": "Välj bland deras tider",
+      "past": "Den tiden har passerat. Välj en senare.",
+      "other_hint": "{team} tar emot förfrågningar utanför sina tider. De måste fortfarande godkänna.",
+      "outside_theirs": "Utanför deras tider",
+      "outside_yours": "Utanför dina tider",
+      "pick_start": "Välj en starttid.",
+      "map_pool": "Spelas i Active Duty-poolen med kartveto. {team} har 24 timmar på sig att svara.",
+      "from": "Från {team}",
+      "send": "Skicka förfrågan"
+    },
+    "requests": {
+      "intro": "Förfrågningar går ut efter 24 timmar. Bokade scrims visas på matchsidan och i din kalender.",
+      "needs_you": "Väntar på dig",
+      "booked": "Bokade",
+      "waiting": "Väntar på dem",
+      "played": "Spelade",
+      "record": "{pct}% pålitlighet · {played} spelade",
+      "empty_title": "Inga öppna förfrågningar",
+      "empty_description": "Skicka en från tavlan, eller använd Scrim nu så parar 5Stack ihop dig med ett lag som är ledigt.",
+      "suggested": "Föreslagen av 5Stack",
+      "suggested_why": "Ni är båda lediga kl. {time}.",
+      "starts_in": "Startar om {time} om du accepterar.",
+      "answer_within": "Svara inom {time}, annars går den ut.",
+      "their_turn": "{team} har {time} på sig att svara.",
+      "you_asked": "Ni frågade",
+      "they_asked": "De frågade",
+      "you_proposed": "ni föreslog",
+      "they_proposed": "de föreslog",
+      "accept": "Acceptera {time}",
+      "propose": "Föreslå en annan tid",
+      "cancel_request": "Avbryt förfrågan",
+      "view_match": "Visa match",
+      "cancel_scrim": "Avbryt scrim",
+      "cancel_confirm": "Att avbryta en bokad scrim räknas som en sen avbokning i pålitligheten för {team}.",
+      "keep": "Behåll scrim",
+      "locked": "Låst tills er scrim mot {team} har spelats.",
+      "counter_title": "Ny tid inom tiderna för {team}",
+      "counter_send": "Föreslå {when}",
+      "counter_pick": "Välj en tid",
+      "never_mind": "Glöm det",
+      "open_team": "Öppna {team}"
+    },
+    "listing": {
+      "preview": "Så ser lagen dig",
+      "hidden": "Dold medan stängd",
+      "add_hours": "Lägg till veckotider så att ditt lag syns på tavlan.",
+      "open": "Öppen för scrims",
+      "open_hint": "Lag kan hitta {team} och skicka förfrågningar inom dina tider.",
+      "closed": "Stängd",
+      "closed_hint": "Dold i sökaren. Förfrågningar du redan har skickat gäller fortfarande.",
+      "hours": "Veckotider",
+      "time_zone": "I din tidszon",
+      "to": "till",
+      "outside": "Ta emot förfrågningar utanför de här tiderna",
+      "opponents": "Motståndare du tar emot",
+      "near": "Inom {n} från {elo}",
+      "regions": "Serverregioner",
+      "maps": "Kartor ni vill spela",
+      "maps_hint": "Visas för andra lag. Matcher använder Active Duty-poolen med veto.",
+      "note": "Meddelande till andra lag",
+      "note_placeholder": "Språk i comms, coach i voice, vad ni tränar på…",
+      "alerts": "Meddela mig när ett lag öppnar",
+      "save": "Spara annons",
+      "saved": "Annonsen sparad",
+      "nearby": "I närheten · under {ms} ms",
+      "show_less": "Visa mindre"
+    },
+    "now": {
+      "button": "Scrim nu",
+      "looking": "Söker till {time}",
+      "title": "Hitta en scrim nu",
+      "description": "Öppnar {team} för alla som är lediga de närmaste {hours} timmarna. När ett lag inom ditt intervall också är ledigt skickar 5Stack en förfrågan till er båda.",
+      "booked": "Du har redan en scrim bokad, så det här väntar tills den har spelats.",
+      "start": "Börja söka",
+      "stop": "Sluta söka",
+      "looking_description": "{team} är öppet för alla som är lediga nu, till {time}. Lag inom ditt intervall får en förfrågan från 5Stack.",
+      "started": "{team} söker till {time}.",
+      "stopped": "Slutade söka."
+    },
+    "team_tab": {
+      "description": "Förfrågningar och din annons i Scrimsökaren.",
+      "find": "Hitta en scrim"
+    },
+    "toast": {
+      "sent": "Förfrågan skickad till {team}.",
+      "booked": "Bokad mot {team}.",
+      "declined": "Avböjde {team}.",
+      "countered": "Ny tid skickad till {team}.",
+      "cancelled": "Förfrågan till {team} avbruten.",
+      "cancelled_booked": "Scrimmen mot {team} avbröts. Det räknas som en sen avbokning.",
+      "failed": "Det gick inte igenom"
+    },
+    "week": {
+      "title": "Den här veckan",
+      "no_hours": "Inga tider"
+    }
   }
 }

@@ -69,16 +69,18 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
       >
         <template #name-postfix>
           <span
-            v-if="!isInvite && member.role"
+            v-if="!isInvite && (isOwner || member.role)"
             class="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80"
           >
-            {{ member.role }}
+            {{ isOwner ? $t("team.roles.owner") : roleLabel(member.role) }}
           </span>
-          <GraduationCap
+          <span
             v-if="!isInvite && member.coach"
-            class="h-3.5 w-3.5 text-muted-foreground/80"
-            :aria-label="$t('team.member.coach')"
-          />
+            class="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+          >
+            <GraduationCap class="h-3 w-3" />
+            {{ $t("team.member.coach") }}
+          </span>
           <span
             v-if="!isInvite && isCaptain"
             class="inline-flex items-center gap-1 rounded-full border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.12)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[hsl(var(--tac-amber))]"
@@ -134,11 +136,11 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="w-56">
           <DropdownMenuGroup v-if="team.can_change_role && roles?.length">
-            <DropdownMenuSub>
+            <DropdownMenuSub v-if="!isOwner">
               <DropdownMenuSubTrigger>
                 <span>{{ $t("team.members.role") }}</span>
                 <span class="ml-auto text-muted-foreground text-xs">{{
-                  member.role
+                  roleLabel(member.role)
                 }}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent class="w-64">
@@ -149,7 +151,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                   @click="publishRole(role.value)"
                 >
                   <div class="flex w-full items-center justify-between">
-                    <span>{{ role.value }}</span>
+                    <span>{{ roleLabel(role.value) }}</span>
                     <span
                       v-if="role.value === member.role"
                       class="text-xs text-primary"
@@ -166,14 +168,12 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <span>{{ $t("common.status") }}</span>
-                <span
-                  class="ml-auto text-muted-foreground text-xs capitalize"
-                  >{{
-                    member.coach
-                      ? $t("team.member.coach")
-                      : $t(`team.member.${statusKey}`)
-                  }}</span
-                >
+                <span class="ml-auto text-muted-foreground text-xs">
+                  {{ $t(`team.member.${statusKey}`) }}
+                  <template v-if="member.coach">
+                    · {{ $t("team.member.coach") }}
+                  </template>
+                </span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent class="w-48">
                 <DropdownMenuItem
@@ -183,10 +183,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                 >
                   {{ $t("team.member.starter") }}
                   <span
-                    v-if="
-                      !member.coach &&
-                      member.status === e_team_roster_statuses_enum.Starter
-                    "
+                    v-if="member.status === e_team_roster_statuses_enum.Starter"
                     class="ml-auto text-primary"
                     >✓</span
                   >
@@ -199,7 +196,6 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                   {{ $t("team.member.substitute") }}
                   <span
                     v-if="
-                      !member.coach &&
                       member.status === e_team_roster_statuses_enum.Substitute
                     "
                     class="ml-auto text-primary"
@@ -213,10 +209,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                 >
                   {{ $t("team.member.benched") }}
                   <span
-                    v-if="
-                      !member.coach &&
-                      member.status === e_team_roster_statuses_enum.Benched
-                    "
+                    v-if="member.status === e_team_roster_statuses_enum.Benched"
                     class="ml-auto text-primary"
                     >✓</span
                   >
@@ -328,6 +321,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
 import type { e_team_roles_enum } from "~/generated/zeus";
+import { teamRoleLabel } from "~/utilities/teamRoleLabel";
 
 interface Role {
   value: string;
@@ -373,6 +367,11 @@ export default {
       required: false,
       default: false,
     },
+    isOwner: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     matchType: {
       type: String,
       required: false,
@@ -399,7 +398,7 @@ export default {
       return this.member.player.steam_id === this.me?.steam_id;
     },
     canRemoveMember(): boolean {
-      return !!this.team.can_remove && !this.isSelf;
+      return !!this.team.can_remove && !this.isSelf && !this.isOwner;
     },
     canEditRosterImage(): boolean {
       return !!this.team.can_change_role && !this.isInvite;
@@ -451,6 +450,9 @@ export default {
     },
   },
   methods: {
+    roleLabel(role: string): string {
+      return teamRoleLabel(role, (key) => this.$t(key));
+    },
     async updateMemberStatus(value: e_team_roster_statuses_enum) {
       await (this as any).$apollo.mutate({
         mutation: generateMutation({

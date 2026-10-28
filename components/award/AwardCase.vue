@@ -256,7 +256,7 @@ const tierRack = computed(() => {
     <!-- Award grid -->
     <div
       v-if="sorted.length"
-      class="relative grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5"
+      class="relative grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
     >
       <!-- Two affordances on one pedestal: the badge opens this grant, the
            nameplate opens the award itself. The wrapper keeps group/pedestal
@@ -264,16 +264,13 @@ const tierRack = computed(() => {
       <div
         v-for="grant in sorted"
         :key="grant.id"
-        class="group/pedestal relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,hsl(var(--card)/0.55)_0%,hsl(var(--background)/0.2)_100%)] px-3 pb-4 pt-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform duration-200 hover:-translate-y-1"
-        :style="{
-          boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${tierColors[grantTier(grant)]} 28%, transparent), 0 16px 30px -24px ${tierColors[grantTier(grant)]}`,
-        }"
+        class="group/pedestal relative flex flex-col items-center gap-2 rounded-sm px-2 pb-3 pt-4 transition-transform duration-200 hover:-translate-y-0.5"
       >
         <!-- Uplight -->
         <div
-          class="pointer-events-none absolute inset-x-4 bottom-10 top-6 rounded-full opacity-50 blur-2xl transition-opacity duration-300 group-hover/pedestal:opacity-90"
+          class="pointer-events-none absolute inset-x-3 bottom-8 top-2 rounded-full opacity-40 blur-2xl transition-opacity duration-300 group-hover/pedestal:opacity-80"
           :style="{
-            background: `radial-gradient(ellipse at center, ${tierColors[grantTier(grant)]} 0%, transparent 68%)`,
+            background: `radial-gradient(ellipse at center bottom, ${tierColors[grantTier(grant)]} 0%, transparent 65%)`,
           }"
         ></div>
 
@@ -296,15 +293,6 @@ const tierRack = computed(() => {
             size="md"
           />
         </button>
-
-        <div
-          class="relative z-[1] -mt-1 h-1.5 w-14 rounded-full"
-          :style="{
-            background: `linear-gradient(90deg, transparent, ${tierColors[grantTier(grant)]}, transparent)`,
-            boxShadow: `0 10px 18px -8px ${tierColors[grantTier(grant)]}`,
-          }"
-          aria-hidden="true"
-        ></div>
 
         <!-- Stenciled nameplate. A grant whose award is gone has nowhere to
              go, and NuxtLink renders an inert anchor for a null target. -->

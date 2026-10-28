@@ -1,0 +1,549 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { useApolloClient } from "@vue/apollo-composable";
+import { useI18n } from "vue-i18n";
+import { PlusCircle, Search, Swords, Trophy, Users, X } from "lucide-vue-next";
+import { $, order_by } from "~/generated/zeus";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { teamResultMatchFields } from "~/graphql/teamPulseFields";
+import { orderByIds } from "~/utilities/orderByIds";
+import FilterBar from "~/components/common/FilterBar.vue";
+import FilterMenu from "~/components/common/FilterMenu.vue";
+import FilterToggle from "~/components/common/FilterToggle.vue";
+import Pagination from "~/components/Pagination.vue";
+import WatchSegmented from "~/components/watch/WatchSegmented.vue";
+import TeamsDirectoryRow from "~/components/teams/TeamsDirectoryRow.vue";
+import {
+  groupAwardsByTeam,
+  teamAwardsSubscription,
+  tournamentWinnerTeamIds,
+  type TeamAwardEntry,
+} from "~/components/teams/teamAwards";
+import { Button } from "~/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "~/components/ui/input-group";
+import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
+import { useAuthStore } from "~/stores/AuthStore";
+import { useDeferredLoading } from "~/composables/useDeferredLoading";
+import { useLiveTeamMatches } from "~/composables/useLiveTeamMatches";
+import { usePerPage } from "~/composables/usePerPage";
+import { useRestoredRefs } from "~/composables/useRestoredState";
+import { schemaHasField } from "~/utilities/schemaHasType";
+import { RESULT_MATCHES_WHERE } from "~/utilities/teamResults";
+import {
+  lastDirectoryResults,
+  lastDirectoryRowCount,
+} from "~/utilities/teamsListCache";
+import {
+  filterTriggerActive,
+  filterTriggerBase,
+  filterTriggerIdle,
+  listCreateButtonClasses,
+} from "~/utilities/tacticalClasses";
+
+// The page shows "Create team" here only when the viewer has no team of
+// their own; otherwise it sits on "Your teams". The sort and create go to
+// `headerTo` (the page's tab row) when given, else above the list.
+defineProps<{ showCreate: boolean; headerTo?: HTMLElement | null }>();
+
+type Sort = "active" | "rating" | "name";
+
+const { t } = useI18n();
+const { client } = useApolloClient();
+const auth = useAuthStore();
+const { liveTeamIds } = useLiveTeamMatches();
+
+const search = ref("");
+const query = ref("");
+const mine = ref(false);
+const winnersOnly = ref(false);
+const scrimsOnly = ref(false);
+const sort = ref<Sort | null>(null);
+const page = ref(1);
+const perPage = usePerPage("teams");
+// Back to Teams lands on the same page, search, sort and filters.
+useRestoredRefs("teams-directory", {
+  search,
+  query,
+  mine,
+  winnersOnly,
+  scrimsOnly,
+  sort,
+  page,
+});
+
+const teams = ref<any[]>([]);
+const total = ref(0);
+// Starts pending: the first fetch waits on the schema check for its sort.
+const fetching = ref(true);
+const { skeleton, refreshing } = useDeferredLoading(() => fetching.value);
+// Shown from the last visit's results while the first fetch runs, so coming
+// back to Teams does not flash a skeleton of a different height.
+const seeded = ref(false);
+
+const signedIn = computed(() => !!auth.me);
+
+// "Recently active" needs the API's last_match_at; until it ships the sort
+// is left out rather than failing.
+const hasLastMatchAt = ref(false);
+if (typeof window !== "undefined") {
+  schemaHasField(client, "teams", "last_match_at").then((has) => {
+    hasLastMatchAt.value = has;
+    sort.value ??= has ? "active" : "name";
+  });
+}
+
+const sortOptions = computed(() => [
+  ...(hasLastMatchAt.value
+    ? [{ key: "active" as Sort, label: t("pages.teams.directory.sort_active") }]
+    : []),
+  { key: "rating" as Sort, label: t("pages.teams.directory.sort_rating") },
+  { key: "name" as Sort, label: t("pages.teams.directory.sort_name") },
+]);
+
+const sortModel = computed<Sort>({
+  get: () => sort.value ?? "name",
+  set: (value) => {
+    sort.value = value;
+    page.value = 1;
+  },
+});
+
+const ORDER: Record<Sort, any[]> = {
+  active: [{ last_match_at: "desc_nulls_last" }, { name: "asc" }],
+  rating: [{ ranks: { avg_elo: "desc_nulls_last" } }, { name: "asc" }],
+  name: [{ name: "asc" }],
+};
+
+// Every team award; the rows show them and "Tournament winners" filters on
+// them.
+const teamAwards = ref<TeamAwardEntry[]>([]);
+const awardsSubscription =
+  typeof window !== "undefined"
+    ? client.subscribe({ query: teamAwardsSubscription }).subscribe({
+        next: ({ data }: any) => {
+          teamAwards.value = data?.award_recipients ?? [];
+        },
+        error: (error: any) => {
+          console.error("[teams] awards subscription error", error);
+        },
+      })
+    : null;
+
+const awardsByTeamId = computed(() => groupAwardsByTeam(teamAwards.value));
+const winnerTeamIds = computed(() => tournamentWinnerTeamIds(teamAwards.value));
+
+const rowFields = {
+  id: true,
+  name: true,
+  short_name: true,
+  avatar_url: true,
+  is_organization: true,
+  ranks: { avg_elo: true },
+  roster: [
+    {},
+    {
+      status: true,
+      roster_image_url: true,
+      player: { steam_id: true, name: true, avatar_url: true, country: true },
+    },
+  ],
+  __alias: {
+    recent_results: {
+      matches: [
+        {
+          where: RESULT_MATCHES_WHERE,
+          order_by: [{ ended_at: order_by.desc_nulls_last }],
+          limit: 5,
+        },
+        teamResultMatchFields,
+      ],
+    },
+  },
+};
+
+function teamsQuery(withLastMatch: boolean) {
+  return generateQuery({
+    teams: [
+      {
+        where: $("where", "teams_bool_exp!"),
+        order_by: $("orderBy", "[teams_order_by!]"),
+        limit: $("limit", "Int!"),
+        offset: $("offset", "Int!"),
+      },
+      withLastMatch ? { ...rowFields, last_match_at: true } : rowFields,
+    ],
+    teams_aggregate: [
+      { where: $("where", "teams_bool_exp!") },
+      { aggregate: { count: true } },
+    ],
+  } as any);
+}
+const queries = { with: teamsQuery(true), without: teamsQuery(false) };
+
+// Sorting through ranks (a view) has every team's row built before the page is
+// cut, so the rating sort finds the page's ids first and then reads just those.
+const rankedIdsQuery = generateQuery({
+  teams: [
+    {
+      where: $("where", "teams_bool_exp!"),
+      order_by: $("orderBy", "[teams_order_by!]"),
+      limit: $("limit", "Int!"),
+      offset: $("offset", "Int!"),
+    },
+    { id: true },
+  ],
+  teams_aggregate: [
+    { where: $("where", "teams_bool_exp!") },
+    { aggregate: { count: true } },
+  ],
+} as any);
+
+async function fetchDirectory(variables: Record<string, any>) {
+  const query = hasLastMatchAt.value ? queries.with : queries.without;
+  if (sort.value !== "rating") {
+    const { data } = await client.query({
+      query,
+      variables,
+      fetchPolicy: "network-only",
+    });
+    return {
+      teams: (data as any)?.teams ?? [],
+      total: (data as any)?.teams_aggregate?.aggregate?.count ?? 0,
+    };
+  }
+  const { data: ranked } = await client.query({
+    query: rankedIdsQuery,
+    variables,
+    fetchPolicy: "network-only",
+  });
+  const ids: string[] = ((ranked as any)?.teams ?? []).map(
+    (team: { id: string }) => team.id,
+  );
+  const total = (ranked as any)?.teams_aggregate?.aggregate?.count ?? 0;
+  if (!ids.length) {
+    return { teams: [], total };
+  }
+  const { data } = await client.query({
+    query,
+    variables: {
+      where: { id: { _in: ids } },
+      orderBy: ORDER.name,
+      limit: ids.length,
+      offset: 0,
+    },
+    fetchPolicy: "network-only",
+  });
+  return { teams: orderByIds((data as any)?.teams ?? [], ids), total };
+}
+
+const filterCount = computed(
+  () => Number(winnersOnly.value) + Number(scrimsOnly.value),
+);
+const anyFilter = computed(
+  () => !!search.value || mine.value || filterCount.value > 0,
+);
+
+const where = computed(() => {
+  const and: any[] = [];
+  const term = query.value.trim().replace(/[\\%_]/g, (c) => `\\${c}`);
+  if (term) {
+    and.push({
+      _or: [
+        { name: { _ilike: `%${term}%` } },
+        { short_name: { _ilike: `%${term}%` } },
+      ],
+    });
+  }
+  if (winnersOnly.value) and.push({ id: { _in: winnerTeamIds.value } });
+  if (scrimsOnly.value)
+    and.push({ scrim_settings: { enabled: { _eq: true } } });
+  if (mine.value && auth.me?.steam_id) {
+    and.push({
+      _or: [
+        { owner_steam_id: { _eq: auth.me.steam_id } },
+        { roster: { player_steam_id: { _eq: auth.me.steam_id } } },
+      ],
+    });
+  }
+  return and.length ? { _and: and } : {};
+});
+
+// Bumped on every fetch so a slow response for an old filter can't land
+// over a newer one.
+let generation = 0;
+async function load() {
+  if (!sort.value || typeof window === "undefined") return;
+  const current = ++generation;
+  const variables = {
+    where: where.value,
+    orderBy: ORDER[sort.value],
+    limit: mine.value ? 100 : perPage.value,
+    offset: mine.value ? 0 : (page.value - 1) * perPage.value,
+  };
+  const key = JSON.stringify([hasLastMatchAt.value, variables]);
+  const previous = lastDirectoryResults.get(key);
+  if (previous && !teams.value.length) {
+    teams.value = previous.teams;
+    total.value = previous.total;
+    seeded.value = true;
+  }
+  fetching.value = true;
+  try {
+    const result = await fetchDirectory(variables);
+    if (current !== generation) return;
+    teams.value = result.teams;
+    total.value = result.total;
+    lastDirectoryResults.set(key, { teams: teams.value, total: total.value });
+    lastDirectoryRowCount.value = teams.value.length;
+  } catch (error) {
+    console.error("[teams] directory query error", error);
+  } finally {
+    if (current === generation) {
+      fetching.value = false;
+      seeded.value = false;
+    }
+  }
+}
+
+watch(
+  [where, sort, page, perPage, mine],
+  () => {
+    void load();
+  },
+  { immediate: true, deep: true },
+);
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
+watch(search, (value) => {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    query.value = value;
+    page.value = 1;
+  }, 250);
+});
+watch([mine, winnersOnly, scrimsOnly], () => {
+  page.value = 1;
+});
+watch(signedIn, (value) => {
+  if (!value) mine.value = false;
+});
+
+onBeforeUnmount(() => {
+  awardsSubscription?.unsubscribe();
+  if (searchTimer) clearTimeout(searchTimer);
+});
+
+function clearSearch() {
+  search.value = "";
+  query.value = "";
+  page.value = 1;
+}
+
+function resetFilters() {
+  clearSearch();
+  mine.value = false;
+  winnersOnly.value = false;
+  scrimsOnly.value = false;
+}
+
+function onPerPage(value: number) {
+  perPage.value = value;
+  page.value = 1;
+}
+
+const headerCell = "text-[11px] font-semibold uppercase tracking-[0.1em]";
+</script>
+
+<template>
+  <section>
+    <div
+      :class="
+        headerTo
+          ? 'contents'
+          : 'mb-3 flex flex-wrap items-center justify-end gap-x-2 gap-y-3'
+      "
+    >
+      <Teleport :to="headerTo" :disabled="!headerTo">
+        <WatchSegmented
+          v-if="sort"
+          v-model="sortModel"
+          :options="sortOptions"
+          :label="$t('pages.teams.directory.sort_label')"
+        />
+        <Button
+          v-if="showCreate && signedIn"
+          as-child
+          size="sm"
+          :class="listCreateButtonClasses"
+        >
+          <NuxtLink
+            :to="{ name: 'teams-create' }"
+            :title="$t('pages.teams.create')"
+          >
+            <PlusCircle class="h-4 w-4" />
+            <span class="max-md:sr-only">{{ $t("pages.teams.create") }}</span>
+          </NuxtLink>
+        </Button>
+      </Teleport>
+    </div>
+
+    <FilterBar>
+      <InputGroup class="h-8 min-w-[12rem] flex-1 bg-card/60 sm:max-w-xs">
+        <InputGroupAddon class="pl-2.5">
+          <Search class="h-3.5 w-3.5" />
+        </InputGroupAddon>
+        <InputGroupInput
+          v-model="search"
+          :placeholder="$t('pages.teams.search')"
+          :aria-label="$t('pages.teams.directory.search_label')"
+          class="h-full text-sm"
+        />
+        <InputGroupAddon align="inline-end" class="pr-2">
+          <button
+            v-if="search"
+            type="button"
+            class="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            :aria-label="$t('pages.teams.directory.clear_search')"
+            @click="clearSearch"
+          >
+            <X class="h-3.5 w-3.5" />
+          </button>
+        </InputGroupAddon>
+      </InputGroup>
+
+      <button
+        v-if="signedIn"
+        type="button"
+        :aria-pressed="mine"
+        :title="$t('team.search.my_teams_only')"
+        :class="[
+          filterTriggerBase,
+          mine ? filterTriggerActive : filterTriggerIdle,
+        ]"
+        @click="mine = !mine"
+      >
+        <Users class="h-3.5 w-3.5" />
+        <span class="max-md:sr-only">{{
+          $t("team.search.my_teams_only")
+        }}</span>
+      </button>
+
+      <FilterMenu
+        class="ml-auto"
+        :count="filterCount"
+        :active="filterCount > 0"
+        :show-reset="anyFilter"
+        content-class="w-64 space-y-0.5 p-2"
+        @reset="resetFilters"
+      >
+        <FilterToggle
+          v-model="winnersOnly"
+          :label="$t('team.search.tournament_winners')"
+        >
+          <template #icon><Trophy class="h-3.5 w-3.5" /></template>
+        </FilterToggle>
+        <FilterToggle
+          v-model="scrimsOnly"
+          :label="$t('team.search.scrims_only')"
+        >
+          <template #icon><Swords class="h-3.5 w-3.5" /></template>
+        </FilterToggle>
+      </FilterMenu>
+    </FilterBar>
+
+    <div
+      class="mt-3 overflow-hidden rounded-lg border border-border bg-muted/10 transition-opacity duration-150"
+      :class="{ 'opacity-60': refreshing }"
+      :aria-busy="fetching"
+    >
+      <div
+        aria-hidden="true"
+        class="hidden items-center gap-x-4 border-b border-border px-4 py-2 text-muted-foreground lg:grid lg:[grid-template-columns:2.5rem_minmax(0,1.6fr)_8.5rem_5.5rem_6.5rem_8.5rem_minmax(0,9rem)]"
+      >
+        <span></span>
+        <span :class="headerCell">{{ $t("team.table.team") }}</span>
+        <span :class="headerCell">{{
+          $t("pages.teams.directory.col_roster")
+        }}</span>
+        <span :class="headerCell">{{
+          $t("pages.teams.directory.col_elo")
+        }}</span>
+        <span :class="headerCell">{{
+          $t("pages.teams.directory.col_form")
+        }}</span>
+        <span :class="headerCell">{{
+          $t("pages.teams.directory.col_last")
+        }}</span>
+        <span :class="[headerCell, 'text-right']">{{
+          $t("pages.teams.directory.col_awards")
+        }}</span>
+      </div>
+
+      <div v-if="skeleton && !seeded" class="divide-y divide-border/60">
+        <div
+          v-for="i in Math.min(perPage, lastDirectoryRowCount.value || 10)"
+          :key="i"
+          class="flex items-center gap-3 px-4 py-3"
+        >
+          <Skeleton class="size-10 shrink-0 rounded-md" />
+          <div class="grid flex-1 gap-1.5">
+            <Skeleton class="h-4 w-40" />
+            <Skeleton class="h-3 w-24" />
+          </div>
+          <Skeleton class="hidden h-4 w-24 lg:block" />
+          <Skeleton class="h-4 w-20" />
+        </div>
+      </div>
+
+      <div
+        v-else-if="!teams.length"
+        class="grid justify-items-center gap-1.5 px-6 py-10 text-center"
+      >
+        <p class="m-0 text-sm font-semibold">
+          {{ $t("pages.teams.no_teams_title") }}
+        </p>
+        <p class="m-0 text-[13px] text-muted-foreground">
+          {{
+            anyFilter
+              ? $t("pages.teams.directory.no_match")
+              : $t("pages.teams.no_teams")
+          }}
+        </p>
+        <Button
+          v-if="anyFilter"
+          size="sm"
+          variant="outline"
+          class="mt-2 h-8"
+          @click="resetFilters"
+        >
+          {{ $t("pages.teams.directory.clear_filters") }}
+        </Button>
+      </div>
+
+      <div v-else role="list" class="divide-y divide-border/60">
+        <TeamsDirectoryRow
+          v-for="team in teams"
+          :key="team.id"
+          :team="team"
+          :awards="awardsByTeamId[team.id] ?? []"
+          :live="liveTeamIds.has(team.id)"
+        />
+      </div>
+    </div>
+
+    <Pagination
+      v-if="!mine && total > 0"
+      class="mt-3"
+      :page="page"
+      :per-page="perPage"
+      :total="total"
+      :show-per-page-selector="true"
+      @page="page = $event"
+      @update:per-page="onPerPage"
+    />
+  </section>
+</template>

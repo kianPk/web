@@ -9,11 +9,12 @@ import {
 } from "vue";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
-import { matchClipFields } from "~/graphql/matchClip";
+import { matchClipFields, topPlayOrderBy } from "~/graphql/matchClip";
 import { Film } from "lucide-vue-next";
-import HighlightCard from "~/components/clips/HighlightCard.vue";
+import ClipTile from "~/components/clips/ClipTile.vue";
 import HighlightSkeleton from "~/components/clips/HighlightSkeleton.vue";
-import { useClipModal, type ClipQueueItem } from "~/composables/useClipModal";
+import { useClipModal } from "~/composables/useClipModal";
+import { clipQueueItem } from "~/utilities/clipDisplay";
 import type { Clip } from "~/types/clip";
 
 const props = defineProps<{
@@ -21,6 +22,9 @@ const props = defineProps<{
 }>();
 
 const PAGE_SIZE = 12;
+// One grid row at each breakpoint (1, 2, then 3 across). Loading and empty
+// both take exactly this row, so finding no clips doesn't resize the tab.
+const ROW_CELLS = ["", "max-sm:hidden", "max-lg:hidden"];
 
 const steamIds = ref<string[]>([]);
 const clips = ref<Clip[]>([]);
@@ -45,7 +49,7 @@ function subscribe() {
             target_steam_id: { _in: steamIds.value },
             visibility: { _eq: "public" },
           },
-          order_by: [{ created_at: "desc" }],
+          order_by: topPlayOrderBy,
           limit: limit.value,
         } as any,
         matchClipFields,
@@ -101,17 +105,6 @@ watch(
 
 const { setClipQueue, clearClipQueue } = useClipModal();
 const clipQueueScope = computed(() => `team-highlights:${props.teamId}`);
-function clipQueueItem(c: Clip): ClipQueueItem {
-  return {
-    id: c.id,
-    title: c.title,
-    playerName: c.target?.name ?? null,
-    teamName: null,
-    durationMs: c.duration_ms,
-    thumbnailUrl: c.thumbnail_download_url,
-    posterUrl: c.match_map?.map?.poster ?? null,
-  };
-}
 watchEffect(() => {
   if (clips.value.length === 0) {
     return;
@@ -166,17 +159,28 @@ const hasClips = computed(() => clips.value.length > 0);
       v-if="loading"
       class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
     >
-      <HighlightSkeleton v-for="i in 6" :key="i" />
+      <HighlightSkeleton v-for="cell in ROW_CELLS" :key="cell" :class="cell" />
     </div>
 
     <div
       v-else-if="!hasClips"
-      class="flex flex-col items-center gap-3 rounded-md border border-dashed border-border px-4 py-16 text-center"
+      class="relative grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
     >
-      <Film class="h-6 w-6 text-muted-foreground" />
-      <p class="text-sm text-muted-foreground">
-        {{ $t("team.highlights.empty") }}
-      </p>
+      <div
+        v-for="cell in ROW_CELLS"
+        :key="cell"
+        aria-hidden="true"
+        class="aspect-video"
+        :class="cell"
+      />
+      <div
+        class="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border px-4 text-center"
+      >
+        <Film class="h-6 w-6 text-muted-foreground" />
+        <p class="text-sm text-muted-foreground">
+          {{ $t("team.highlights.empty") }}
+        </p>
+      </div>
     </div>
 
     <TransitionGroup
@@ -187,7 +191,13 @@ const hasClips = computed(() => clips.value.length > 0);
       enter-from-class="opacity-0 translate-y-3"
       move-class="transition-transform duration-300 ease-out"
     >
-      <HighlightCard v-for="c in clips" :key="c.id" :clip="c" />
+      <ClipTile
+        v-for="c in clips"
+        :key="c.id"
+        :clip="c"
+        :queue="clips"
+        :queue-scope="clipQueueScope"
+      />
     </TransitionGroup>
 
     <div
