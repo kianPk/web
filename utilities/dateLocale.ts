@@ -95,3 +95,25 @@ export function dateLocale(): string | undefined {
   }
   return resolvedCache.value;
 }
+
+// Fork helper: club/shop copy formats dates on the site calendar. `fa_IR` is
+// not a valid BCP-47 tag, so underscores become hyphens and Persian is forced
+// when the UI is Farsi.
+export function formatSiteDate(
+  value: Date | string | number | null | undefined,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (value == null || value === "") return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  const raw = dateLocale() || uiLocale() || "fa-IR";
+  const tag = raw.replace(/_/g, "-");
+  const lang = tag.split("-")[0]?.toLowerCase();
+  const locale = lang === "fa" ? "fa-IR-u-ca-persian" : `${tag}-u-ca-persian`;
+
+  return date.toLocaleString(locale, {
+    calendar: "persian",
+    ...options,
+  });
+}
