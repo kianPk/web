@@ -270,7 +270,7 @@ const empty = computed(() => !loading.value && products.value.length === 0);
                 type="button"
                 size="sm"
                 class="bg-[#ff5500] hover:bg-[#ff6a1f]"
-                :disabled="!!busyId || !pkgFor(p)"
+                :disabled="!!busyId || !pkgFor(p) || !terms"
                 @click="buy(p, 'bale')"
               >
                 {{
@@ -284,7 +284,7 @@ const empty = computed(() => !loading.value && products.value.length === 0);
                 type="button"
                 size="sm"
                 variant="outline"
-                :disabled="!!busyId"
+                :disabled="!!busyId || !terms"
                 @click="buy(p, 'ypoint')"
               >
                 {{
@@ -300,10 +300,25 @@ const empty = computed(() => !loading.value && products.value.length === 0);
         </div>
       </article>
 
-      <label class="flex items-start gap-2 text-sm text-muted-foreground">
-        <Checkbox v-model:checked="terms" class="mt-0.5" />
-        <span>{{ t("pages.clubs.shop.terms") }}</span>
-      </label>
+      <button
+        type="button"
+        class="flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start transition-colors"
+        :class="
+          terms
+            ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+            : 'border-border bg-card/40 hover:bg-muted/30'
+        "
+        @click="terms = !terms"
+      >
+        <Checkbox
+          :checked="terms"
+          class="pointer-events-none mt-0.5"
+          tabindex="-1"
+        />
+        <span class="text-sm leading-snug text-foreground">
+          {{ t("pages.clubs.shop.terms") }}
+        </span>
+      </button>
     </div>
   </div>
 </template>
