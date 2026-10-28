@@ -235,7 +235,9 @@ export const useApplicationSettingsStore = defineStore(
         (setting) => setting.name === "public.create_tournaments_role",
       );
 
-      return create_tournaments_role?.value || e_player_roles_enum.user;
+      return (
+        create_tournaments_role?.value || e_player_roles_enum.administrator
+      );
     });
 
     const eventCreateRole = computed(() => {

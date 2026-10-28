@@ -16,6 +16,7 @@ import {
   parseTomanInput,
   tomanToIrr,
 } from "~/utilities/irrToman";
+import { formatSiteDate } from "~/utilities/dateLocale";
 
 type Kind = "club_vip" | "public_vip" | "custom";
 
@@ -54,7 +55,10 @@ type ShopOrder = {
   payment_method: string;
   fulfillment_status: string;
   status: string;
+  store_order_id?: string | null;
+  duration?: string | null;
   paid_at?: string | null;
+  created_at?: string | null;
 };
 
 const props = defineProps<{
@@ -242,12 +246,12 @@ const pendingCustom = computed(() =>
   ),
 );
 
+/** Only completed payments belong in sales history. */
 const salesHistory = computed(() =>
-  orders.value.filter((o) => o.status === "paid" || o.status === "pending"),
+  orders.value.filter((o) => o.status === "paid"),
 );
 
 function saleStatus(o: ShopOrder) {
-  if (o.status === "pending") return t("pages.clubs.shop.status_pending");
   if (o.kind === "custom" && o.fulfillment_status === "pending") {
     return t("pages.clubs.shop.status_awaiting_fulfillment");
   }
@@ -260,6 +264,17 @@ function saleStatus(o: ShopOrder) {
 function amountLabel(o: ShopOrder) {
   if (o.payment_method === "ypoint") return `${o.amount_ypoint} YP`;
   return `${formatTomanAmount(o.amount_irr, locale)} ${t("pages.clubs.shop.toman")}`;
+}
+
+function invoiceId(o: ShopOrder) {
+  return o.store_order_id || o.id;
+}
+
+function purchaseAt(o: ShopOrder) {
+  return formatSiteDate(o.paid_at || o.created_at, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 </script>
 
@@ -493,17 +508,52 @@ function amountLabel(o: ShopOrder) {
         <div
           v-for="o in salesHistory"
           :key="`sale-${o.id}`"
-          class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
+          class="space-y-1.5 rounded-lg border border-border/50 bg-background/30 px-3 py-2.5 text-sm"
         >
-          <span class="min-w-0 flex-1 truncate font-medium">
-            {{ o.product_title }} · {{ o.buyer_name || o.buyer_steam_id }}
-          </span>
-          <span class="text-xs text-muted-foreground">{{ amountLabel(o) }}</span>
-          <span
-            class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="min-w-0 flex-1 truncate font-medium">
+              {{ o.product_title }}
+              <template v-if="o.duration"> · {{ o.duration }}</template>
+            </span>
+            <span class="text-xs text-muted-foreground">{{ amountLabel(o) }}</span>
+            <span
+              class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+            >
+              {{ saleStatus(o) }}
+            </span>
+          </div>
+          <dl
+            class="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-3"
           >
-            {{ saleStatus(o) }}
-          </span>
+            <div class="min-w-0">
+              <dt class="inline text-muted-foreground/80">
+                {{ t("pages.clubs.shop.history_invoice") }}:
+              </dt>
+              {{ " " }}
+              <dd class="inline font-mono text-foreground/80" dir="ltr">
+                {{ invoiceId(o) }}
+              </dd>
+            </div>
+            <div class="min-w-0">
+              <dt class="inline text-muted-foreground/80">
+                {{ t("pages.clubs.shop.history_buyer") }}:
+              </dt>
+              {{ " " }}
+              <dd class="inline">
+                <span v-if="o.buyer_name">{{ o.buyer_name }} · </span>
+                <span class="font-mono text-foreground/80" dir="ltr">{{
+                  o.buyer_steam_id
+                }}</span>
+              </dd>
+            </div>
+            <div class="min-w-0">
+              <dt class="inline text-muted-foreground/80">
+                {{ t("pages.clubs.shop.history_paid_at") }}:
+              </dt>
+              {{ " " }}
+              <dd class="inline text-foreground/80">{{ purchaseAt(o) }}</dd>
+            </div>
+          </dl>
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
-import { until } from "@vueuse/core";
-import { e_player_roles_enum } from "~/generated/zeus";
-import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
+import { gql } from "@apollo/client/core";
+import { useApolloClient } from "@vue/apollo-composable";
 import { useAuthStore } from "~/stores/AuthStore";
+
+const CLUB_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   if (process.server) {
@@ -28,36 +30,41 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo(`/login?redirect=${to.path}`);
   }
 
+  // Site admins may create any tournament.
+  if (authStore.isAdmin) {
+    return;
+  }
+
+  // Club owners may create only for a club they own (?club=<uuid>).
   const clubQuery = to.query?.club;
   const clubId = Array.isArray(clubQuery) ? clubQuery[0] : clubQuery;
-  // Club owners create from /tournaments/create?club=<id>. Ownership is
-  // enforced on insert; this only skips the global organizer-role gate.
-  if (
-    typeof clubId === "string" &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      clubId,
-    )
-  ) {
-    return;
+  if (typeof clubId === "string" && CLUB_UUID_RE.test(clubId)) {
+    try {
+      const { client } = useApolloClient();
+      const { data } = await client.query({
+        query: gql`
+          query TournamentCreateClubOwner($id: uuid!) {
+            clubs_by_pk(id: $id) {
+              owner_steam_id
+            }
+          }
+        `,
+        variables: { id: clubId },
+        fetchPolicy: "network-only",
+      });
+      if (superseded()) {
+        return;
+      }
+      if (
+        String(data?.clubs_by_pk?.owner_steam_id) ===
+        String(authStore.me.steam_id)
+      ) {
+        return;
+      }
+    } catch {
+      // Fall through to redirect.
+    }
   }
 
-  const applicationSettings = useApplicationSettingsStore();
-
-  // tournamentCreateRole falls back to `user` until the settings arrive.
-  await until(() => applicationSettings.settingsLoaded).toBe(true, {
-    timeout: 10000,
-  });
-
-  if (superseded()) {
-    return;
-  }
-
-  if (
-    !applicationSettings.settingsLoaded ||
-    !authStore.isRoleAbove(
-      applicationSettings.tournamentCreateRole as e_player_roles_enum,
-    )
-  ) {
-    return navigateTo("/tournaments");
-  }
+  return navigateTo("/tournaments");
 });

@@ -539,41 +539,45 @@ export default {
   },
   async created() {
     this.form.setFieldValue("participation_mode", "online");
+    const auth = useAuthStore();
     const clubQuery = this.$route.query.club;
     const clubId = Array.isArray(clubQuery) ? clubQuery[0] : clubQuery;
     if (
-      typeof clubId !== "string" ||
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      typeof clubId === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         clubId,
       )
     ) {
-      return;
-    }
-    try {
-      const { data } = await this.$apollo.query({
-        query: generateQuery({
-          clubs_by_pk: [
-            { id: $("id", "uuid!") },
-            {
-              id: true,
-              name: true,
-              slug: true,
-              short_name: true,
-              owner_steam_id: true,
-            },
-          ],
-        } as any),
-        variables: { id: clubId },
-        fetchPolicy: "network-only",
-        context: { optional: true },
-      });
-      const row = data?.clubs_by_pk;
-      const me = useAuthStore().me;
-      if (row && String(row.owner_steam_id) === String(me?.steam_id)) {
-        this.club = row;
+      try {
+        const { data } = await this.$apollo.query({
+          query: generateQuery({
+            clubs_by_pk: [
+              { id: $("id", "uuid!") },
+              {
+                id: true,
+                name: true,
+                slug: true,
+                short_name: true,
+                owner_steam_id: true,
+              },
+            ],
+          } as any),
+          variables: { id: clubId },
+          fetchPolicy: "network-only",
+          context: { optional: true },
+        });
+        const row = data?.clubs_by_pk;
+        if (row && String(row.owner_steam_id) === String(auth.me?.steam_id)) {
+          this.club = row;
+        }
+      } catch {
+        this.club = null;
       }
-    } catch {
-      this.club = null;
+    }
+
+    // Only site admins (any tournament) or club owners (their club) may create.
+    if (!auth.isAdmin && !this.club) {
+      await this.$router.replace("/tournaments");
     }
   },
   methods: {

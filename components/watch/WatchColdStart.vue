@@ -6,21 +6,13 @@ import SteamIcon from "~/components/icons/SteamIcon.vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { loginLinks } from "~/utilities/loginLinks";
-import type { e_player_roles_enum } from "~/generated/zeus";
 
 const authStore = useAuthStore();
 const settingsStore = useApplicationSettingsStore();
 
 const isGuest = computed(() => !authStore.me?.steam_id);
 const canCreateMatch = computed(() => settingsStore.canCreateMatch);
-const canCreateTournament = computed(() => {
-  const role = settingsStore.tournamentCreateRole;
-  return (
-    !!authStore.me &&
-    !!role &&
-    authStore.isRoleAbove(role as e_player_roles_enum)
-  );
-});
+const canCreateTournament = computed(() => authStore.isAdmin);
 
 function signIn() {
   window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(

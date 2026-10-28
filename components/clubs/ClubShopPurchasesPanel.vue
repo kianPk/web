@@ -7,6 +7,7 @@ import {
   hostedErrorMessage,
 } from "~/composables/useHostedServers";
 import { formatTomanAmount } from "~/utilities/irrToman";
+import { formatSiteDate } from "~/utilities/dateLocale";
 import { toast } from "~/components/ui/toast";
 
 type Purchase = {
@@ -22,6 +23,8 @@ type Purchase = {
   payment_method: string;
   status: string;
   fulfillment_status: string;
+  store_order_id?: string | null;
+  buyer_steam_id?: string | null;
   paid_at?: string | null;
   created_at: string;
 };
@@ -31,8 +34,6 @@ const rows = ref<Purchase[]>([]);
 const { t, locale } = useI18n();
 
 function statusLabel(row: Purchase) {
-  if (row.status === "pending") return t("pages.clubs.shop.status_pending");
-  if (row.status !== "paid") return row.status;
   if (row.kind === "custom" && row.fulfillment_status === "pending") {
     return t("pages.clubs.shop.status_awaiting_fulfillment");
   }
@@ -40,6 +41,17 @@ function statusLabel(row: Purchase) {
     return t("pages.clubs.shop.status_fulfilled");
   }
   return t("pages.clubs.shop.status_paid");
+}
+
+function invoiceId(row: Purchase) {
+  return row.store_order_id || row.id;
+}
+
+function purchaseAt(row: Purchase) {
+  return formatSiteDate(row.paid_at || row.created_at, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 async function load() {
@@ -82,34 +94,63 @@ onMounted(() => void load());
       <li
         v-for="row in rows"
         :key="row.id"
-        class="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/30 px-3 py-2 text-sm"
+        class="space-y-1.5 rounded-lg border border-border/50 bg-background/30 px-3 py-2.5 text-sm"
       >
-        <div class="min-w-0 flex-1">
-          <NuxtLink
-            :to="`/clubs/${row.club_slug}`"
-            class="font-medium text-foreground hover:text-[#ff6a1f]"
-          >
-            {{ row.club_name }}
-          </NuxtLink>
-          <div class="truncate text-xs text-muted-foreground">
-            {{ row.product_title }}
-            <template v-if="row.duration"> · {{ row.duration }}</template>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="min-w-0 flex-1">
+            <NuxtLink
+              :to="`/clubs/${row.club_slug}`"
+              class="font-medium text-foreground hover:text-[#ff6a1f]"
+            >
+              {{ row.club_name }}
+            </NuxtLink>
+            <div class="truncate text-xs text-muted-foreground">
+              {{ row.product_title }}
+              <template v-if="row.duration"> · {{ row.duration }}</template>
+            </div>
           </div>
+          <span class="text-xs text-muted-foreground">
+            <template v-if="row.payment_method === 'ypoint'">
+              {{ row.amount_ypoint }} YP
+            </template>
+            <template v-else>
+              {{ formatTomanAmount(row.amount_irr, locale) }}
+              {{ t("pages.clubs.shop.toman") }}
+            </template>
+          </span>
+          <span
+            class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+          >
+            {{ statusLabel(row) }}
+          </span>
         </div>
-        <span class="text-xs text-muted-foreground">
-          <template v-if="row.payment_method === 'ypoint'">
-            {{ row.amount_ypoint }} YP
-          </template>
-          <template v-else>
-            {{ formatTomanAmount(row.amount_irr, locale) }}
-            {{ t("pages.clubs.shop.toman") }}
-          </template>
-        </span>
-        <span
-          class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-        >
-          {{ statusLabel(row) }}
-        </span>
+        <dl class="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-3">
+          <div class="min-w-0">
+            <dt class="inline text-muted-foreground/80">
+              {{ t("pages.clubs.shop.history_invoice") }}:
+            </dt>
+            {{ " " }}
+            <dd class="inline font-mono text-foreground/80" dir="ltr">
+              {{ invoiceId(row) }}
+            </dd>
+          </div>
+          <div v-if="row.buyer_steam_id" class="min-w-0">
+            <dt class="inline text-muted-foreground/80">
+              {{ t("pages.clubs.shop.history_buyer") }}:
+            </dt>
+            {{ " " }}
+            <dd class="inline font-mono text-foreground/80" dir="ltr">
+              {{ row.buyer_steam_id }}
+            </dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="inline text-muted-foreground/80">
+              {{ t("pages.clubs.shop.history_paid_at") }}:
+            </dt>
+            {{ " " }}
+            <dd class="inline text-foreground/80">{{ purchaseAt(row) }}</dd>
+          </div>
+        </dl>
       </li>
     </ul>
   </section>

@@ -3,7 +3,6 @@ import { gql } from "@apollo/client/core";
 import { useApolloClient } from "@vue/apollo-composable";
 import {
   Megaphone,
-  Trophy,
   Users,
   ListOrdered,
   Server,
@@ -88,7 +87,6 @@ const VALID_TABS = [
   "teams",
   "tournaments",
   "challenges",
-  "clash",
   "admin",
 ] as const;
 type Tab = (typeof VALID_TABS)[number];
@@ -960,7 +958,11 @@ onBeforeUnmount(() => {
 });
 
 async function sendNews() {
-  if (!canManage.value || !club.value || !activeChannel.value) return;
+  if (!canPostNews.value || !club.value) return;
+  if (!activeChannel.value) {
+    error.value = t("pages.clubs.news_no_channel");
+    return;
+  }
   const body = chatBody.value.trim();
   const file = newsImage.value;
   if (!body && !file) return;
@@ -993,14 +995,14 @@ async function sendNews() {
         object: {
           channel_id: activeChannel.value.id,
           club_id: club.value.id,
-          body,
+          body: body || " ",
           image_url: imageUrl ?? null,
         },
       },
     });
     chatBody.value = "";
     clearNewsImage();
-    await load();
+    await load({ silent: true });
   } catch (e: any) {
     error.value = clubErrorMessage(e, t);
   } finally {
@@ -1045,35 +1047,6 @@ async function freezeLb(id: string, frozen: boolean) {
   );
 }
 
-async function registerClash(eventId: string) {
-  await runAction(
-    `mutation($event_id: uuid!, $club_id: uuid!) {
-      registerClubClash(event_id: $event_id, club_id: $club_id) { success }
-    }`,
-    { event_id: eventId, club_id: club.value.id },
-  );
-  await loadClash();
-}
-
-function clashStatus(ev: { starts_at: string; ends_at: string; locked?: boolean }) {
-  if (ev.locked) return t("pages.clubs.clash_locked");
-  const now = Date.now();
-  const start = new Date(ev.starts_at).getTime();
-  const end = new Date(ev.ends_at).getTime();
-  if (now < start) return t("pages.clubs.clash_upcoming");
-  if (now > end) return t("pages.clubs.clash_ended");
-  return t("pages.clubs.clash_active");
-}
-
-function isRegisteredForClash(ev: { players?: Array<{ steam_id: string | number; club_id: string }> }) {
-  if (!me.value || !club.value) return false;
-  return (ev.players || []).some(
-    (p) =>
-      String(p.steam_id) === String(me.value.steam_id) &&
-      String(p.club_id) === String(club.value.id),
-  );
-}
-
 async function onStaffLevelChange(member: any, value: string) {
   if (!club.value) return;
   const staff_level = value === "" ? null : Number(value);
@@ -1110,7 +1083,6 @@ async function setMemberTitle(steamId: string, title: string) {
 const officialTeam = ref<any>(null);
 const memberTeams = ref<any[]>([]);
 const clubTournaments = ref<any[]>([]);
-const clashEvents = ref<any[]>([]);
 async function loadTeams() {
   if (!club.value) return;
   try {
@@ -1208,40 +1180,6 @@ async function createOfficialTeam() {
   await loadTeams();
 }
 
-async function loadClash() {
-  try {
-    const { data } = await client.query({
-      query: gql`
-        query ClubClashEvents {
-          club_clash_events(order_by: [{ starts_at: desc }], limit: 20) {
-            id
-            name
-            starts_at
-            ends_at
-            locked
-            entries(order_by: [{ points: desc }]) {
-              club_id
-              points
-              club {
-                name
-                slug
-              }
-            }
-            players {
-              steam_id
-              club_id
-            }
-          }
-        }
-      `,
-      fetchPolicy: "network-only",
-    });
-    clashEvents.value = data?.club_clash_events ?? [];
-  } catch {
-    clashEvents.value = [];
-  }
-}
-
 watch([tab, isOwner, loading], () => {
   if (loading.value) return;
   if (tab.value === "feed" && !isOwner.value) {
@@ -1250,7 +1188,6 @@ watch([tab, isOwner, loading], () => {
 });
 
 watch(tab, (v) => {
-  if (v === "clash") void loadClash();
   if (v === "teams") void loadTeams();
   if (v === "tournaments") void loadTournaments();
 });
@@ -1305,7 +1242,6 @@ const tabGroups = computed((): TabGroup[] => {
           label: t("pages.clubs.tabs.tournaments"),
           icon: CalendarDays,
         },
-        { id: "clash", label: t("pages.clubs.tabs.clash"), icon: Trophy },
       ],
     },
   ];
@@ -1881,6 +1817,16 @@ function activityTitle(kind: string) {
               class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm"
               :placeholder="t('pages.clubs.news_placeholder')"
             />
+            <div
+              v-if="newsPreview"
+              class="overflow-hidden rounded-lg border border-border/60 bg-background/40"
+            >
+              <img
+                :src="newsPreview"
+                alt=""
+                class="mx-auto block h-auto max-h-80 w-auto max-w-full object-contain"
+              />
+            </div>
             <div class="flex flex-wrap items-center gap-3">
               <label class="inline-flex cursor-pointer items-center rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground">
                 <input
@@ -1892,12 +1838,6 @@ function activityTitle(kind: string) {
                 />
                 {{ t("pages.clubs.news_add_image") }}
               </label>
-              <img
-                v-if="newsPreview"
-                :src="newsPreview"
-                alt=""
-                class="h-16 w-24 rounded-md object-cover"
-              />
               <button
                 v-if="newsPreview"
                 type="button"
@@ -1945,19 +1885,26 @@ function activityTitle(kind: string) {
                 {{ formatSiteDate(msg.created_at) }}
               </span>
             </div>
-            <p
-              v-if="msg.body"
-              class="mt-3 whitespace-pre-wrap text-sm leading-relaxed"
-              :class="{ 'line-through': msg.deleted_at }"
-            >
-              {{ msg.body }}
-            </p>
-            <img
-              v-if="msg.image_url && !msg.deleted_at"
-              :src="resolveAvatarUrl(msg.image_url, apiDomain) || undefined"
-              alt=""
-              class="mt-3 max-h-96 w-full rounded-lg object-cover"
-            />
+            <div class="mt-3 space-y-3">
+              <p
+                v-if="msg.body && msg.body.trim()"
+                class="whitespace-pre-wrap text-sm leading-relaxed"
+                :class="{ 'line-through': msg.deleted_at }"
+              >
+                {{ msg.body }}
+              </p>
+              <div
+                v-if="msg.image_url && !msg.deleted_at"
+                class="overflow-hidden rounded-lg bg-background/30"
+              >
+                <img
+                  :src="resolveAvatarUrl(msg.image_url, apiDomain) || undefined"
+                  alt=""
+                  class="mx-auto block h-auto max-h-[32rem] w-auto max-w-full object-contain"
+                  loading="lazy"
+                />
+              </div>
+            </div>
             <button
               v-if="canModerate && !msg.deleted_at"
               type="button"
@@ -2134,17 +2081,6 @@ function activityTitle(kind: string) {
             :is-owner="isOwner"
             :members="club.members || []"
           />
-        </section>
-
-        <!-- Clash -->
-        <section
-          v-if="tab === 'clash'"
-          class="rounded-xl border border-border/70 bg-card/40 px-6 py-16 text-center"
-        >
-          <h2 class="text-base font-semibold">{{ t("pages.clubs.clash_title") }}</h2>
-          <p class="mt-2 text-sm text-muted-foreground">
-            {{ t("pages.clubs.coming_soon") }}
-          </p>
         </section>
 
         <!-- Admin / Settings -->

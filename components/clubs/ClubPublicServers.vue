@@ -4,7 +4,6 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Skeleton from "~/components/ui/skeleton/Skeleton.vue";
 import { Button } from "~/components/ui/button";
 import ServerModeTile from "~/components/servers/ServerModeTile.vue";
-import ServersAgentsHero from "~/components/servers/ServersAgentsHero.vue";
 import { usePublicServerFleet } from "~/composables/usePublicServerFleet";
 import GameServersMode from "~/pages/game-servers/[mode].vue";
 
@@ -20,15 +19,6 @@ const ready = computed(() => !loading.value || servers.value.length > 0);
 <template>
   <PageTransition :delay="0">
     <section v-if="!picked" class="space-y-6">
-      <ClientOnly>
-        <ServersAgentsHero />
-        <template #fallback>
-          <div
-            class="min-h-[340px] animate-pulse rounded-2xl bg-[#07090c] ring-1 ring-white/5 md:min-h-[440px]"
-          />
-        </template>
-      </ClientOnly>
-
       <div id="server-modes" class="scroll-mt-4">
         <div
           class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"

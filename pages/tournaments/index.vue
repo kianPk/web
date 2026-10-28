@@ -594,13 +594,8 @@ function stepQuickLook(direction: -1 | 1) {
 }
 
 const canCreateTournament = computed(() => {
-  const authStore = useAuthStore();
-  if (!authStore.me) {
-    return false;
-  }
-  return authStore.isRoleAbove(
-    useApplicationSettingsStore().tournamentCreateRole,
-  );
+  // Global create is site-admin only. Club owners create from their club page.
+  return useAuthStore().isAdmin;
 });
 
 const sectionClasses = ["mt-8 first:mt-0", tacticalSectionSeparatorClasses];
