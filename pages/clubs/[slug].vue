@@ -310,6 +310,20 @@ const clubAsMemberClub = computed(() =>
 const avatarSrc = computed(() =>
   resolveAvatarUrl(club.value?.avatar_url, apiDomain),
 );
+/** Club power = sum of members' site XP (same XP that levels accounts). */
+const clubPowerXp = computed(() => {
+  const members = club.value?.members;
+  if (Array.isArray(members) && members.length) {
+    return members.reduce(
+      (sum: number, m: any) => sum + (Number(m?.xp) || 0),
+      0,
+    );
+  }
+  return Number(club.value?.xp) || 0;
+});
+function formatXp(value: number | string | null | undefined) {
+  return Math.max(0, Math.floor(Number(value) || 0)).toLocaleString("en-US");
+}
 const bannerUploadUrl = computed(
   () => `https://${apiDomain}/avatars/clubs/${club.value?.id}/banner`,
 );
@@ -527,6 +541,7 @@ async function load(options?: { silent?: boolean }) {
           mode === "request" || mode === "invite_only" ? mode : "open";
       }
       void loadSocials(club.value.id);
+      void overlayMemberSiteXp();
       if (!activeChannelId.value && club.value.channels?.[0]) {
         activeChannelId.value = club.value.channels[0].id;
       }
@@ -541,6 +556,48 @@ async function load(options?: { silent?: boolean }) {
 
 onMounted(() => void load());
 watch(slugParam, () => void load());
+
+/** Overlay real site XP onto members so club power = Σ account XP. */
+async function overlayMemberSiteXp() {
+  const current = club.value;
+  if (!current?.members?.length) return;
+  const ids = current.members
+    .map((m: any) => String(m.steam_id || ""))
+    .filter((id: string) => /^7656119\d{10}$/.test(id));
+  if (!ids.length) return;
+  try {
+    const res = await fetch(
+      `https://${apiDomain}/hosted-servers/site-xp/lookup?steam_ids=${encodeURIComponent(ids.join(","))}`,
+      { credentials: "include" },
+    );
+    if (!res.ok) return;
+    const data = (await res.json().catch(() => null)) as {
+      players?: Array<{ steam_id?: string; xp?: number }>;
+    } | null;
+    if (!Array.isArray(data?.players)) return;
+    const byId = new Map(
+      data.players.map((p) => [
+        String(p.steam_id),
+        Math.max(0, Math.floor(Number(p.xp) || 0)),
+      ]),
+    );
+    if (!club.value || club.value.id !== current.id) return;
+    const members = club.value.members.map((m: any) => {
+      const sid = String(m.steam_id);
+      return byId.has(sid) ? { ...m, xp: byId.get(sid) } : m;
+    });
+    club.value = {
+      ...club.value,
+      members,
+      xp: members.reduce(
+        (sum: number, m: any) => sum + (Number(m.xp) || 0),
+        0,
+      ),
+    };
+  } catch {
+    /* keep GraphQL member xp */
+  }
+}
 
 async function loadSocials(clubId: string) {
   try {
@@ -1058,6 +1115,14 @@ async function setMemberTitle(steamId: string, title: string) {
 const officialTeam = ref<any>(null);
 const memberTeams = ref<any[]>([]);
 const clubTournaments = ref<any[]>([]);
+const officialTeamAvatarSrc = computed(
+  () =>
+    resolveAvatarUrl(officialTeam.value?.avatar_url, apiDomain) ||
+    avatarSrc.value,
+);
+function teamAvatarSrc(team: { avatar_url?: string | null } | null | undefined) {
+  return resolveAvatarUrl(team?.avatar_url, apiDomain);
+}
 async function loadTeams() {
   if (!club.value) return;
   try {
@@ -1410,7 +1475,7 @@ function activityTitle(kind: string) {
               </span>
               <span class="text-border">·</span>
               <span>
-                {{ Number(club.xp) || 0 }}
+                {{ formatXp(clubPowerXp) }}
                 {{ t("pages.clubs.club_xp_label") }}
               </span>
               <span class="text-border">·</span>
@@ -1585,7 +1650,7 @@ function activityTitle(kind: string) {
                     {{ t("pages.clubs.club_xp_label") }}
                   </div>
                   <div class="mt-1 text-xl font-bold tabular-nums">
-                    {{ Number(club.xp) || 0 }}
+                    {{ formatXp(clubPowerXp) }}
                   </div>
                 </div>
                 <div>
@@ -1720,7 +1785,7 @@ function activityTitle(kind: string) {
                 {{ m.title }}
               </span>
               <span class="text-[0.65rem] tabular-nums text-muted-foreground">
-                {{ m.xp || 0 }} XP
+                {{ formatXp(m.xp) }} XP
               </span>
               <span
                 class="ms-auto shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide"
@@ -1819,89 +1884,138 @@ function activityTitle(kind: string) {
         />
 
         <!-- Teams -->
-        <section v-if="tab === 'teams'" class="space-y-5">
+        <section v-if="tab === 'teams'" class="space-y-6">
+          <!-- Official club team: full banner + amber identity -->
           <div
-            class="relative overflow-hidden rounded-2xl border-2 border-[hsl(var(--tac-amber)/0.55)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.22)_0%,hsl(var(--card)/0.85)_42%,hsl(var(--tac-amber)/0.08)_100%)] p-4 sm:p-5"
+            class="overflow-hidden rounded-2xl border-2 border-[hsl(var(--tac-amber)/0.65)] bg-card shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.12)]"
           >
-            <img
-              v-if="coverSrc"
-              :src="coverSrc"
-              alt=""
-              class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
-            />
-            <div class="relative flex flex-wrap items-start justify-between gap-3">
-              <div class="min-w-0">
-                <p class="font-mono text-[0.6rem] font-bold uppercase tracking-[0.22em] text-[hsl(var(--tac-amber))]">
-                  {{ t("pages.clubs.official_identity_label") }}
-                </p>
-                <h2 class="mt-1 text-base font-semibold">{{ t("pages.clubs.official_team") }}</h2>
-                <p class="mt-1 max-w-xl text-xs text-muted-foreground">
-                  {{ t("pages.clubs.official_team_hint") }}
-                </p>
-              </div>
-              <Button
-                v-if="isOwner && !officialTeam"
-                size="sm"
-                :class="tacticalCtaButtonClasses"
-                :disabled="busy"
-                @click="createOfficialTeam"
-              >
-                {{ t("pages.clubs.create_official_team") }}
-              </Button>
-            </div>
-            <NuxtLink
-              v-if="officialTeam"
-              :to="`/teams/${officialTeam.id}`"
-              class="relative mt-4 flex items-center gap-3 rounded-xl border border-[hsl(var(--tac-amber)/0.45)] bg-black/25 px-3 py-3 hover:border-[hsl(var(--tac-amber)/0.75)]"
-            >
-              <ClubAvatar
-                :name="club.name"
-                :short-name="club.short_name"
-                :src="club.avatar_url"
-                size="md"
+            <div class="relative h-28 sm:h-36">
+              <img
+                v-if="coverSrc"
+                :src="coverSrc"
+                alt=""
+                class="absolute inset-0 h-full w-full object-cover"
               />
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="font-semibold">{{ officialTeam.name }}</span>
-                  <span
-                    v-if="officialTeam.short_name"
-                    class="rounded bg-[hsl(var(--tac-amber)/0.2)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+              <div
+                v-else
+                class="absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.45)_0%,hsl(var(--card))_70%)]"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10"
+              />
+              <div class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3 sm:p-4">
+                <div class="min-w-0">
+                  <p
+                    class="inline-flex items-center rounded-sm bg-[hsl(var(--tac-amber))] px-2 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.18em] text-black"
                   >
-                    {{ officialTeam.short_name }}
-                  </span>
+                    {{ t("pages.clubs.official_identity_label") }}
+                  </p>
+                  <h2 class="mt-1.5 truncate text-lg font-semibold text-white sm:text-xl">
+                    {{ t("pages.clubs.official_team") }}
+                  </h2>
                 </div>
-                <p class="mt-0.5 text-xs text-[hsl(var(--tac-amber))]">
-                  {{ t("pages.clubs.official_identity_of", { club: club.name }) }}
-                </p>
+                <Button
+                  v-if="isOwner && !officialTeam"
+                  size="sm"
+                  :class="tacticalCtaButtonClasses"
+                  :disabled="busy"
+                  @click="createOfficialTeam"
+                >
+                  {{ t("pages.clubs.create_official_team") }}
+                </Button>
               </div>
-              <span class="text-xs text-muted-foreground">{{ t("pages.clubs.open_team") }}</span>
-            </NuxtLink>
+            </div>
+
+            <div class="space-y-3 p-3 sm:p-4">
+              <p class="text-xs text-muted-foreground">
+                {{ t("pages.clubs.official_team_hint") }}
+              </p>
+              <NuxtLink
+                v-if="officialTeam"
+                :to="`/teams/${officialTeam.id}`"
+                class="flex items-center gap-3 rounded-xl border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-3 transition hover:border-[hsl(var(--tac-amber)/0.85)] hover:bg-[hsl(var(--tac-amber)/0.14)]"
+              >
+                <div
+                  class="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-[hsl(var(--tac-amber)/0.7)] bg-black/40"
+                >
+                  <img
+                    v-if="officialTeamAvatarSrc"
+                    :src="officialTeamAvatarSrc"
+                    alt=""
+                    class="h-full w-full object-cover"
+                  />
+                  <ClubAvatar
+                    v-else
+                    :name="officialTeam.name || club.name"
+                    :short-name="officialTeam.short_name || club.short_name"
+                    :src="null"
+                    size="md"
+                  />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-base font-semibold">{{ officialTeam.name }}</span>
+                    <span
+                      v-if="officialTeam.short_name"
+                      class="rounded bg-[hsl(var(--tac-amber)/0.22)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                    >
+                      {{ officialTeam.short_name }}
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-xs font-medium text-[hsl(var(--tac-amber))]">
+                    {{ t("pages.clubs.official_identity_of", { club: club.name }) }}
+                  </p>
+                </div>
+                <span class="shrink-0 text-xs text-muted-foreground">
+                  {{ t("pages.clubs.open_team") }}
+                </span>
+              </NuxtLink>
+            </div>
           </div>
 
+          <!-- Member teams: quieter cards, own avatars -->
           <div>
-            <h2 class="text-sm font-semibold">{{ t("pages.clubs.member_teams") }}</h2>
-            <p class="mt-1 text-xs text-muted-foreground">
+            <h2 class="text-sm font-semibold text-muted-foreground">
+              {{ t("pages.clubs.member_teams") }}
+            </h2>
+            <p class="mt-1 text-xs text-muted-foreground/80">
               {{ t("pages.clubs.member_teams_hint") }}
             </p>
-            <div class="mt-3 grid gap-2">
+            <div class="mt-3 grid gap-2 sm:grid-cols-2">
               <NuxtLink
                 v-for="team in memberTeams"
                 :key="team.id"
                 :to="`/teams/${team.id}`"
-                class="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/40 px-3 py-2.5 hover:border-[hsl(var(--tac-amber)/0.4)]"
+                class="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5 transition hover:border-border hover:bg-muted/35"
               >
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-medium">{{ team.name }}</span>
+                <div
+                  class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border/70 bg-background/60"
+                >
+                  <img
+                    v-if="teamAvatarSrc(team)"
+                    :src="teamAvatarSrc(team) || undefined"
+                    alt=""
+                    class="h-full w-full object-cover"
+                  />
+                  <span
+                    v-else
+                    class="font-mono text-[0.65rem] font-bold uppercase text-muted-foreground"
+                  >
+                    {{ (team.short_name || team.name || "?").slice(0, 3) }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="truncate text-sm font-medium">{{ team.name }}</span>
                     <span
                       v-if="team.short_name"
-                      class="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground"
+                      class="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-wider text-muted-foreground"
                     >
                       {{ team.short_name }}
                     </span>
-                    <ClubTeamBadge :clubs="clubAsMemberClub" />
+                    <ClubTeamBadge :clubs="clubAsMemberClub" compact />
                   </div>
-                  <div class="mt-0.5 text-xs text-muted-foreground">
+                  <div class="mt-0.5 truncate text-[11px] text-muted-foreground">
                     {{ t("pages.clubs.team_owner") }}:
                     {{ team.owner?.name || team.owner_steam_id }}
                   </div>
@@ -1909,7 +2023,7 @@ function activityTitle(kind: string) {
               </NuxtLink>
               <p
                 v-if="!memberTeams.length"
-                class="py-8 text-center text-sm text-muted-foreground"
+                class="col-span-full py-8 text-center text-sm text-muted-foreground"
               >
                 {{ t("pages.clubs.no_member_teams") }}
               </p>
