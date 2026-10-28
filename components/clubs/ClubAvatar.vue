@@ -9,6 +9,7 @@ const props = withDefaults(
     src?: string | null;
     size?: "sm" | "md" | "lg" | "xl";
     ring?: boolean;
+    class?: string;
   }>(),
   { size: "md", ring: true },
 );
@@ -40,6 +41,7 @@ const initials = computed(() =>
       ring
         ? 'border-2 border-[hsl(var(--tac-amber)/0.5)] shadow-[0_0_0_4px_hsl(var(--background))]'
         : 'border border-border',
+      props.class,
     ]"
   >
     <AvatarImage v-if="resolvedSrc" :src="resolvedSrc" :alt="name" class="h-full w-full object-cover" />

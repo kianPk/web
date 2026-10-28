@@ -63,6 +63,9 @@ import {
   filterTriggerBase,
   filterTriggerIdle,
   tacticalCtaButtonClasses,
+  tacticalSectionDescriptionClasses,
+  tacticalSectionLabelClasses,
+  tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 import { clubErrorMessage } from "~/utilities/clubErrors";
 import {
@@ -1318,6 +1321,8 @@ const tabGroups = computed((): TabGroup[] => {
   return groups;
 });
 
+const flatTabs = computed(() => tabGroups.value.flatMap((group) => group.items));
+
 const benefitLines = computed(() =>
   String(club.value?.join_benefits || "")
     .split(/\r?\n/)
@@ -1381,22 +1386,22 @@ function activityTitle(kind: string) {
 
 <template>
   <div v-if="loading" class="space-y-4">
-    <div class="h-44 animate-pulse rounded-xl bg-muted/40" />
-    <div class="grid gap-6 md:grid-cols-[13rem_1fr]">
-      <div class="hidden h-64 animate-pulse rounded-xl bg-muted/30 md:block" />
-      <div class="h-64 animate-pulse rounded-xl bg-muted/30" />
-    </div>
+    <div class="h-52 animate-pulse rounded-2xl bg-muted/40 sm:h-56 md:h-64" />
+    <div class="h-11 animate-pulse rounded-xl bg-muted/30" />
+    <div class="h-64 animate-pulse rounded-xl bg-muted/30" />
   </div>
   <div v-else-if="!club" class="rounded-xl border border-border bg-card/40 p-8 text-sm text-destructive">
     {{ error || t("pages.clubs.not_found") }}
   </div>
   <div v-else class="pb-8">
     <PageTransition>
-      <header class="overflow-hidden rounded-xl border border-border/70 bg-card/30">
-        <div class="relative">
+      <header class="relative">
+        <div
+          class="relative h-48 overflow-hidden rounded-2xl border border-border/60 sm:h-56 md:h-64"
+        >
           <ImageUploadTile
             v-if="canManage"
-            class="[&>div]:rounded-none [&>div]:border-0"
+            class="h-full [&>div]:h-full [&>div]:rounded-none [&>div]:border-0"
             :aspect="8 / 3"
             fit="cover"
             filename="banner.webp"
@@ -1412,11 +1417,11 @@ function activityTitle(kind: string) {
           />
           <div
             v-else
-            class="h-36 w-full sm:h-44"
+            class="absolute inset-0"
             :style="
               coverSrc
                 ? {
-                    backgroundImage: `linear-gradient(180deg, rgba(8,8,10,0.1) 0%, rgba(8,8,10,0.78) 100%), url(${coverSrc})`,
+                    backgroundImage: `url(${coverSrc})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }
@@ -1425,15 +1430,21 @@ function activityTitle(kind: string) {
             :class="
               coverSrc
                 ? ''
-                : 'bg-[radial-gradient(ellipse_at_top_left,hsl(var(--tac-amber)/0.32),transparent_52%),linear-gradient(180deg,#1c1c20_0%,#0b0b0d_100%)]'
+                : 'bg-[radial-gradient(ellipse_at_20%_0%,hsl(var(--tac-amber)/0.38),transparent_48%),linear-gradient(155deg,#1a1a1f_0%,#09090b_58%,#111114_100%)]'
             "
           />
+          <div
+            class="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/55 to-transparent"
+          />
         </div>
-        <div class="relative flex flex-wrap items-end gap-4 px-4 pb-4 sm:px-6 sm:pb-5">
-          <div class="-mt-12 sm:-mt-14">
+
+        <div
+          class="relative z-10 -mt-14 flex flex-col gap-4 px-1 sm:-mt-16 sm:flex-row sm:items-end sm:gap-5 sm:px-3"
+        >
+          <div class="shrink-0 self-start sm:self-end">
             <ImageUploadTile
               v-if="canManage"
-              class="h-[7.25rem] w-[7.25rem] overflow-hidden rounded-full [&>div]:rounded-full [&>div]:border-2 [&>div]:border-[hsl(var(--tac-amber)/0.5)]"
+              class="h-[6.75rem] w-[6.75rem] overflow-hidden rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.45)] ring-2 ring-[hsl(var(--tac-amber)/0.55)] sm:h-[7.5rem] sm:w-[7.5rem] [&>div]:rounded-2xl [&>div]:border-0"
               aspect="square"
               fit="cover"
               filename="profile.webp"
@@ -1448,24 +1459,24 @@ function activityTitle(kind: string) {
             />
             <ClubAvatar
               v-else
+              class="shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
               :name="club.name"
               :short-name="club.short_name"
               :src="avatarSrc"
               size="xl"
             />
           </div>
-          <div class="min-w-0 flex-1 py-1">
+
+          <div class="min-w-0 flex-1 pb-1">
             <div class="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                class="truncate text-start font-sans text-[1.65rem] font-bold leading-none tracking-tight hover:text-[hsl(var(--tac-amber))] sm:text-3xl"
-                @click="openClubPage"
+              <h1
+                class="m-0 truncate font-sans text-[clamp(1.65rem,3vw,2.15rem)] font-bold leading-none tracking-tight"
               >
                 {{ club.name }}
-              </button>
+              </h1>
               <span
                 v-if="club.short_name"
-                class="rounded bg-[hsl(var(--tac-amber)/0.14)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-[hsl(var(--tac-amber))]"
+                class="rounded-md border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-1.5 py-0.5 font-mono text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
               >
                 {{ club.short_name }}
               </span>
@@ -1476,22 +1487,20 @@ function activityTitle(kind: string) {
                 {{ t("pages.clubs.representing") }}
               </span>
             </div>
-            <p class="mt-2 max-w-2xl text-sm text-muted-foreground line-clamp-2">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground line-clamp-2">
               {{ club.description || t("pages.clubs.no_description") }}
             </p>
-            <ClubSocialLinks
-              class="mt-2"
-              :telegram="club.telegram_url"
-              :instagram="club.instagram_url"
-              :bale="club.bale_url"
-              :rubika="club.rubika_url"
-              :soroush="club.soroush_url"
-            />
-            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span>{{ club.members_aggregate?.aggregate?.count ?? 0 }} {{ t("pages.clubs.members_label") }}</span>
+            <div
+              class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-foreground/75 tabular-nums"
+            >
+              <span>
+                {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+                {{ t("pages.clubs.members_label") }}
+              </span>
               <span class="text-border">·</span>
-              <span class="tabular-nums">
-                {{ Number(club.xp) || 0 }} {{ t("pages.clubs.club_xp_label") }}
+              <span>
+                {{ Number(club.xp) || 0 }}
+                {{ t("pages.clubs.club_xp_label") }}
               </span>
               <span class="text-border">·</span>
               <span>{{ t(`pages.clubs.join_modes.${club.join_mode}`) }}</span>
@@ -1500,8 +1509,17 @@ function activityTitle(kind: string) {
                 <span>Elo ≥ {{ club.min_elo }}</span>
               </template>
             </div>
+            <ClubSocialLinks
+              class="mt-3"
+              :telegram="club.telegram_url"
+              :instagram="club.instagram_url"
+              :bale="club.bale_url"
+              :rubika="club.rubika_url"
+              :soroush="club.soroush_url"
+            />
           </div>
-          <div class="flex flex-wrap items-center gap-2 pb-1">
+
+          <div class="flex flex-wrap items-center gap-2 pb-1 sm:justify-end">
             <Button
               v-if="!isMember && club.join_mode === 'open' && me"
               :disabled="busy"
@@ -1512,7 +1530,7 @@ function activityTitle(kind: string) {
             </Button>
             <div
               v-else-if="!isMember && club.join_mode === 'request' && me"
-              class="flex gap-2"
+              class="flex flex-wrap gap-2"
             >
               <p
                 v-if="myPendingRequest"
@@ -1521,8 +1539,16 @@ function activityTitle(kind: string) {
                 {{ t("pages.clubs.request_pending") }}
               </p>
               <template v-else>
-                <Input v-model="joinMessage" :placeholder="t('pages.clubs.request_message')" class="w-40" />
-                <Button :disabled="busy" :class="tacticalCtaButtonClasses" @click="requestJoin">
+                <Input
+                  v-model="joinMessage"
+                  :placeholder="t('pages.clubs.request_message')"
+                  class="w-40"
+                />
+                <Button
+                  :disabled="busy"
+                  :class="tacticalCtaButtonClasses"
+                  @click="requestJoin"
+                >
                   {{ t("pages.clubs.request_join") }}
                 </Button>
               </template>
@@ -1557,103 +1583,113 @@ function activityTitle(kind: string) {
 
     <p v-if="error" class="mt-3 text-sm text-destructive">{{ error }}</p>
 
-    <div class="mt-6 grid items-start gap-6 md:grid-cols-[14rem_minmax(0,1fr)]">
-      <nav
-        class="flex gap-3 overflow-x-auto pb-1 md:sticky md:top-4 md:flex-col md:gap-4 md:overflow-visible md:rounded-xl md:border md:border-border/70 md:bg-card/40 md:p-3"
-      >
-        <div
-          v-for="group in tabGroups"
-          :key="group.id"
-          class="flex shrink-0 gap-1 md:flex-col md:gap-0.5"
+    <nav
+      class="sticky top-14 z-20 mt-6 rounded-xl border border-border/70 bg-card/75 p-1 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-card/55"
+    >
+      <div class="flex gap-0.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button
+          v-for="item in flatTabs"
+          :key="item.id"
+          type="button"
+          class="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition"
+          :class="
+            tab === item.id
+              ? 'bg-background text-foreground shadow-sm ring-1 ring-border'
+              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+          "
+          @click="tab = item.id"
         >
-          <div
-            class="hidden px-2 pb-1 pt-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground/80 md:block"
-          >
-            {{ group.label }}
-          </div>
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            type="button"
-            class="inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
-            :class="
-              tab === item.id
-                ? 'bg-[hsl(var(--tac-amber)/0.12)] text-foreground md:border-l-2 md:border-[hsl(var(--tac-amber))] md:pl-[10px]'
-                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-            "
-            @click="tab = item.id"
-          >
-            <component :is="item.icon" class="h-4 w-4 shrink-0" />
-            {{ item.label }}
-          </button>
-        </div>
-      </nav>
+          <component :is="item.icon" class="h-4 w-4 shrink-0" />
+          {{ item.label }}
+        </button>
+      </div>
+    </nav>
 
-      <div class="min-w-0">
+    <div class="mt-6 min-w-0">
         <!-- Club page -->
-        <section v-if="tab === 'overview'" class="space-y-4">
-          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
-            <div class="space-y-4">
-              <div class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5">
-                <h2 class="mb-3 text-sm font-semibold">{{ t("pages.clubs.about") }}</h2>
-                <p class="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+        <section v-if="tab === 'overview'" class="space-y-8">
+          <div
+            v-if="club.promo_text"
+            class="rounded-xl border border-[hsl(var(--tac-amber)/0.4)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.14),transparent_55%)] p-5 sm:p-6"
+          >
+            <div
+              class="mb-2 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--tac-amber))]"
+            >
+              <span :class="tacticalSectionTickClasses" />
+              <BadgePercent class="h-4 w-4" />
+              {{ t("pages.clubs.promo") }}
+            </div>
+            <p class="whitespace-pre-wrap text-sm leading-relaxed sm:text-[0.95rem]">
+              {{ club.promo_text }}
+            </p>
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <div class="space-y-8">
+              <div>
+                <div :class="tacticalSectionLabelClasses">
+                  <span :class="tacticalSectionTickClasses" />
+                  {{ t("pages.clubs.about") }}
+                </div>
+                <p :class="['mt-3', tacticalSectionDescriptionClasses]">
                   {{ club.description || t("pages.clubs.no_description") }}
                 </p>
               </div>
 
-              <div
-                v-if="club.promo_text"
-                class="rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] p-4 sm:p-5"
-              >
-                <div class="mb-2 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--tac-amber))]">
-                  <BadgePercent class="h-4 w-4" />
-                  {{ t("pages.clubs.promo") }}
-                </div>
-                <p class="whitespace-pre-wrap text-sm leading-relaxed">
-                  {{ club.promo_text }}
-                </p>
-              </div>
-
-              <div
-                v-if="benefitLines.length"
-                class="rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5"
-              >
-                <div class="mb-3 flex items-center gap-2 text-sm font-semibold">
-                  <Gift class="h-4 w-4 text-[hsl(var(--tac-amber))]" />
+              <div v-if="benefitLines.length">
+                <div :class="tacticalSectionLabelClasses">
+                  <span :class="tacticalSectionTickClasses" />
+                  <Gift class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
                   {{ t("pages.clubs.join_benefits") }}
                 </div>
-                <ul class="space-y-2">
+                <ul class="mt-4 space-y-2.5">
                   <li
                     v-for="(line, idx) in benefitLines"
                     :key="idx"
-                    class="flex gap-2 text-sm text-muted-foreground"
+                    class="flex gap-2.5 text-sm text-muted-foreground"
                   >
-                    <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(var(--tac-amber))]" />
+                    <span
+                      class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(var(--tac-amber))]"
+                    />
                     <span>{{ line }}</span>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <aside class="space-y-3">
-              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.members_label") }}</div>
-                <div class="mt-1 text-2xl font-bold tabular-nums">
-                  {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+            <aside
+              class="h-fit space-y-3 rounded-xl border border-border/70 bg-card/40 p-4 sm:p-5"
+            >
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <div class="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                    {{ t("pages.clubs.members_label") }}
+                  </div>
+                  <div class="mt-1 text-xl font-bold tabular-nums">
+                    {{ club.members_aggregate?.aggregate?.count ?? 0 }}
+                  </div>
+                </div>
+                <div>
+                  <div class="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                    {{ t("pages.clubs.club_xp_label") }}
+                  </div>
+                  <div class="mt-1 text-xl font-bold tabular-nums">
+                    {{ Number(club.xp) || 0 }}
+                  </div>
+                </div>
+                <div>
+                  <div class="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                    {{ t("pages.clubs.news_stat") }}
+                  </div>
+                  <div class="mt-1 text-xl font-bold tabular-nums">
+                    {{ newsPosts.length }}
+                  </div>
                 </div>
               </div>
-              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.club_xp_label") }}</div>
-                <div class="mt-1 text-2xl font-bold tabular-nums">
-                  {{ Number(club.xp) || 0 }}
-                </div>
-              </div>
-              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-                <div class="text-xs text-muted-foreground">{{ t("pages.clubs.news_stat") }}</div>
-                <div class="mt-1 text-2xl font-bold tabular-nums">{{ newsPosts.length }}</div>
-              </div>
-              <div class="rounded-xl border border-border/70 bg-card/40 p-4">
-                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <div class="border-t border-border/60 pt-3">
+                <h3
+                  class="mb-2 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground"
+                >
                   {{ t("pages.clubs.socials") }}
                 </h3>
                 <ClubSocialLinks
@@ -2577,7 +2613,6 @@ function activityTitle(kind: string) {
             </div>
           </div>
         </section>
-      </div>
     </div>
   </div>
 
