@@ -30,6 +30,7 @@ export const DEFAULT_LEVEL_PERMISSIONS: Record<ClubPermKey, { min: number }> = {
   set_staff_level: { min: 10 },
 };
 
+/** Auto levels 2–6: club-server play XP + challenge XP (+ VIP path). */
 export const CLUB_XP_THRESHOLDS: Record<number, number> = {
   2: 150,
   3: 400,

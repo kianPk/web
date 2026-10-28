@@ -6950,7 +6950,7 @@
       "vip_grant": "Make VIP",
       "vip_remove": "Remove VIP",
       "club_vip_grant": "Grant club VIP",
-      "levels_members_hint": "Levels 1–6 rise from club-server VIP purchases and challenge XP. Levels 7–10 are set by the owner.",
+        "levels_members_hint": "Levels 1–6 rise from playing on club servers, VIP purchases, and challenge XP. Levels 7–10 are set by the owner.",
       "levels_settings": "Level permissions",
       "levels_settings_hint": "Minimum level required for each action. You can still grant one player a personal exception below.",
       "save_level_perms": "Save level permissions",
