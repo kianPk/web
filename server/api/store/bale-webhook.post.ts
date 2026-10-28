@@ -171,6 +171,19 @@ async function baleApi(
   return data;
 }
 
+/** Always try to reply in-chat so Bale does not show «بازو پاسخگو نبود». */
+async function softReply(
+  botToken: string,
+  chatId: number | string,
+  text: string,
+) {
+  try {
+    await baleApi(botToken, "sendMessage", { chat_id: chatId, text });
+  } catch (error) {
+    console.error("bale softReply failed", error);
+  }
+}
+
 function expandOrderId(compact: string): string | null {
   if (!/^[a-f0-9]{32}$/i.test(compact)) return null;
   const hex = compact.toLowerCase();
@@ -305,12 +318,16 @@ async function creditYpoints(args: {
 
 export default defineEventHandler(async (event) => {
   const update = await readBody(event);
-  const bale = await loadBaleSettings();
+  let bale: BaleSettings;
+  try {
+    bale = await loadBaleSettings();
+  } catch (error) {
+    console.error("bale webhook settings failed", error);
+    // 200 so Bale does not show «بازو پاسخگو نبود»
+    return { ok: false, error: "settings" };
+  }
   if (!bale.botToken || !bale.providerToken) {
-    throw createError({
-      statusCode: 503,
-      statusMessage: "Bale Pay is not configured",
-    });
+    return { ok: false, error: "not_configured" };
   }
 
   if (update?.message?.text) {
@@ -318,141 +335,165 @@ export default defineEventHandler(async (event) => {
     const chatId = update.message.chat?.id;
     const match = text.match(/^\/start(?:@\w+)?\s+pay_([a-f0-9]{32})$/i);
     if (chatId && match) {
-      const orderId = expandOrderId(match[1]);
-      if (!orderId) {
-        throw createError({ statusCode: 400, statusMessage: "Invalid order" });
-      }
-
-      let order: {
-        id: string;
-        status: string;
-        amount_irr: number;
-        bale_payload: string;
-        cart_items: CartItemSnapshot[] | null;
-        product: {
-          title: string;
-          description: string;
-          price_irr: number;
-          active: boolean;
-        };
-      } | null = null;
-
       try {
-        const live = await hasura<{
-          store_orders_by_pk: typeof order;
-        }>(
-          `query ($id: uuid!) {
-            store_orders_by_pk(id: $id) {
-              id status amount_irr bale_payload cart_items
-              product { title description price_irr active }
-            }
-          }`,
-          { id: orderId },
-        );
-        order = live.store_orders_by_pk;
-      } catch {
-        // cart_items may not be tracked in Hasura yet — fall back.
-        const live = await hasura<{
-          store_orders_by_pk: typeof order;
-        }>(
-          `query ($id: uuid!) {
-            store_orders_by_pk(id: $id) {
-              id status amount_irr bale_payload
-              product { title description price_irr active }
-            }
-          }`,
-          { id: orderId },
-        );
-        order = live.store_orders_by_pk
-          ? { ...live.store_orders_by_pk, cart_items: null }
-          : null;
-      }
-      if (!order) {
-        throw createError({ statusCode: 404, statusMessage: "Order not found" });
-      }
-      if (order.status !== "pending") {
-        return { ok: true, status: order.status };
-      }
-
-      const cart = normalizeCartItems(order.cart_items);
-      const orderedAmount = Number(order.amount_irr) || 0;
-      let prices: Array<{ label: string; amount: number }>;
-      let amountIrr: number;
-      let title: string;
-      let description: string;
-
-      if (cart.length > 0) {
-        // Prefer the amount frozen at checkout — club-shop uses a 0-price
-        // carrier product, so falling back to product.price_irr was wrong.
-        const cartSum = cart.reduce(
-          (s, i) => s + Number(i.price_irr || 0),
-          0,
-        );
-        amountIrr = orderedAmount > 0 ? orderedAmount : cartSum;
-        title =
-          cart.length === 1
-            ? cart[0].title
-            : `YGuard Store (${cart.length} items)`;
-        prices =
-          cart.length === 1 || orderedAmount > 0
-            ? [{ label: title.slice(0, 32), amount: amountIrr }]
-            : cart.map((i) => ({
-                label: i.title.slice(0, 32),
-                amount: Number(i.price_irr),
-              }));
-        const toman = Math.round(amountIrr / 10);
-        description =
-          `${cart.map((i) => i.title).join(" · ").slice(0, 180)} · ${toman.toLocaleString("en-US")} تومان`.slice(
-            0,
-            255,
+        const orderId = expandOrderId(match[1]);
+        if (!orderId) {
+          await softReply(
+            bale.botToken,
+            chatId,
+            "سفارش نامعتبر است. از فروشگاه دوباره خرید را شروع کن.",
           );
-      } else {
-        amountIrr =
-          orderedAmount > 0
-            ? orderedAmount
-            : Number(order.product.price_irr) || 0;
-        if (!(amountIrr > 0)) {
-          throw createError({
-            statusCode: 400,
-            statusMessage: "Order has no payable amount",
-          });
+          return { ok: false, error: "invalid_order" };
         }
-        if (orderedAmount <= 0) {
-          await hasura(
-            `mutation ($id: uuid!, $amount: Int!) {
-              update_store_orders_by_pk(
-                pk_columns: { id: $id }
-                _set: { amount_irr: $amount }
-              ) { id }
+
+        let order: {
+          id: string;
+          status: string;
+          amount_irr: number;
+          bale_payload: string;
+          product_title?: string | null;
+          cart_items: CartItemSnapshot[] | null;
+          product: {
+            title: string;
+            description: string;
+            price_irr: number;
+            active: boolean;
+          };
+        } | null = null;
+
+        try {
+          const live = await hasura<{
+            store_orders_by_pk: typeof order;
+          }>(
+            `query ($id: uuid!) {
+              store_orders_by_pk(id: $id) {
+                id status amount_irr bale_payload product_title cart_items
+                product { title description price_irr active }
+              }
             }`,
-            { id: order.id, amount: amountIrr },
+            { id: orderId },
           );
+          order = live.store_orders_by_pk;
+        } catch {
+          // cart_items / product_title may not be tracked — fall back.
+          const live = await hasura<{
+            store_orders_by_pk: typeof order;
+          }>(
+            `query ($id: uuid!) {
+              store_orders_by_pk(id: $id) {
+                id status amount_irr bale_payload
+                product { title description price_irr active }
+              }
+            }`,
+            { id: orderId },
+          );
+          order = live.store_orders_by_pk
+            ? { ...live.store_orders_by_pk, cart_items: null }
+            : null;
         }
-        title = order.product.title;
-        const toman = Math.round(amountIrr / 10);
-        description =
-          `${(order.product.description || order.product.title).slice(0, 200)} · ${toman.toLocaleString("en-US")} تومان`.slice(
-            0,
-            255,
+        if (!order) {
+          await softReply(
+            bale.botToken,
+            chatId,
+            "سفارش پیدا نشد. از فروشگاه دوباره خرید را شروع کن.",
           );
-        prices = [
-          {
-            label: order.product.title.slice(0, 32),
-            amount: amountIrr,
-          },
-        ];
-      }
+          return { ok: false, error: "not_found" };
+        }
+        if (order.status !== "pending") {
+          await softReply(
+            bale.botToken,
+            chatId,
+            order.status === "paid"
+              ? "این سفارش قبلاً پرداخت شده است."
+              : `وضعیت سفارش: ${order.status}`,
+          );
+          return { ok: true, status: order.status };
+        }
 
-      await baleApi(bale.botToken, "sendInvoice", {
-        chat_id: chatId,
-        title: title.slice(0, 32),
-        description,
-        payload: order.bale_payload,
-        provider_token: bale.providerToken,
-        currency: "IRR",
-        prices,
-      });
-      return { ok: true };
+        const cart = normalizeCartItems(order.cart_items);
+        const orderedAmount = Number(order.amount_irr) || 0;
+        let prices: Array<{ label: string; amount: number }>;
+        let amountIrr: number;
+        let title: string;
+        let description: string;
+
+        if (cart.length > 0) {
+          // Prefer the amount frozen at checkout — club-shop uses a 0-price
+          // carrier product, so falling back to product.price_irr was wrong.
+          const cartSum = cart.reduce(
+            (s, i) => s + Number(i.price_irr || 0),
+            0,
+          );
+          amountIrr = orderedAmount > 0 ? orderedAmount : cartSum;
+          title =
+            cart.length === 1
+              ? cart[0].title
+              : `YGuard Store (${cart.length} items)`;
+          prices =
+            cart.length === 1 || orderedAmount > 0
+              ? [{ label: title.slice(0, 32), amount: amountIrr }]
+              : cart.map((i) => ({
+                  label: i.title.slice(0, 32),
+                  amount: Number(i.price_irr),
+                }));
+          const toman = Math.round(amountIrr / 10);
+          description =
+            `${cart.map((i) => i.title).join(" · ").slice(0, 180)} · ${toman.toLocaleString("en-US")} تومان`.slice(
+              0,
+              255,
+            );
+        } else {
+          amountIrr =
+            orderedAmount > 0
+              ? orderedAmount
+              : Number(order.product?.price_irr) || 0;
+          title =
+            String(order.product_title || "").trim() ||
+            order.product?.title ||
+            "YGuard Store";
+          const toman = Math.round(amountIrr / 10);
+          description =
+            `${(order.product?.description || title).slice(0, 200)} · ${toman.toLocaleString("en-US")} تومان`.slice(
+              0,
+              255,
+            );
+          prices = [{ label: title.slice(0, 32), amount: amountIrr }];
+        }
+
+        if (!(amountIrr > 0) || !prices.some((p) => p.amount > 0)) {
+          console.error("bale invoice amount is zero", {
+            orderId,
+            orderedAmount,
+            cart: cart.length,
+          });
+          await softReply(
+            bale.botToken,
+            chatId,
+            "مبلغ سفارش صفر است. از فروشگاه دوباره خرید را شروع کن یا به پشتیبانی بگو.",
+          );
+          return { ok: false, error: "zero_amount" };
+        }
+
+        await baleApi(bale.botToken, "sendInvoice", {
+          chat_id: chatId,
+          title: title.slice(0, 32),
+          description,
+          payload: order.bale_payload,
+          provider_token: bale.providerToken,
+          currency: "IRR",
+          prices,
+        });
+        return { ok: true };
+      } catch (error) {
+        console.error("bale start pay failed", error);
+        await softReply(
+          bale.botToken,
+          chatId,
+          "فاکتور ساخته نشد. چند لحظه بعد از فروشگاه دوباره امتحان کن. اگر ادامه داشت به پشتیبانی بگو.",
+        );
+        // Always 200 — a 4xx/5xx here is what Bale surfaces as «بازو پاسخگو نبود».
+        return { ok: false, error: "start_pay_failed" };
+      }
     }
   }
 
