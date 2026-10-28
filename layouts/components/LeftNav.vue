@@ -544,6 +544,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Building2 />
                   {{ $t("layouts.app_nav.navigation.clubs") }}
+                  <Badge
+                    size="sm"
+                    v-if="clubUnreadCount > 0"
+                    class="ml-auto"
+                  >
+                    {{ clubUnreadCount }}
+                  </Badge>
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1488,6 +1495,9 @@ export default {
     },
     seasonsRebuildCount() {
       return useNotificationStore().seasonRebuildCount;
+    },
+    clubUnreadCount() {
+      return useNotificationStore().clubUnreadCount;
     },
     newsLabel() {
       return useApplicationSettingsStore().newsLabel;

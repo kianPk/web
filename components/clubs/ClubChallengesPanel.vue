@@ -265,46 +265,47 @@ async function activate() {
   }
   busy.value = true;
   try {
-    const { data } = await client.mutate({
+    await client.mutate({
       mutation: gql`
-        mutation ActivateClubChallenges($objects: [club_challenges_insert_input!]!) {
-          insert_club_challenges(objects: $objects) {
-            returning { id }
+        mutation ActivateClubChallenges(
+          $club_id: uuid!
+          $catalog_ids: [String!]!
+          $ends_at: String!
+          $prize_ypoints: Int
+          $prize_other: String
+          $prize_scope: String
+          $audience: String!
+          $steam_ids: [String!]
+        ) {
+          activateClubChallenges(
+            club_id: $club_id
+            catalog_ids: $catalog_ids
+            ends_at: $ends_at
+            prize_ypoints: $prize_ypoints
+            prize_other: $prize_other
+            prize_scope: $prize_scope
+            audience: $audience
+            steam_ids: $steam_ids
+          ) {
+            success
+            challenge_ids
           }
         }
       `,
       variables: {
-        objects: ids.map((catalog_id) => ({
-          club_id: props.clubId,
-          catalog_id,
-          ends_at: ends.toISOString(),
-          prize_ypoints: ypoints && ypoints > 0 ? ypoints : null,
-          prize_other: other,
-          prize_scope: prizeScope.value,
-          audience: audience.value,
-        })),
+        club_id: props.clubId,
+        catalog_ids: ids,
+        ends_at: ends.toISOString(),
+        prize_ypoints: ypoints && ypoints > 0 ? ypoints : null,
+        prize_other: other || null,
+        prize_scope: prizeScope.value,
+        audience: audience.value,
+        steam_ids:
+          audience.value === "players"
+            ? audiencePlayers.value.map((p) => String(p.steam_id))
+            : null,
       },
     });
-    const created = data?.insert_club_challenges?.returning ?? [];
-    if (audience.value === "players" && created.length) {
-      await client.mutate({
-        mutation: gql`
-          mutation TargetClubChallenges($objects: [club_challenge_targets_insert_input!]!) {
-            insert_club_challenge_targets(objects: $objects) {
-              affected_rows
-            }
-          }
-        `,
-        variables: {
-          objects: created.flatMap((row: { id: string }) =>
-            audiencePlayers.value.map((player) => ({
-              challenge_id: row.id,
-              steam_id: player.steam_id,
-            })),
-          ),
-        },
-      });
-    }
     selected.value = [];
     await load();
   } catch (e) {

@@ -1928,6 +1928,22 @@
             "title": "News",
             "description": "New articles published on YGuard."
           },
+          "clubs": {
+            "title": "Clubs",
+            "description": "Club news, challenges and tournaments."
+          },
+          "ClubChallengeActivated": {
+            "title": "Club challenges",
+            "description": "A club activated a challenge for you."
+          },
+          "ClubNewsPosted": {
+            "title": "Club news",
+            "description": "Your club posted in News."
+          },
+          "ClubTournamentCreated": {
+            "title": "Club tournaments",
+            "description": "Your club opened a tournament for signups."
+          },
           "staff_moderation": {
             "title": "Moderation",
             "description": "Support requests, abandons and name-change requests."
@@ -6836,12 +6852,15 @@
       "rubika_placeholder": "{'@'}username or rubika.ir/username",
       "soroush": "Soroush",
       "soroush_placeholder": "{'@'}username or splus.ir/username",
+      "website": "Website",
+      "website_placeholder": "https://example.com",
       "socials_saved": "Social links saved",
       "invalid_telegram": "That Telegram link is not valid.",
       "invalid_instagram": "That Instagram link is not valid.",
       "invalid_bale": "That Bale link is not valid.",
       "invalid_rubika": "That Rubika link is not valid.",
       "invalid_soroush": "That Soroush link is not valid.",
+      "invalid_website": "That website URL is not valid.",
       "ownclub_required": "Only players with the OwnClub tag can create or take a club. Ask a site admin.",
       "ownclub_grant": "OwnClub",
       "ownclub_granted": "Can own a club",

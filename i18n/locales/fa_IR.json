@@ -1928,6 +1928,22 @@
             "title": "اخبار",
             "description": "مقالات جدید منتشر شده در YGuard."
           },
+          "clubs": {
+            "title": "کلاب‌ها",
+            "description": "نیوز، چلنج و تورنومنت کلاب."
+          },
+          "ClubChallengeActivated": {
+            "title": "چلنج کلاب",
+            "description": "کلاب یک چلنج برای تو فعال کرد."
+          },
+          "ClubNewsPosted": {
+            "title": "نیوز کلاب",
+            "description": "کلابت در بخش نیوز پست گذاشت."
+          },
+          "ClubTournamentCreated": {
+            "title": "تورنومنت کلاب",
+            "description": "کلابت یک تورنومنت برای ثبت‌نام باز کرد."
+          },
           "staff_moderation": {
             "title": "اعتدال",
             "description": "پشتیبانی از درخواست ها، رها کردن و درخواست های تغییر نام."
@@ -6836,12 +6852,15 @@
       "rubika_placeholder": "{'@'}username یا rubika.ir/username",
       "soroush": "سروش",
       "soroush_placeholder": "{'@'}username یا splus.ir/username",
+      "website": "وب‌سایت",
+      "website_placeholder": "https://example.com",
       "socials_saved": "شبکه‌های اجتماعی ذخیره شد",
       "invalid_telegram": "لینک تلگرام معتبر نیست.",
       "invalid_instagram": "لینک اینستاگرام معتبر نیست.",
       "invalid_bale": "آیدی بله معتبر نیست.",
       "invalid_rubika": "آیدی روبیکا معتبر نیست.",
       "invalid_soroush": "آیدی سروش معتبر نیست.",
+      "invalid_website": "آدرس وب‌سایت معتبر نیست.",
       "ownclub_required": "فقط بازیکنانی که تگ OwnClub دارند می‌توانند کلاب بسازند یا مالک شوند. از ادمین سایت بخواه.",
       "ownclub_grant": "OwnClub",
       "ownclub_granted": "مجاز به مالکیت کلاب",

@@ -5,6 +5,7 @@ const props = defineProps<{
   bale?: string | null;
   rubika?: string | null;
   soroush?: string | null;
+  website?: string | null;
 }>();
 
 const links = computed(() =>
@@ -39,6 +40,12 @@ const links = computed(() =>
       label: "pages.clubs.soroush",
       color: "#1E88E5",
     },
+    {
+      key: "website",
+      href: props.website,
+      label: "pages.clubs.website",
+      color: "#64748B",
+    },
   ].filter((link) => !!link.href),
 );
 </script>
@@ -72,8 +79,12 @@ const links = computed(() =>
           d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm-2.2 5.2a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Zm5.4 1.2a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4ZM7.6 14.2c.7 1.6 2.4 2.7 4.4 2.7s3.7-1.1 4.4-2.7c.2-.4-.2-.8-.6-.6a6 6 0 0 1-7.6 0c-.4-.2-.8.2-.6.6Z"
         />
         <path
-          v-else
+          v-else-if="link.key === 'soroush'"
           d="M12 3a9 9 0 1 0 .01 18.01A9 9 0 0 0 12 3Zm-1.1 5.2h4.4c.4 0 .7.4.5.8L13.2 13h2.2c.5 0 .7.6.4 1l-4.6 5.2c-.4.4-1 .1-.9-.4l.8-3.6H8.6c-.5 0-.7-.6-.4-1l2.2-4.4c.2-.3.4-.6.5-.6Z"
+        />
+        <path
+          v-else
+          d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 2.2a6.8 6.8 0 1 1 0 13.6 6.8 6.8 0 0 1 0-13.6Zm0 2.3a1.2 1.2 0 0 0-1.2 1.2v3.1c0 .3.1.6.4.8l2.2 1.7a1.2 1.2 0 1 0 1.4-1.9l-1.6-1.3V8.7A1.2 1.2 0 0 0 12 7.5Z"
         />
       </svg>
       {{ $t(link.label) }}

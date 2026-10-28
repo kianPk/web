@@ -109,3 +109,21 @@ export function parseSoroushUrl(raw: string): SocialParse {
   if (!SOROUSH_HANDLE.test(handle)) return { ok: false };
   return { ok: true, url: `https://${host}/${handle}` };
 }
+
+export function parseWebsiteUrl(raw: string): SocialParse {
+  const value = raw.trim();
+  if (!value) return { ok: true, url: null };
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const url = new URL(withScheme);
+    if (!/^https?:$/i.test(url.protocol)) return { ok: false };
+    const host = url.hostname.replace(/^www\./i, "");
+    if (!host || !host.includes(".")) return { ok: false };
+    url.hash = "";
+    const href = url.toString().replace(/\/$/, "");
+    if (href.length < 8 || href.length > 200) return { ok: false };
+    return { ok: true, url: href };
+  } catch {
+    return { ok: false };
+  }
+}

@@ -304,6 +304,19 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
   // role=user notifications. These drive the orange, ringing bell + sound. Admin
   // notifications (role above user) get a quieter indicator since admins tend to
   // let them pile up.
+  const CLUB_SIDEBAR_TYPES = new Set([
+    "ClubChallengeActivated",
+    "ClubNewsPosted",
+    "ClubTournamentCreated",
+  ]);
+
+  const clubUnreadCount = computed(
+    () =>
+      visibleNotifications.value.filter(
+        (n) => !n.is_read && CLUB_SIDEBAR_TYPES.has(n.type),
+      ).length,
+  );
+
   const personalUnread = computed(
     () =>
       visibleNotifications.value.filter((n) => !n.is_read && n.role === "user")
@@ -742,6 +755,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     scheduleTaskCount,
     stackedNotifications,
     unreadNotificationCount,
+    clubUnreadCount,
     hasNotifications,
     hasPersonalNotifications,
     hasAdminNotifications,

@@ -74,6 +74,7 @@ import {
   parseRubikaUrl,
   parseSoroushUrl,
   parseTelegramUrl,
+  parseWebsiteUrl,
 } from "~/utilities/clubSocials";
 import { formatSiteDate } from "~/utilities/dateLocale";
 
@@ -181,6 +182,7 @@ const instagramInput = ref("");
 const baleInput = ref("");
 const rubikaInput = ref("");
 const soroushInput = ref("");
+const websiteInput = ref("");
 const descriptionInput = ref("");
 const promoInput = ref("");
 const benefitsInput = ref("");
@@ -610,6 +612,7 @@ async function loadSocials(clubId: string) {
             bale_url
             rubika_url
             soroush_url
+            website_url
           }
         }
       `,
@@ -624,11 +627,13 @@ async function loadSocials(clubId: string) {
     club.value.bale_url = row.bale_url;
     club.value.rubika_url = row.rubika_url;
     club.value.soroush_url = row.soroush_url;
+    club.value.website_url = row.website_url;
     telegramInput.value = row.telegram_url || "";
     instagramInput.value = row.instagram_url || "";
     baleInput.value = row.bale_url || "";
     rubikaInput.value = row.rubika_url || "";
     soroushInput.value = row.soroush_url || "";
+    websiteInput.value = row.website_url || "";
   } catch {
     // Columns land after the Hasura metadata apply.
   }
@@ -916,6 +921,7 @@ async function saveSocials() {
   const bale = parseBaleUrl(baleInput.value);
   const rubika = parseRubikaUrl(rubikaInput.value);
   const soroush = parseSoroushUrl(soroushInput.value);
+  const website = parseWebsiteUrl(websiteInput.value);
   socialError.value = "";
   if (!telegram.ok) {
     socialError.value = t("pages.clubs.invalid_telegram");
@@ -937,6 +943,10 @@ async function saveSocials() {
     socialError.value = t("pages.clubs.invalid_soroush");
     return;
   }
+  if (!website.ok) {
+    socialError.value = t("pages.clubs.invalid_website");
+    return;
+  }
   busy.value = true;
   try {
     const { data } = await client.mutate({
@@ -949,6 +959,7 @@ async function saveSocials() {
             bale_url
             rubika_url
             soroush_url
+            website_url
           }
         }
       `,
@@ -960,6 +971,7 @@ async function saveSocials() {
           bale_url: bale.url,
           rubika_url: rubika.url,
           soroush_url: soroush.url,
+          website_url: website.url,
         },
       },
     });
@@ -975,12 +987,14 @@ async function saveSocials() {
       bale_url: row.bale_url ?? null,
       rubika_url: row.rubika_url ?? null,
       soroush_url: row.soroush_url ?? null,
+      website_url: row.website_url ?? null,
     };
     telegramInput.value = row.telegram_url || "";
     instagramInput.value = row.instagram_url || "";
     baleInput.value = row.bale_url || "";
     rubikaInput.value = row.rubika_url || "";
     soroushInput.value = row.soroush_url || "";
+    websiteInput.value = row.website_url || "";
   } catch (e: any) {
     socialError.value = clubErrorMessage(e, t);
   } finally {
@@ -1016,7 +1030,7 @@ async function sendNews(payload: { body: string; file: File | null }) {
       }
       imageUrl = payloadJson.path;
     }
-    await client.mutate({
+    const { data: inserted } = await client.mutate({
       mutation: gql`
         mutation ($object: club_messages_insert_input!) {
           insert_club_messages_one(object: $object) {
@@ -1033,6 +1047,26 @@ async function sendNews(payload: { body: string; file: File | null }) {
         },
       },
     });
+    const messageId = inserted?.insert_club_messages_one?.id;
+    if (messageId) {
+      try {
+        await client.mutate({
+          mutation: gql`
+            mutation NotifyClubNews($club_id: uuid!, $message_id: String) {
+              notifyClubNewsPosted(club_id: $club_id, message_id: $message_id) {
+                success
+              }
+            }
+          `,
+          variables: {
+            club_id: club.value.id,
+            message_id: String(messageId),
+          },
+        });
+      } catch {
+        /* news is already posted; notify is best-effort */
+      }
+    }
     newsPanel.value?.afterSent();
     await load({ silent: true });
   } catch (e: any) {
@@ -1492,6 +1526,7 @@ function activityTitle(kind: string) {
               :bale="club.bale_url"
               :rubika="club.rubika_url"
               :soroush="club.soroush_url"
+              :website="club.website_url"
             />
           </div>
 
@@ -1674,6 +1709,7 @@ function activityTitle(kind: string) {
                   :bale="club.bale_url"
                   :rubika="club.rubika_url"
                   :soroush="club.soroush_url"
+                  :website="club.website_url"
                 />
                 <p
                   v-if="
@@ -1681,7 +1717,8 @@ function activityTitle(kind: string) {
                     !club.instagram_url &&
                     !club.bale_url &&
                     !club.rubika_url &&
-                    !club.soroush_url
+                    !club.soroush_url &&
+                    !club.website_url
                   "
                   class="text-xs text-muted-foreground"
                 >
@@ -2504,13 +2541,22 @@ function activityTitle(kind: string) {
                     :placeholder="t('pages.clubs.rubika_placeholder')"
                   />
                 </label>
-                <label class="block space-y-1 text-xs font-medium text-[#1E88E5] sm:col-span-2">
+                <label class="block space-y-1 text-xs font-medium text-[#1E88E5]">
                   {{ t("pages.clubs.soroush") }}
                   <Input
                     v-model="soroushInput"
                     dir="ltr"
                     class="font-mono text-foreground"
                     :placeholder="t('pages.clubs.soroush_placeholder')"
+                  />
+                </label>
+                <label class="block space-y-1 text-xs font-medium text-[#64748B]">
+                  {{ t("pages.clubs.website") }}
+                  <Input
+                    v-model="websiteInput"
+                    dir="ltr"
+                    class="font-mono text-foreground"
+                    :placeholder="t('pages.clubs.website_placeholder')"
                   />
                 </label>
               </div>
