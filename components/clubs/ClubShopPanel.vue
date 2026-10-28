@@ -6,6 +6,14 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -51,7 +59,9 @@ const servers = ref<Array<{ id: string; label: string }>>([]);
 const selected = ref<Record<string, Duration>>({});
 const serverPick = ref("");
 const terms = ref(false);
-const busyId = ref<string | null>(null);
+const checkoutOpen = ref(false);
+const checkoutProduct = ref<Product | null>(null);
+const paying = ref(false);
 
 function productTitle(p: Product) {
   if (p.kind === "club_vip") return t("pages.clubs.shop.kind_club_vip");
@@ -101,7 +111,19 @@ function pkgFor(p: Product) {
   return p.packages.find((x) => x.duration === d) || p.packages[0] || null;
 }
 
-async function buy(p: Product, payWith: "bale" | "ypoint") {
+const invoicePkg = computed(() =>
+  checkoutProduct.value ? pkgFor(checkoutProduct.value) : null,
+);
+
+const invoiceServerLabel = computed(() => {
+  if (checkoutProduct.value?.kind !== "public_vip") return "";
+  return (
+    servers.value.find((s) => s.id === serverPick.value)?.label ||
+    t("pages.clubs.shop.pick_server")
+  );
+});
+
+function openCheckout(p: Product) {
   if (!auth.me?.steam_id) {
     toast({
       variant: "destructive",
@@ -109,6 +131,30 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
     });
     return;
   }
+  if (!pkgFor(p)) return;
+  if (p.kind === "public_vip" && !serverPick.value) {
+    toast({
+      variant: "destructive",
+      title: t("pages.clubs.shop.pick_server"),
+    });
+    return;
+  }
+  checkoutProduct.value = p;
+  terms.value = false;
+  checkoutOpen.value = true;
+}
+
+watch(checkoutOpen, (open) => {
+  if (!open) {
+    checkoutProduct.value = null;
+    terms.value = false;
+    paying.value = false;
+  }
+});
+
+async function pay(payWith: "bale" | "ypoint") {
+  const p = checkoutProduct.value;
+  if (!p) return;
   if (!terms.value) {
     toast({
       variant: "destructive",
@@ -129,11 +175,12 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
     return;
   }
 
-  busyId.value = `${p.id}:${payWith}`;
+  paying.value = true;
   try {
     const result = await hostedApi<{
       paid?: boolean;
       deepLink?: string | null;
+      amountIrr?: number;
     }>(`/hosted-servers/clubs/${props.clubId}/shop/checkout`, {
       method: "POST",
       body: {
@@ -146,6 +193,7 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
     });
     if (result?.paid) {
       toast({ title: t("pages.clubs.shop.bought") });
+      checkoutOpen.value = false;
       await load();
       return;
     }
@@ -161,6 +209,7 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
       title: t("pages.store.checkout_started"),
       description: t("pages.store.checkout_hint"),
     });
+    checkoutOpen.value = false;
     const popup = window.open(link, "_blank", "noopener,noreferrer");
     if (!popup) {
       window.location.href = link;
@@ -168,7 +217,7 @@ async function buy(p: Product, payWith: "bale" | "ypoint") {
   } catch (error) {
     toast({ variant: "destructive", title: hostedErrorMessage(error) });
   } finally {
-    busyId.value = null;
+    paying.value = false;
   }
 }
 
@@ -213,7 +262,9 @@ const empty = computed(() => !loading.value && products.value.length === 0);
         v-if="products.some((p) => p.kind === 'public_vip') && servers.length"
         class="rounded-xl border border-border/70 bg-card/40 p-3"
       >
-        <Label class="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Label
+          class="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground"
+        >
           <Server class="h-3.5 w-3.5" />
           {{ t("pages.clubs.shop.server_for_public_vip") }}
         </Label>
@@ -265,60 +316,147 @@ const empty = computed(() => !loading.value && products.value.length === 0);
               </button>
             </div>
 
-            <div class="mt-3 flex flex-wrap gap-2">
+            <div class="mt-3">
               <Button
                 type="button"
                 size="sm"
                 class="bg-[#ff5500] hover:bg-[#ff6a1f]"
-                :disabled="!!busyId || !pkgFor(p) || !terms"
-                @click="buy(p, 'bale')"
+                :disabled="!pkgFor(p)"
+                @click="openCheckout(p)"
               >
-                {{
-                  busyId === `${p.id}:bale`
-                    ? t("common.loading")
-                    : t("pages.clubs.shop.buy_irr")
-                }}
-              </Button>
-              <Button
-                v-if="pkgFor(p)?.price_ypoint"
-                type="button"
-                size="sm"
-                variant="outline"
-                :disabled="!!busyId || !terms"
-                @click="buy(p, 'ypoint')"
-              >
-                {{
-                  busyId === `${p.id}:ypoint`
-                    ? t("common.loading")
-                    : t("pages.clubs.shop.buy_ypoint", {
-                        n: pkgFor(p)?.price_ypoint,
-                      })
-                }}
+                {{ t("pages.clubs.shop.buy") }}
               </Button>
             </div>
           </div>
         </div>
       </article>
-
-      <button
-        type="button"
-        class="flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start transition-colors"
-        :class="
-          terms
-            ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
-            : 'border-border bg-card/40 hover:bg-muted/30'
-        "
-        @click="terms = !terms"
-      >
-        <Checkbox
-          :checked="terms"
-          class="pointer-events-none mt-0.5"
-          tabindex="-1"
-        />
-        <span class="text-sm leading-snug text-foreground">
-          {{ t("pages.clubs.shop.terms") }}
-        </span>
-      </button>
     </div>
+
+    <Dialog v-model:open="checkoutOpen">
+      <DialogContent class="gap-0 overflow-hidden p-0 sm:max-w-md">
+        <DialogHeader
+          class="space-y-1 border-b border-border px-5 py-4 text-start"
+        >
+          <DialogTitle>{{ t("pages.clubs.shop.invoice_title") }}</DialogTitle>
+          <DialogDescription>
+            {{ t("pages.clubs.shop.invoice_subtitle") }}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div v-if="checkoutProduct && invoicePkg" class="space-y-4 px-5 py-4">
+          <div
+            class="rounded-xl border border-border/70 bg-card/40 px-4 py-3"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="font-semibold tracking-tight">
+                  {{ productTitle(checkoutProduct) }}
+                </div>
+                <div class="mt-1 text-sm text-muted-foreground">
+                  {{
+                    t(
+                      `pages.clubs.shop.duration_${invoicePkg.duration}`,
+                    )
+                  }}
+                </div>
+                <div
+                  v-if="checkoutProduct.kind === 'public_vip'"
+                  class="mt-1 text-xs text-muted-foreground"
+                >
+                  {{ invoiceServerLabel }}
+                </div>
+              </div>
+              <div class="shrink-0 text-end">
+                <div class="font-mono text-base font-semibold tabular-nums">
+                  {{ formatTomanAmount(invoicePkg.price_irr, locale) }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{ t("pages.clubs.shop.toman") }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center justify-between border-t border-border/60 pt-3"
+          >
+            <span
+              class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              {{ t("pages.clubs.shop.invoice_total") }}
+            </span>
+            <span class="font-mono text-lg font-semibold tabular-nums">
+              {{ formatTomanAmount(invoicePkg.price_irr, locale) }}
+              <span class="text-sm font-normal text-muted-foreground">
+                {{ t("pages.clubs.shop.toman") }}
+              </span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-start transition-colors"
+            :class="
+              terms
+                ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+                : 'border-border bg-card/40 hover:bg-muted/30'
+            "
+            @click="terms = !terms"
+          >
+            <Checkbox
+              :checked="terms"
+              class="pointer-events-none mt-0.5"
+              tabindex="-1"
+            />
+            <span class="text-sm leading-snug text-foreground">
+              {{ t("pages.clubs.shop.terms") }}
+            </span>
+          </button>
+        </div>
+
+        <DialogFooter
+          class="flex-row flex-wrap gap-2 border-t border-border bg-background px-5 py-3.5 sm:justify-between"
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            class="px-3"
+            :disabled="paying"
+            @click="checkoutOpen = false"
+          >
+            {{ t("common.cancel") }}
+          </Button>
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-if="invoicePkg?.price_ypoint"
+              type="button"
+              variant="outline"
+              :disabled="paying || !terms"
+              @click="pay('ypoint')"
+            >
+              {{
+                paying
+                  ? t("common.loading")
+                  : t("pages.clubs.shop.buy_ypoint", {
+                      n: invoicePkg?.price_ypoint,
+                    })
+              }}
+            </Button>
+            <Button
+              type="button"
+              class="bg-[#ff5500] hover:bg-[#ff6a1f]"
+              :disabled="paying || !terms || !invoicePkg"
+              @click="pay('bale')"
+            >
+              {{
+                paying
+                  ? t("common.loading")
+                  : t("pages.clubs.shop.buy_irr")
+              }}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

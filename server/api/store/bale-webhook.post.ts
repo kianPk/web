@@ -375,21 +375,31 @@ export default defineEventHandler(async (event) => {
       }
 
       const cart = normalizeCartItems(order.cart_items);
+      const orderedAmount = Number(order.amount_irr) || 0;
       let prices: Array<{ label: string; amount: number }>;
       let amountIrr: number;
       let title: string;
       let description: string;
 
       if (cart.length > 0) {
-        prices = cart.map((i) => ({
-          label: i.title.slice(0, 32),
-          amount: Number(i.price_irr),
-        }));
-        amountIrr = prices.reduce((s, p) => s + p.amount, 0);
+        // Prefer the amount frozen at checkout — club-shop uses a 0-price
+        // carrier product, so falling back to product.price_irr was wrong.
+        const cartSum = cart.reduce(
+          (s, i) => s + Number(i.price_irr || 0),
+          0,
+        );
+        amountIrr = orderedAmount > 0 ? orderedAmount : cartSum;
         title =
           cart.length === 1
             ? cart[0].title
             : `YGuard Store (${cart.length} items)`;
+        prices =
+          cart.length === 1 || orderedAmount > 0
+            ? [{ label: title.slice(0, 32), amount: amountIrr }]
+            : cart.map((i) => ({
+                label: i.title.slice(0, 32),
+                amount: Number(i.price_irr),
+              }));
         const toman = Math.round(amountIrr / 10);
         description =
           `${cart.map((i) => i.title).join(" · ").slice(0, 180)} · ${toman.toLocaleString("en-US")} تومان`.slice(
@@ -397,8 +407,17 @@ export default defineEventHandler(async (event) => {
             255,
           );
       } else {
-        amountIrr = Number(order.product.price_irr);
-        if (amountIrr !== Number(order.amount_irr)) {
+        amountIrr =
+          orderedAmount > 0
+            ? orderedAmount
+            : Number(order.product.price_irr) || 0;
+        if (!(amountIrr > 0)) {
+          throw createError({
+            statusCode: 400,
+            statusMessage: "Order has no payable amount",
+          });
+        }
+        if (orderedAmount <= 0) {
           await hasura(
             `mutation ($id: uuid!, $amount: Int!) {
               update_store_orders_by_pk(
@@ -422,18 +441,6 @@ export default defineEventHandler(async (event) => {
             amount: amountIrr,
           },
         ];
-      }
-
-      if (amountIrr !== Number(order.amount_irr) && cart.length > 0) {
-        await hasura(
-          `mutation ($id: uuid!, $amount: Int!) {
-            update_store_orders_by_pk(
-              pk_columns: { id: $id }
-              _set: { amount_irr: $amount }
-            ) { id }
-          }`,
-          { id: order.id, amount: amountIrr },
-        );
       }
 
       await baleApi(bale.botToken, "sendInvoice", {

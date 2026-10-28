@@ -7168,7 +7168,11 @@
         "status_pending": "منتظر پرداخت",
         "status_paid": "پرداخت شد",
         "status_awaiting_fulfillment": "منتظر استاف",
-        "status_fulfilled": "تحویل شد"
+        "status_fulfilled": "تحویل شد",
+        "buy": "خرید",
+        "invoice_title": "فاکتور خرید",
+        "invoice_subtitle": "جزئیات سفارش را بررسی کنید، قوانین را بپذیرید، بعد پرداخت کنید.",
+        "invoice_total": "جمع"
       },
       "roles": {
         "owner": "مالک",

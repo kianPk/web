@@ -7168,7 +7168,11 @@
         "status_pending": "Awaiting payment",
         "status_paid": "Paid",
         "status_awaiting_fulfillment": "Awaiting staff",
-        "status_fulfilled": "Delivered"
+        "status_fulfilled": "Delivered",
+        "buy": "Buy",
+        "invoice_title": "Checkout invoice",
+        "invoice_subtitle": "Review your order, accept the terms, then pay.",
+        "invoice_total": "Total"
       },
       "roles": {
         "owner": "Owner",
