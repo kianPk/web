@@ -1,3 +1,51 @@
+/**
+ * Telegram-style photo compress for club news: keep aspect ratio, shrink the
+ * longest edge, export JPEG so captions load quickly in the feed.
+ */
+export async function compressNewsPhoto(
+  file: File,
+  maxEdge = 1280,
+  quality = 0.82,
+): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") {
+    return file;
+  }
+  const bitmap = await decodeToBitmap(file);
+  try {
+    const { width, height } = bitmap;
+    const longest = Math.max(width, height);
+    const scale = longest > maxEdge ? maxEdge / longest : 1;
+    const targetW = Math.max(1, Math.round(width * scale));
+    const targetH = Math.max(1, Math.round(height * scale));
+
+    // Already small enough and JPEG — skip re-encode.
+    if (scale >= 1 && file.type === "image/jpeg" && file.size <= 900_000) {
+      return file;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality),
+    );
+    if (!blob) return file;
+    const base = file.name.replace(/\.[^.]+$/, "") || "photo";
+    return new File([blob], `${base}.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+  } finally {
+    bitmap.close?.();
+  }
+}
+
 export async function downscaleFileToObjectUrl(
   file: File,
   maxEdge: number,
@@ -44,20 +92,35 @@ async function decodeToBitmap(file: File): Promise<ImageBitmap> {
       try {
         return await createImageBitmap(file);
       } catch {
-        /* fall through */
+        /* fall through to <img> path */
       }
     }
   }
   const url = URL.createObjectURL(file);
   try {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    return {
-      width: img.naturalWidth,
-      height: img.naturalHeight,
-      close: () => {},
-    } as unknown as ImageBitmap;
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("image decode failed"));
+      el.src = url;
+    });
+    if (typeof createImageBitmap === "function") {
+      try {
+        return await createImageBitmap(img);
+      } catch {
+        /* canvas fallback below */
+      }
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas unavailable");
+    ctx.drawImage(img, 0, 0);
+    if (typeof createImageBitmap !== "function") {
+      throw new Error("image decode unsupported");
+    }
+    return await createImageBitmap(canvas);
   } finally {
     URL.revokeObjectURL(url);
   }

@@ -45,6 +45,7 @@ import ClubServersPanel from "~/components/clubs/ClubServersPanel.vue";
 import ClubLevelSettings from "~/components/clubs/ClubLevelSettings.vue";
 import ClubShopPanel from "~/components/clubs/ClubShopPanel.vue";
 import ClubShopManagePanel from "~/components/clubs/ClubShopManagePanel.vue";
+import ClubNewsPanel from "~/components/clubs/ClubNewsPanel.vue";
 import {
   clubLevelLabel,
   DEFAULT_LEVEL_PERMISSIONS,
@@ -164,10 +165,7 @@ const leaveBlockedWhen = computed(() => {
     ? leaveBlockedUntil.value
     : formatSiteDate(parsed);
 });
-const chatBody = ref("");
-const newsImage = ref<File | null>(null);
-const newsPreview = ref<string | null>(null);
-const newsFileInput = ref<HTMLInputElement | null>(null);
+const newsPanel = ref<{ afterSent: () => void } | null>(null);
 const activeChannelId = ref<string | null>(null);
 const linkMaxUses = ref<number | null>(null);
 const linkHours = ref<number | null>(24);
@@ -933,38 +931,14 @@ async function saveSocials() {
   }
 }
 
-function clearNewsImage() {
-  if (newsPreview.value) URL.revokeObjectURL(newsPreview.value);
-  newsImage.value = null;
-  newsPreview.value = null;
-  if (newsFileInput.value) newsFileInput.value.value = "";
-}
-
-function onNewsImage(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  if (!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 10 * 1024 * 1024) {
-    error.value = t("pages.clubs.news_image_invalid");
-    if (newsFileInput.value) newsFileInput.value.value = "";
-    return;
-  }
-  clearNewsImage();
-  newsImage.value = file;
-  newsPreview.value = URL.createObjectURL(file);
-}
-
-onBeforeUnmount(() => {
-  if (newsPreview.value) URL.revokeObjectURL(newsPreview.value);
-});
-
-async function sendNews() {
+async function sendNews(payload: { body: string; file: File | null }) {
   if (!canPostNews.value || !club.value) return;
   if (!activeChannel.value) {
     error.value = t("pages.clubs.news_no_channel");
     return;
   }
-  const body = chatBody.value.trim();
-  const file = newsImage.value;
+  const body = String(payload.body || "").trim();
+  const file = payload.file;
   if (!body && !file) return;
   busy.value = true;
   error.value = "";
@@ -977,11 +951,13 @@ async function sendNews() {
         `https://${apiDomain}/avatars/clubs/${club.value.id}/news-image`,
         { method: "POST", credentials: "include", body: form },
       );
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.path) {
-        throw new Error(payload?.message || t("pages.clubs.news_image_failed"));
+      const payloadJson = await response.json().catch(() => null);
+      if (!response.ok || !payloadJson?.path) {
+        throw new Error(
+          payloadJson?.message || t("pages.clubs.news_image_failed"),
+        );
       }
-      imageUrl = payload.path;
+      imageUrl = payloadJson.path;
     }
     await client.mutate({
       mutation: gql`
@@ -1000,8 +976,7 @@ async function sendNews() {
         },
       },
     });
-    chatBody.value = "";
-    clearNewsImage();
+    newsPanel.value?.afterSent();
     await load({ silent: true });
   } catch (e: any) {
     error.value = clubErrorMessage(e, t);
@@ -1797,130 +1772,30 @@ function activityTitle(kind: string) {
           </div>
         </section>
 
-        <!-- News -->
-        <section v-if="tab === 'chat'" class="min-h-[16rem] space-y-4">
-          <form
-            v-if="canPostNews"
-            class="space-y-3 rounded-xl border border-border/70 bg-card/40 p-4"
-            @submit.prevent="sendNews"
-          >
-            <p class="text-xs text-muted-foreground">
-              {{
-                isOwner
-                  ? t("pages.clubs.news_as_club_hint")
-                  : t("pages.clubs.news_as_account_hint")
-              }}
-            </p>
-            <textarea
-              v-model="chatBody"
-              rows="3"
-              class="w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm"
-              :placeholder="t('pages.clubs.news_placeholder')"
-            />
-            <div
-              v-if="newsPreview"
-              class="overflow-hidden rounded-lg border border-border/60 bg-background/40"
-            >
-              <img
-                :src="newsPreview"
-                alt=""
-                class="mx-auto block h-auto max-h-80 w-auto max-w-full object-contain"
-              />
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-              <label class="inline-flex cursor-pointer items-center rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground">
-                <input
-                  ref="newsFileInput"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  class="sr-only"
-                  @change="onNewsImage"
-                />
-                {{ t("pages.clubs.news_add_image") }}
-              </label>
-              <button
-                v-if="newsPreview"
-                type="button"
-                class="text-xs text-destructive"
-                @click="clearNewsImage"
-              >
-                {{ t("common.delete") }}
-              </button>
-              <Button
-                type="submit"
-                class="ms-auto"
-                :disabled="busy || (!chatBody.trim() && !newsImage)"
-                :class="tacticalCtaButtonClasses"
-              >
-                {{ t("pages.clubs.send") }}
-              </Button>
-            </div>
-          </form>
-          <p v-else class="text-sm text-muted-foreground">
-            {{ t("pages.clubs.news_staff_only") }}
-          </p>
-
-          <article
-            v-for="msg in newsPosts"
-            :key="msg.id"
-            class="rounded-xl border border-border/70 bg-card/40 p-4"
-            :class="{ 'opacity-40': msg.deleted_at }"
-          >
-            <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <button
-                v-if="isOwnerNewsPost(msg)"
-                type="button"
-                class="text-sm font-semibold text-[hsl(var(--tac-amber))] hover:underline"
-                @click="openClubPage"
-              >
-                {{ club.name }}
-              </button>
-              <span
-                v-else
-                class="text-sm font-semibold text-[hsl(var(--tac-amber))]"
-              >
-                {{ msg.author?.name || msg.author_steam_id }}
-              </span>
-              <span class="text-xs text-muted-foreground">
-                {{ formatSiteDate(msg.created_at) }}
-              </span>
-            </div>
-            <div class="mt-3 space-y-3">
-              <p
-                v-if="msg.body && msg.body.trim()"
-                class="whitespace-pre-wrap text-sm leading-relaxed"
-                :class="{ 'line-through': msg.deleted_at }"
-              >
-                {{ msg.body }}
-              </p>
-              <div
-                v-if="msg.image_url && !msg.deleted_at"
-                class="overflow-hidden rounded-lg bg-background/30"
-              >
-                <img
-                  :src="resolveAvatarUrl(msg.image_url, apiDomain) || undefined"
-                  alt=""
-                  class="mx-auto block h-auto max-h-[32rem] w-auto max-w-full object-contain"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-            <button
-              v-if="canModerate && !msg.deleted_at"
-              type="button"
-              class="mt-3 text-xs text-destructive"
-              @click="deleteMessage(msg.id)"
-            >
-              {{ t("common.delete") }}
-            </button>
-          </article>
-          <p
-            v-if="!newsPosts.length"
-            class="rounded-xl border border-border/70 bg-card/40 p-8 text-center text-sm text-muted-foreground"
-          >
-            {{ t("pages.clubs.news_empty") }}
-          </p>
-        </section>
+        <!-- News (Telegram-style channel) -->
+        <ClubNewsPanel
+          v-if="tab === 'chat' && club"
+          ref="newsPanel"
+          :posts="newsPosts"
+          :club-name="club.name"
+          :api-domain="apiDomain"
+          :can-post="canPostNews"
+          :can-moderate="canModerate"
+          :posting-as-club="isOwner"
+          :is-owner-poster="isOwnerNewsPost"
+          :busy="busy"
+          :as-club-hint="t('pages.clubs.news_as_club_hint')"
+          :as-account-hint="t('pages.clubs.news_as_account_hint')"
+          :placeholder="t('pages.clubs.news_placeholder')"
+          :staff-only="t('pages.clubs.news_staff_only')"
+          :empty="t('pages.clubs.news_empty')"
+          :add-image="t('pages.clubs.news_add_image')"
+          :send-label="t('pages.clubs.send')"
+          :delete-label="t('common.delete')"
+          @send="sendNews"
+          @delete="deleteMessage"
+          @open-club="openClubPage"
+        />
 
         <!-- Leaderboard -->
         <section
