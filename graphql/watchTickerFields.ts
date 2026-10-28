@@ -59,7 +59,7 @@ export const watchTickerMatchFields = Selector("matches")({
     { limit: 1 },
     { stage: { tournament: { id: true, name: true } } },
   ],
-  event_links: [{ limit: 1 }, { event: { id: true, name: true } }],
+  // event_links needs Hasura array relationship on matches → event_match_links
   streams: [
     { order_by: [{ priority: order_by.asc }] },
     {

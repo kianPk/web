@@ -89,7 +89,6 @@ export const matchClipFields = {
           },
         },
       ],
-      event_links: [{ limit: 1 }, { event: { id: true, name: true } }],
       match_maps: [
         {},
         {
