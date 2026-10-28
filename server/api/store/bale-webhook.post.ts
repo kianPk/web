@@ -518,8 +518,11 @@ export default defineEventHandler(async (event) => {
       let order: {
         id: string;
         buyer_steam_id: string;
+        amount_irr: number;
+        product_title?: string | null;
         cart_items: CartItemSnapshot[] | null;
         product: {
+          title?: string | null;
           ypoint_amount: number | null;
           vip_server_id: string | null;
           vip_duration: string | null;
@@ -544,8 +547,10 @@ export default defineEventHandler(async (event) => {
               returning {
                 id
                 buyer_steam_id
+                amount_irr
+                product_title
                 cart_items
-                product { ypoint_amount vip_server_id vip_duration }
+                product { title ypoint_amount vip_server_id vip_duration }
               }
             }
           }`,
@@ -559,7 +564,7 @@ export default defineEventHandler(async (event) => {
       } catch {
         const paid = await hasura<{
           update_store_orders: {
-            returning: Array<Omit<NonNullable<typeof order>, "cart_items">>;
+            returning: Array<Omit<NonNullable<typeof order>, "cart_items" | "product_title">>;
           };
         }>(
           `mutation ($payload: String!, $chargeId: String, $paidAt: timestamptz!) {
@@ -574,7 +579,8 @@ export default defineEventHandler(async (event) => {
               returning {
                 id
                 buyer_steam_id
-                product { ypoint_amount vip_server_id vip_duration }
+                amount_irr
+                product { title ypoint_amount vip_server_id vip_duration }
               }
             }
           }`,
@@ -585,7 +591,7 @@ export default defineEventHandler(async (event) => {
           },
         );
         const row = paid.update_store_orders?.returning?.[0];
-        order = row ? { ...row, cart_items: null } : null;
+        order = row ? { ...row, cart_items: null, product_title: null } : null;
       }
 
       if (order) {
@@ -609,6 +615,30 @@ export default defineEventHandler(async (event) => {
         }
         await tryFulfillViaApi(payload, chargeId, bale.webhookSecret);
         await creditVipShopOwner(order.id);
+
+        const chatId = update?.message?.chat?.id;
+        if (chatId) {
+          const toman = Math.round(Number(order.amount_irr || 0) / 10);
+          const title = String(
+            order.product_title ||
+              order.product?.title ||
+              cart[0]?.title ||
+              "YGuard Store",
+          ).slice(0, 80);
+          await softReply(
+            bale.botToken,
+            chatId,
+            [
+              "✅ پرداخت موفق",
+              `محصول: ${title}`,
+              `مبلغ: ${toman.toLocaleString("en-US")} تومان`,
+              `شماره سفارش: ${order.id}`,
+              chargeId ? `کد پیگیری: ${chargeId}` : "",
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          );
+        }
       }
     }
     return { ok: true };
