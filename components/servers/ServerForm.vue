@@ -39,7 +39,7 @@ const showConnectPassword = ref(false);
 
 <template>
   <form @submit.prevent="updateCreateServer" class="grid gap-5">
-    <FormSection :title="$t('server.form.type')">
+    <FormSection v-if="!lockType" :title="$t('server.form.type')">
       <div class="grid gap-4">
         <FormField name="type">
           <FormItem>
@@ -369,6 +369,13 @@ const showConnectPassword = ref(false);
       </div>
     </FormSection>
 
+    <Alert v-if="lockType" variant="warning">
+      <AlertTitle>{{ $t("pages.hosting.panel.section_mode_locked") }}</AlertTitle>
+      <AlertDescription>
+        {{ $t("pages.hosting.panel.section_gameplay_hint") }}
+      </AlertDescription>
+    </Alert>
+
     <FormSection :title="$t('server.form.identity')">
       <div class="grid gap-4">
         <FormField v-slot="{ componentField }" name="label">
@@ -584,6 +591,11 @@ export default {
     server: {
       type: Object,
       required: false,
+    },
+    /** Section fleet (Duels/DM/…) — hide ranked/valve/custom type pickers. */
+    lockType: {
+      type: Boolean,
+      default: false,
     },
   },
   apollo: {

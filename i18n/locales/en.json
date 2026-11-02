@@ -6269,6 +6269,9 @@
         "password": "Join password",
         "password_placeholder": "Empty = no password",
         "settings_restart_note": "Saving restarts the server.",
+        "section_mode_locked": "This server runs a fixed section mode. Mode cannot be changed here.",
+        "section_gameplay_title": "Section gameplay",
+        "section_gameplay_hint": "Friendly fire, bhop and parachute come from the section mode plugins — they are not editable on this panel.",
         "save": "Save",
         "saved": "Saved",
         "chat_ads": {

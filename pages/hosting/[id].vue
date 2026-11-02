@@ -126,6 +126,8 @@ const addressLabel = computed(() => {
   return `${server.value.host}:${server.value.port}`;
 });
 const isClubPanel = computed(() => !!server.value?.club_id);
+/** Duels/DM/… fleet or section-host rental — not a free-form rented Casual box. */
+const isSectionPanel = computed(() => !!server.value?.section_mode);
 const clubPoolMaps = ref<Array<{ id: string; name: string }>>([]);
 const consoleMaps = computed(() => {
   if (isClubPanel.value && clubPoolMaps.value.length) {
@@ -355,15 +357,18 @@ function saveSettings() {
   return run(
     "settings",
     async () => {
+      const body: Record<string, string | null> = {
+        label: form.value.label,
+        connect_password: form.value.connect_password,
+      };
+      if (!isSectionPanel.value) {
+        body.type = form.value.type;
+      }
       server.value = await hostedApi<HostedServer>(
         `/hosted-servers/${hostedId.value}/settings`,
         {
           method: "POST",
-          body: {
-            label: form.value.label,
-            connect_password: form.value.connect_password,
-            type: form.value.type,
-          },
+          body,
         },
       );
       syncForm();
@@ -809,7 +814,22 @@ onUnmounted(() => window.clearInterval(poll));
                     "
                   />
                 </div>
-                <div class="space-y-1.5">
+                <div v-if="isSectionPanel" class="space-y-1.5">
+                  <Label>{{ $t("pages.hosting.mode") }}</Label>
+                  <div
+                    class="flex h-10 items-center rounded-md border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] px-3 text-sm font-medium text-[hsl(var(--tac-amber))]"
+                  >
+                    {{
+                      server.section_mode
+                        ? $t(`pages.servers.modes.${server.section_mode}.name`)
+                        : server.type
+                    }}
+                  </div>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t("pages.hosting.panel.section_mode_locked") }}
+                  </p>
+                </div>
+                <div v-else class="space-y-1.5">
                   <Label>{{ $t("pages.hosting.mode") }}</Label>
                   <Select v-model="form.type">
                     <SelectTrigger>
@@ -840,10 +860,25 @@ onUnmounted(() => window.clearInterval(poll));
               </section>
 
               <HostedGameplayPanel
+                v-if="!isSectionPanel"
                 :hosted-id="hostedId"
                 :gameplay="server.gameplay"
                 @updated="(next) => (server = next)"
               />
+              <section
+                v-else
+                class="hosted-card space-y-3 p-5 sm:p-6"
+              >
+                <h2
+                  class="m-0 inline-flex items-center gap-2 text-base font-semibold tracking-tight"
+                >
+                  <span class="h-[2px] w-2.5 bg-[hsl(var(--tac-amber))]" />
+                  {{ $t("pages.hosting.panel.section_gameplay_title") }}
+                </h2>
+                <p class="m-0 text-xs text-muted-foreground">
+                  {{ $t("pages.hosting.panel.section_gameplay_hint") }}
+                </p>
+              </section>
               <HostedClubMapsPanel
                 v-if="
                   isClubPanel &&

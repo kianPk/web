@@ -483,7 +483,10 @@ function statusOf(server: SectionServer) {
               <ul class="space-y-1">
                 <li v-for="server in serversByMode[mode.key]" :key="server.id">
                   <NuxtLink
-                    :to="`/dedicated-servers/${server.id}`"
+                    :to="{
+                      path: `/dedicated-servers/${server.id}`,
+                      query: { section: server.section_mode || undefined },
+                    }"
                     class="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50"
                   >
                     <span

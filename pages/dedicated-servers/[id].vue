@@ -91,7 +91,18 @@ const titleClasses =
         </span>
 
         <span :class="chipClasses">{{ server.region }}</span>
-        <span v-if="server.type" :class="chipClasses">{{ server.type }}</span>
+        <span
+          v-if="sectionMode"
+          :class="[
+            chipClasses,
+            '!border-[hsl(var(--tac-amber)/0.55)] !bg-[hsl(var(--tac-amber)/0.14)] !text-[hsl(var(--tac-amber))]',
+          ]"
+        >
+          {{ $t(`pages.servers.modes.${sectionMode}.name`) }}
+        </span>
+        <span v-else-if="server.type" :class="chipClasses">{{
+          server.type
+        }}</span>
 
         <div class="inline-flex items-center gap-2 ml-auto">
           <div
@@ -282,7 +293,11 @@ const titleClasses =
         <SheetTitle>{{ $t("common.actions.edit") }}</SheetTitle>
       </SheetHeader>
       <div class="-mx-4 mt-4 flex-1 overflow-y-auto px-4 py-1">
-        <ServerForm :server="server" @updated="editServerSheet = false" />
+        <ServerForm
+          :server="server"
+          :lock-type="!!sectionMode"
+          @updated="editServerSheet = false"
+        />
       </div>
     </SheetContent>
   </Sheet>
@@ -311,6 +326,7 @@ const titleClasses =
 </template>
 
 <script lang="ts">
+import gql from "graphql-tag";
 import { $ } from "~/generated/zeus";
 import {
   generateMutation,
@@ -392,13 +408,22 @@ export default {
   },
   data() {
     return {
-      server: undefined,
+      server: undefined as any,
       apiPassword: undefined,
       showConfig: false,
       selectedConfigRuntime: null as string | null,
       editServerSheet: false,
       deleteServerAlertDialog: false,
+      sectionMode: null as string | null,
     };
+  },
+  watch: {
+    "$route.params.id": {
+      immediate: true,
+      handler(this: any) {
+        void this.loadSectionMode();
+      },
+    },
   },
   computed: {
     pluginVersionMismatch() {
@@ -524,6 +549,30 @@ export default {
     },
   },
   methods: {
+    async loadSectionMode() {
+      const id = this.$route.params.id;
+      if (!id || typeof window === "undefined") {
+        this.sectionMode = null;
+        return;
+      }
+      try {
+        const { data } = await this.$apollo.query({
+          query: gql`
+            query DedicatedServerSectionMode($id: uuid!) {
+              servers_by_pk(id: $id) {
+                section_mode
+              }
+            }
+          `,
+          variables: { id },
+          fetchPolicy: "network-only",
+          context: { optional: true },
+        });
+        this.sectionMode = data?.servers_by_pk?.section_mode ?? null;
+      } catch {
+        this.sectionMode = null;
+      }
+    },
     async toggleServerEnabled() {
       await this.$apollo.mutate({
         mutation: generateMutation({
