@@ -2316,6 +2316,8 @@
           "faceit_levels_button": "Sync FACEIT → site",
           "faceit_levels_running": "Syncing…",
           "faceit_levels_done": "Updated {updated} of {checked} players with FACEIT skill",
+          "faceit_levels_none_in_db": "No FACEIT skill saved in the database yet. A background FACEIT refresh was started — wait a minute and click again.",
+          "faceit_levels_fetched": "FACEIT API refreshed {fetched} profiles in this run.",
           "faceit_levels_failed": "Failed to sync FACEIT site levels",
           "faceit_levels_dialog_title": "Raise site levels from FACEIT?",
           "faceit_levels_dialog_description": "Uses FACEIT skill already saved on each player account. Anyone whose FACEIT level is higher than their site level will be bumped to match. No FACEIT API calls.",

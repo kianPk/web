@@ -123,8 +123,14 @@ async function doSyncFaceitSiteLevels() {
     toast({
       title: t("pages.settings.application.players.faceit_levels_done", {
         updated: result?.updated ?? 0,
-        checked: result?.checked ?? 0,
+        checked: result?.checked ?? result?.withFaceit ?? 0,
       }),
+      description:
+        (result?.withFaceit ?? 0) === 0
+          ? t("pages.settings.application.players.faceit_levels_none_in_db")
+          : t("pages.settings.application.players.faceit_levels_fetched", {
+              fetched: result?.faceitFetched ?? 0,
+            }),
     });
   } catch (error: any) {
     toast({
