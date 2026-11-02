@@ -109,19 +109,17 @@ async function doSyncFaceitSiteLevels() {
   showFaceitLevelsDialog.value = false;
 
   try {
-    const { data } = await useNuxtApp().$apollo.defaultClient.mutate({
-      mutation: gql`
-        mutation SyncFaceitSiteLevels {
-          syncFaceitSiteLevels {
-            success
-            checked
-            updated
-          }
-        }
-      `,
+    // Prefer REST so this works even before Hasura metadata reloads the action.
+    const apiDomain = useRuntimeConfig().public.apiDomain as string;
+    const result = await $fetch<{
+      success: boolean;
+      checked: number;
+      updated: number;
+    }>(`https://${apiDomain}/faceit/admin/sync-site-levels`, {
+      method: "POST",
+      credentials: "include",
     });
 
-    const result = data?.syncFaceitSiteLevels;
     toast({
       title: t("pages.settings.application.players.faceit_levels_done", {
         updated: result?.updated ?? 0,
@@ -132,6 +130,7 @@ async function doSyncFaceitSiteLevels() {
     toast({
       title: t("pages.settings.application.players.faceit_levels_failed"),
       description:
+        error?.data?.message ||
         error?.message ||
         t("pages.settings.application.players.error_occurred"),
       variant: "destructive",
