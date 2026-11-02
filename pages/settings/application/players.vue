@@ -31,6 +31,8 @@ const scanning = ref(false);
 const showEloDialog = ref(false);
 const showAvatarDialog = ref(false);
 const refreshingAvatars = ref(false);
+const showFaceitLevelsDialog = ref(false);
+const syncingFaceitLevels = ref(false);
 
 const {
   status: eloStatus,
@@ -99,6 +101,43 @@ async function doScanSteamBans() {
     });
   } finally {
     scanning.value = false;
+  }
+}
+
+async function doSyncFaceitSiteLevels() {
+  syncingFaceitLevels.value = true;
+  showFaceitLevelsDialog.value = false;
+
+  try {
+    const { data } = await useNuxtApp().$apollo.defaultClient.mutate({
+      mutation: gql`
+        mutation SyncFaceitSiteLevels {
+          syncFaceitSiteLevels {
+            success
+            checked
+            updated
+          }
+        }
+      `,
+    });
+
+    const result = data?.syncFaceitSiteLevels;
+    toast({
+      title: t("pages.settings.application.players.faceit_levels_done", {
+        updated: result?.updated ?? 0,
+        checked: result?.checked ?? 0,
+      }),
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.settings.application.players.faceit_levels_failed"),
+      description:
+        error?.message ||
+        t("pages.settings.application.players.error_occurred"),
+      variant: "destructive",
+    });
+  } finally {
+    syncingFaceitLevels.value = false;
   }
 }
 
@@ -578,6 +617,46 @@ async function doRefreshSteamAvatars() {
                   <p class="text-sm font-medium">
                     {{
                       $t(
+                        "pages.settings.application.players.faceit_levels_title",
+                      )
+                    }}
+                  </p>
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      $t(
+                        "pages.settings.application.players.faceit_levels_description",
+                      )
+                    }}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  :disabled="syncingFaceitLevels"
+                  class="shrink-0 flex items-center gap-2"
+                  @click="showFaceitLevelsDialog = true"
+                >
+                  <Spinner v-if="syncingFaceitLevels" class="h-4 w-4" />
+                  {{
+                    syncingFaceitLevels
+                      ? $t(
+                          "pages.settings.application.players.faceit_levels_running",
+                        )
+                      : $t(
+                          "pages.settings.application.players.faceit_levels_button",
+                        )
+                  }}
+                </Button>
+              </div>
+
+              <div
+                class="flex items-start justify-between gap-4 border-t border-destructive/20 pt-4"
+              >
+                <div class="min-w-0 space-y-0.5">
+                  <p class="text-sm font-medium">
+                    {{
+                      $t(
                         "pages.settings.application.players.refresh_avatars_title",
                       )
                     }}
@@ -725,6 +804,39 @@ async function doRefreshSteamAvatars() {
               </AlertDialogCancel>
               <AlertDialogAction @click="doScanSteamBans">
                 {{ $t("pages.settings.application.players.scan_button") }}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog v-model:open="showFaceitLevelsDialog">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {{
+                  $t(
+                    "pages.settings.application.players.faceit_levels_dialog_title",
+                  )
+                }}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {{
+                  $t(
+                    "pages.settings.application.players.faceit_levels_dialog_description",
+                  )
+                }}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                {{ $t("common.cancel") }}
+              </AlertDialogCancel>
+              <AlertDialogAction @click="doSyncFaceitSiteLevels">
+                {{
+                  $t(
+                    "pages.settings.application.players.faceit_levels_button",
+                  )
+                }}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
