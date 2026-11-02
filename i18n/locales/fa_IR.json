@@ -1718,9 +1718,9 @@
         "today": "امروز {from} تا {to}",
         "sign_in_to_request": "Sign in to request"
       },
-      "players": "بازیکن‌ها",
+      "players": "{count} بازیکن | {count} بازیکن",
       "form": {
-        "label": "فرم اخیر",
+        "label": "فرم اخیر: {results}",
         "none": "بدون فرم",
         "result_W": "win",
         "result_L": "loss",
@@ -1737,7 +1737,7 @@
         "result_L": "Lost",
         "result_T": "Tied",
         "check_in": "چک‌این",
-        "scrim_replies": "پاسخ اسکریم",
+        "scrim_replies": "{count} پاسخ اسکریم لازم | {count} پاسخ اسکریم لازم",
         "invite_starter": "دعوت بازیکن"
       },
       "playing_now": {
