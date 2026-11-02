@@ -109,13 +109,13 @@ async function doSyncFaceitSiteLevels() {
   showFaceitLevelsDialog.value = false;
 
   try {
-    // Prefer REST so this works even before Hasura metadata reloads the action.
+    // Under /avatars — that ingress prefix is live; /faceit often is not.
     const apiDomain = useRuntimeConfig().public.apiDomain as string;
     const result = await $fetch<{
       success: boolean;
       checked: number;
       updated: number;
-    }>(`https://${apiDomain}/faceit/admin/sync-site-levels`, {
+    }>(`https://${apiDomain}/avatars/admin/sync-faceit-site-levels`, {
       method: "POST",
       credentials: "include",
     });
