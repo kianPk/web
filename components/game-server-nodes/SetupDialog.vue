@@ -44,6 +44,42 @@ import {
           </code>
         </div>
 
+        <!-- Domestic / airgap join (no GitHub / Tailscale) -->
+        <div
+          v-if="setupGameServer?.domesticLink"
+          class="relative rounded-lg border border-amber-500/40 bg-gray-900 p-4"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="text-white text-sm font-semibold">
+              {{
+                $t("pages.game_server_nodes.setup_dialog.domestic_script")
+              }}
+            </h3>
+            <ClipBoard :data="setupGameServer.domesticLink" />
+          </div>
+          <p class="mb-2 text-xs text-amber-200/90">
+            {{
+              setupGameServer.domesticKitReady
+                ? $t(
+                    "pages.game_server_nodes.setup_dialog.domestic_kit_ready",
+                  )
+                : $t(
+                    "pages.game_server_nodes.setup_dialog.domestic_kit_missing",
+                  )
+            }}
+          </p>
+          <code
+            class="text-sm block text-gray-300 select-all cursor-text break-all"
+          >
+            {{ setupGameServer.domesticLink }}
+          </code>
+          <p class="mt-2 text-xs text-gray-400">
+            {{
+              $t("pages.game_server_nodes.setup_dialog.domestic_hint")
+            }}
+          </p>
+        </div>
+
         <!-- Node Status -->
         <div class="space-y-2">
           <!-- Waiting for connection -->
@@ -94,6 +130,8 @@ export default {
         link: string;
         label: string;
         gameServerId: string;
+        domesticLink?: string | null;
+        domesticKitReady?: boolean | null;
       },
     },
   },

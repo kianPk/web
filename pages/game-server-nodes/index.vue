@@ -687,6 +687,8 @@ export default {
           setupGameServer: {
             link: true,
             gameServerId: true,
+            domesticLink: true,
+            domesticKitReady: true,
           },
         }),
       });
