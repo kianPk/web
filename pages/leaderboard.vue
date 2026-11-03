@@ -70,6 +70,8 @@ interface LeaderboardEntry {
   secondary_value: number | null;
   tertiary_value: number | null;
   matches_played: number | null;
+  club_name?: string | null;
+  club_slug?: string | null;
 }
 
 type SortField =
@@ -201,6 +203,14 @@ const CATEGORY_CONFIG: Record<
     glossary: { value: "udr" },
     tiers: { value: UDR_TIER },
     sortable: ["value", "secondary_value", "tertiary_value", "matches_played"],
+  },
+  site_xp: {
+    columns: {
+      value: "pages.leaderboard.col.site_xp",
+      secondary_value: "pages.leaderboard.col.site_level",
+      tertiary_value: "pages.leaderboard.col.club",
+    },
+    sortable: ["value"],
   },
 };
 
@@ -455,6 +465,7 @@ const highlightedSteamId = computed(() => {
 let fetchGeneration = 0;
 
 const categories = [
+  { value: "site_xp" },
   { value: "elo" },
   { value: "best_rating" },
   { value: "best_adr" },
@@ -466,6 +477,8 @@ const categories = [
   { value: "highest_hs_pct" },
   { value: "awards" },
 ];
+
+const isSiteXpCategory = computed(() => category.value === "site_xp");
 
 const config = computed(() => CATEGORY_CONFIG[category.value]);
 
@@ -577,6 +590,11 @@ function onPerPageChange(value: number) {
 async function alignPageToHighlightedPlayer(): Promise<boolean> {
   const sid = highlightedSteamId.value;
   if (!sid || pageAlignedForSteamId === sid) return true;
+  // Site XP uses a REST board — no Hasura rank lookup.
+  if (isSiteXpCategory.value) {
+    pageAlignedForSteamId = sid;
+    return true;
+  }
   // The rank lookup can't scope by role, so for a role-filtered category it
   // would resolve the player's role-less rank and snap to the wrong page.
   // Skip the snap entirely while a role filter is active.
@@ -619,6 +637,43 @@ async function alignPageToHighlightedPlayer(): Promise<boolean> {
 // changes re-snap but a manual page change by the user sticks.
 let pageAlignedForSteamId: string | null = null;
 
+async function fetchSiteXpLeaderboard() {
+  const apiDomain = useRuntimeConfig().public.apiDomain as string;
+  const data = await $fetch<{
+    total: number;
+    players: Array<{
+      steam_id: string;
+      name: string;
+      avatar_url: string | null;
+      custom_avatar_url: string | null;
+      country: string | null;
+      xp: number;
+      level: number;
+      club_name: string | null;
+      club_slug: string | null;
+    }>;
+  }>(
+    `https://${apiDomain}/hosted-servers/site-xp/top?limit=${perPage.value}&offset=${offset.value}`,
+  );
+  entries.value = (data?.players ?? []).map(
+    (row, index): LeaderboardEntry => ({
+      rank: offset.value + index + 1,
+      player_steam_id: row.steam_id,
+      player_name: row.name || "Player",
+      player_avatar_url: row.avatar_url,
+      player_custom_avatar_url: row.custom_avatar_url,
+      player_country: row.country,
+      value: Number(row.xp) || 0,
+      secondary_value: Number(row.level) || 1,
+      tertiary_value: null,
+      matches_played: null,
+      club_name: row.club_name,
+      club_slug: row.club_slug,
+    }),
+  );
+  total.value = Number(data?.total) || 0;
+}
+
 async function fetchLeaderboard() {
   loading.value = true;
   const gen = ++fetchGeneration;
@@ -629,6 +684,10 @@ async function fetchLeaderboard() {
       // Page changed; the watcher will not re-fire fetchLeaderboard for
       // us, so kick it off again with the new page applied.
       void fetchLeaderboard();
+      return;
+    }
+    if (isSiteXpCategory.value) {
+      await fetchSiteXpLeaderboard();
       return;
     }
     const { data } = await apolloClient.query({
@@ -669,6 +728,7 @@ function formatValue(value: number): string {
   if (value == null) return "—";
   switch (category.value) {
     case "elo":
+    case "site_xp":
       return Math.round(value).toLocaleString();
     case "best_kdr":
     case "best_kpr":
@@ -861,8 +921,8 @@ onMounted(async () => {
     </TacticalPageHeader>
   </PageTransition>
 
-  <!-- Compact filter bar -->
-  <PageTransition :delay="100" class="mt-6">
+  <!-- Compact filter bar (hidden for all-time site XP board) -->
+  <PageTransition v-if="!isSiteXpCategory" :delay="100" class="mt-6">
     <div
       class="rounded-md border border-border bg-card/40 px-3 py-2.5 [backdrop-filter:blur(6px)]"
     >
@@ -1469,10 +1529,11 @@ onMounted(async () => {
                   </TableCell>
                   <TableCell
                     v-if="columnLabels.tertiary_value"
-                    class="text-right font-mono tabular-nums"
+                    class="text-right"
                     :class="{
+                      'font-mono tabular-nums': !isSiteXpCategory,
                       'text-muted-foreground':
-                        !awardTierColor('tertiary_value'),
+                        !awardTierColor('tertiary_value') && !isSiteXpCategory,
                     }"
                     :style="
                       awardTierColor('tertiary_value')
@@ -1480,7 +1541,23 @@ onMounted(async () => {
                         : {}
                     "
                   >
-                    {{ formatTertiary(entry.tertiary_value) }}
+                    <NuxtLink
+                      v-if="isSiteXpCategory && entry.club_slug"
+                      :to="`/clubs/${entry.club_slug}`"
+                      class="text-sm text-foreground/90 underline-offset-2 hover:underline"
+                      @click.stop
+                    >
+                      {{ entry.club_name }}
+                    </NuxtLink>
+                    <span
+                      v-else-if="isSiteXpCategory"
+                      class="text-sm text-muted-foreground"
+                    >
+                      {{ entry.club_name || "—" }}
+                    </span>
+                    <template v-else>
+                      {{ formatTertiary(entry.tertiary_value) }}
+                    </template>
                   </TableCell>
                   <TableCell
                     v-if="columnLabels.matches_played"

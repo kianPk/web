@@ -100,6 +100,18 @@ const sections = computed<FaqSection[]>(() => [
         a: t("faq.playing.check_in.answer"),
       },
       {
+        q: t("faq.playing.queue_stuck.question"),
+        a: t("faq.playing.queue_stuck.answer"),
+      },
+      {
+        q: t("faq.playing.queue_kick.question"),
+        a: t("faq.playing.queue_kick.answer"),
+      },
+      {
+        q: t("faq.playing.disconnect.question"),
+        a: t("faq.playing.disconnect.answer"),
+      },
+      {
         q: t("faq.playing.tournaments.question"),
         a: t("faq.playing.tournaments.answer"),
         links: [doc("/features/tournaments", t("faq.links.tournaments"))],
@@ -129,6 +141,98 @@ const sections = computed<FaqSection[]>(() => [
         q: t("faq.playing.notifications.question"),
         a: t("faq.playing.notifications.answer"),
         links: [doc("/advanced/web-push", t("faq.links.web_push"))],
+      },
+    ],
+  },
+  {
+    key: "client",
+    title: t("faq.client.title"),
+    items: [
+      {
+        q: t("faq.client.what.question"),
+        a: t("faq.client.what.answer"),
+        links: [{ label: t("faq.links.client"), href: "/client" }],
+      },
+      {
+        q: t("faq.client.install.question"),
+        a: t("faq.client.install.answer"),
+      },
+      {
+        q: t("faq.client.login.question"),
+        a: t("faq.client.login.answer"),
+      },
+      {
+        q: t("faq.client.update.question"),
+        a: t("faq.client.update.answer"),
+      },
+    ],
+  },
+  {
+    key: "anticheat",
+    title: t("faq.anticheat.title"),
+    items: [
+      {
+        q: t("faq.anticheat.need.question"),
+        a: t("faq.anticheat.need.answer"),
+        links: [{ label: t("faq.links.anticheat"), href: "/ac" }],
+      },
+      {
+        q: t("faq.anticheat.install.question"),
+        a: t("faq.anticheat.install.answer"),
+      },
+      {
+        q: t("faq.anticheat.checks_fail.question"),
+        a: t("faq.anticheat.checks_fail.answer"),
+      },
+      {
+        q: t("faq.anticheat.queue_blocked.question"),
+        a: t("faq.anticheat.queue_blocked.answer"),
+      },
+    ],
+  },
+  {
+    key: "site_xp",
+    title: t("faq.site_xp.title"),
+    items: [
+      {
+        q: t("faq.site_xp.how.question"),
+        a: t("faq.site_xp.how.answer"),
+      },
+      {
+        q: t("faq.site_xp.faceit.question"),
+        a: t("faq.site_xp.faceit.answer"),
+      },
+      {
+        q: t("faq.site_xp.gamenet.question"),
+        a: t("faq.site_xp.gamenet.answer"),
+      },
+      {
+        q: t("faq.site_xp.leaderboard.question"),
+        a: t("faq.site_xp.leaderboard.answer"),
+        links: [{ label: t("faq.links.leaderboard"), href: "/leaderboard" }],
+      },
+    ],
+  },
+  {
+    key: "clubs",
+    title: t("faq.clubs.title"),
+    items: [
+      {
+        q: t("faq.clubs.join.question"),
+        a: t("faq.clubs.join.answer"),
+        links: [{ label: t("faq.links.clubs"), href: "/clubs" }],
+      },
+      {
+        q: t("faq.clubs.vip.question"),
+        a: t("faq.clubs.vip.answer"),
+      },
+      {
+        q: t("faq.clubs.connect.question"),
+        a: t("faq.clubs.connect.answer"),
+      },
+      {
+        q: t("faq.clubs.password.question"),
+        a: t("faq.clubs.password.answer"),
       },
     ],
   },

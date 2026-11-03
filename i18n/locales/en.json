@@ -4430,6 +4430,7 @@
       "title": "Leaderboard",
       "no_results": "No leaderboard data available for the selected filters.",
       "categories": {
+        "site_xp": "Site XP",
         "elo": "ELO",
         "best_rating": "HLTV Rating",
         "best_adr": "ADR",
@@ -4495,7 +4496,10 @@
         "kast": "KAST",
         "udr": "UDR",
         "util_damage": "Util Dmg",
-        "rounds": "Rounds"
+        "rounds": "Rounds",
+        "site_xp": "XP",
+        "site_level": "Level",
+        "club": "Club"
       },
       "exclude_tournaments": "Exclude Tournaments"
     },
@@ -12663,7 +12667,7 @@
   },
   "faq": {
     "title": "Help & FAQ",
-    "intro": "Common questions about the platform, how to play here, and how to run your own instance. If something isn't covered, the community links at the bottom are the fastest way to an answer.",
+    "intro": "Answers for common player problems — login, queue, Anti-Cheat, client, site XP, clubs, and servers. If something still fails, use Discord or support at the bottom.",
     "search_placeholder": "Search questions",
     "no_results": "No questions match \"{term}\".",
     "links": {
@@ -12685,96 +12689,188 @@
       "gpu_nodes": "GPU nodes",
       "branding": "Branding & theming",
       "panel_plugins": "Panel plugins",
-      "game_plugins": "Game plugins"
+      "game_plugins": "Game plugins",
+      "anticheat": "Anti-Cheat page",
+      "client": "Download client",
+      "leaderboard": "Leaderboard",
+      "clubs": "Clubs"
     },
     "about": {
       "title": "About YGuard",
       "what_is": {
         "question": "What is YGuard?",
-        "answer": "YGuard is the competition layer for Counter-Strike 2 — the software that sits between a game server and a league. One install runs the whole stack: matchmaking, draft lobbies, teams, tournaments and seasons, stats and Elo, demo capture, in-browser replays, highlights, and live broadcast."
+        "answer": "YGuard is the competition layer for Counter-Strike 2 — matchmaking, lobbies, teams, tournaments, stats and Elo, demos, replays, highlights, and live tools in one stack."
       },
       "this_site": {
         "question": "What is {brand}?",
-        "answer": "{brand} is a YGuard instance. The software is open source and self-hosted, so every community that runs it operates its own site, its own servers, and its own rules — this is one of them."
+        "answer": "{brand} is this community's YGuard site — its own servers, rules, clubs, and leaderboards."
       },
       "cost": {
         "question": "Is it free?",
-        "answer": "Yes. YGuard is free for this community to use. The site is developed and maintained by Kian."
+        "answer": "Yes for this community. The site is developed and maintained by Kian."
       },
       "sign_in": {
         "question": "How do I sign in?",
-        "answer": "Through Steam. There is no separate account to create and no password to remember — your Steam profile is your identity here, which is also how matches know who you are once you connect to a server."
+        "answer": "Use Steam OpenID. There is no separate password — your Steam profile is your account here and on game servers."
       },
       "games": {
         "question": "Which games are supported?",
-        "answer": "Counter-Strike 2. The stats, replays, server management, and in-game plugin are all built specifically around it rather than being a generic tournament tool."
+        "answer": "Counter-Strike 2 only. Stats, plugins, and servers are built around CS2."
       }
     },
     "playing": {
-      "title": "Playing here",
+      "title": "Playing & queue",
       "find_match": {
         "question": "How do I get into a match?",
-        "answer": "Start from Play. You can queue for matchmaking, which pairs you by region and latency and lets you queue as a party; join a draft lobby, where captains pick teams against a clock; or arrange a scrim through the scrim finder. Which of these are available depends on what this instance has enabled."
+        "answer": "Open Play / Find Match. You can queue for matchmaking (solo or party), join a draft lobby, or use the scrim finder when those modes are enabled."
       },
       "check_in": {
-        "question": "Why do I have to check in before a match?",
-        "answer": "Check-in confirms everyone is actually at their desk before a server gets reserved and the rest of the lobby is made to wait. Matches with auto-cancellation on show a countdown, and the match is cancelled automatically if the required players haven't checked in by the deadline."
+        "question": "Why do I have to check in?",
+        "answer": "Check-in proves everyone is ready before a server is reserved. If auto-cancel is on and players miss the timer, the match cancels."
+      },
+      "queue_stuck": {
+        "question": "Queue never finds a match / stuck searching",
+        "answer": "Confirm you are signed in, Anti-Cheat is open when required, and your region/ping is valid. Leave and rejoin the queue, refresh the page, and make sure CS2 is not stuck on an update. Peak hours fill faster than off-hours."
+      },
+      "queue_kick": {
+        "question": "I got removed from queue or match for not checking in",
+        "answer": "Open the match page as soon as you are invited and press Check in before the timer ends. Keep the site or client focused so you do not miss the prompt."
+      },
+      "disconnect": {
+        "question": "I disconnected mid-match — can I rejoin?",
+        "answer": "Use the same Steam account and open the live match from the site or client. Reconnect to the server IP shown. Repeated abandon may apply cooldowns depending on mode rules."
       },
       "tournaments": {
         "question": "How do I join a tournament?",
-        "answer": "Open the tournament while registration is open and register a team — either one you already have, or a new roster created for that event. Tournaments can run single elimination, double elimination, round robin, or Swiss, and can be chained into multiple stages, with seasonal leagues on top for promotion and relegation."
+        "answer": "Open the tournament while registration is open and register a team — existing or new. Formats include single/double elim, round robin, and Swiss."
       },
       "stats": {
         "question": "Where do my stats come from?",
-        "answer": "Every match's demo is parsed after it finishes, so the numbers come from the actual recording rather than from live scoreboard reporting. That gives HLTV rating, KAST, ADR, opening duels, clutches, utility, and per-weapon accuracy, plus Elo movement. The stats guide explains what each figure means and how it's calculated."
+        "answer": "Demos are parsed after each match, so ratings (HLTV, KAST, ADR, etc.) come from the recording, not a live scoreboard scrape. See the stats guide for definitions."
       },
       "replays": {
-        "question": "Can I rewatch a match without downloading the demo?",
-        "answer": "Yes. Every match has a 2D radar replay and a 3D fly-through that run in the browser, with the round timeline, economy, and kill feed alongside. The raw demo is still downloadable if you want to watch it in CS2 itself."
+        "question": "Can I rewatch without downloading the demo?",
+        "answer": "Yes — 2D radar and 3D browser replays ship with timeline and kill feed. The raw .dem is still downloadable for CS2."
       },
       "highlights": {
         "question": "Where do highlight clips come from?",
-        "answer": "Multikills, clutches, and knife rounds are detected automatically when a match ends and rendered into clips. You can also cut your own from any match in the in-app editor. Rendering runs on a GPU node, so clips only appear on instances that have one."
+        "answer": "Multikills, clutches, and knife rounds can be auto-detected and rendered when a GPU node is available. You can also cut clips in the editor."
       },
       "notifications": {
         "question": "Why can't I turn on push notifications?",
-        "answer": "Push is delivered by the installed app rather than a browser tab, so you need to install the app on your device first — the Install button in the menu does this. Once it's installed, the toggle in Settings → Notifications becomes available. On iPhone and iPad this is a hard requirement of the operating system."
+        "answer": "Push needs the installed web/app shell first (Install in the menu). Then enable Settings → Notifications. On iOS this is required by the OS."
+      }
+    },
+    "client": {
+      "title": "YGuard Client",
+      "what": {
+        "question": "What is the desktop client?",
+        "answer": "A Windows app that keeps Play, servers, clubs, inventory, and more without leaving a browser tab open. Steam must be running; WebView2/Edge runtime is required."
+      },
+      "install": {
+        "question": "Client won't start or shows a blank window",
+        "answer": "Install/update Microsoft Edge WebView2 Runtime, run as the same Windows user that owns Steam, and allow the app through Windows Firewall/antivirus. Re-download from the site Downloads section if the build is corrupt."
+      },
+      "login": {
+        "question": "Client does not log me in",
+        "answer": "Sign into Steam on this PC first. The client detects that account. If login fails, close Steam and the client, reopen Steam, then the client. Clear a stuck browser approve tab if one is open."
+      },
+      "update": {
+        "question": "How do I update the client?",
+        "answer": "Newer builds auto-update when the channel is enabled. If you are on an old build without the updater, download the latest zip from the site and replace the install folder."
+      }
+    },
+    "anticheat": {
+      "title": "Anti-Cheat",
+      "need": {
+        "question": "Do I need YGuard Anti-Cheat?",
+        "answer": "When the admin requires it, keep the AC launcher open to queue and join protected servers. Server-side checks still run in-game."
+      },
+      "install": {
+        "question": "How do I install and pair AC?",
+        "answer": "Download YGuardAC.exe, run it, generate a pair code while logged into the site, and enter the code in the launcher within 10 minutes. Keep the launcher open while you play."
+      },
+      "checks_fail": {
+        "question": "Secure Boot / TPM / hardware checks fail",
+        "answer": "Enable Secure Boot and TPM 2.0 in BIOS if your board supports them, then reboot. Update Windows and chipset drivers. Some VMs and unlocked Secure Boot states will never pass — use a normal Windows install on real hardware."
+      },
+      "queue_blocked": {
+        "question": "Queue says Anti-Cheat is not connected",
+        "answer": "Open the launcher, confirm it shows Ready/valid for your Steam account, then refresh status on the site. Re-pair if you changed PCs. Closing the launcher mid-queue will block you again."
+      }
+    },
+    "site_xp": {
+      "title": "Site XP & levels",
+      "how": {
+        "question": "How does site XP / level work?",
+        "answer": "Playing on YGuard servers earns site XP (kills, assists, plants, wins, etc.). Level 1–10 uses fixed XP floors — level 10 starts at 7000 XP. Site level is separate from Faceit skill level."
+      },
+      "faceit": {
+        "question": "I have Faceit — why is my site level different?",
+        "answer": "Faceit skill can seed a minimum site XP floor when sync runs, but ongoing XP still comes from playing here. Non-Faceit players catch up by grinding servers and matches on this platform."
+      },
+      "gamenet": {
+        "question": "What is gamenet 2× XP?",
+        "answer": "Cafe PCs can bind a gamenet code once. While that session is active, players who sign in on that PC earn 2× site XP. Staff enter the code; you only need Steam login on that machine."
+      },
+      "leaderboard": {
+        "question": "Where is the XP leaderboard?",
+        "answer": "Open Leaderboard and pick the Site XP tab. It ranks highest total XP and shows each player's club when they have one."
+      }
+    },
+    "clubs": {
+      "title": "Clubs & servers",
+      "join": {
+        "question": "How do I join a club?",
+        "answer": "Open Clubs, pick a club, and request/join per its join mode (open, request, or invite link). Set a primary club on your profile if you belong to more than one."
+      },
+      "vip": {
+        "question": "Club VIP / shop not applying",
+        "answer": "Complete payment, wait a minute, then reconnect to the club server. Confirm the purchase shows on your club membership. Contact club staff if the item is still missing."
+      },
+      "connect": {
+        "question": "Cannot connect to a public / club server",
+        "answer": "Copy the connect string from the server page, ensure CS2 is updated, and that you meet min Elo/Faceit/AC rules for that server. Disable VPN if the region blocks you. Retry after a map change."
+      },
+      "password": {
+        "question": "Server asks for a password",
+        "answer": "Private or reserved slots may need a password from staff or a VIP reservation. Public matchmaking servers normally do not ask for one after you join from the panel."
       }
     },
     "hosting": {
       "title": "Hosting your own",
       "self_host": {
         "question": "Can I run my own instance?",
-        "answer": "Yes — that is the intended way to use YGuard. It is self-hosted and installs with a single command, which brings up Kubernetes (K3s), the database, storage, and the panel itself. The install guide in the docs walks through it end to end."
+        "answer": "Yes — YGuard is self-hosted. One install command brings up K3s, database, storage, and the panel. See the install guide."
       },
       "requirements": {
         "question": "What do I need to host it?",
-        "answer": "A Linux server with at least 3 GB of memory, and a domain you control. Ports 80 and 443 need to be reachable for routing, plus port 8585 for the game server node connector. You'll also point several subdomains at the panel — api, ws, demos, search, and console — so plan for wildcard or per-record DNS."
+        "answer": "Linux with ~3 GB+ RAM, a domain, ports 80/443 (and 8585 for game nodes), plus DNS for api, ws, demos, search, and console."
       },
       "game_servers": {
-        "question": "Where do the matches actually run?",
-        "answer": "On game server nodes you connect to the panel. You can have it spin servers up on demand, register dedicated hardware you already own, or point at a third-party host. CS2 updates are applied automatically, and regions, Steam Relay, and LAN setups are all supported."
+        "question": "Where do matches run?",
+        "answer": "On game server nodes linked to the panel — on-demand, dedicated, or third-party hosts. CS2 updates apply automatically."
       },
       "gpu": {
         "question": "Do I need a GPU?",
-        "answer": "Only for the video features. In-browser demo playback, automatic highlight rendering, and live streaming from the panel all render on an NVIDIA GPU node. Everything else — matchmaking, tournaments, stats, the 2D and 3D replays, servers, chat — runs fine without one."
+        "answer": "Only for video highlights/streaming features. Matchmaking, stats, and servers work without a GPU."
       },
       "managed": {
-        "question": "Is there a hosted or managed version I can pay for?",
-        "answer": "No. YGuard is self-hosted only. This community site is developed by Kian."
+        "question": "Is there a paid managed host?",
+        "answer": "No. Self-hosted only. This community site is developed by Kian."
       },
       "branding": {
-        "question": "Can I make it look like my organization?",
-        "answer": "Yes. The name, logo, favicon, login page, and the full color theme are all configurable from the admin settings, so an instance reads as your platform rather than as someone else's software with your logo dropped in."
+        "question": "Can I brand my instance?",
+        "answer": "Yes — name, logo, favicon, login, and theme are configurable in admin settings."
       },
       "extend": {
         "question": "Can I extend it with my own code?",
-        "answer": "In two places. You can embed your own web apps as native panel pages — they inherit the session and design system, so there's no fork to maintain. And on the server side you can run your own CS2 plugins alongside YGuard's, on either CounterStrikeSharp or SwiftlyS2."
+        "answer": "Embed panel web apps, and run extra CS2 plugins (CounterStrikeSharp or SwiftlyS2) alongside YGuard."
       }
     },
     "support": {
       "title": "Still stuck?",
-      "description": "Discord is the fastest route to a human — the people running YGuard instances are in there. Bugs and feature requests belong on GitHub, and the docs cover installation, servers, and every feature in depth.",
+      "description": "Discord is the fastest human help. Bugs and feature requests go to GitHub; docs cover install and features in depth.",
       "discord": "Join Discord",
       "github": "Report an issue",
       "docs": "Read the docs"
