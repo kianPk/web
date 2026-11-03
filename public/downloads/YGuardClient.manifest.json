@@ -1,0 +1,6 @@
+{
+  "version": "0.2.7",
+  "download_url": "https://github.com/kianPk/web/releases/download/yguard-client-v0.2.7/YGuardClient-0.2.7-win-x64.zip",
+  "mandatory": true,
+  "min_version": "0.2.7"
+}

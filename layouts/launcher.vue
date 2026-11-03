@@ -29,6 +29,36 @@ const { t } = useI18n();
 const isDesktop = ref(false);
 const brandLogo = computed(() => logoUrl.value || "/favicon/512.png");
 const autoUpdate = ref(true);
+const desktopClientVersion = ref("");
+const desktopClientOutdated = ref(false);
+const DESKTOP_CLIENT_LATEST = "0.2.7";
+const DESKTOP_CLIENT_DOWNLOAD =
+  "https://github.com/kianPk/web/releases/download/yguard-client-v0.2.7/YGuardClient-0.2.7-win-x64.zip";
+
+function parseClientVersion(ua: string): string {
+  const m = ua.match(/YGuardClient\/(\d+(?:\.\d+){1,3})/i);
+  return m?.[1] || "";
+}
+
+function isVersionOlder(local: string, remote: string): boolean {
+  const norm = (v: string) => {
+    const parts = String(v || "")
+      .trim()
+      .replace(/^v/i, "")
+      .split(/[.+-]/)
+      .filter(Boolean)
+      .map((p) => Number(p) || 0);
+    while (parts.length < 3) parts.push(0);
+    return parts.slice(0, 3);
+  };
+  const a = norm(local);
+  const b = norm(remote);
+  for (let i = 0; i < 3; i++) {
+    if (a[i] < b[i]) return true;
+    if (a[i] > b[i]) return false;
+  }
+  return false;
+}
 
 onMounted(() => {
   if (!import.meta.client) return;
@@ -39,12 +69,19 @@ onMounted(() => {
     ua.includes("YGuardClient/") ||
     document.documentElement.dataset.yguardDesktop === "1" ||
     !!(window as Window & { yguardDesktop?: boolean }).yguardDesktop;
+  desktopClientVersion.value = parseClientVersion(ua);
+  desktopClientOutdated.value =
+    !!desktopClientVersion.value &&
+    isVersionOlder(desktopClientVersion.value, DESKTOP_CLIENT_LATEST);
   try {
     const raw = localStorage.getItem(AUTO_UPDATE_KEY);
     if (raw === "0" || raw === "false") autoUpdate.value = false;
     else if (raw === "1" || raw === "true") autoUpdate.value = true;
   } catch {
     /* ignore */
+  }
+  if (isDesktop.value && autoUpdate.value) {
+    postDesktopMessage("check-update");
   }
 });
 
@@ -465,6 +502,27 @@ const loginTo = computed(() => ({
       <main
         class="order-1 relative min-h-0 min-w-0 flex-1 p-2 pb-[4.5rem] md:order-2 md:p-3 md:pb-3 md:ps-2"
       >
+        <div
+          v-if="desktopClientOutdated"
+          class="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+        >
+          <span>
+            {{
+              t("layouts.launcher.update_available", {
+                current: desktopClientVersion,
+                latest: DESKTOP_CLIENT_LATEST,
+              })
+            }}
+          </span>
+          <a
+            class="rounded-lg bg-[#ff5500] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#ff6a1f]"
+            :href="DESKTOP_CLIENT_DOWNLOAD"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ t("layouts.launcher.update_download") }}
+          </a>
+        </div>
         <div class="launcher-stage relative h-full min-h-0 overflow-x-hidden overflow-y-auto">
           <slot />
         </div>

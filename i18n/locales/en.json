@@ -7430,6 +7430,8 @@
       "auto_update": "Auto-update",
       "auto_update_short": "Update",
       "auto_update_hint": "Automatically download and install client updates",
+      "update_available": "Client {current} is outdated — install {latest} for auto-update and fixes.",
+      "update_download": "Download update",
       "teamspeak_hint": "Join the YGuard TeamSpeak with one click, or copy the address.",
       "teamspeak_connect": "Connect",
       "teamspeak_copy": "Copy address",

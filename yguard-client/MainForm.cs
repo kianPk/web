@@ -37,10 +37,12 @@ internal sealed class MainForm : Form
     private bool _allowExit;
     private bool _pageReady;
     private bool _steamLoginStarted;
+    private bool _updatePrompted;
+    private bool _exitingForUpdate;
 
     public MainForm()
     {
-        Text = "YGuard Client";
+        Text = $"YGuard Client {AutoUpdater.CurrentVersion}";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1100, 700);
         Size = new Size(1280, 800);
@@ -210,7 +212,7 @@ internal sealed class MainForm : Form
                     StringComparison.Ordinal);
 
             core.Settings.UserAgent =
-                $"{core.Settings.UserAgent} YGuardClient/0.2.5";
+                $"{core.Settings.UserAgent} YGuardClient/{AutoUpdater.CurrentVersion}";
 
             core.NavigationStarting += OnNavigationStarting;
             core.NewWindowRequested += OnNewWindowRequested;
@@ -220,6 +222,7 @@ internal sealed class MainForm : Form
 
             SetStatus("Loading YGuard…");
             core.Navigate(StartUrl);
+            _ = CheckForUpdateAsync();
         }
         catch (Exception ex)
         {
@@ -376,6 +379,16 @@ internal sealed class MainForm : Form
                 case "close":
                     MinimizeToTray();
                     break;
+                case "auto-update-on":
+                    AutoUpdater.SetAutoUpdateEnabled(true);
+                    _ = CheckForUpdateAsync(force: true);
+                    break;
+                case "auto-update-off":
+                    AutoUpdater.SetAutoUpdateEnabled(false);
+                    break;
+                case "check-update":
+                    _ = CheckForUpdateAsync(force: true);
+                    break;
                 case "drag-start":
                     _dragFromWeb = true;
                     ReleaseCapture();
@@ -384,6 +397,90 @@ internal sealed class MainForm : Form
                     break;
             }
         });
+    }
+
+    private async Task CheckForUpdateAsync(bool force = false)
+    {
+        if (_updatePrompted || _exitingForUpdate) return;
+        if (!force && !AutoUpdater.IsAutoUpdateEnabled()) return;
+
+        try
+        {
+            // Let the shell paint first.
+            await Task.Delay(force ? 400 : 2500);
+            if (IsDisposed || _exitingForUpdate) return;
+
+            var release = await AutoUpdater.FetchAsync();
+            if (release == null || string.IsNullOrWhiteSpace(release.Version)) return;
+
+            var behindLatest = AutoUpdater.IsNewer(release.Version, AutoUpdater.CurrentVersion);
+            var belowMin = !string.IsNullOrWhiteSpace(release.MinVersion) &&
+                AutoUpdater.IsNewer(release.MinVersion!, AutoUpdater.CurrentVersion);
+            if (!behindLatest && !belowMin) return;
+
+            var mandatory = release.Mandatory || belowMin;
+            if (!mandatory && !force && AutoUpdater.WasSkipped(release.Version)) return;
+
+            _updatePrompted = true;
+            var target = behindLatest ? release.Version : release.MinVersion!;
+            var msg = mandatory
+                ? $"YGuard Client {target} is required (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?"
+                : $"YGuard Client {release.Version} is available (you have {AutoUpdater.CurrentVersion}).\n\nUpdate now?";
+
+            var result = DialogResult.Yes;
+            if (InvokeRequired)
+            {
+                result = (DialogResult)Invoke(() => MessageBox.Show(
+                    this,
+                    msg,
+                    "YGuard Client Update",
+                    mandatory ? MessageBoxButtons.OKCancel : MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information));
+            }
+            else
+            {
+                result = MessageBox.Show(
+                    this,
+                    msg,
+                    "YGuard Client Update",
+                    mandatory ? MessageBoxButtons.OKCancel : MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+            }
+
+            if (result is DialogResult.No or DialogResult.Cancel)
+            {
+                if (!mandatory) AutoUpdater.RememberSkip(release.Version);
+                return;
+            }
+
+            SetStatus("Updating YGuard Client…");
+            var (ok, error) = await AutoUpdater.ApplyAsync(
+                release,
+                new Progress<string>(s => SetStatus(s)));
+            if (ok)
+            {
+                _exitingForUpdate = true;
+                _allowExit = true;
+                BeginInvoke(() =>
+                {
+                    Application.Exit();
+                    Environment.Exit(0);
+                });
+                return;
+            }
+
+            MessageBox.Show(
+                this,
+                $"Update failed: {error}\n\nDownload from yguard.ir/client",
+                "YGuard Client Update",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            HideStatus();
+        }
+        catch
+        {
+            /* ignore — client still usable */
+        }
     }
 
     protected override void WndProc(ref Message m)
