@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const FLOORS = [0, 100, 250, 500, 800, 1400, 2200, 3500, 5000, 7000];
+const FLOORS = [0, 500, 1000, 1600, 2300, 3200, 4200, 5200, 6100, 7000];
 
 const row = ref<{ level: number; xp: number } | null>(null);
 

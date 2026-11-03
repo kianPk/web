@@ -36,6 +36,8 @@ type Challenge = {
   target: number;
   progress: number;
   reward_ypoints: number;
+  /** Battle Pass XP only — never site XP */
+  bp_xp?: number;
   completed: boolean;
 };
 

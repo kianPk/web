@@ -199,6 +199,10 @@ const sections = computed<FaqSection[]>(() => [
         a: t("faq.site_xp.how.answer"),
       },
       {
+        q: t("faq.site_xp.vs_battle_pass.question"),
+        a: t("faq.site_xp.vs_battle_pass.answer"),
+      },
+      {
         q: t("faq.site_xp.faceit.question"),
         a: t("faq.site_xp.faceit.answer"),
       },
