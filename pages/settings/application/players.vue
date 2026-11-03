@@ -116,9 +116,14 @@ async function doSyncFaceitSiteLevels() {
       checked: number;
       updated: number;
       withFaceit?: number;
+      behind?: number;
+      alreadyOk?: number;
       faceitFetched?: number;
       faceitMissing?: number;
+      faceitChecked?: number;
       faceitEnabled?: boolean;
+      faceitApiOk?: boolean;
+      faceitApiDetail?: string;
       withNickname?: number;
       withAnyFaceit?: number;
     }>(`https://${apiDomain}/avatars/admin/sync-faceit-site-levels`, {
@@ -128,11 +133,20 @@ async function doSyncFaceitSiteLevels() {
 
     let description = t(
       "pages.settings.application.players.faceit_levels_fetched",
-      { fetched: result?.faceitFetched ?? 0 },
+      {
+        fetched: result?.faceitFetched ?? 0,
+        missing: result?.faceitMissing ?? 0,
+        already: result?.alreadyOk ?? 0,
+      },
     );
     if (result?.faceitEnabled === false) {
       description = t(
         "pages.settings.application.players.faceit_levels_api_disabled",
+      );
+    } else if (result?.faceitApiOk === false) {
+      description = t(
+        "pages.settings.application.players.faceit_levels_api_unreachable",
+        { detail: result?.faceitApiDetail || "unknown" },
       );
     } else if ((result?.withFaceit ?? 0) === 0) {
       description =
