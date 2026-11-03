@@ -38,7 +38,8 @@ internal static class CheatUiGuard
         "cs2", "csgo", "steam", "steamwebhelper", "steamservice", "gameoverlayui",
         "discord", "discordptb", "discordcanary", "chrome", "msedge", "firefox",
         "opera", "brave", "vivaldi",
-        "obs64", "obs32", "obs", "yguardac", "explorer", "dwm", "textinputhost",
+        "obs64", "obs32", "obs", "yguardac", "yguard", "yguardclient", "yguard-client",
+        "explorer", "dwm", "textinputhost",
         "applicationframehost", "searchhost", "shellexperiencehost",
         "code", "cursor", "devenv", "notepad", "notepad++",
     };

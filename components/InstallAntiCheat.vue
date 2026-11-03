@@ -68,7 +68,15 @@ onMounted(async () => {
 });
 
 function download() {
-  window.location.href = downloadHref.value;
+  // Never navigate the current document — that blanks the SPA / WebView2 shell.
+  const a = document.createElement("a");
+  a.href = downloadHref.value;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.download = "";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 </script>
 

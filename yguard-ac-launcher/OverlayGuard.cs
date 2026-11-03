@@ -30,7 +30,7 @@ internal static class OverlayGuard
         "gamebar", "gamebarpresencewriter", "gamingservices", "xboxappservices",
         "explorer", "dwm", "shellexperiencehost", "searchhost", "textinputhost",
         "applicationframehost", "systemsettings", "taskmgr", "conhost", "sihost",
-        "yguardac", "yguard",
+        "yguardac", "yguard", "yguardclient", "yguard-client",
         "chrome", "msedge", "firefox", "opera", "brave", "vivaldi",
         "wallpaperengine", "rainmeter", "powertoys", "sharex", "lightshot",
         "medal", "overwolf", "curseforge", "lghub", "icue", "armourycrate",

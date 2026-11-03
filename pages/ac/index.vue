@@ -159,7 +159,11 @@ onMounted(() => {
           {{ $t("ac.download_desc") }}
         </p>
         <Button as-child class="bg-orange-600 hover:bg-orange-500">
-          <a :href="launcherUrl">
+          <a
+            :href="launcherUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Download class="mr-2 h-4 w-4" />
             {{ $t("ac.install_button") }} (v{{ launcherVersion }})
           </a>

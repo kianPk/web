@@ -13,8 +13,8 @@ internal static class ProcessPolicy
         // Game + Steam
         "cs2", "csgo", "steam", "steamwebhelper", "steamservice", "gameoverlayui",
         "steamerrorreporter", "steamservice", "steamclient",
-        // YGuard
-        "yguardac", "yguard",
+        // YGuard (AC + desktop site client)
+        "yguardac", "yguard", "yguardclient", "yguard-client",
         // Browsers / chat (user-requested companions)
         "chrome", "msedge", "firefox", "opera", "brave", "vivaldi",
         "telegram", "telegram desktop", "whatsapp", "discord", "discordptb", "discordcanary",

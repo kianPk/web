@@ -357,6 +357,18 @@ internal sealed class UnsignedProcessGuard : IDisposable
             if (file.Equals("YGuardAC.exe", StringComparison.OrdinalIgnoreCase))
                 return true;
 
+            // Desktop site shell (WebView2). Unsigned in shipping builds —
+            // without this, the guard kills the client while CS2 is running
+            // and it looks like "AC closed the site".
+            if (file.Equals("YGuardClient.exe", StringComparison.OrdinalIgnoreCase) ||
+                name is "yguardclient" or "yguard-client")
+                return true;
+
+            if (lower.Contains("\\yguard\\") ||
+                lower.Contains("\\yguardac\\") ||
+                lower.Contains("\\yguard-client\\"))
+                return true;
+
             var win = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             if (!string.IsNullOrWhiteSpace(win) &&
                 full.StartsWith(win.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))

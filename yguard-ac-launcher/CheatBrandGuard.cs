@@ -18,7 +18,7 @@ internal static class CheatBrandGuard
             "taskhostw", "runtimebroker", "searchhost", "shellexperiencehost",
             "textinputhost", "applicationframehost", "conhost", "cs2", "csgo",
             "steam", "steamwebhelper", "steamservice", "gameoverlayui",
-            "yguardac", "yguard",
+            "yguardac", "yguard", "yguardclient", "yguard-client",
         };
 
     private static readonly string[] SkipPathMarkers =

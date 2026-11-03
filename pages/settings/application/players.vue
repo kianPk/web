@@ -115,22 +115,44 @@ async function doSyncFaceitSiteLevels() {
       success: boolean;
       checked: number;
       updated: number;
+      withFaceit?: number;
+      faceitFetched?: number;
+      faceitMissing?: number;
+      faceitEnabled?: boolean;
+      withNickname?: number;
+      withAnyFaceit?: number;
     }>(`https://${apiDomain}/avatars/admin/sync-faceit-site-levels`, {
       method: "POST",
       credentials: "include",
     });
+
+    let description = t(
+      "pages.settings.application.players.faceit_levels_fetched",
+      { fetched: result?.faceitFetched ?? 0 },
+    );
+    if (result?.faceitEnabled === false) {
+      description = t(
+        "pages.settings.application.players.faceit_levels_api_disabled",
+      );
+    } else if ((result?.withFaceit ?? 0) === 0) {
+      description =
+        (result?.withNickname ?? 0) > 0
+          ? t(
+              "pages.settings.application.players.faceit_levels_nick_no_skill",
+              {
+                nicknames: result?.withNickname ?? 0,
+                missing: result?.faceitMissing ?? 0,
+              },
+            )
+          : t("pages.settings.application.players.faceit_levels_none_in_db");
+    }
 
     toast({
       title: t("pages.settings.application.players.faceit_levels_done", {
         updated: result?.updated ?? 0,
         checked: result?.checked ?? result?.withFaceit ?? 0,
       }),
-      description:
-        (result?.withFaceit ?? 0) === 0
-          ? t("pages.settings.application.players.faceit_levels_none_in_db")
-          : t("pages.settings.application.players.faceit_levels_fetched", {
-              fetched: result?.faceitFetched ?? 0,
-            }),
+      description,
     });
   } catch (error: any) {
     toast({
