@@ -379,18 +379,18 @@ function avatarFallback(name: string) {
         class="relative z-10 mx-auto grid min-h-[min(100svh,920px)] max-w-7xl items-center gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1fr] lg:gap-24 lg:px-10 lg:py-20"
       >
         <div class="flex flex-col items-start gap-5 sm:gap-7">
-          <div class="flex items-center gap-3">
+          <div class="landing-brand flex items-center gap-3">
             <img
               v-if="logoUrl"
               :src="logoUrl"
               :alt="displayBrand"
-              class="h-8 w-8 object-contain sm:h-9 sm:w-9"
+              class="landing-brand__mark h-8 w-8 object-contain sm:h-9 sm:w-9"
             />
             <NuxtImg
               v-else
               src="/favicon/64.png"
               :alt="displayBrand"
-              class="h-8 w-8 object-contain sm:h-9 sm:w-9"
+              class="landing-brand__mark h-8 w-8 object-contain sm:h-9 sm:w-9"
             />
             <span
               class="font-sans text-[1rem] font-black uppercase tracking-[0.12em] text-[#060606] sm:text-[1.2rem]"
@@ -402,55 +402,39 @@ function avatarFallback(name: string) {
           <h1
             class="landing-hero-title m-0 font-black uppercase leading-[0.92] tracking-[-0.03em] text-[#060606]"
           >
-            <span class="block">{{ copy.challengeYour }}</span>
-            <span
-              class="relative mt-1 block min-h-[1.05em] text-[#aa0e19]"
-              :key="activeWord"
-            >
-              {{ activeWord }}
+            <span class="landing-hero-title__line block">{{
+              copy.challengeYour
+            }}</span>
+            <span class="landing-hero-word relative mt-1 block min-h-[1.05em]">
+              <span
+                :key="activeWord"
+                class="landing-hero-word__text text-[#aa0e19]"
+              >
+                {{ activeWord }}
+              </span>
             </span>
           </h1>
 
           <p
-            class="m-0 max-w-xl text-[0.95rem] leading-[1.5] text-[#4a4a4a] sm:text-[1.125rem] sm:leading-[1.45]"
+            class="landing-hero-sub m-0 max-w-xl text-[0.95rem] leading-[1.5] text-[#4a4a4a] sm:text-[1.125rem] sm:leading-[1.45]"
           >
             {{ copy.subtitle }}
           </p>
 
           <div
-            class="flex w-full flex-col items-stretch gap-3 pt-1 sm:w-auto sm:items-start"
+            class="landing-hero-actions flex w-full flex-col items-stretch gap-3 pt-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
           >
-            <div
-              class="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
+            <button
+              type="button"
+              class="landing-cta-primary inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#aa0e19] px-5 py-3.5 font-sans text-[0.85rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px sm:px-6 sm:py-4 sm:text-[0.9rem]"
+              @click="loginWithSteam('/play')"
             >
-              <button
-                type="button"
-                class="landing-cta-primary inline-flex items-center justify-center gap-2 rounded-[4px] bg-[#aa0e19] px-5 py-3.5 font-sans text-[0.85rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px sm:px-6 sm:py-4 sm:text-[0.9rem]"
-                @click="loginWithSteam('/play')"
-              >
-                <span
-                  aria-hidden="true"
-                  class="inline-block h-0 w-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#060606]"
-                ></span>
-                {{ copy.cta }}
-              </button>
-              <a
-                class="landing-cta-ghost inline-flex items-center justify-center rounded-[4px] border border-[#060606]/35 bg-transparent px-4 py-3.5 font-sans text-[0.78rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-colors hover:bg-[#060606] hover:text-[#ccc] sm:px-5 sm:py-4 sm:text-[0.82rem]"
-                :href="CLIENT_ZIP"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ copy.ctaClient }}
-              </a>
-              <a
-                class="landing-cta-ghost inline-flex items-center justify-center rounded-[4px] border border-[#060606]/35 bg-transparent px-4 py-3.5 font-sans text-[0.78rem] font-black uppercase tracking-[0.06em] text-[#060606] transition-colors hover:bg-[#060606] hover:text-[#ccc] sm:px-5 sm:py-4 sm:text-[0.82rem]"
-                :href="AC_ZIP"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ copy.ctaAc }}
-              </a>
-            </div>
+              <span
+                aria-hidden="true"
+                class="inline-block h-0 w-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#060606]"
+              ></span>
+              {{ copy.cta }}
+            </button>
 
             <!-- Faceit OnlineTextContainer: 9px #05ff00 dot + bold count + regular label -->
             <div
@@ -472,6 +456,7 @@ function avatarFallback(name: string) {
         <div
           class="landing-podium relative mx-auto flex w-full max-w-[22rem] items-end justify-center gap-2 sm:max-w-lg sm:gap-3 lg:mx-0 lg:max-w-none lg:justify-end"
         >
+          <div aria-hidden="true" class="landing-podium__glow" />
           <div
             v-for="card in heroCards"
             :key="card.slot"
@@ -773,6 +758,7 @@ function avatarFallback(name: string) {
   position: relative;
   background-color: #cccccc;
   min-height: min(100svh, 720px);
+  overflow: hidden;
 }
 
 .landing-hero__bg {
@@ -786,6 +772,25 @@ function avatarFallback(name: string) {
   pointer-events: none;
 }
 
+.landing-root--motion .landing-hero__bg {
+  animation: landing-bg-drift 18s ease-in-out infinite alternate;
+}
+
+.landing-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 40%, rgba(170, 14, 25, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(204, 204, 204, 0.05) 0%, rgba(204, 204, 204, 0.35) 100%);
+}
+
+.landing-hero > .relative {
+  z-index: 2;
+}
+
 @media (min-width: 640px) {
   .landing-hero {
     min-height: 600px;
@@ -796,6 +801,68 @@ function avatarFallback(name: string) {
   font-family: inherit;
   font-size: clamp(2.15rem, 9vw, 4.85rem);
   word-break: break-word;
+}
+
+.landing-hero-word {
+  overflow: hidden;
+}
+
+.landing-hero-word__text {
+  display: inline-block;
+}
+
+.landing-podium__glow {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  z-index: 0;
+  width: 70%;
+  height: 42%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(170, 14, 25, 0.35),
+    transparent 70%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.landing-root--motion .landing-podium__glow {
+  animation: landing-glow-breathe 4.5s ease-in-out infinite;
+}
+
+.landing-root--motion .landing-brand {
+  animation: landing-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-root--motion .landing-brand__mark {
+  animation: landing-spin-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-root--motion .landing-hero-title__line {
+  animation: landing-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.landing-root--motion .landing-hero-word__text {
+  animation: landing-word-swap 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-root--motion .landing-hero-sub {
+  animation: landing-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+}
+
+.landing-root--motion .landing-hero-actions {
+  animation: landing-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+
+.landing-root--motion .landing-podium {
+  animation: landing-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.landing-root--motion .landing-online__dot {
+  animation: landing-dot-pulse 1.6s ease-in-out infinite;
 }
 
 .landing-online {
@@ -847,16 +914,41 @@ function avatarFallback(name: string) {
 }
 
 .landing-root--motion .landing-card {
-  animation: landing-float 5.5s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+  animation:
+    landing-card-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both,
+    landing-float 5.5s ease-in-out infinite;
 }
 .landing-root--motion .landing-card--left {
-  animation-delay: 0s;
+  animation-delay: 0.1s, 0s;
 }
 .landing-root--motion .landing-card--you {
-  animation-delay: 0.4s;
+  animation-delay: 0.22s, 0.4s;
 }
 .landing-root--motion .landing-card--right {
-  animation-delay: 0.8s;
+  animation-delay: 0.34s, 0.8s;
+}
+
+.landing-root--motion .landing-card--you::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(170, 14, 25, 0.75),
+    transparent 40%,
+    rgba(170, 14, 25, 0.35)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: landing-border-spin 6s linear infinite;
 }
 
 .landing-root--motion .landing-feature {
@@ -871,13 +963,99 @@ function avatarFallback(name: string) {
   animation: landing-cta-pulse 2.8s ease-in-out infinite;
 }
 
+@keyframes landing-bg-drift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1.5%, 1%, 0);
+  }
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-spin-in {
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes landing-word-swap {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em) skewY(4deg);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) skewY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes landing-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes landing-float {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes landing-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(-50%) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+@keyframes landing-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(5, 255, 0, 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(5, 255, 0, 0);
+    transform: scale(1.15);
+  }
+}
+
+@keyframes landing-border-spin {
+  to {
+    filter: hue-rotate(25deg);
+    opacity: 0.85;
   }
 }
 
@@ -895,10 +1073,10 @@ function avatarFallback(name: string) {
 @keyframes landing-cta-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(170, 14, 25, 0.35);
+    box-shadow: 0 0 0 0 rgba(170, 14, 25, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(170, 14, 25, 0);
+    box-shadow: 0 0 0 12px rgba(170, 14, 25, 0);
   }
 }
 
@@ -906,7 +1084,18 @@ function avatarFallback(name: string) {
   .landing-root--motion .landing-card,
   .landing-root--motion .landing-feature,
   .landing-root--motion .landing-download,
-  .landing-root--motion .landing-cta-primary {
+  .landing-root--motion .landing-cta-primary,
+  .landing-root--motion .landing-brand,
+  .landing-root--motion .landing-brand__mark,
+  .landing-root--motion .landing-hero-title__line,
+  .landing-root--motion .landing-hero-word__text,
+  .landing-root--motion .landing-hero-sub,
+  .landing-root--motion .landing-hero-actions,
+  .landing-root--motion .landing-podium,
+  .landing-root--motion .landing-podium__glow,
+  .landing-root--motion .landing-hero__bg,
+  .landing-root--motion .landing-online__dot,
+  .landing-root--motion .landing-card--you::before {
     animation: none;
   }
   .landing-root--motion .landing-online__count {
