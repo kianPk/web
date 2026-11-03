@@ -10,6 +10,7 @@ import {
   Swords,
   Trophy,
   Medal,
+  KeyRound,
   Minus,
   Square,
   X,
@@ -148,6 +149,12 @@ const rail = computed<RailItem[]>(() => {
       label: t("layouts.launcher.nav.clubs"),
     },
     {
+      id: "gamenet",
+      to: { path: "/launcher/gamenet", query: q },
+      icon: KeyRound,
+      label: t("layouts.launcher.nav.gamenet"),
+    },
+    {
       id: "scrims",
       to: { path: "/launcher/scrims", query: q },
       icon: Swords,
@@ -182,6 +189,7 @@ const activeId = computed(() => {
   if (path.startsWith("/tournaments")) return "tournaments";
   if (path.startsWith("/leaderboard")) return "leaderboard";
   if (path.startsWith("/clubs")) return "clubs";
+  if (path.startsWith("/launcher/gamenet")) return "gamenet";
   if (path.startsWith("/scrims") || path.startsWith("/teams")) return "scrims";
   if (path.startsWith("/battle-pass") || path.startsWith("/store")) {
     return "battle-pass";

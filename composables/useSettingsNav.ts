@@ -62,6 +62,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
             labelKey: "pages.settings.application.bans.title",
             order: 4,
           },
+          {
+            path: "/settings/application/gamenet",
+            labelKey: "pages.settings.application.gamenet.title",
+            order: 5,
+          },
         ],
       },
       {
